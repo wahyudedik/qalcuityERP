@@ -2,19 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\RatePlan;
+use App\Models\CompetitorRate;
 use App\Models\DynamicPricingRule;
 use App\Models\OccupancyForecast;
-use App\Models\CompetitorRate;
-use App\Models\SpecialEvent;
+use App\Models\RatePlan;
 use App\Models\RoomType;
+use App\Models\SpecialEvent;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 /**
  * DynamicPricingEngine - Advanced pricing calculation engine
- * 
+ *
  * Features:
  * - Occupancy-based pricing adjustments
  * - Competitor rate analysis
@@ -26,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 class DynamicPricingEngine
 {
     private int $tenantId;
+
     private array $cache = [];
 
     public function __construct(int $tenantId)
@@ -43,7 +42,7 @@ class DynamicPricingEngine
         array $context = []
     ): array {
         $roomType = RoomType::find($roomTypeId);
-        if (!$roomType) {
+        if (! $roomType) {
             throw new \InvalidArgumentException('Room type not found');
         }
 
@@ -164,6 +163,7 @@ class DynamicPricingEngine
 
         // Fallback to room type base rate
         $roomType = RoomType::find($roomTypeId);
+
         return $roomType?->base_rate ?? 0;
     }
 
@@ -177,7 +177,7 @@ class DynamicPricingEngine
             ->where('forecast_date', $date->format('Y-m-d'))
             ->first();
 
-        if (!$forecast) {
+        if (! $forecast) {
             return 0;
         }
 
@@ -321,7 +321,7 @@ class DynamicPricingEngine
                     : $rule->adjustment_value;
 
                 $adjustments[] = [
-                    'type' => 'rule:' . $rule->rule_type,
+                    'type' => 'rule:'.$rule->rule_type,
                     'description' => $rule->name,
                     'amount' => round($amount, 2),
                     'rule_id' => $rule->id,
@@ -338,7 +338,7 @@ class DynamicPricingEngine
     private function applyRateBounds(float $rate, int $roomTypeId): float
     {
         $roomType = RoomType::find($roomTypeId);
-        if (!$roomType) {
+        if (! $roomType) {
             return max(0, $rate);
         }
 

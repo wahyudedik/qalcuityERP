@@ -15,16 +15,23 @@ class ConsignmentShipmentItem extends Model
     protected function casts(): array
     {
         return [
-            'quantity_sent'     => 'decimal:3',
-            'quantity_sold'     => 'decimal:3',
+            'quantity_sent' => 'decimal:3',
+            'quantity_sold' => 'decimal:3',
             'quantity_returned' => 'decimal:3',
-            'cost_price'        => 'decimal:2',
-            'retail_price'      => 'decimal:2',
+            'cost_price' => 'decimal:2',
+            'retail_price' => 'decimal:2',
         ];
     }
 
-    public function shipment(): BelongsTo { return $this->belongsTo(ConsignmentShipment::class, 'consignment_shipment_id'); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function shipment(): BelongsTo
+    {
+        return $this->belongsTo(ConsignmentShipment::class, 'consignment_shipment_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     public function remainingQty(): float
     {

@@ -71,7 +71,7 @@ class HealthEducationController extends Controller
         $validated['author_id'] = auth()->id();
         $validated['tenant_id'] = $tenantId;
 
-        if ($request->status === 'published' && !$validated['published_at']) {
+        if ($request->status === 'published' && ! $validated['published_at']) {
             $validated['published_at'] = now();
         }
 
@@ -87,6 +87,7 @@ class HealthEducationController extends Controller
     public function show(HealthEducation $healthEducation)
     {
         $healthEducation->increment('view_count');
+
         return view('healthcare.health-education.show', compact('healthEducation'));
     }
 

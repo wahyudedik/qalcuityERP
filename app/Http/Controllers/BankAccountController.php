@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BankAccount;
 use App\Models\ActivityLog;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
 
 class BankAccountController extends Controller
@@ -12,14 +12,14 @@ class BankAccountController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = BankAccount::where('tenant_id', $tid)
             ->withCount('statements')
             ->withSum('statements', 'amount');
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q
+            $query->where(fn ($q) => $q
                 ->where('bank_name', 'like', "%$s%")
                 ->orWhere('account_number', 'like', "%$s%")
                 ->orWhere('account_name', 'like', "%$s%")
@@ -31,10 +31,10 @@ class BankAccountController extends Controller
             $query->where('is_active', false);
         }
 
-        $accounts       = $query->orderBy('bank_name')->paginate(20)->withQueryString();
-        $totalAccounts  = BankAccount::where('tenant_id', $tid)->count();
+        $accounts = $query->orderBy('bank_name')->paginate(20)->withQueryString();
+        $totalAccounts = BankAccount::where('tenant_id', $tid)->count();
         $activeAccounts = BankAccount::where('tenant_id', $tid)->where('is_active', true)->count();
-        $totalBalance   = BankAccount::where('tenant_id', $tid)->where('is_active', true)->sum('balance');
+        $totalBalance = BankAccount::where('tenant_id', $tid)->where('is_active', true)->sum('balance');
 
         return view('bank-accounts.index', compact('accounts', 'totalAccounts', 'activeAccounts', 'totalBalance'));
     }
@@ -42,12 +42,12 @@ class BankAccountController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'bank_name'      => 'required|string|max:100',
+            'bank_name' => 'required|string|max:100',
             'account_number' => 'required|string|max:50',
-            'account_name'   => 'required|string|max:100',
-            'balance'        => 'nullable|numeric|min:0',
-            'currency'       => 'nullable|string|max:10',
-            'description'    => 'nullable|string|max:255',
+            'account_name' => 'required|string|max:100',
+            'balance' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:10',
+            'description' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tenantId();
@@ -57,12 +57,12 @@ class BankAccountController extends Controller
         }
 
         $account = BankAccount::create([
-            'tenant_id'      => $tid,
-            'bank_name'      => $data['bank_name'],
+            'tenant_id' => $tid,
+            'bank_name' => $data['bank_name'],
             'account_number' => $data['account_number'],
-            'account_name'   => $data['account_name'],
-            'balance'        => $data['balance'] ?? 0,
-            'is_active'      => true,
+            'account_name' => $data['account_name'],
+            'balance' => $data['balance'] ?? 0,
+            'is_active' => true,
         ]);
 
         ActivityLog::record('bank_account_created', "Rekening baru: {$account->bank_name} - {$account->account_number}", $account, [], $account->toArray());
@@ -75,10 +75,10 @@ class BankAccountController extends Controller
         abort_unless($bankAccount->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'bank_name'    => 'required|string|max:100',
+            'bank_name' => 'required|string|max:100',
             'account_name' => 'required|string|max:100',
-            'balance'      => 'nullable|numeric|min:0',
-            'description'  => 'nullable|string|max:255',
+            'balance' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string|max:255',
         ]);
 
         $old = $bankAccount->getOriginal();
@@ -91,8 +91,9 @@ class BankAccountController extends Controller
     public function toggleActive(BankAccount $bankAccount)
     {
         abort_unless($bankAccount->tenant_id === $this->tenantId(), 403);
-        $bankAccount->update(['is_active' => !$bankAccount->is_active]);
+        $bankAccount->update(['is_active' => ! $bankAccount->is_active]);
         $status = $bankAccount->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
         return back()->with('success', "Rekening {$bankAccount->bank_name} berhasil {$status}.");
     }
 
@@ -103,6 +104,7 @@ class BankAccountController extends Controller
         if ($bankAccount->statements()->exists()) {
             $bankAccount->update(['is_active' => false]);
             ActivityLog::record('bank_account_deactivated', "Rekening dinonaktifkan (ada mutasi): {$bankAccount->bank_name} - {$bankAccount->account_number}", $bankAccount);
+
             return back()->with('success', 'Rekening dinonaktifkan karena memiliki riwayat mutasi.');
         }
 

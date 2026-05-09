@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - Distribution Channel Management Module.
      */
     public function up(): void
     {
         // 1. Distribution Channels - Channel types (retail, online, distributor, reseller)
-        if (!Schema::hasTable('distribution_channels')) {
+        if (! Schema::hasTable('distribution_channels')) {
             Schema::create('distribution_channels', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -27,14 +28,14 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'channel_type']);
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // 2. Channel Pricing - Different prices per channel
-        if (!Schema::hasTable('channel_pricing')) {
+        if (! Schema::hasTable('channel_pricing')) {
             Schema::create('channel_pricing', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -49,14 +50,14 @@ return new class extends Migration {
                 $table->date('expiry_date')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->unique(['channel_id', 'formula_id']);
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // 3. Channel Inventory - Stock allocation per channel
-        if (!Schema::hasTable('channel_inventory')) {
+        if (! Schema::hasTable('channel_inventory')) {
             Schema::create('channel_inventory', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -68,14 +69,14 @@ return new class extends Migration {
                 $table->decimal('reserved_stock', 10, 2)->default(0);
                 $table->date('last_restock_date')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['channel_id', 'formula_id']);
                 $table->index(['tenant_id', 'available_stock']);
             });
         }
 
         // 4. Channel Sales Performance - Sales tracking & analytics
-        if (!Schema::hasTable('channel_sales_performance')) {
+        if (! Schema::hasTable('channel_sales_performance')) {
             Schema::create('channel_sales_performance', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -89,7 +90,7 @@ return new class extends Migration {
                 $table->integer('order_count')->default(0);
                 $table->json('top_products')->nullable(); // Top selling products
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'channel_id']);
                 $table->index(['tenant_id', 'sale_date']);
             });

@@ -18,22 +18,27 @@ class SendAiDigest implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 60;
 
     public function __construct(
-        public readonly int    $tenantId,
+        public readonly int $tenantId,
         public readonly string $period = 'daily',
-        public readonly ?int   $userId = null,
+        public readonly ?int $userId = null,
     ) {}
 
     public function handle(AiInsightService $service): void
     {
         $tenant = Tenant::find($this->tenantId);
-        if (!$tenant || !$tenant->canAccess()) return;
+        if (! $tenant || ! $tenant->canAccess()) {
+            return;
+        }
 
         $insights = $service->analyze($this->tenantId);
-        if (empty($insights)) return;
+        if (empty($insights)) {
+            return;
+        }
 
         // Get users who should receive digest — optionally scoped to a single user
         $query = User::where('tenant_id', $this->tenantId)
@@ -49,10 +54,14 @@ class SendAiDigest implements ShouldQueue
         $sent = 0;
         foreach ($users as $user) {
             // Check per-user frequency preference against today's schedule
-            if (!$this->shouldSendToday($user)) continue;
+            if (! $this->shouldSendToday($user)) {
+                continue;
+            }
 
             // Check notification preference for ai_digest via email channel
-            if (!NotificationPreference::isEnabled($user->id, 'ai_digest', 'email')) continue;
+            if (! NotificationPreference::isEnabled($user->id, 'ai_digest', 'email')) {
+                continue;
+            }
 
             $user->notify(new AiDigestNotification($tenant, $insights, $this->period));
             $sent++;
@@ -68,10 +77,10 @@ class SendAiDigest implements ShouldQueue
     private function shouldSendToday(User $user): bool
     {
         return match ($user->digest_frequency) {
-            'daily'   => true,
-            'weekly'  => strtolower(now()->format('l')) === strtolower($user->digest_day ?? ''),
+            'daily' => true,
+            'weekly' => strtolower(now()->format('l')) === strtolower($user->digest_day ?? ''),
             'monthly' => now()->day === 1,
-            default   => false,
+            default => false,
         };
     }
 }

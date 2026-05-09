@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\RadiologyExam;
-use App\Models\RadiologyImage;
 use App\Models\PACSStudy;
+use App\Models\RadiologyExam;
 use Illuminate\Http\Request;
 
 class RadiologyController extends Controller
@@ -137,7 +136,7 @@ class RadiologyController extends Controller
         $uploadedImages = [];
 
         foreach ($request->file('images') as $image) {
-            $path = $image->store('radiology/' . $exam->id, 'public');
+            $path = $image->store('radiology/'.$exam->id, 'public');
 
             $radiologyImage = $exam->images()->create([
                 'patient_id' => $exam->patient_id,
@@ -150,7 +149,7 @@ class RadiologyController extends Controller
             $uploadedImages[] = $radiologyImage;
         }
 
-        return back()->with('success', count($uploadedImages) . ' images uploaded successfully');
+        return back()->with('success', count($uploadedImages).' images uploaded successfully');
     }
 
     /**

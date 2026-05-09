@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,23 +13,23 @@ return new class extends Migration {
     {
         Schema::table('network_devices', function (Blueprint $table) {
             // Add location name field
-            if (!Schema::hasColumn('network_devices', 'location')) {
+            if (! Schema::hasColumn('network_devices', 'location')) {
                 $table->string('location')->nullable()->after('notes')
                     ->comment('Location name (e.g., "Tower A - Jakarta Selatan")');
             }
 
             // Add GPS coordinates
-            if (!Schema::hasColumn('network_devices', 'latitude')) {
+            if (! Schema::hasColumn('network_devices', 'latitude')) {
                 $table->decimal('latitude', 10, 7)->nullable()->after('location')
                     ->comment('Latitude coordinate (-90 to 90)');
             }
-            if (!Schema::hasColumn('network_devices', 'longitude')) {
+            if (! Schema::hasColumn('network_devices', 'longitude')) {
                 $table->decimal('longitude', 10, 7)->nullable()->after('latitude')
                     ->comment('Longitude coordinate (-180 to 180)');
             }
 
             // Add coverage radius in meters
-            if (!Schema::hasColumn('network_devices', 'coverage_radius')) {
+            if (! Schema::hasColumn('network_devices', 'coverage_radius')) {
                 $table->integer('coverage_radius')->nullable()->after('longitude')
                     ->comment('Coverage radius in meters (1-50000)');
             }

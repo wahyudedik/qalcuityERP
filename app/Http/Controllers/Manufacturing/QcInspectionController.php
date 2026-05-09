@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * QC Inspection Controller
- * 
+ *
  * TASK-2.21: Build QC result recording UI
  */
 class QcInspectionController extends Controller

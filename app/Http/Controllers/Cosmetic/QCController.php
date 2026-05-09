@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
+use App\Models\CoaCertificate;
+use App\Models\CosmeticBatchRecord;
+use App\Models\OosInvestigation;
 use App\Models\QCTestResult;
 use App\Models\QCTestTemplate;
-use App\Models\CoaCertificate;
-use App\Models\OosInvestigation;
-use App\Models\CosmeticBatchRecord;
 use Illuminate\Http\Request;
 
 class QCController extends Controller
@@ -32,9 +32,9 @@ class QCController extends Controller
         // Tests with filters
         $tests = QCTestResult::where('tenant_id', $tenantId)
             ->with(['batch', 'template', 'tester'])
-            ->when($request->category, fn($q) => $q->where('test_category', $request->category))
-            ->when($request->result, fn($q) => $q->where('result', $request->result))
-            ->when($request->search, fn($q) => $q->where('test_code', 'like', "%{$request->search}%"))
+            ->when($request->category, fn ($q) => $q->where('test_category', $request->category))
+            ->when($request->result, fn ($q) => $q->where('result', $request->result))
+            ->when($request->search, fn ($q) => $q->where('test_code', 'like', "%{$request->search}%"))
             ->latest('test_date')
             ->paginate(20);
 
@@ -147,12 +147,12 @@ class QCController extends Controller
 
         $coas = CoaCertificate::where('tenant_id', $tenantId)
             ->with(['batch', 'issuer', 'approver'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest('issue_date')
             ->paginate(20);
 
         $batches = CosmeticBatchRecord::where('tenant_id', $tenantId)
-            ->whereHas('qualityChecks', fn($q) => $q->where('result', 'pass'))
+            ->whereHas('qualityChecks', fn ($q) => $q->where('result', 'pass'))
             ->get();
 
         return view('cosmetic.qc.coa', compact('stats', 'coas', 'batches'));
@@ -200,8 +200,8 @@ class QCController extends Controller
 
         $oosList = OosInvestigation::where('tenant_id', $tenantId)
             ->with(['batch', 'testResult', 'assignee', 'investigator'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->severity, fn($q) => $q->where('severity', $request->severity))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->severity, fn ($q) => $q->where('severity', $request->severity))
             ->latest('discovery_date')
             ->paginate(20);
 

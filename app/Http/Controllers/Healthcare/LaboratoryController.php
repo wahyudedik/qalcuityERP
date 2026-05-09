@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\LabOrder;
-use App\Models\LabTestCatalog;
-use App\Models\LabSample;
 use App\Models\LabResult;
+use App\Models\LabTestCatalog;
+use App\Models\MedicalEquipment;
 use Illuminate\Http\Request;
 
 class LaboratoryController extends Controller
@@ -190,7 +190,7 @@ class LaboratoryController extends Controller
 
         $result = $order->results()->latest()->first();
 
-        if (!$result) {
+        if (! $result) {
             return back()->with('error', 'No results found to validate');
         }
 
@@ -259,7 +259,7 @@ class LaboratoryController extends Controller
     public function equipment()
     {
         // This would integrate with medical_equipment table
-        $equipment = \App\Models\MedicalEquipment::where('equipment_type', 'laboratory')
+        $equipment = MedicalEquipment::where('equipment_type', 'laboratory')
             ->get();
 
         return view('healthcare.laboratory.equipment', compact('equipment'));

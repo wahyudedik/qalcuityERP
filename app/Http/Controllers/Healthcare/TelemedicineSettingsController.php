@@ -87,7 +87,7 @@ class TelemedicineSettingsController extends Controller
 
         try {
             // Test if Jitsi server is accessible
-            $response = Http::timeout(10)->get($url . '/http-bind');
+            $response = Http::timeout(10)->get($url.'/http-bind');
 
             if ($response->successful() || $response->status() === 405) {
                 // 405 is expected for http-bind endpoint
@@ -100,7 +100,7 @@ class TelemedicineSettingsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Jitsi server responded with unexpected status: ' . $response->status(),
+                'message' => 'Jitsi server responded with unexpected status: '.$response->status(),
             ], 400);
 
         } catch (\Exception $e) {
@@ -111,7 +111,7 @@ class TelemedicineSettingsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to connect to Jitsi server: ' . $e->getMessage(),
+                'message' => 'Failed to connect to Jitsi server: '.$e->getMessage(),
             ], 500);
         }
     }

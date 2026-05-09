@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -14,9 +15,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('patients', 'tenant_id')) {
+        if (! Schema::hasColumn('patients', 'tenant_id')) {
             Schema::table('patients', function (Blueprint $table) {
-                if (!Schema::hasColumn('patients', 'tenant_id')) {
+                if (! Schema::hasColumn('patients', 'tenant_id')) {
                     $table->foreignId('tenant_id')->after('id')->constrained('tenants')->onDelete('cascade');
                 }
                 $table->index('tenant_id');

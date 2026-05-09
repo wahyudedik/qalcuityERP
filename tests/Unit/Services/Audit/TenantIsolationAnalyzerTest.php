@@ -26,7 +26,7 @@ class TenantIsolationAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/tenant_isolation_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/tenant_isolation_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -206,7 +206,7 @@ PHP);
 
         $missingFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Invoice')
+            fn (AuditFinding $f) => str_contains($f->title, 'Invoice')
         );
 
         $this->assertNotEmpty($missingFindings);
@@ -256,7 +256,7 @@ PHP);
 
         $productFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Product')
+            fn (AuditFinding $f) => str_contains($f->title, 'Product')
         );
 
         $this->assertEmpty($productFindings);
@@ -283,7 +283,7 @@ PHP);
 
         $missingMiddleware = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing EnforceTenantIsolation')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing EnforceTenantIsolation')
         );
 
         $this->assertNotEmpty($missingMiddleware);
@@ -315,7 +315,7 @@ PHP);
 
         $rawFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => $f->metadata['check'] === 'raw_query_tenant'
+            fn (AuditFinding $f) => $f->metadata['check'] === 'raw_query_tenant'
         );
 
         $this->assertNotEmpty($rawFindings);
@@ -400,7 +400,7 @@ PHP);
 
     public function test_detects_cache_key_without_tenant_id(): void
     {
-        $cacheFile = $this->fixtureDir . '/cache_services/DashboardCacheService.php';
+        $cacheFile = $this->fixtureDir.'/cache_services/DashboardCacheService.php';
         mkdir(dirname($cacheFile), 0777, true);
         file_put_contents($cacheFile, <<<'PHP'
 <?php
@@ -419,11 +419,11 @@ class DashboardCacheService
 PHP);
 
         $analyzer = new TenantIsolationAnalyzer(
-            modelPath: $this->fixtureDir . '/models',
-            controllerPath: $this->fixtureDir . '/controllers',
-            servicePath: $this->fixtureDir . '/services',
-            middlewarePath: $this->fixtureDir . '/middleware',
-            jobPath: $this->fixtureDir . '/jobs',
+            modelPath: $this->fixtureDir.'/models',
+            controllerPath: $this->fixtureDir.'/controllers',
+            servicePath: $this->fixtureDir.'/services',
+            middlewarePath: $this->fixtureDir.'/middleware',
+            jobPath: $this->fixtureDir.'/jobs',
             basePath: $this->fixtureDir,
             cacheServiceFiles: [$cacheFile],
         );
@@ -432,7 +432,7 @@ PHP);
 
         $cacheFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => $f->metadata['check'] === 'cache_key_tenant'
+            fn (AuditFinding $f) => $f->metadata['check'] === 'cache_key_tenant'
         );
 
         $this->assertNotEmpty($cacheFindings);
@@ -442,7 +442,7 @@ PHP);
 
     public function test_does_not_flag_cache_key_with_tenant_id(): void
     {
-        $cacheFile = $this->fixtureDir . '/cache_services/QueryCacheService.php';
+        $cacheFile = $this->fixtureDir.'/cache_services/QueryCacheService.php';
         mkdir(dirname($cacheFile), 0777, true);
         file_put_contents($cacheFile, <<<'PHP'
 <?php
@@ -464,11 +464,11 @@ class QueryCacheService
 PHP);
 
         $analyzer = new TenantIsolationAnalyzer(
-            modelPath: $this->fixtureDir . '/models',
-            controllerPath: $this->fixtureDir . '/controllers',
-            servicePath: $this->fixtureDir . '/services',
-            middlewarePath: $this->fixtureDir . '/middleware',
-            jobPath: $this->fixtureDir . '/jobs',
+            modelPath: $this->fixtureDir.'/models',
+            controllerPath: $this->fixtureDir.'/controllers',
+            servicePath: $this->fixtureDir.'/services',
+            middlewarePath: $this->fixtureDir.'/middleware',
+            jobPath: $this->fixtureDir.'/jobs',
             basePath: $this->fixtureDir,
             cacheServiceFiles: [$cacheFile],
         );
@@ -480,7 +480,7 @@ PHP);
 
     public function test_detects_cache_put_without_tenant_id(): void
     {
-        $cacheFile = $this->fixtureDir . '/cache_services/CacheService.php';
+        $cacheFile = $this->fixtureDir.'/cache_services/CacheService.php';
         mkdir(dirname($cacheFile), 0777, true);
         file_put_contents($cacheFile, <<<'PHP'
 <?php
@@ -500,11 +500,11 @@ class CacheService
 PHP);
 
         $analyzer = new TenantIsolationAnalyzer(
-            modelPath: $this->fixtureDir . '/models',
-            controllerPath: $this->fixtureDir . '/controllers',
-            servicePath: $this->fixtureDir . '/services',
-            middlewarePath: $this->fixtureDir . '/middleware',
-            jobPath: $this->fixtureDir . '/jobs',
+            modelPath: $this->fixtureDir.'/models',
+            controllerPath: $this->fixtureDir.'/controllers',
+            servicePath: $this->fixtureDir.'/services',
+            middlewarePath: $this->fixtureDir.'/middleware',
+            jobPath: $this->fixtureDir.'/jobs',
             basePath: $this->fixtureDir,
             cacheServiceFiles: [$cacheFile],
         );
@@ -551,7 +551,7 @@ PHP);
 
         $jobFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => $f->metadata['check'] === 'queue_job_tenant'
+            fn (AuditFinding $f) => $f->metadata['check'] === 'queue_job_tenant'
         );
 
         $this->assertNotEmpty($jobFindings);
@@ -747,7 +747,7 @@ PHP);
         $findings = $analyzer->analyze();
 
         // Should have findings from multiple checks
-        $checks = array_unique(array_map(fn($f) => $f->metadata['check'], $findings));
+        $checks = array_unique(array_map(fn ($f) => $f->metadata['check'], $findings));
         $this->assertContains('model_trait_coverage', $checks);
         $this->assertContains('middleware_whitelist', $checks);
         $this->assertContains('raw_query_tenant', $checks);
@@ -803,11 +803,11 @@ PHP);
     private function makeAnalyzer(): TenantIsolationAnalyzer
     {
         return new TenantIsolationAnalyzer(
-            modelPath: $this->fixtureDir . '/models',
-            controllerPath: $this->fixtureDir . '/controllers',
-            servicePath: $this->fixtureDir . '/services',
-            middlewarePath: $this->fixtureDir . '/middleware',
-            jobPath: $this->fixtureDir . '/jobs',
+            modelPath: $this->fixtureDir.'/models',
+            controllerPath: $this->fixtureDir.'/controllers',
+            servicePath: $this->fixtureDir.'/services',
+            middlewarePath: $this->fixtureDir.'/middleware',
+            jobPath: $this->fixtureDir.'/jobs',
             basePath: $this->fixtureDir,
             cacheServiceFiles: [],
         );
@@ -815,9 +815,9 @@ PHP);
 
     private function writeFixture(string $relativePath, string $content): void
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -825,7 +825,7 @@ PHP);
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

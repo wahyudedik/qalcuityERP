@@ -36,7 +36,7 @@ class RedisAuthPreservationTest extends TestCase
      * **Validates: Requirements 3.1**
      */
     #[ErisRepeat(repeat: 3)]
-    public function testDatabaseSessionsWorkWhenRedisDisabled(): void
+    public function test_database_sessions_work_when_redis_disabled(): void
     {
         $this
             ->forAll(
@@ -44,19 +44,19 @@ class RedisAuthPreservationTest extends TestCase
                     'test_session_key_1',
                     'user_preferences',
                     'cart_items',
-                    'temp_data'
+                    'temp_data',
                 ]), // various session keys
                 Generators::elements([
                     'simple_string_value',
                     ['array' => 'value', 'nested' => ['data' => 123]],
                     42,
-                    true
+                    true,
                 ]), // various session values
                 Generators::elements([
                     'your_actual_redis_password_here',
                     'invalid_password',
                     null,
-                    ''
+                    '',
                 ]) // various Redis passwords (should not affect database sessions)
             )
             ->then(function ($sessionKey, $sessionValue, $redisPassword) {
@@ -77,21 +77,21 @@ class RedisAuthPreservationTest extends TestCase
                 $this->assertEquals(
                     $sessionValue,
                     $retrievedValue,
-                    "Database sessions should work regardless of Redis configuration. " .
-                        "Session key: {$sessionKey}, Redis password: " . ($redisPassword ?? 'null')
+                    'Database sessions should work regardless of Redis configuration. '.
+                        "Session key: {$sessionKey}, Redis password: ".($redisPassword ?? 'null')
                 );
 
                 // Verify session exists
                 $this->assertTrue(
                     Session::has($sessionKey),
-                    "Session should exist in database storage when Redis is disabled"
+                    'Session should exist in database storage when Redis is disabled'
                 );
 
                 // Test session removal
                 Session::forget($sessionKey);
                 $this->assertFalse(
                     Session::has($sessionKey),
-                    "Session should be removable from database storage"
+                    'Session should be removable from database storage'
                 );
             });
     }
@@ -107,7 +107,7 @@ class RedisAuthPreservationTest extends TestCase
      * **Validates: Requirements 3.2**
      */
     #[ErisRepeat(repeat: 3)]
-    public function testFileCacheWorksWithoutRedis(): void
+    public function test_file_cache_works_without_redis(): void
     {
         $this
             ->forAll(
@@ -115,13 +115,13 @@ class RedisAuthPreservationTest extends TestCase
                     'cache_key_1',
                     'user_data_cache',
                     'settings_cache',
-                    'temp_calculation'
+                    'temp_calculation',
                 ]), // various cache keys
                 Generators::elements([
                     'cached_string_value',
                     ['cached' => 'array', 'with' => ['nested' => 'data']],
                     999,
-                    false
+                    false,
                 ]), // various cache values
                 Generators::choose(1, 3600) // cache TTL in seconds
             )
@@ -142,21 +142,21 @@ class RedisAuthPreservationTest extends TestCase
                 $this->assertEquals(
                     $cacheValue,
                     $retrievedValue,
-                    "File cache should work independently of Redis configuration. " .
+                    'File cache should work independently of Redis configuration. '.
                         "Cache key: {$cacheKey}, TTL: {$ttl}"
                 );
 
                 // Verify cache exists
                 $this->assertTrue(
                     Cache::has($cacheKey),
-                    "Cache should exist in file storage without Redis dependency"
+                    'Cache should exist in file storage without Redis dependency'
                 );
 
                 // Test cache removal
                 Cache::forget($cacheKey);
                 $this->assertFalse(
                     Cache::has($cacheKey),
-                    "Cache should be removable from file storage"
+                    'Cache should be removable from file storage'
                 );
             });
     }
@@ -172,24 +172,24 @@ class RedisAuthPreservationTest extends TestCase
      * **Validates: Requirements 3.3**
      */
     #[ErisRepeat(repeat: 3)]
-    public function testRedisWorksWithoutAuthenticationInDevelopment(): void
+    public function test_redis_works_without_authentication_in_development(): void
     {
         $this
             ->forAll(
                 Generators::elements([
                     null,
                     '',
-                    false
+                    false,
                 ]), // no password scenarios (development Redis without auth)
                 Generators::elements([
                     'dev_session_key',
                     'dev_cache_key',
-                    'dev_temp_data'
+                    'dev_temp_data',
                 ]), // various keys for development testing
                 Generators::elements([
                     'development_value',
                     ['dev' => 'data'],
-                    123
+                    123,
                 ]) // various values
             )
             ->then(function ($noPassword, $testKey, $testValue) {
@@ -208,29 +208,29 @@ class RedisAuthPreservationTest extends TestCase
                     Config::set('cache.default', 'redis');
 
                     // Test session operations
-                    Session::put($testKey . '_session', $testValue);
+                    Session::put($testKey.'_session', $testValue);
                     Session::save();
 
-                    $sessionValue = Session::get($testKey . '_session');
+                    $sessionValue = Session::get($testKey.'_session');
                     $this->assertEquals(
                         $testValue,
                         $sessionValue,
-                        "Redis sessions should work without authentication in development"
+                        'Redis sessions should work without authentication in development'
                     );
 
                     // Test cache operations
-                    Cache::put($testKey . '_cache', $testValue, 60);
-                    $cacheValue = Cache::get($testKey . '_cache');
+                    Cache::put($testKey.'_cache', $testValue, 60);
+                    $cacheValue = Cache::get($testKey.'_cache');
 
                     $this->assertEquals(
                         $testValue,
                         $cacheValue,
-                        "Redis cache should work without authentication in development"
+                        'Redis cache should work without authentication in development'
                     );
                 } catch (\Exception $e) {
                     // If Redis is not available or requires auth, skip this test
                     $this->markTestSkipped(
-                        "Redis server not available or requires authentication: " . $e->getMessage()
+                        'Redis server not available or requires authentication: '.$e->getMessage()
                     );
                 }
             });
@@ -247,23 +247,23 @@ class RedisAuthPreservationTest extends TestCase
      * **Validates: Requirements 3.4**
      */
     #[ErisRepeat(repeat: 3)]
-    public function testDatabaseOperationsContinueWithoutRedis(): void
+    public function test_database_operations_continue_without_redis(): void
     {
         $this
             ->forAll(
                 Generators::elements([
                     'database',
                     'file',
-                    'array'
+                    'array',
                 ]), // non-Redis cache drivers
                 Generators::elements([
                     'database',
-                    'file'
+                    'file',
                 ]), // non-Redis session drivers
                 Generators::elements([
                     'your_actual_redis_password_here',
                     'completely_wrong_password',
-                    null
+                    null,
                 ]) // various Redis passwords (should not affect database operations)
             )
             ->then(function ($cacheDriver, $sessionDriver, $redisPassword) {
@@ -301,14 +301,14 @@ class RedisAuthPreservationTest extends TestCase
                 $appName = config('app.name');
                 $this->assertNotEmpty(
                     $appName,
-                    "Application configuration should be accessible regardless of Redis status"
+                    'Application configuration should be accessible regardless of Redis status'
                 );
 
                 // Test 4: Database connection works (simulates core ERP database operations)
                 $dbConnection = config('database.default');
                 $this->assertNotEmpty(
                     $dbConnection,
-                    "Database configuration should be accessible regardless of Redis status"
+                    'Database configuration should be accessible regardless of Redis status'
                 );
 
                 // Cleanup
@@ -329,7 +329,7 @@ class RedisAuthPreservationTest extends TestCase
      * **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
      */
     #[ErisRepeat(repeat: 5)]
-    public function testMixedConfigurationScenariosWork(): void
+    public function test_mixed_configuration_scenarios_work(): void
     {
         $this
             ->forAll(
@@ -338,17 +338,17 @@ class RedisAuthPreservationTest extends TestCase
                     ['session' => 'file', 'cache' => 'database'],
                     ['session' => 'database', 'cache' => 'database'],
                     ['session' => 'file', 'cache' => 'file'],
-                    ['session' => 'database', 'cache' => 'array']
+                    ['session' => 'database', 'cache' => 'array'],
                 ]), // various non-Redis driver combinations
                 Generators::elements([
                     true,
-                    false
+                    false,
                 ]), // Redis enabled/disabled flag
                 Generators::elements([
                     'valid_looking_password',
                     'your_actual_redis_password_here',
                     '',
-                    null
+                    null,
                 ]) // various Redis password scenarios
             )
             ->then(function ($drivers, $redisEnabled, $redisPassword) {
@@ -362,7 +362,7 @@ class RedisAuthPreservationTest extends TestCase
                 // Test that both session and cache work in this mixed configuration
                 $testData = [
                     'session_key' => 'mixed_config_session_value',
-                    'cache_key' => 'mixed_config_cache_value'
+                    'cache_key' => 'mixed_config_cache_value',
                 ];
 
                 // Session operations
@@ -372,9 +372,9 @@ class RedisAuthPreservationTest extends TestCase
                 $this->assertEquals(
                     $testData['session_key'],
                     Session::get('mixed_test_session'),
-                    "Session should work with {$drivers['session']} driver in mixed configuration. " .
-                        "Redis enabled: " . ($redisEnabled ? 'true' : 'false') .
-                        ", Redis password: " . ($redisPassword ?? 'null')
+                    "Session should work with {$drivers['session']} driver in mixed configuration. ".
+                        'Redis enabled: '.($redisEnabled ? 'true' : 'false').
+                        ', Redis password: '.($redisPassword ?? 'null')
                 );
 
                 // Cache operations
@@ -383,15 +383,15 @@ class RedisAuthPreservationTest extends TestCase
                 $this->assertEquals(
                     $testData['cache_key'],
                     Cache::get('mixed_test_cache'),
-                    "Cache should work with {$drivers['cache']} driver in mixed configuration. " .
-                        "Redis enabled: " . ($redisEnabled ? 'true' : 'false') .
-                        ", Redis password: " . ($redisPassword ?? 'null')
+                    "Cache should work with {$drivers['cache']} driver in mixed configuration. ".
+                        'Redis enabled: '.($redisEnabled ? 'true' : 'false').
+                        ', Redis password: '.($redisPassword ?? 'null')
                 );
 
                 // Verify both systems can coexist
                 $this->assertTrue(
                     Session::has('mixed_test_session') && Cache::has('mixed_test_cache'),
-                    "Both session and cache should work simultaneously in mixed configuration"
+                    'Both session and cache should work simultaneously in mixed configuration'
                 );
 
                 // Cleanup

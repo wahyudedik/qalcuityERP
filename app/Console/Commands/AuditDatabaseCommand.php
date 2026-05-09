@@ -13,17 +13,18 @@ class AuditDatabaseCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:database {--generate-migrations} {--dry-run} {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run database/schema audit and optionally generate migration files.';
 
     public function handle(ModelAnalyzer $modelAnalyzer, MigrationGeneratorService $migrationGenerator): int
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($modelAnalyzer->analyze());
 
         if ($this->option('generate-migrations') || $this->option('dry-run')) {
             $migration = $migrationGenerator->generateIndexMigration('users', ['tenant_id', 'created_at']);
             if ($this->option('dry-run')) {
-                $this->info('Dry-run migration preview: ' . $migration['filename']);
+                $this->info('Dry-run migration preview: '.$migration['filename']);
                 $this->line($migration['content']);
             } else {
                 $path = $migrationGenerator->writeMigrationFile($migration['filename'], $migration['content']);
@@ -32,7 +33,7 @@ class AuditDatabaseCommand extends Command
         }
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

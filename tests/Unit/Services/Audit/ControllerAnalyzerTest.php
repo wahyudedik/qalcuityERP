@@ -23,7 +23,7 @@ class ControllerAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/controller_analyzer_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/controller_analyzer_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -65,8 +65,7 @@ PHP);
 
         $errorFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing try-catch')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing try-catch')
         );
 
         $this->assertNotEmpty($errorFindings, 'Should detect missing try-catch in store()');
@@ -103,8 +102,7 @@ PHP);
 
         $errorFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing try-catch')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing try-catch')
         );
 
         $this->assertEmpty($errorFindings, 'Should not flag method with try-catch');
@@ -132,8 +130,7 @@ PHP);
 
         $errorFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing try-catch') && str_contains($f->title, 'index')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing try-catch') && str_contains($f->title, 'index')
         );
 
         $this->assertNotEmpty($errorFindings);
@@ -165,8 +162,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization')
         );
 
         $this->assertNotEmpty($authFindings, 'Should detect missing authorization in destroy()');
@@ -198,8 +194,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'update')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'update')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag method with abort_unless');
@@ -228,8 +223,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'update')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'update')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag method with abort_if');
@@ -258,8 +252,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'store')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'store')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag method with $this->authorize()');
@@ -290,8 +283,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'destroy')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'destroy')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag method with Gate::authorize()');
@@ -324,8 +316,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'store')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization') && str_contains($f->title, 'store')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag method when constructor has middleware');
@@ -358,8 +349,7 @@ PHP);
 
         $authFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) =>
-            str_contains($f->title, 'Missing authorization')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing authorization')
         );
 
         $this->assertEmpty($authFindings, 'Should not flag read-only methods for authorization');
@@ -442,7 +432,7 @@ PHP);
 
     public function test_scans_subdirectories(): void
     {
-        $subDir = $this->fixtureDir . '/Admin';
+        $subDir = $this->fixtureDir.'/Admin';
         mkdir($subDir, 0777, true);
 
         $this->writeFixture('Admin/AdminController.php', <<<'PHP'
@@ -552,9 +542,9 @@ PHP);
 
     private function writeFixture(string $relativePath, string $content): void
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -562,7 +552,7 @@ PHP);
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

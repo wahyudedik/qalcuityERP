@@ -8,7 +8,7 @@ use App\DTOs\Audit\Severity;
 class RoadmapGenerator
 {
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return array<string, mixed>
      */
     public function generate(array $findings): array
@@ -60,14 +60,14 @@ class RoadmapGenerator
     }
 
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return array<int, array<string, string>>
      */
     public function generatePermissionMatrix(array $findings): array
     {
         $rows = [];
         foreach ($findings as $finding) {
-            if (!in_array($finding->category, ['permission', 'route', 'security'], true)) {
+            if (! in_array($finding->category, ['permission', 'route', 'security'], true)) {
                 continue;
             }
 
@@ -83,14 +83,14 @@ class RoadmapGenerator
     }
 
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return array<int, array<string, string>>
      */
     public function generateCrudMatrix(array $findings): array
     {
         $rows = [];
         foreach ($findings as $finding) {
-            if (!in_array($finding->category, ['crud', 'model', 'controller'], true)) {
+            if (! in_array($finding->category, ['crud', 'model', 'controller'], true)) {
                 continue;
             }
 
@@ -105,14 +105,14 @@ class RoadmapGenerator
     }
 
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return array<int, array<string, string>>
      */
     public function generateMigrationPlan(array $findings): array
     {
         $rows = [];
         foreach ($findings as $finding) {
-            if (!in_array($finding->category, ['model', 'database', 'tenancy'], true)) {
+            if (! in_array($finding->category, ['model', 'database', 'tenancy'], true)) {
                 continue;
             }
 
@@ -127,7 +127,7 @@ class RoadmapGenerator
     }
 
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return AuditFinding[]
      */
     private function sortBySeverity(array $findings): array
@@ -147,7 +147,7 @@ class RoadmapGenerator
     }
 
     /**
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return array<string, array<int, string>>
      */
     private function groupByTimeframe(array $findings): array

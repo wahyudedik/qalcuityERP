@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\Employee;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ContractExpiryNotification extends Notification implements ShouldQueue
@@ -21,24 +22,24 @@ class ContractExpiryNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'contract_expiry', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $expiryDate = $this->employee->contract_end_date->format('d/m/Y');
-        
+
         return (new MailMessage)
             ->subject("⚠️ Kontrak Karyawan Akan Berakhir dalam {$this->daysUntilExpiry} Hari")
             ->greeting("Halo, {$notifiable->name}!")

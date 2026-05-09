@@ -77,12 +77,14 @@ class MinibarController extends Controller
     public function reservationCharges(int $reservationId)
     {
         $charges = $this->minibarService->getReservationCharges($reservationId);
+
         return view('hotel.fb.minibar.charges', compact('reservationId', 'charges'));
     }
 
     public function billAllCharges(int $reservationId)
     {
         $this->minibarService->billAllCharges($reservationId);
+
         return back()->with('success', 'All charges billed to reservation');
     }
 }

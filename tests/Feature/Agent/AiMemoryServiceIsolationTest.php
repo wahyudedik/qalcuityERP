@@ -29,7 +29,7 @@ class AiMemoryServiceIsolationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new AiMemoryService();
+        $this->service = new AiMemoryService;
     }
 
     // =========================================================================
@@ -43,7 +43,7 @@ class AiMemoryServiceIsolationTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 5)]
-    public function testMemoryIsolationPerTenantUser(): void
+    public function test_memory_isolation_per_tenant_user(): void
     {
         $this->forAll(
             // Nilai preferensi unik untuk tenant A / user A
@@ -52,8 +52,8 @@ class AiMemoryServiceIsolationTest extends TestCase
             Generators::elements('gudang_utara', 'gudang_selatan', 'gudang_pusat', 'gudang_barat'),
         )->then(function (string $paymentMethodA, string $warehouseB) {
             // Buat dua tenant yang berbeda
-            $tenantA = $this->createTenant(['name' => 'Tenant A ' . uniqid()]);
-            $tenantB = $this->createTenant(['name' => 'Tenant B ' . uniqid()]);
+            $tenantA = $this->createTenant(['name' => 'Tenant A '.uniqid()]);
+            $tenantB = $this->createTenant(['name' => 'Tenant B '.uniqid()]);
 
             // Buat user untuk masing-masing tenant
             $userA = $this->createAdminUser($tenantA);
@@ -61,24 +61,24 @@ class AiMemoryServiceIsolationTest extends TestCase
 
             // Seed memori untuk (tenantA, userA)
             AiMemory::create([
-                'tenant_id'        => $tenantA->id,
-                'user_id'          => $userA->id,
-                'key'              => 'preferred_payment_method',
-                'value'            => $paymentMethodA,
-                'frequency'        => 5,
-                'last_seen_at'     => now(),
+                'tenant_id' => $tenantA->id,
+                'user_id' => $userA->id,
+                'key' => 'preferred_payment_method',
+                'value' => $paymentMethodA,
+                'frequency' => 5,
+                'last_seen_at' => now(),
                 'first_observed_at' => now()->subDays(10),
                 'confidence_score' => 0.8,
             ]);
 
             // Seed memori untuk (tenantB, userB) — data yang berbeda
             AiMemory::create([
-                'tenant_id'        => $tenantB->id,
-                'user_id'          => $userB->id,
-                'key'              => 'default_warehouse',
-                'value'            => $warehouseB,
-                'frequency'        => 3,
-                'last_seen_at'     => now(),
+                'tenant_id' => $tenantB->id,
+                'user_id' => $userB->id,
+                'key' => 'default_warehouse',
+                'value' => $warehouseB,
+                'frequency' => 3,
+                'last_seen_at' => now(),
                 'first_observed_at' => now()->subDays(5),
                 'confidence_score' => 0.6,
             ]);
@@ -127,39 +127,39 @@ class AiMemoryServiceIsolationTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 5)]
-    public function testMemoryIsolationBetweenUsersInSameTenant(): void
+    public function test_memory_isolation_between_users_in_same_tenant(): void
     {
         $this->forAll(
             Generators::elements('transfer', 'cash', 'credit_card', 'qris'),
             Generators::elements('gudang_a', 'gudang_b', 'gudang_c', 'gudang_d'),
         )->then(function (string $paymentUser1, string $warehouseUser2) {
             $tenant = $this->createTenant();
-            $user1  = $this->createAdminUser($tenant);
-            $user2  = $this->createAdminUser($tenant, [
-                'email' => 'user2-' . uniqid() . '@test.com',
-                'role'  => 'staff',
+            $user1 = $this->createAdminUser($tenant);
+            $user2 = $this->createAdminUser($tenant, [
+                'email' => 'user2-'.uniqid().'@test.com',
+                'role' => 'staff',
             ]);
 
             // Seed memori untuk user1
             AiMemory::create([
-                'tenant_id'        => $tenant->id,
-                'user_id'          => $user1->id,
-                'key'              => 'preferred_payment_method',
-                'value'            => $paymentUser1,
-                'frequency'        => 4,
-                'last_seen_at'     => now(),
+                'tenant_id' => $tenant->id,
+                'user_id' => $user1->id,
+                'key' => 'preferred_payment_method',
+                'value' => $paymentUser1,
+                'frequency' => 4,
+                'last_seen_at' => now(),
                 'first_observed_at' => now()->subDays(7),
                 'confidence_score' => 0.7,
             ]);
 
             // Seed memori untuk user2
             AiMemory::create([
-                'tenant_id'        => $tenant->id,
-                'user_id'          => $user2->id,
-                'key'              => 'default_warehouse',
-                'value'            => $warehouseUser2,
-                'frequency'        => 2,
-                'last_seen_at'     => now(),
+                'tenant_id' => $tenant->id,
+                'user_id' => $user2->id,
+                'key' => 'default_warehouse',
+                'value' => $warehouseUser2,
+                'frequency' => 2,
+                'last_seen_at' => now(),
                 'first_observed_at' => now()->subDays(3),
                 'confidence_score' => 0.5,
             ]);
@@ -186,22 +186,22 @@ class AiMemoryServiceIsolationTest extends TestCase
     // Validates: Requirements 5.4
     // =========================================================================
 
-    public function testEmptyTenantReturnsAllNullPreferences(): void
+    public function test_empty_tenant_returns_all_null_preferences(): void
     {
         $tenantWithData = $this->createTenant();
-        $emptyTenant    = $this->createTenant();
+        $emptyTenant = $this->createTenant();
 
         $userWithData = $this->createAdminUser($tenantWithData);
-        $emptyUser    = $this->createAdminUser($emptyTenant);
+        $emptyUser = $this->createAdminUser($emptyTenant);
 
         // Seed data hanya untuk tenantWithData
         AiMemory::create([
-            'tenant_id'        => $tenantWithData->id,
-            'user_id'          => $userWithData->id,
-            'key'              => 'preferred_payment_method',
-            'value'            => 'transfer',
-            'frequency'        => 10,
-            'last_seen_at'     => now(),
+            'tenant_id' => $tenantWithData->id,
+            'user_id' => $userWithData->id,
+            'key' => 'preferred_payment_method',
+            'value' => 'transfer',
+            'frequency' => 10,
+            'last_seen_at' => now(),
             'first_observed_at' => now()->subDays(30),
             'confidence_score' => 1.0,
         ]);

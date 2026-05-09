@@ -27,19 +27,23 @@ class StockDeductionPreservationTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
+
     private Product $product;
+
     private Warehouse $warehouse;
+
     private ProductStock $stock;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tenant    = $this->createTenant();
-        $this->user      = $this->createAdminUser($this->tenant);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
         $this->warehouse = $this->createWarehouse($this->tenant->id);
-        $this->product   = $this->createProduct($this->tenant->id);
+        $this->product = $this->createProduct($this->tenant->id);
 
         // Stok awal: 50 unit
         $this->stock = $this->setStock($this->product->id, $this->warehouse->id, 50);
@@ -69,7 +73,7 @@ class StockDeductionPreservationTest extends TestCase
         $this->assertEquals(
             $initialStock - $deductAmount,
             $finalStock,
-            "Stok harus berkurang dari {$initialStock} menjadi " . ($initialStock - $deductAmount)
+            "Stok harus berkurang dari {$initialStock} menjadi ".($initialStock - $deductAmount)
         );
     }
 
@@ -91,10 +95,10 @@ class StockDeductionPreservationTest extends TestCase
         $this->assertGreaterThanOrEqual(
             0,
             $finalStock,
-            "Stok tidak boleh negatif setelah pengurangan yang valid"
+            'Stok tidak boleh negatif setelah pengurangan yang valid'
         );
 
-        $this->assertEquals(0, $finalStock, "Stok harus menjadi 0 setelah dikurangi semua");
+        $this->assertEquals(0, $finalStock, 'Stok harus menjadi 0 setelah dikurangi semua');
     }
 
     /**
@@ -110,19 +114,19 @@ class StockDeductionPreservationTest extends TestCase
         // Pengurangan pertama: -10
         $this->stock->decrement('quantity', 10);
         $afterFirst = ProductStock::find($this->stock->id)->quantity;
-        $this->assertEquals(40, $afterFirst, "Setelah pengurangan pertama, stok harus 40");
+        $this->assertEquals(40, $afterFirst, 'Setelah pengurangan pertama, stok harus 40');
 
         // Pengurangan kedua: -15
         $this->stock->refresh();
         $this->stock->decrement('quantity', 15);
         $afterSecond = ProductStock::find($this->stock->id)->quantity;
-        $this->assertEquals(25, $afterSecond, "Setelah pengurangan kedua, stok harus 25");
+        $this->assertEquals(25, $afterSecond, 'Setelah pengurangan kedua, stok harus 25');
 
         // Pengurangan ketiga: -25
         $this->stock->refresh();
         $this->stock->decrement('quantity', 25);
         $afterThird = ProductStock::find($this->stock->id)->quantity;
-        $this->assertEquals(0, $afterThird, "Setelah pengurangan ketiga, stok harus 0");
+        $this->assertEquals(0, $afterThird, 'Setelah pengurangan ketiga, stok harus 0');
     }
 
     /**
@@ -135,16 +139,16 @@ class StockDeductionPreservationTest extends TestCase
     {
         $this->seedCoa($this->tenant->id);
         $customer = $this->createCustomer($this->tenant->id);
-        $product  = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
+        $product = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
         $this->setStock($product->id, $this->warehouse->id, 30);
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $product->id, 'quantity' => 5, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -153,9 +157,9 @@ class StockDeductionPreservationTest extends TestCase
 
         // Stok harus berkurang dari 30 menjadi 25
         $this->assertDatabaseHas('product_stocks', [
-            'product_id'   => $product->id,
+            'product_id' => $product->id,
             'warehouse_id' => $this->warehouse->id,
-            'quantity'     => 25,
+            'quantity' => 25,
         ]);
     }
 
@@ -179,7 +183,7 @@ class StockDeductionPreservationTest extends TestCase
         $this->assertEquals(
             $initialStock - $deductAmount,
             $finalStock,
-            "Jumlah stok harus akurat: {$initialStock} - {$deductAmount} = " . ($initialStock - $deductAmount)
+            "Jumlah stok harus akurat: {$initialStock} - {$deductAmount} = ".($initialStock - $deductAmount)
         );
     }
 
@@ -197,7 +201,7 @@ class StockDeductionPreservationTest extends TestCase
             ['quantity' => 100]
         );
 
-        $this->assertEquals(100, $updated->quantity, "Stok harus diupdate menjadi 100");
+        $this->assertEquals(100, $updated->quantity, 'Stok harus diupdate menjadi 100');
 
         // Buat stok baru untuk produk lain
         $newProduct = $this->createProduct($this->tenant->id);
@@ -206,7 +210,7 @@ class StockDeductionPreservationTest extends TestCase
             ['quantity' => 25]
         );
 
-        $this->assertEquals(25, $newStock->quantity, "Stok baru harus dibuat dengan quantity 25");
+        $this->assertEquals(25, $newStock->quantity, 'Stok baru harus dibuat dengan quantity 25');
     }
 
     /**
@@ -234,7 +238,7 @@ class StockDeductionPreservationTest extends TestCase
         $this->assertEquals(
             $initialStock - $deductAmount,
             $finalStock,
-            "Pengurangan stok dalam DB transaction harus berfungsi dengan benar"
+            'Pengurangan stok dalam DB transaction harus berfungsi dengan benar'
         );
     }
 
@@ -258,7 +262,7 @@ class StockDeductionPreservationTest extends TestCase
                 $stock->decrement('quantity', 30);
 
                 // Simulasi error yang menyebabkan rollback
-                throw new \RuntimeException("Simulasi error untuk rollback");
+                throw new \RuntimeException('Simulasi error untuk rollback');
             });
         } catch (\RuntimeException $e) {
             // Expected
@@ -269,7 +273,7 @@ class StockDeductionPreservationTest extends TestCase
         $this->assertEquals(
             $initialStock,
             $finalStock,
-            "Stok harus kembali ke nilai awal setelah transaction di-rollback"
+            'Stok harus kembali ke nilai awal setelah transaction di-rollback'
         );
     }
 
@@ -283,16 +287,16 @@ class StockDeductionPreservationTest extends TestCase
     {
         $this->seedCoa($this->tenant->id);
         $customer = $this->createCustomer($this->tenant->id);
-        $product  = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
+        $product = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
         $this->setStock($product->id, $this->warehouse->id, 5); // Hanya 5 unit
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $product->id, 'quantity' => 10, 'price' => 100000, 'discount' => 0], // Minta 10, stok hanya 5
             ],
         ]);
@@ -302,9 +306,9 @@ class StockDeductionPreservationTest extends TestCase
 
         // Stok tidak boleh berubah
         $this->assertDatabaseHas('product_stocks', [
-            'product_id'   => $product->id,
+            'product_id' => $product->id,
             'warehouse_id' => $this->warehouse->id,
-            'quantity'     => 5,
+            'quantity' => 5,
         ]);
     }
 }

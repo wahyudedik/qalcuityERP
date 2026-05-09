@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('mix_design_versions')) {
+        if (! Schema::hasTable('mix_design_versions')) {
             Schema::create('mix_design_versions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -38,7 +39,7 @@ return new class extends Migration {
                 $table->timestamp('approved_at')->nullable();
                 $table->json('snapshot_data')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['mix_design_id', 'version_number']);
                 $table->index(['tenant_id', 'mix_design_id']);
             });

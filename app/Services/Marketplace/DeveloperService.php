@@ -3,9 +3,9 @@
 namespace App\Services\Marketplace;
 
 use App\Models\DeveloperAccount;
-use App\Models\MarketplaceApp;
 use App\Models\DeveloperEarning;
 use App\Models\DeveloperPayout;
+use App\Models\MarketplaceApp;
 use Illuminate\Support\Str;
 
 class DeveloperService
@@ -36,7 +36,7 @@ class DeveloperService
         // Check if slug exists
         $existingSlug = MarketplaceApp::where('slug', $slug)->first();
         if ($existingSlug) {
-            $slug .= '-' . Str::random(5);
+            $slug .= '-'.Str::random(5);
         }
 
         return MarketplaceApp::create([

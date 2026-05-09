@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // ── Audit Trail ───────────────────────────────────────────
-        if (!Schema::hasTable('activity_logs')) {
+        if (! Schema::hasTable('activity_logs')) {
             Schema::create('activity_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id')->nullable();
@@ -28,7 +29,7 @@ return new class extends Migration {
         }
 
         // ── Approval Workflow ─────────────────────────────────────
-        if (!Schema::hasTable('approval_workflows')) {
+        if (! Schema::hasTable('approval_workflows')) {
             Schema::create('approval_workflows', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -43,7 +44,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('approval_requests')) {
+        if (! Schema::hasTable('approval_requests')) {
             Schema::create('approval_requests', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -64,7 +65,7 @@ return new class extends Migration {
         }
 
         // ── Bank Reconciliation ───────────────────────────────────
-        if (!Schema::hasTable('bank_accounts')) {
+        if (! Schema::hasTable('bank_accounts')) {
             Schema::create('bank_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -78,7 +79,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('bank_statements')) {
+        if (! Schema::hasTable('bank_statements')) {
             Schema::create('bank_statements', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -97,7 +98,7 @@ return new class extends Migration {
         }
 
         // ── Digital Signature ─────────────────────────────────────
-        if (!Schema::hasTable('digital_signatures')) {
+        if (! Schema::hasTable('digital_signatures')) {
             Schema::create('digital_signatures', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -115,7 +116,7 @@ return new class extends Migration {
         }
 
         // ── Shipping ──────────────────────────────────────────────
-        if (!Schema::hasTable('shipments')) {
+        if (! Schema::hasTable('shipments')) {
             Schema::create('shipments', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -139,7 +140,7 @@ return new class extends Migration {
         }
 
         // ── WhatsApp / Telegram Notifications ─────────────────────
-        if (!Schema::hasTable('bot_configs')) {
+        if (! Schema::hasTable('bot_configs')) {
             Schema::create('bot_configs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -155,7 +156,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('bot_messages')) {
+        if (! Schema::hasTable('bot_messages')) {
             Schema::create('bot_messages', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -173,7 +174,7 @@ return new class extends Migration {
         }
 
         // ── E-commerce Integration ────────────────────────────────
-        if (!Schema::hasTable('ecommerce_channels')) {
+        if (! Schema::hasTable('ecommerce_channels')) {
             Schema::create('ecommerce_channels', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -191,7 +192,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('ecommerce_orders')) {
+        if (! Schema::hasTable('ecommerce_orders')) {
             Schema::create('ecommerce_orders', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -212,7 +213,7 @@ return new class extends Migration {
         }
 
         // ── PWA Push Subscriptions ────────────────────────────────
-        if (!Schema::hasTable('push_subscriptions')) {
+        if (! Schema::hasTable('push_subscriptions')) {
             Schema::create('push_subscriptions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
@@ -226,12 +227,12 @@ return new class extends Migration {
 
         // ── Add approval_status to purchase_orders & sales_orders ─
         Schema::table('purchase_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('purchase_orders', 'approval_status')) {
+            if (! Schema::hasColumn('purchase_orders', 'approval_status')) {
                 $table->string('approval_status')->default('approved')->after('status');
             }
         });
         Schema::table('sales_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('sales_orders', 'approval_status')) {
+            if (! Schema::hasColumn('sales_orders', 'approval_status')) {
                 $table->string('approval_status')->default('approved')->after('status');
             }
         });
@@ -239,8 +240,8 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('sales_orders', fn($t) => $t->dropColumn('approval_status'));
-        Schema::table('purchase_orders', fn($t) => $t->dropColumn('approval_status'));
+        Schema::table('sales_orders', fn ($t) => $t->dropColumn('approval_status'));
+        Schema::table('purchase_orders', fn ($t) => $t->dropColumn('approval_status'));
         Schema::dropIfExists('push_subscriptions');
         Schema::dropIfExists('ecommerce_orders');
         Schema::dropIfExists('ecommerce_channels');

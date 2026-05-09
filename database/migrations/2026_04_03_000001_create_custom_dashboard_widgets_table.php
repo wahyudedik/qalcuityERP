@@ -4,22 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('custom_dashboard_widgets')) {
+        if (! Schema::hasTable('custom_dashboard_widgets')) {
             Schema::create('custom_dashboard_widgets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-    
+
                 // Display
                 $table->string('title');
                 $table->string('subtitle')->nullable();
                 $table->string('icon_bg')->default('bg-blue-500/20');
                 $table->string('icon_color')->default('text-blue-400');
                 $table->tinyInteger('cols')->default(1); // 1 | 2 | 4
-    
+
                 // Data source
                 // metric_type: count | sum | avg | raw_sql | static
                 $table->string('metric_type')->default('count');
@@ -37,11 +38,11 @@ return new class extends Migration {
                 $table->string('value_suffix')->nullable();
                 // format: number | currency | percent
                 $table->string('value_format')->default('number');
-    
+
                 // Access
                 // visible_to_roles: JSON array of roles that can add this widget, null = all roles
                 $table->json('visible_to_roles')->nullable();
-    
+
                 $table->timestamps();
             });
         }

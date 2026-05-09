@@ -3,13 +3,13 @@
 namespace App\Services;
 
 use App\Models\OutpatientVisit;
+use App\Models\Patient;
 use App\Models\QueueManagement;
 use App\Models\QueueSetting;
-use App\Models\Patient;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class QueueManagementService
 {
@@ -22,7 +22,7 @@ class QueueManagementService
             $queueSetting = QueueSetting::findOrFail($data['queue_setting_id']);
 
             // Check if queue is open
-            if (!$queueSetting->isOpenNow()) {
+            if (! $queueSetting->isOpenNow()) {
                 throw new Exception('Queue is currently closed. Please check operating hours.');
             }
 
@@ -74,7 +74,7 @@ class QueueManagementService
                 'estimated_wait_minutes' => $estimatedWait,
             ]);
 
-            Log::info("Patient registered to queue", [
+            Log::info('Patient registered to queue', [
                 'visit_id' => $visit->id,
                 'visit_number' => $visit->visit_number,
                 'queue_position' => $position,
@@ -87,7 +87,7 @@ class QueueManagementService
     /**
      * Call next patient in queue
      */
-    public function callNextPatient(int $queueSettingId, int $counterId = null): ?QueueManagement
+    public function callNextPatient(int $queueSettingId, ?int $counterId = null): ?QueueManagement
     {
         return DB::transaction(function () use ($queueSettingId, $counterId) {
             // Get next waiting patient
@@ -98,7 +98,7 @@ class QueueManagementService
                 ->orderBy('queue_position', 'asc')
                 ->first();
 
-            if (!$nextQueue) {
+            if (! $nextQueue) {
                 return null;
             }
 
@@ -114,7 +114,7 @@ class QueueManagementService
             // Update visit status
             $nextQueue->outpatientVisit->markAsCalled();
 
-            Log::info("Patient called from queue", [
+            Log::info('Patient called from queue', [
                 'queue_id' => $nextQueue->id,
                 'visit_number' => $nextQueue->outpatientVisit->visit_number,
                 'queue_number' => $nextQueue->outpatientVisit->queue_number,

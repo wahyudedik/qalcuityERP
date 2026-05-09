@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Production Gantt Chart Controller
- * 
+ *
  * TASK-2.15: Visual production scheduling with Gantt chart
  */
 class ProductionGanttController extends Controller
@@ -125,7 +125,7 @@ class ProductionGanttController extends Controller
 
         return response()->json([
             'conflicts' => $conflicts,
-            'has_conflicts' => !empty($conflicts),
+            'has_conflicts' => ! empty($conflicts),
             'count' => count($conflicts),
         ]);
     }

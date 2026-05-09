@@ -3,14 +3,13 @@
 namespace App\Services\Integrations;
 
 use App\Models\Integration;
-use App\Services\Integrations\WebhookDeliveryService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Zapier/Make.com Universal Webhook Connector
- * 
+ *
  * Sends data to Zapier/Make.com webhooks
  * Enables integration with 5000+ apps via Zapier
  */
@@ -29,7 +28,7 @@ class ZapierConnector extends BaseConnector
         try {
             $webhookUrl = $this->integration->getConfigValue('webhook_url');
 
-            if (!$webhookUrl) {
+            if (! $webhookUrl) {
                 return false;
             }
 
@@ -42,12 +41,14 @@ class ZapierConnector extends BaseConnector
 
             if ($response->successful()) {
                 $this->integration->markAsActive();
+
                 return true;
             }
 
             return false;
         } catch (Throwable $e) {
             Log::error('Zapier authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -60,7 +61,7 @@ class ZapierConnector extends BaseConnector
         try {
             $webhookUrl = $this->integration->getConfigValue('webhook_url');
 
-            if (!$webhookUrl) {
+            if (! $webhookUrl) {
                 return ['success' => false, 'error' => 'Webhook URL not configured'];
             }
 
@@ -169,14 +170,17 @@ class ZapierConnector extends BaseConnector
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncOrders(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncInventory(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function registerWebhooks(): array
     {
         return ['success' => true, 'registered' => []];

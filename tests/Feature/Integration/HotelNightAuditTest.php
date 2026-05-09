@@ -22,8 +22,8 @@ use Tests\TestCase;
  */
 class HotelNightAuditTest extends TestCase
 {
-
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -31,7 +31,7 @@ class HotelNightAuditTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->actingAs($this->user);
     }
 
@@ -42,35 +42,35 @@ class HotelNightAuditTest extends TestCase
     private function createGuest(): Guest
     {
         return Guest::create([
-            'tenant_id'  => $this->tenant->id,
-            'guest_code' => 'GST-' . uniqid(),
-            'name'       => 'Tamu Test',
-            'email'      => 'tamu-' . uniqid() . '@test.com',
+            'tenant_id' => $this->tenant->id,
+            'guest_code' => 'GST-'.uniqid(),
+            'name' => 'Tamu Test',
+            'email' => 'tamu-'.uniqid().'@test.com',
         ]);
     }
 
     private function createRoomType(float $baseRate = 500000): RoomType
     {
         return RoomType::create([
-            'tenant_id'       => $this->tenant->id,
-            'name'            => 'Standard Room',
-            'code'            => 'STD-' . uniqid(),
-            'base_rate'       => $baseRate,
-            'base_occupancy'  => 2,
-            'max_occupancy'   => 3,
-            'is_active'       => true,
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Standard Room',
+            'code' => 'STD-'.uniqid(),
+            'base_rate' => $baseRate,
+            'base_occupancy' => 2,
+            'max_occupancy' => 3,
+            'is_active' => true,
         ]);
     }
 
     private function createRoom(RoomType $roomType, string $number = '101'): Room
     {
         return Room::create([
-            'tenant_id'    => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'room_type_id' => $roomType->id,
-            'number'       => $number . '-' . uniqid(),
-            'floor'        => '1',
-            'status'       => 'occupied',
-            'is_active'    => true,
+            'number' => $number.'-'.uniqid(),
+            'floor' => '1',
+            'status' => 'occupied',
+            'is_active' => true,
         ]);
     }
 
@@ -83,27 +83,27 @@ class HotelNightAuditTest extends TestCase
         $guest = $this->createGuest();
 
         $reservation = Reservation::create([
-            'tenant_id'          => $this->tenant->id,
-            'guest_id'           => $guest->id,
-            'room_type_id'       => $room->room_type_id,
-            'room_id'            => $room->id,
-            'reservation_number' => 'RES-' . uniqid(),
-            'status'             => 'checked_in',
-            'check_in_date'      => now()->modify($checkIn)->toDateString(),
-            'check_out_date'     => now()->modify($checkOut)->toDateString(),
-            'adults'             => 1,
-            'nights'             => 1,
-            'rate_per_night'     => $ratePerNight,
-            'total_amount'       => $ratePerNight,
-            'grand_total'        => $ratePerNight,
+            'tenant_id' => $this->tenant->id,
+            'guest_id' => $guest->id,
+            'room_type_id' => $room->room_type_id,
+            'room_id' => $room->id,
+            'reservation_number' => 'RES-'.uniqid(),
+            'status' => 'checked_in',
+            'check_in_date' => now()->modify($checkIn)->toDateString(),
+            'check_out_date' => now()->modify($checkOut)->toDateString(),
+            'adults' => 1,
+            'nights' => 1,
+            'rate_per_night' => $ratePerNight,
+            'total_amount' => $ratePerNight,
+            'grand_total' => $ratePerNight,
         ]);
 
         // Attach room via many-to-many
         $reservation->rooms()->attach($room->id, [
-            'check_in_date'  => $reservation->check_in_date,
+            'check_in_date' => $reservation->check_in_date,
             'check_out_date' => $reservation->check_out_date,
             'rate_per_night' => $ratePerNight,
-            'status'         => 'checked_in',
+            'status' => 'checked_in',
         ]);
 
         return $reservation;
@@ -123,8 +123,8 @@ class HotelNightAuditTest extends TestCase
     {
         // Reservasi dengan rate invalid (0 dan room type base_rate = 0)
         $roomTypeInvalid = $this->createRoomType(0); // base_rate = 0
-        $roomInvalid     = $this->createRoom($roomTypeInvalid, '101');
-        $reservationBad  = $this->createCheckedInReservation($roomInvalid, 0.0); // rate_per_night = 0
+        $roomInvalid = $this->createRoom($roomTypeInvalid, '101');
+        $reservationBad = $this->createCheckedInReservation($roomInvalid, 0.0); // rate_per_night = 0
 
         $service = app(HotelNightAuditService::class);
 
@@ -141,8 +141,8 @@ class HotelNightAuditTest extends TestCase
     public function test_night_audit_exception_message_lists_problematic_reservations(): void
     {
         $roomTypeInvalid = $this->createRoomType(0);
-        $roomInvalid     = $this->createRoom($roomTypeInvalid, '201');
-        $reservationBad  = $this->createCheckedInReservation($roomInvalid, 0.0);
+        $roomInvalid = $this->createRoom($roomTypeInvalid, '201');
+        $reservationBad = $this->createCheckedInReservation($roomInvalid, 0.0);
 
         $service = app(HotelNightAuditService::class);
 
@@ -178,15 +178,15 @@ class HotelNightAuditTest extends TestCase
     {
         // Reservasi valid
         $roomTypeValid = $this->createRoomType(500000);
-        $roomValid     = $this->createRoom($roomTypeValid, '301');
+        $roomValid = $this->createRoom($roomTypeValid, '301');
         $this->createCheckedInReservation($roomValid, 500000.0);
 
         // Dua reservasi invalid (rate = 0, room type base_rate = 0)
         $roomTypeInvalid = $this->createRoomType(0);
-        $roomInvalid1    = $this->createRoom($roomTypeInvalid, '302');
-        $roomInvalid2    = $this->createRoom($roomTypeInvalid, '303');
-        $resBad1         = $this->createCheckedInReservation($roomInvalid1, 0.0);
-        $resBad2         = $this->createCheckedInReservation($roomInvalid2, 0.0);
+        $roomInvalid1 = $this->createRoom($roomTypeInvalid, '302');
+        $roomInvalid2 = $this->createRoom($roomTypeInvalid, '303');
+        $resBad1 = $this->createCheckedInReservation($roomInvalid1, 0.0);
+        $resBad2 = $this->createCheckedInReservation($roomInvalid2, 0.0);
 
         $service = app(HotelNightAuditService::class);
 
@@ -218,11 +218,11 @@ class HotelNightAuditTest extends TestCase
     public function test_validate_reservations_returns_errors_for_invalid_rate(): void
     {
         $roomTypeInvalid = $this->createRoomType(0);
-        $roomInvalid     = $this->createRoom($roomTypeInvalid, '401');
-        $reservationBad  = $this->createCheckedInReservation($roomInvalid, 0.0);
+        $roomInvalid = $this->createRoom($roomTypeInvalid, '401');
+        $reservationBad = $this->createCheckedInReservation($roomInvalid, 0.0);
 
         $service = app(HotelNightAuditService::class);
-        $result  = $service->validateReservations($this->tenant->id, now());
+        $result = $service->validateReservations($this->tenant->id, now());
 
         $this->assertFalse($result['valid'],
             'validateReservations harus mengembalikan valid=false untuk reservasi tanpa rate.');
@@ -244,11 +244,11 @@ class HotelNightAuditTest extends TestCase
     public function test_validate_reservations_returns_valid_when_all_rates_are_set(): void
     {
         $roomTypeValid = $this->createRoomType(500000);
-        $roomValid     = $this->createRoom($roomTypeValid, '501');
+        $roomValid = $this->createRoom($roomTypeValid, '501');
         $this->createCheckedInReservation($roomValid, 500000.0);
 
         $service = app(HotelNightAuditService::class);
-        $result  = $service->validateReservations($this->tenant->id, now());
+        $result = $service->validateReservations($this->tenant->id, now());
 
         $this->assertTrue($result['valid'],
             'validateReservations harus mengembalikan valid=true jika semua rate valid.');
@@ -264,11 +264,11 @@ class HotelNightAuditTest extends TestCase
     public function test_reservation_with_valid_rate_per_night_passes_validation(): void
     {
         $roomType = $this->createRoomType(0); // base_rate = 0, tapi rate_per_night diisi
-        $room     = $this->createRoom($roomType, '601');
+        $room = $this->createRoom($roomType, '601');
         $this->createCheckedInReservation($room, 750000.0); // rate_per_night valid
 
         $service = app(HotelNightAuditService::class);
-        $result  = $service->validateReservations($this->tenant->id, now());
+        $result = $service->validateReservations($this->tenant->id, now());
 
         $this->assertTrue($result['valid'],
             'Reservasi dengan rate_per_night valid harus melewati validasi.');
@@ -283,7 +283,7 @@ class HotelNightAuditTest extends TestCase
     public function test_night_audit_with_no_checked_in_reservations_is_valid(): void
     {
         $service = app(HotelNightAuditService::class);
-        $result  = $service->validateReservations($this->tenant->id, now());
+        $result = $service->validateReservations($this->tenant->id, now());
 
         $this->assertTrue($result['valid'],
             'Tidak ada reservasi checked_in → validasi harus valid.');

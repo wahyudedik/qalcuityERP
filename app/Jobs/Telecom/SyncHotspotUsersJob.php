@@ -2,8 +2,9 @@
 
 namespace App\Jobs\Telecom;
 
-use App\Models\NetworkDevice;
 use App\Models\HotspotUser;
+use App\Models\NetworkDevice;
+use App\Services\Telecom\RouterAdapterFactory;
 use App\Services\Telecom\RouterIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Scheduled job to sync hotspot users between database and router.
- * 
+ *
  * Run every hour.
  */
 class SyncHotspotUsersJob implements ShouldQueue
@@ -22,6 +23,7 @@ class SyncHotspotUsersJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 180; // 3 minutes
+
     public int $tries = 2;
 
     public function __construct(
@@ -32,7 +34,7 @@ class SyncHotspotUsersJob implements ShouldQueue
 
     public function handle(RouterIntegrationService $integrationService): void
     {
-        Log::info("Starting hotspot users sync");
+        Log::info('Starting hotspot users sync');
 
         $query = NetworkDevice::query()->whereIn('device_type', ['router', 'access_point']);
 
@@ -48,12 +50,12 @@ class SyncHotspotUsersJob implements ShouldQueue
             } catch (\Exception $e) {
                 Log::error("Failed to sync users for device: {$device->name}", [
                     'device_id' => $device->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
-        Log::info("Hotspot users sync completed");
+        Log::info('Hotspot users sync completed');
     }
 
     /**
@@ -62,7 +64,7 @@ class SyncHotspotUsersJob implements ShouldQueue
     protected function syncDeviceUsers(NetworkDevice $device, RouterIntegrationService $integrationService): void
     {
         try {
-            $adapter = \App\Services\Telecom\RouterAdapterFactory::create($device);
+            $adapter = RouterAdapterFactory::create($device);
 
             // Get active users from router
             $routerUsers = $adapter->getActiveUsers();
@@ -83,14 +85,14 @@ class SyncHotspotUsersJob implements ShouldQueue
                     ->where('username', $username)
                     ->first();
 
-                if ($user && !$user->is_online) {
+                if ($user && ! $user->is_online) {
                     $user->markAsOnline('');
                 }
             }
 
             Log::info("Synced users for device: {$device->name}", [
                 'total_router_users' => count($routerUsernames),
-                'device_id' => $device->id
+                'device_id' => $device->id,
             ]);
 
         } catch (\Exception $e) {

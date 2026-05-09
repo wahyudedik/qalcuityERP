@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\TriageAssessment;
-use App\Models\EmergencyVisit;
 use App\Models\Patient;
+use App\Models\TriageAssessment;
 use Illuminate\Http\Request;
 
 class TriageAssessmentController extends Controller
@@ -15,33 +14,29 @@ class TriageAssessmentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TriageAssessment::query()->with(['patient', 'nurse', 'doctor']);
+        $query = TriageAssessment::query()->with(['patient', 'assessedBy', 'assignedDoctor']);
 
-        if ($request->filled('priority_level')) {
-            $query->where('priority_level', $request->priority_level);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->filled('urgency_level')) {
+            $query->where('urgency_level', $request->urgency_level);
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('assessment_time', '>=', $request->date_from);
+            $query->whereDate('assessment_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('assessment_time', '<=', $request->date_to);
+            $query->whereDate('assessment_date', '<=', $request->date_to);
         }
 
-        $assessments = $query->orderBy('assessment_time', 'desc')->paginate(20);
+        $assessments = $query->orderBy('assessment_date', 'desc')->paginate(20);
 
         $statistics = [
             'total_assessments' => TriageAssessment::count(),
-            'critical' => TriageAssessment::where('priority_level', 'critical')->count(),
-            'emergency' => TriageAssessment::where('priority_level', 'emergency')->count(),
-            'urgent' => TriageAssessment::where('priority_level', 'urgent')->count(),
-            'non_urgent' => TriageAssessment::where('priority_level', 'non_urgent')->count(),
-            'pending' => TriageAssessment::where('status', 'pending')->count(),
+            'resuscitation' => TriageAssessment::where('urgency_level', 'resuscitation')->count(),
+            'emergent' => TriageAssessment::where('urgency_level', 'emergent')->count(),
+            'urgent' => TriageAssessment::where('urgency_level', 'urgent')->count(),
+            'less_urgent' => TriageAssessment::where('urgency_level', 'less_urgent')->count(),
+            'non_urgent' => TriageAssessment::where('urgency_level', 'non_urgent')->count(),
         ];
 
         return view('healthcare.triage.index', compact('assessments', 'statistics'));
@@ -66,13 +61,12 @@ class TriageAssessmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'emergency_visit_id' => 'nullable|exists:emergency_visits,id',
-            'nurse_id' => 'required|exists:users,id',
-            'doctor_id' => 'nullable|exists:doctors,id',
-            'assessment_time' => 'required|date',
-            'chief_complaint' => 'required|string',
-            'priority_level' => 'required|in:critical,emergency,urgent,semi_urgent,non_urgent',
+            'case_id' => 'required|exists:emergency_cases,id',
+            'assessed_by' => 'required|exists:users,id',
+            'assessment_date' => 'required|date',
+            'chief_complaint_details' => 'required|string',
+            'urgency_level' => 'required|in:resuscitation,emergent,urgent,less_urgent,non_urgent',
+            'esi_level' => 'nullable|integer|min:1|max:5',
             'temperature' => 'nullable|numeric|min:30|max:45',
             'heart_rate' => 'nullable|integer|min:30|max:250',
             'blood_pressure_systolic' => 'nullable|integer|min:50|max:300',
@@ -80,45 +74,54 @@ class TriageAssessmentController extends Controller
             'respiratory_rate' => 'nullable|integer|min:5|max:60',
             'oxygen_saturation' => 'nullable|integer|min:50|max:100',
             'pain_scale' => 'nullable|integer|min:0|max:10',
-            'consciousness_level' => 'nullable|in:alert,voice,pain,unresponsive',
-            'triage_notes' => 'nullable|string',
-            'immediate_intervention' => 'nullable|string',
+            'gcs_eye' => 'nullable|string',
+            'gcs_verbal' => 'nullable|string',
+            'gcs_motor' => 'nullable|string',
+            'gcs_total' => 'nullable|integer',
+            'nurse_notes' => 'required|string',
+            'vital_signs' => 'nullable|array',
+            'requires_immediate_intervention' => 'nullable|boolean',
+            'requires_isolation' => 'nullable|boolean',
         ]);
 
-        $validated['triage_code'] = $this->generateTriageCode($validated['priority_level']);
+        if (! isset($validated['vital_signs'])) {
+            $validated['vital_signs'] = json_encode([]);
+        } else {
+            $validated['vital_signs'] = json_encode($validated['vital_signs']);
+        }
 
         $assessment = TriageAssessment::create($validated);
 
         return redirect()->route('healthcare.triage.show', $assessment)
-            ->with('success', 'Triage assessment completed: ' . $assessment->triage_code);
+            ->with('success', 'Triage assessment completed successfully.');
     }
 
     /**
      * Display the specified triage assessment.
      */
-    public function show(TriageAssessment $assessment)
+    public function show(TriageAssessment $triage)
     {
-        $assessment->load(['patient', 'nurse', 'doctor', 'emergencyVisit']);
+        $triage->load(['patient', 'assessedBy', 'assignedDoctor']);
 
-        return view('healthcare.triage.show', compact('assessment'));
+        return view('healthcare.triage.show', ['assessment' => $triage]);
     }
 
     /**
      * Show the form for editing the specified triage assessment.
      */
-    public function edit(TriageAssessment $assessment)
+    public function edit(TriageAssessment $triage)
     {
-        return view('healthcare.triage.edit', compact('assessment'));
+        return view('healthcare.triage.edit', ['assessment' => $triage]);
     }
 
     /**
      * Update the specified triage assessment.
      */
-    public function update(Request $request, TriageAssessment $assessment)
+    public function update(Request $request, TriageAssessment $triage)
     {
         $validated = $request->validate([
-            'priority_level' => 'required|in:critical,emergency,urgent,semi_urgent,non_urgent',
-            'chief_complaint' => 'required|string',
+            'urgency_level' => 'required|in:resuscitation,emergent,urgent,less_urgent,non_urgent',
+            'chief_complaint_details' => 'required|string',
             'temperature' => 'nullable|numeric|min:30|max:45',
             'heart_rate' => 'nullable|integer|min:30|max:250',
             'blood_pressure_systolic' => 'nullable|integer|min:50|max:300',
@@ -126,17 +129,16 @@ class TriageAssessmentController extends Controller
             'respiratory_rate' => 'nullable|integer|min:5|max:60',
             'oxygen_saturation' => 'nullable|integer|min:50|max:100',
             'pain_scale' => 'nullable|integer|min:0|max:10',
-            'consciousness_level' => 'nullable|in:alert,voice,pain,unresponsive',
-            'triage_notes' => 'nullable|string',
-            'immediate_intervention' => 'nullable|string',
-            'status' => 'required|in:pending,in_progress,completed,referred',
+            'gcs_eye' => 'nullable|string',
+            'gcs_verbal' => 'nullable|string',
+            'gcs_motor' => 'nullable|string',
+            'gcs_total' => 'nullable|integer',
+            'nurse_notes' => 'nullable|string',
+            'requires_immediate_intervention' => 'nullable|boolean',
+            'requires_isolation' => 'nullable|boolean',
         ]);
 
-        if ($validated['priority_level'] !== $assessment->priority_level) {
-            $validated['triage_code'] = $this->generateTriageCode($validated['priority_level']);
-        }
-
-        $assessment->update($validated);
+        $triage->update($validated);
 
         return redirect()->route('healthcare.triage.index')
             ->with('success', 'Triage assessment updated successfully');
@@ -145,9 +147,9 @@ class TriageAssessmentController extends Controller
     /**
      * Remove the specified triage assessment.
      */
-    public function destroy(TriageAssessment $assessment)
+    public function destroy(TriageAssessment $triage)
     {
-        $assessment->delete();
+        $triage->delete();
 
         return redirect()->route('healthcare.triage.index')
             ->with('success', 'Triage assessment deleted successfully');
@@ -174,10 +176,9 @@ class TriageAssessmentController extends Controller
      */
     public function queue()
     {
-        $queue = TriageAssessment::with(['patient', 'nurse'])
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->orderByRaw("FIELD(priority_level, 'critical', 'emergency', 'urgent', 'semi_urgent', 'non_urgent')")
-            ->orderBy('assessment_time')
+        $queue = TriageAssessment::with(['patient', 'assessedBy'])
+            ->orderByRaw("FIELD(urgency_level, 'resuscitation', 'emergent', 'urgent', 'less_urgent', 'non_urgent')")
+            ->orderBy('assessment_date')
             ->get();
 
         return view('healthcare.triage.queue', compact('queue'));
@@ -186,17 +187,17 @@ class TriageAssessmentController extends Controller
     /**
      * Update triage status.
      */
-    public function updateStatus(Request $request, TriageAssessment $assessment)
+    public function updateStatus(Request $request, TriageAssessment $triage)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,in_progress,completed,referred',
+            'urgency_level' => 'required|in:resuscitation,emergent,urgent,less_urgent,non_urgent',
         ]);
 
-        $assessment->update($validated);
+        $triage->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Triage status updated successfully',
+            'message' => 'Triage updated successfully',
         ]);
     }
 
@@ -209,14 +210,14 @@ class TriageAssessmentController extends Controller
 
         $stats = [
             'today' => [
-                'total' => TriageAssessment::whereDate('assessment_time', $today)->count(),
-                'critical' => TriageAssessment::whereDate('assessment_time', $today)->where('priority_level', 'critical')->count(),
-                'emergency' => TriageAssessment::whereDate('assessment_time', $today)->where('priority_level', 'emergency')->count(),
-                'urgent' => TriageAssessment::whereDate('assessment_time', $today)->where('priority_level', 'urgent')->count(),
+                'total' => TriageAssessment::whereDate('assessment_date', $today)->count(),
+                'resuscitation' => TriageAssessment::whereDate('assessment_date', $today)->where('urgency_level', 'resuscitation')->count(),
+                'emergent' => TriageAssessment::whereDate('assessment_date', $today)->where('urgency_level', 'emergent')->count(),
+                'urgent' => TriageAssessment::whereDate('assessment_date', $today)->where('urgency_level', 'urgent')->count(),
             ],
-            'current_wait_time' => TriageAssessment::where('status', 'pending')
-                ->avg(fn($q) => $q->whereRaw('TIMESTAMPDIFF(MINUTE, assessment_time, NOW())')),
-            'pending_count' => TriageAssessment::where('status', 'pending')->count(),
+            'avg_wait_time' => TriageAssessment::whereDate('assessment_date', $today)
+                ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, assessment_date, NOW())) as avg')
+                ->value('avg'),
         ];
 
         return response()->json([

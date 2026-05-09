@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\EcommerceChannel;
 use App\Models\EcommerceOrder;
 use App\Models\EcommerceProductMapping;
+use App\Models\MarketplaceSyncLog;
 use App\Models\Product;
+use App\Models\ProductPriceHistory;
 use App\Services\EcommerceService;
 use App\Services\MarketplaceSyncService;
-use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +22,7 @@ class EcommerceController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
         $channels = EcommerceChannel::where('tenant_id', $tenantId)->get();
-        $orders   = EcommerceOrder::where('tenant_id', $tenantId)
+        $orders = EcommerceOrder::where('tenant_id', $tenantId)
             ->with('channel')
             ->latest('ordered_at')
             ->paginate(30);
@@ -32,25 +34,26 @@ class EcommerceController extends Controller
     {
         $tid = auth()->user()->tenant_id;
 
-        $channels     = EcommerceChannel::where('tenant_id', $tid)->withCount('orders')->get();
-        $totalOrders  = EcommerceOrder::where('tenant_id', $tid)->count();
-        $todayOrders  = EcommerceOrder::where('tenant_id', $tid)->whereDate('created_at', today())->count();
-        $weekOrders   = EcommerceOrder::where('tenant_id', $tid)->where('created_at', '>=', now()->subWeek())->count();
+        $channels = EcommerceChannel::where('tenant_id', $tid)->withCount('orders')->get();
+        $totalOrders = EcommerceOrder::where('tenant_id', $tid)->count();
+        $todayOrders = EcommerceOrder::where('tenant_id', $tid)->whereDate('created_at', today())->count();
+        $weekOrders = EcommerceOrder::where('tenant_id', $tid)->where('created_at', '>=', now()->subWeek())->count();
         $totalRevenue = EcommerceOrder::where('tenant_id', $tid)->sum('total');
 
         // Collect sync_errors from all channels, flatten and sort by time, take last 20
         $recentErrors = $channels->flatMap(function ($channel) {
             $errors = $channel->sync_errors ?? [];
+
             return collect($errors)->map(fn($e) => array_merge($e, ['channel' => $channel->shop_name ?? $channel->platform]));
         })->sortByDesc('time')->take(20)->values();
 
-        $syncLogs = \App\Models\MarketplaceSyncLog::where('tenant_id', $tid)
+        $syncLogs = MarketplaceSyncLog::where('tenant_id', $tid)
             ->orderByDesc('created_at')
             ->limit(20)
             ->with(['channel', 'mapping.product'])
             ->get();
 
-        $failedCount = \App\Models\MarketplaceSyncLog::where('tenant_id', $tid)
+        $failedCount = MarketplaceSyncLog::where('tenant_id', $tid)
             ->where('status', 'failed')
             ->count();
 
@@ -79,7 +82,7 @@ class EcommerceController extends Controller
 
         // After loading mappings, get price histories for mapped products
         $productIds = $mappings->pluck('product_id')->unique();
-        $priceHistories = \App\Models\ProductPriceHistory::whereIn('product_id', $productIds)
+        $priceHistories = ProductPriceHistory::whereIn('product_id', $productIds)
             ->where('tenant_id', $tid)
             ->orderByDesc('created_at')
             ->get()
@@ -94,8 +97,8 @@ class EcommerceController extends Controller
         abort_if($channel->tenant_id !== $tid, 403);
 
         $request->validate([
-            'product_id'          => 'required|exists:products,id',
-            'external_sku'        => [
+            'product_id' => 'required|exists:products,id',
+            'external_sku' => [
                 'required',
                 'string',
                 Rule::unique('ecommerce_product_mappings')
@@ -103,18 +106,18 @@ class EcommerceController extends Controller
                     ->where('channel_id', $channel->id),
             ],
             'external_product_id' => 'nullable|string',
-            'price_override'      => 'nullable|numeric|min:0',
+            'price_override' => 'nullable|numeric|min:0',
         ], [
             'external_sku.unique' => 'SKU marketplace ini sudah digunakan di channel ini.',
         ]);
 
         EcommerceProductMapping::create([
-            'tenant_id'           => $tid,
-            'channel_id'          => $channel->id,
-            'product_id'          => $request->product_id,
-            'external_sku'        => $request->external_sku,
+            'tenant_id' => $tid,
+            'channel_id' => $channel->id,
+            'product_id' => $request->product_id,
+            'external_sku' => $request->external_sku,
             'external_product_id' => $request->external_product_id,
-            'price_override'      => $request->price_override,
+            'price_override' => $request->price_override,
         ]);
 
         ActivityLog::record('ecommerce_mapping_created', "Mapping produk ditambahkan ke channel {$channel->platform}");
@@ -168,21 +171,21 @@ class EcommerceController extends Controller
         abort_if($channel->tenant_id !== auth()->user()->tenant_id, 403);
 
         $request->validate([
-            'shop_name'          => 'required|string|max:100',
-            'api_key'            => 'nullable|string|max:500',
-            'api_secret'         => 'nullable|string|max:500',
+            'shop_name' => 'required|string|max:100',
+            'api_key' => 'nullable|string|max:500',
+            'api_secret' => 'nullable|string|max:500',
             'stock_sync_enabled' => 'boolean',
             'price_sync_enabled' => 'boolean',
-            'is_active'          => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $channel->update([
-            'shop_name'          => $request->shop_name,
-            'api_key'            => $request->api_key ?? $channel->api_key,
-            'api_secret'         => $request->api_secret ?? $channel->api_secret,
+            'shop_name' => $request->shop_name,
+            'api_key' => $request->api_key ?? $channel->api_key,
+            'api_secret' => $request->api_secret ?? $channel->api_secret,
             'stock_sync_enabled' => $request->boolean('stock_sync_enabled'),
             'price_sync_enabled' => $request->boolean('price_sync_enabled'),
-            'is_active'          => $request->boolean('is_active'),
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         ActivityLog::record('ecommerce_channel_updated', "Channel {$channel->platform} diperbarui");
@@ -205,9 +208,9 @@ class EcommerceController extends Controller
     public function storeChannel(Request $request)
     {
         $request->validate([
-            'platform'   => 'required|in:shopee,tokopedia,lazada',
-            'shop_name'  => 'required|string|max:100',
-            'api_key'    => 'required|string|max:500',
+            'platform' => 'required|in:shopee,tokopedia,lazada,tiktok_shop',
+            'shop_name' => 'required|string|max:100',
+            'api_key' => 'required|string|max:500',
             'api_secret' => 'required|string|max:500',
         ]);
 
@@ -217,12 +220,12 @@ class EcommerceController extends Controller
         EcommerceChannel::updateOrCreate(
             ['tenant_id' => $tenantId, 'platform' => $request->platform],
             [
-                'shop_name'    => $request->shop_name,
-                'shop_id'      => $request->shop_id,
-                'api_key'      => $request->api_key,
-                'api_secret'   => $request->api_secret,
+                'shop_name' => $request->shop_name,
+                'shop_id' => $request->shop_id,
+                'api_key' => $request->api_key,
+                'api_secret' => $request->api_secret,
                 'access_token' => $request->access_token,
-                'is_active'    => $request->boolean('is_active', true),
+                'is_active' => $request->boolean('is_active', true),
             ]
         );
 
@@ -237,6 +240,7 @@ class EcommerceController extends Controller
         $count = $this->ecommerce->syncOrders($channel);
         $channel->update(['last_sync_at' => now()]);
         ActivityLog::record('ecommerce_sync', "Sync {$count} order dari {$channel->platform}");
+
         return back()->with('success', "{$count} order berhasil disinkronkan.");
     }
 }

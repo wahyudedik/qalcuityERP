@@ -5,7 +5,6 @@ namespace App\Jobs;
 use App\Models\Asset;
 use App\Models\AssetDepreciation;
 use App\Models\ErpNotification;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\GlPostingService;
 use Illuminate\Bus\Queueable;
@@ -19,7 +18,8 @@ class RunAssetDepreciation implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 120;
 
     public function __construct(public readonly int $tenantId) {}
@@ -33,10 +33,10 @@ class RunAssetDepreciation implements ShouldQueue
             ->where('current_value', '>', 0)
             ->get();
 
-        $processed  = 0;
-        $totalDep   = 0;
+        $processed = 0;
+        $totalDep = 0;
         $assetLines = [];
-        $depIds     = [];
+        $depIds = [];
 
         foreach ($assets as $asset) {
             // Cegah duplikasi
@@ -44,29 +44,35 @@ class RunAssetDepreciation implements ShouldQueue
                 ->where('period', $period)
                 ->exists();
 
-            if ($alreadyRun) continue;
+            if ($alreadyRun) {
+                continue;
+            }
 
             $depreciation = $asset->monthlyDepreciation();
-            if ($depreciation <= 0) continue;
+            if ($depreciation <= 0) {
+                continue;
+            }
 
-            $newValue  = max($asset->salvage_value, $asset->current_value - $depreciation);
+            $newValue = max($asset->salvage_value, $asset->current_value - $depreciation);
             $actualDep = $asset->current_value - $newValue;
 
-            if ($actualDep <= 0) continue;
+            if ($actualDep <= 0) {
+                continue;
+            }
 
             $dep = AssetDepreciation::create([
-                'tenant_id'           => $this->tenantId,
-                'asset_id'            => $asset->id,
-                'period'              => $period,
+                'tenant_id' => $this->tenantId,
+                'asset_id' => $asset->id,
+                'period' => $period,
                 'depreciation_amount' => $actualDep,
-                'book_value_after'    => $newValue,
+                'book_value_after' => $newValue,
             ]);
 
             $asset->update(['current_value' => $newValue]);
 
-            $totalDep  += $actualDep;
+            $totalDep += $actualDep;
             $assetLines[] = ['asset_name' => $asset->name, 'amount' => $actualDep];
-            $depIds[]  = $dep->id;
+            $depIds[] = $dep->id;
             $processed++;
         }
 
@@ -77,11 +83,11 @@ class RunAssetDepreciation implements ShouldQueue
             $userId = $admin?->id ?? 0;
 
             $glResult = $gl->postDepreciation(
-                tenantId:    $this->tenantId,
-                userId:      $userId,
-                period:      $period,
+                tenantId: $this->tenantId,
+                userId: $userId,
+                period: $period,
                 totalAmount: $totalDep,
-                assetLines:  $assetLines,
+                assetLines: $assetLines,
             );
 
             // Link journal entry ID ke semua AssetDepreciation records
@@ -89,7 +95,7 @@ class RunAssetDepreciation implements ShouldQueue
                 AssetDepreciation::whereIn('id', $depIds)
                     ->update(['journal_entry_id' => $glResult->journal->id]);
             } elseif ($glResult->isFailed()) {
-                Log::warning("RunAssetDepreciation GL failed for tenant {$this->tenantId}: " . $glResult->reason);
+                Log::warning("RunAssetDepreciation GL failed for tenant {$this->tenantId}: ".$glResult->reason);
             }
 
             // Notifikasi admin
@@ -100,11 +106,11 @@ class RunAssetDepreciation implements ShouldQueue
 
                 ErpNotification::create([
                     'tenant_id' => $this->tenantId,
-                    'user_id'   => $admin->id,
-                    'type'      => 'asset_depreciation',
-                    'title'     => '🏭 Depresiasi Aset Bulanan',
-                    'body'      => "Depresiasi periode {$period} untuk {$processed} aset. Total: Rp " . number_format($totalDep, 0, ',', '.') . ".{$glStatus}",
-                    'data'      => ['period' => $period, 'count' => $processed, 'total' => $totalDep],
+                    'user_id' => $admin->id,
+                    'type' => 'asset_depreciation',
+                    'title' => '🏭 Depresiasi Aset Bulanan',
+                    'body' => "Depresiasi periode {$period} untuk {$processed} aset. Total: Rp ".number_format($totalDep, 0, ',', '.').".{$glStatus}",
+                    'data' => ['period' => $period, 'count' => $processed, 'total' => $totalDep],
                 ]);
             }
         }

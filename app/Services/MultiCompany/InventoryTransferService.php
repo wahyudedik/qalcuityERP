@@ -29,7 +29,7 @@ class InventoryTransferService
         ]);
 
         // Add items
-        if (!empty($data['items'])) {
+        if (! empty($data['items'])) {
             foreach ($data['items'] as $item) {
                 InventoryTransferItem::create([
                     'inventory_transfer_id' => $transfer->id,
@@ -49,7 +49,7 @@ class InventoryTransferService
     /**
      * Send transfer (update status to in_transit)
      */
-    public function sendTransfer(int $transferId, string $trackingNumber = null): bool
+    public function sendTransfer(int $transferId, ?string $trackingNumber = null): bool
     {
         try {
             $transfer = InventoryTransfer::findOrFail($transferId);

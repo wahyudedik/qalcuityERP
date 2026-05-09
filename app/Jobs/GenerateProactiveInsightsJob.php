@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\ProactiveInsight;
 use App\Models\PushSubscription;
 use App\Models\Tenant;
 use App\Services\Agent\ProactiveInsightEngine;
@@ -27,7 +28,8 @@ class GenerateProactiveInsightsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 300; // 5 menit — banyak tenant bisa memakan waktu
 
     public function handle(ProactiveInsightEngine $engine, WebPushService $webPush): void
@@ -36,7 +38,7 @@ class GenerateProactiveInsightsJob implements ShouldQueue
 
         foreach ($tenants as $tenant) {
             // Skip tenant yang tidak bisa akses (trial expired, plan expired)
-            if (!$tenant->canAccess()) {
+            if (! $tenant->canAccess()) {
                 continue;
             }
 
@@ -47,7 +49,7 @@ class GenerateProactiveInsightsJob implements ShouldQueue
                     continue;
                 }
 
-                Log::info("GenerateProactiveInsightsJob: tenant={$tenant->id} insights=" . count($insights));
+                Log::info("GenerateProactiveInsightsJob: tenant={$tenant->id} insights=".count($insights));
 
                 // Kirim push notification untuk insight high/critical jika push aktif
                 $this->sendPushNotificationsIfEnabled($tenant->id, $insights, $webPush);
@@ -66,33 +68,33 @@ class GenerateProactiveInsightsJob implements ShouldQueue
      * Kirim push notification untuk insight dengan urgency high atau critical,
      * hanya jika tenant memiliki push subscription aktif.
      *
-     * @param  \App\Models\ProactiveInsight[]  $insights
+     * @param  ProactiveInsight[]  $insights
      */
     private function sendPushNotificationsIfEnabled(int $tenantId, array $insights, WebPushService $webPush): void
     {
         // Cek apakah ada push subscription aktif untuk tenant ini
         $hasPushSubscriptions = PushSubscription::where('tenant_id', $tenantId)->exists();
 
-        if (!$hasPushSubscriptions) {
+        if (! $hasPushSubscriptions) {
             return;
         }
 
         // Hanya kirim jika WebPush terkonfigurasi (VAPID keys tersedia)
-        if (!$webPush->isConfigured()) {
+        if (! $webPush->isConfigured()) {
             return;
         }
 
         foreach ($insights as $insight) {
-            if (!in_array($insight->urgency, ['high', 'critical'], true)) {
+            if (! in_array($insight->urgency, ['high', 'critical'], true)) {
                 continue;
             }
 
             try {
                 $urgencyLabel = $insight->urgency === 'critical' ? '🚨 Kritis' : '⚠️ Penting';
                 $title = "{$urgencyLabel}: {$insight->title}";
-                $body  = $insight->description;
-                $url   = '/agent/insights';
-                $tag   = "proactive-insight-{$insight->id}";
+                $body = $insight->description;
+                $url = '/agent/insights';
+                $tag = "proactive-insight-{$insight->id}";
 
                 $sent = $webPush->sendToTenant($tenantId, $title, $body, $url, $tag);
 

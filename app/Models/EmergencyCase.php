@@ -72,9 +72,9 @@ class EmergencyCase extends Model
     public static function generateCaseNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'ER-' . $date;
+        $prefix = 'ER-'.$date;
 
-        $lastCase = static::where('case_number', 'like', $prefix . '%')
+        $lastCase = static::where('case_number', 'like', $prefix.'%')
             ->orderBy('case_number', 'desc')
             ->first();
 
@@ -85,7 +85,7 @@ class EmergencyCase extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -247,6 +247,7 @@ class EmergencyCase extends Model
         if ($this->triage_time) {
             return $this->arrival_time->diffInMinutes($this->triage_time);
         }
+
         return null;
     }
 
@@ -256,6 +257,7 @@ class EmergencyCase extends Model
     public function calculateTotalDuration()
     {
         $endTime = $this->disposition_time ?? $this->treatment_ended_at ?? now();
+
         return $this->arrival_time->diffInMinutes($endTime);
     }
 

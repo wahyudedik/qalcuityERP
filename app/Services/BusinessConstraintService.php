@@ -34,6 +34,7 @@ class BusinessConstraintService
 
         $value = $constraint ? $constraint->typedValue() : null;
         $this->cache[$cacheKey] = $value;
+
         return $value;
     }
 
@@ -43,7 +44,9 @@ class BusinessConstraintService
      */
     public function checkSellPrice(int $tenantId, int $productId, float $price, float $qty = 1): void
     {
-        if (! $this->get($tenantId, 'no_sell_below_cost')) return;
+        if (! $this->get($tenantId, 'no_sell_below_cost')) {
+            return;
+        }
 
         $cost = Product::where('id', $productId)
             ->where('tenant_id', $tenantId)
@@ -52,8 +55,8 @@ class BusinessConstraintService
         if ($cost > 0 && $price < $cost) {
             $product = Product::find($productId);
             throw new \RuntimeException(
-                "Harga jual Rp " . number_format($price, 0, ',', '.') .
-                " untuk produk \"{$product->name}\" di bawah HPP (Rp " . number_format($cost, 0, ',', '.') . ")."
+                'Harga jual Rp '.number_format($price, 0, ',', '.').
+                " untuk produk \"{$product->name}\" di bawah HPP (Rp ".number_format($cost, 0, ',', '.').').'
             );
         }
     }
@@ -64,7 +67,9 @@ class BusinessConstraintService
     public function checkDiscount(int $tenantId, float $discountPct): void
     {
         $max = (float) ($this->get($tenantId, 'max_discount_pct') ?? 0);
-        if ($max <= 0) return;
+        if ($max <= 0) {
+            return;
+        }
 
         if ($discountPct > $max) {
             throw new \RuntimeException(
@@ -79,16 +84,18 @@ class BusinessConstraintService
     public function checkCashBalance(int $tenantId, float $outgoingAmount): void
     {
         $minBalance = (float) ($this->get($tenantId, 'min_cash_balance') ?? 0);
-        if ($minBalance <= 0) return;
+        if ($minBalance <= 0) {
+            return;
+        }
 
         // Hitung saldo kas saat ini dari GL (akun 1101 + 1102)
         $cashBalance = $this->getCurrentCashBalance($tenantId);
 
         if (($cashBalance - $outgoingAmount) < $minBalance) {
             throw new \RuntimeException(
-                "Transaksi ini akan membuat saldo kas menjadi Rp " .
-                number_format($cashBalance - $outgoingAmount, 0, ',', '.') .
-                ", di bawah minimum Rp " . number_format($minBalance, 0, ',', '.') . "."
+                'Transaksi ini akan membuat saldo kas menjadi Rp '.
+                number_format($cashBalance - $outgoingAmount, 0, ',', '.').
+                ', di bawah minimum Rp '.number_format($minBalance, 0, ',', '.').'.'
             );
         }
     }
@@ -100,7 +107,10 @@ class BusinessConstraintService
     public function requiresConfirmation(int $tenantId, float $amount): bool
     {
         $threshold = (float) ($this->get($tenantId, 'confirm_above_amount') ?? 0);
-        if ($threshold <= 0) return false;
+        if ($threshold <= 0) {
+            return false;
+        }
+
         return $amount > $threshold;
     }
 
@@ -109,7 +119,9 @@ class BusinessConstraintService
      */
     public function checkCostCenterRequired(int $tenantId, ?int $costCenterId): void
     {
-        if (! $this->get($tenantId, 'require_cost_center')) return;
+        if (! $this->get($tenantId, 'require_cost_center')) {
+            return;
+        }
 
         if (empty($costCenterId)) {
             throw new \RuntimeException('Cost Center wajib dipilih untuk setiap transaksi.');
@@ -122,7 +134,9 @@ class BusinessConstraintService
      */
     public function checkStockNegative(int $tenantId, string $productName, float $currentStock, float $requestedQty): void
     {
-        if ($this->get($tenantId, 'allow_negative_stock')) return;
+        if ($this->get($tenantId, 'allow_negative_stock')) {
+            return;
+        }
 
         if ($currentStock < $requestedQty) {
             throw new \RuntimeException(
@@ -136,11 +150,11 @@ class BusinessConstraintService
      * Lempar exception pertama yang ditemukan.
      */
     public function validateSaleTransaction(
-        int    $tenantId,
-        float  $total,
-        float  $discountPct = 0,
-        ?int   $costCenterId = null,
-        array  $items = []  // [['product_id' => ..., 'price' => ..., 'qty' => ...], ...]
+        int $tenantId,
+        float $total,
+        float $discountPct = 0,
+        ?int $costCenterId = null,
+        array $items = []  // [['product_id' => ..., 'price' => ..., 'qty' => ...], ...]
     ): void {
         // Cek diskon
         $this->checkDiscount($tenantId, $discountPct);
@@ -150,7 +164,7 @@ class BusinessConstraintService
 
         // Cek harga per item
         foreach ($items as $item) {
-            if (!empty($item['product_id']) && !empty($item['price'])) {
+            if (! empty($item['product_id']) && ! empty($item['price'])) {
                 $this->checkSellPrice($tenantId, $item['product_id'], $item['price'], $item['qty'] ?? 1);
             }
         }
@@ -195,14 +209,16 @@ class BusinessConstraintService
             ->whereIn('code', ['1101', '1102'])
             ->pluck('id');
 
-        if ($cashAccountIds->isEmpty()) return 0;
+        if ($cashAccountIds->isEmpty()) {
+            return 0;
+        }
 
-        $debit  = JournalEntryLine::whereIn('account_id', $cashAccountIds)
-            ->whereHas('journalEntry', fn($q) => $q->where('tenant_id', $tenantId)->where('status', 'posted'))
+        $debit = JournalEntryLine::whereIn('account_id', $cashAccountIds)
+            ->whereHas('journalEntry', fn ($q) => $q->where('tenant_id', $tenantId)->where('status', 'posted'))
             ->sum('debit');
 
         $credit = JournalEntryLine::whereIn('account_id', $cashAccountIds)
-            ->whereHas('journalEntry', fn($q) => $q->where('tenant_id', $tenantId)->where('status', 'posted'))
+            ->whereHas('journalEntry', fn ($q) => $q->where('tenant_id', $tenantId)->where('status', 'posted'))
             ->sum('credit');
 
         return (float) $debit - (float) $credit;

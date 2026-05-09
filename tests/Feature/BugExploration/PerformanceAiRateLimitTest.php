@@ -6,6 +6,7 @@ use App\Http\Middleware\RateLimitAiRequests;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -28,7 +29,9 @@ class PerformanceAiRateLimitTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user1;
+
     private User $user2;
 
     protected function setUp(): void
@@ -56,7 +59,7 @@ class PerformanceAiRateLimitTest extends TestCase
      */
     public function test_ai_rate_limit_is_per_tenant_not_per_user(): void
     {
-        $middleware = new RateLimitAiRequests();
+        $middleware = new RateLimitAiRequests;
 
         // Verifikasi bahwa resolveKey menggunakan tenant_id, bukan user_id
         $reflector = new \ReflectionClass($middleware);
@@ -64,12 +67,12 @@ class PerformanceAiRateLimitTest extends TestCase
         $method->setAccessible(true);
 
         // Buat mock request untuk user1
-        $request1 = \Illuminate\Http\Request::create('/chat', 'POST');
-        $request1->setUserResolver(fn() => $this->user1);
+        $request1 = Request::create('/chat', 'POST');
+        $request1->setUserResolver(fn () => $this->user1);
 
         // Buat mock request untuk user2 (tenant yang sama)
-        $request2 = \Illuminate\Http\Request::create('/chat', 'POST');
-        $request2->setUserResolver(fn() => $this->user2);
+        $request2 = Request::create('/chat', 'POST');
+        $request2->setUserResolver(fn () => $this->user2);
 
         $key1 = $method->invoke($middleware, $request1);
         $key2 = $method->invoke($middleware, $request2);
@@ -80,10 +83,10 @@ class PerformanceAiRateLimitTest extends TestCase
         $this->assertEquals(
             $key1,
             $key2,
-            "Bug 1.28: Rate limit key berbeda untuk user1 ({$key1}) dan user2 ({$key2}) " .
-            "dari tenant yang sama. Rate limit seharusnya per-tenant, bukan per-user. " .
-            "Dengan rate limit per-user, satu tenant bisa menghabiskan quota dengan " .
-            "membuat banyak user dan mengirim request dari masing-masing user."
+            "Bug 1.28: Rate limit key berbeda untuk user1 ({$key1}) dan user2 ({$key2}) ".
+            'dari tenant yang sama. Rate limit seharusnya per-tenant, bukan per-user. '.
+            'Dengan rate limit per-user, satu tenant bisa menghabiskan quota dengan '.
+            'membuat banyak user dan mengirim request dari masing-masing user.'
         );
     }
 
@@ -97,8 +100,8 @@ class PerformanceAiRateLimitTest extends TestCase
     {
         $middlewareFile = 'app/Http/Middleware/RateLimitAiRequests.php';
 
-        if (!file_exists($middlewareFile)) {
-            $this->markTestSkipped("RateLimitAiRequests tidak ditemukan");
+        if (! file_exists($middlewareFile)) {
+            $this->markTestSkipped('RateLimitAiRequests tidak ditemukan');
         }
 
         $content = file_get_contents($middlewareFile);
@@ -115,9 +118,9 @@ class PerformanceAiRateLimitTest extends TestCase
         // Test ini AKAN GAGAL karena key menggunakan user_id
         $this->assertTrue(
             $usesTenantId,
-            "Bug 1.28: resolveKey() menggunakan user_id bukan tenant_id untuk rate limit key. " .
-            "Kode yang ditemukan: " . substr($methodCode, 0, 300) . "\n" .
-            "Seharusnya: return \"ai:tenant:{tenant_id}\" bukan \"ai:user:{user_id}\""
+            'Bug 1.28: resolveKey() menggunakan user_id bukan tenant_id untuk rate limit key. '.
+            'Kode yang ditemukan: '.substr($methodCode, 0, 300)."\n".
+            'Seharusnya: return "ai:tenant:{tenant_id}" bukan "ai:user:{user_id}"'
         );
     }
 
@@ -156,9 +159,9 @@ class PerformanceAiRateLimitTest extends TestCase
         $this->assertEquals(
             429,
             $response->getStatusCode(),
-            "Bug 1.28: Request ke-" . ($limit + 1) . " tidak mendapat HTTP 429. " .
-            "Rate limit per-tenant tidak berfungsi dengan benar. " .
-            "Status code yang diterima: " . $response->getStatusCode()
+            'Bug 1.28: Request ke-'.($limit + 1).' tidak mendapat HTTP 429. '.
+            'Rate limit per-tenant tidak berfungsi dengan benar. '.
+            'Status code yang diterima: '.$response->getStatusCode()
         );
     }
 }

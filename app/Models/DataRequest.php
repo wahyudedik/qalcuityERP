@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DataRequest extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -28,13 +28,19 @@ class DataRequest extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
+
     const STATUS_COMPLETED = 'completed';
 
     const TYPE_ACCESS = 'access';
+
     const TYPE_ERASURE = 'erasure';
+
     const TYPE_RECTIFICATION = 'rectification';
+
     const TYPE_PORTABILITY = 'portability';
 
     public function user()

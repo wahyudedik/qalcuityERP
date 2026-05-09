@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,12 +13,12 @@ return new class extends Migration {
     {
         Schema::table('user_dashboard_configs', function (Blueprint $table) {
             // Template yang sedang digunakan
-            if (!Schema::hasColumn('user_dashboard_configs', 'template_name')) {
+            if (! Schema::hasColumn('user_dashboard_configs', 'template_name')) {
                 $table->string('template_name')->nullable()->after('widgets');
             }
 
             // Saved templates (user bisa punya multiple saved layouts)
-            if (!Schema::hasColumn('user_dashboard_configs', 'saved_templates')) {
+            if (! Schema::hasColumn('user_dashboard_configs', 'saved_templates')) {
                 $table->json('saved_templates')->nullable()->after('template_name');
             }
         });

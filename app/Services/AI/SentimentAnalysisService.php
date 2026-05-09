@@ -3,6 +3,7 @@
 namespace App\Services\AI;
 
 use App\Models\SentimentAnalysis;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,7 +12,7 @@ class SentimentAnalysisService
     /**
      * Analyze sentiment of text
      */
-    public function analyzeSentiment(string $text, string $sourceType, $sourceId = null, int $tenantId = null): array
+    public function analyzeSentiment(string $text, string $sourceType, $sourceId = null, ?int $tenantId = null): array
     {
         try {
             // Call NLP API for sentiment analysis
@@ -51,11 +52,11 @@ class SentimentAnalysisService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Sentiment analysis failed: ' . $e->getMessage());
+            Log::error('Sentiment analysis failed: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -84,13 +85,13 @@ class SentimentAnalysisService
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post("https://language.googleapis.com/v1/documents:analyzeSentiment?key={$apiKey}", [
-                    'document' => [
-                        'type' => 'PLAIN_TEXT',
-                        'content' => $text,
-                        'language' => 'id', // Indonesian
-                    ],
-                    'encodingType' => 'UTF8',
-                ]);
+            'document' => [
+                'type' => 'PLAIN_TEXT',
+                'content' => $text,
+                'language' => 'id', // Indonesian
+            ],
+            'encodingType' => 'UTF8',
+        ]);
 
         if ($response->successful()) {
             $sentiment = $response->json('documentSentiment');
@@ -193,6 +194,7 @@ class SentimentAnalysisService
     {
         // Simple extraction - would use NLP in production
         $words = explode(' ', $text);
+
         return array_slice(array_unique($words), 0, 5);
     }
 
@@ -224,11 +226,11 @@ class SentimentAnalysisService
     protected function generateResponseSuggestion(array $result): string
     {
         if ($result['sentiment'] === 'negative') {
-            return "Kami mohon maaf atas ketidaknyamanan ini. Tim kami akan segera menindaklanjuti masalah Anda. Mohon berikan detail lebih lanjut agar kami dapat membantu dengan lebih baik.";
+            return 'Kami mohon maaf atas ketidaknyamanan ini. Tim kami akan segera menindaklanjuti masalah Anda. Mohon berikan detail lebih lanjut agar kami dapat membantu dengan lebih baik.';
         } elseif ($result['sentiment'] === 'positive') {
-            return "Terima kasih atas feedback positif Anda! Kami senang mendengar kepuasan Anda. Jangan ragu untuk menghubungi kami jika membutuhkan bantuan lebih lanjut.";
+            return 'Terima kasih atas feedback positif Anda! Kami senang mendengar kepuasan Anda. Jangan ragu untuk menghubungi kami jika membutuhkan bantuan lebih lanjut.';
         } else {
-            return "Terima kasih atas feedback Anda. Kami menghargai masukan Anda untuk perbaikan layanan kami.";
+            return 'Terima kasih atas feedback Anda. Kami menghargai masukan Anda untuk perbaikan layanan kami.';
         }
     }
 
@@ -253,7 +255,7 @@ class SentimentAnalysisService
     {
         $analysis = SentimentAnalysis::find($analysisId);
 
-        if (!$analysis) {
+        if (! $analysis) {
             return false;
         }
 
@@ -268,7 +270,7 @@ class SentimentAnalysisService
     /**
      * Get sentiment statistics
      */
-    public function getSentimentStats(int $tenantId, \Carbon\Carbon $startDate = null, \Carbon\Carbon $endDate = null): array
+    public function getSentimentStats(int $tenantId, ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
         $query = SentimentAnalysis::where('tenant_id', $tenantId);
 

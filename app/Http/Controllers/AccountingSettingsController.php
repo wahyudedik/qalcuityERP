@@ -10,7 +10,10 @@ use Illuminate\Http\Request;
 
 class AccountingSettingsController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
@@ -20,11 +23,10 @@ class AccountingSettingsController extends Controller
         // COA
         $accounts = ChartOfAccount::where('tenant_id', $tid)
             ->with('parent')
-            ->when($request->filled('search'), fn($q) => $q->where(fn($q2) =>
-                $q2->where('code', 'like', '%'.$request->search.'%')
-                   ->orWhere('name', 'like', '%'.$request->search.'%')
+            ->when($request->filled('search'), fn ($q) => $q->where(fn ($q2) => $q2->where('code', 'like', '%'.$request->search.'%')
+                ->orWhere('name', 'like', '%'.$request->search.'%')
             ))
-            ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
+            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
             ->orderBy('code')
             ->get();
 
@@ -51,11 +53,11 @@ class AccountingSettingsController extends Controller
     public function storeCurrency(Request $request)
     {
         $data = $request->validate([
-            'code'        => 'required|string|max:10|uppercase',
-            'name'        => 'required|string|max:100',
-            'symbol'      => 'required|string|max:10',
+            'code' => 'required|string|max:10|uppercase',
+            'name' => 'required|string|max:100',
+            'symbol' => 'required|string|max:10',
             'rate_to_idr' => 'required|numeric|min:0',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $tid = $this->tid();
@@ -65,14 +67,14 @@ class AccountingSettingsController extends Controller
         }
 
         Currency::create([
-            'tenant_id'      => $tid,
-            'code'           => strtoupper($data['code']),
-            'name'           => $data['name'],
-            'symbol'         => $data['symbol'],
-            'rate_to_idr'    => $data['rate_to_idr'],
-            'is_active'      => $request->boolean('is_active', true),
-            'is_base'        => false,
-            'rate_updated_at'=> now(),
+            'tenant_id' => $tid,
+            'code' => strtoupper($data['code']),
+            'name' => $data['name'],
+            'symbol' => $data['symbol'],
+            'rate_to_idr' => $data['rate_to_idr'],
+            'is_active' => $request->boolean('is_active', true),
+            'is_base' => false,
+            'rate_updated_at' => now(),
         ]);
 
         return back()->with('success', "Mata uang {$data['code']} berhasil ditambahkan.")->withFragment('tab-currency');
@@ -83,18 +85,18 @@ class AccountingSettingsController extends Controller
         abort_unless($currency->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'symbol'      => 'required|string|max:10',
+            'name' => 'required|string|max:100',
+            'symbol' => 'required|string|max:10',
             'rate_to_idr' => 'required|numeric|min:0',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $currency->update([
-            'name'           => $data['name'],
-            'symbol'         => $data['symbol'],
-            'rate_to_idr'    => $data['rate_to_idr'],
-            'is_active'      => $request->boolean('is_active'),
-            'rate_updated_at'=> now(),
+            'name' => $data['name'],
+            'symbol' => $data['symbol'],
+            'rate_to_idr' => $data['rate_to_idr'],
+            'is_active' => $request->boolean('is_active'),
+            'rate_updated_at' => now(),
         ]);
 
         return back()->with('success', "Mata uang {$currency->code} berhasil diperbarui.")->withFragment('tab-currency');
@@ -109,6 +111,7 @@ class AccountingSettingsController extends Controller
         }
 
         $currency->delete();
+
         return back()->with('success', "Mata uang {$currency->code} berhasil dihapus.")->withFragment('tab-currency');
     }
 }

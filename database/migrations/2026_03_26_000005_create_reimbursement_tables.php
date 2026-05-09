@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('reimbursements')) {
+        if (! Schema::hasTable('reimbursements')) {
             Schema::create('reimbursements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -31,7 +31,7 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'number']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'employee_id']);

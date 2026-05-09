@@ -37,18 +37,18 @@ class WorkflowTools
         return [
             // ── 1. Akuntansi + Inventory ──────────────────────────────────────
             [
-                'name'        => 'query_akuntansi_inventory',
+                'name' => 'query_akuntansi_inventory',
                 'description' => 'Analisis lintas modul: korelasikan data keuangan (pendapatan, pengeluaran, profit) '
-                    . 'dengan kondisi stok (stok kritis, nilai persediaan) untuk insight bisnis terintegrasi. '
-                    . 'Gunakan untuk: "bagaimana kondisi keuangan dan stok bulan ini?", '
-                    . '"analisis profit vs nilai persediaan", "laporan keuangan dan inventory terpadu".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'dengan kondisi stok (stok kritis, nilai persediaan) untuk insight bisnis terintegrasi. '
+                    .'Gunakan untuk: "bagaimana kondisi keuangan dan stok bulan ini?", '
+                    .'"analisis profit vs nilai persediaan", "laporan keuangan dan inventory terpadu".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'period'         => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
+                        'period' => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
                         'active_modules' => [
-                            'type'        => 'array',
-                            'items'       => ['type' => 'string'],
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
                             'description' => 'Daftar modul aktif tenant (opsional). Jika tidak diisi, semua modul dianggap aktif.',
                         ],
                     ],
@@ -58,18 +58,18 @@ class WorkflowTools
 
             // ── 2. Akuntansi + HRM ────────────────────────────────────────────
             [
-                'name'        => 'query_akuntansi_hrm',
+                'name' => 'query_akuntansi_hrm',
                 'description' => 'Analisis lintas modul: korelasikan data keuangan dengan data SDM untuk analisis '
-                    . 'biaya tenaga kerja, produktivitas karyawan, dan pendapatan per karyawan. '
-                    . 'Gunakan untuk: "berapa pendapatan per karyawan?", '
-                    . '"analisis biaya SDM vs pendapatan", "laporan keuangan dan HR terpadu".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'biaya tenaga kerja, produktivitas karyawan, dan pendapatan per karyawan. '
+                    .'Gunakan untuk: "berapa pendapatan per karyawan?", '
+                    .'"analisis biaya SDM vs pendapatan", "laporan keuangan dan HR terpadu".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'period'         => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
+                        'period' => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
                         'active_modules' => [
-                            'type'        => 'array',
-                            'items'       => ['type' => 'string'],
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
                             'description' => 'Daftar modul aktif tenant (opsional).',
                         ],
                     ],
@@ -79,18 +79,18 @@ class WorkflowTools
 
             // ── 3. Penjualan + CRM + Inventory ───────────────────────────────
             [
-                'name'        => 'query_penjualan_crm_inventory',
+                'name' => 'query_penjualan_crm_inventory',
                 'description' => 'Analisis lintas modul: korelasikan pipeline penjualan, data CRM (leads, pipeline), '
-                    . 'dan ketersediaan stok untuk analisis peluang bisnis dan kesiapan fulfillment. '
-                    . 'Gunakan untuk: "bagaimana pipeline sales dan stok kita?", '
-                    . '"analisis leads CRM vs kemampuan fulfillment", "laporan penjualan, CRM, dan inventory terpadu".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'dan ketersediaan stok untuk analisis peluang bisnis dan kesiapan fulfillment. '
+                    .'Gunakan untuk: "bagaimana pipeline sales dan stok kita?", '
+                    .'"analisis leads CRM vs kemampuan fulfillment", "laporan penjualan, CRM, dan inventory terpadu".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'period'         => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
+                        'period' => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
                         'active_modules' => [
-                            'type'        => 'array',
-                            'items'       => ['type' => 'string'],
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
                             'description' => 'Daftar modul aktif tenant (opsional).',
                         ],
                     ],
@@ -100,18 +100,18 @@ class WorkflowTools
 
             // ── 4. HRM + Payroll + Absensi ────────────────────────────────────
             [
-                'name'        => 'query_hrm_payroll_absensi',
+                'name' => 'query_hrm_payroll_absensi',
                 'description' => 'Analisis lintas modul: korelasikan data karyawan, penggajian, dan kehadiran '
-                    . 'untuk analisis produktivitas dan biaya SDM secara menyeluruh. '
-                    . 'Gunakan untuk: "laporan SDM lengkap bulan ini", '
-                    . '"analisis kehadiran dan penggajian", "berapa rata-rata gaji dan tingkat kehadiran karyawan?".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'untuk analisis produktivitas dan biaya SDM secara menyeluruh. '
+                    .'Gunakan untuk: "laporan SDM lengkap bulan ini", '
+                    .'"analisis kehadiran dan penggajian", "berapa rata-rata gaji dan tingkat kehadiran karyawan?".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'period'         => ['type' => 'string', 'description' => 'Periode dalam format YYYY-MM. Default: bulan ini'],
+                        'period' => ['type' => 'string', 'description' => 'Periode dalam format YYYY-MM. Default: bulan ini'],
                         'active_modules' => [
-                            'type'        => 'array',
-                            'items'       => ['type' => 'string'],
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
                             'description' => 'Daftar modul aktif tenant (opsional).',
                         ],
                     ],
@@ -121,19 +121,19 @@ class WorkflowTools
 
             // ── 5. Project + Keuangan ─────────────────────────────────────────
             [
-                'name'        => 'query_project_keuangan',
+                'name' => 'query_project_keuangan',
                 'description' => 'Analisis lintas modul: korelasikan data proyek (progress, budget, realisasi) '
-                    . 'dengan data keuangan (pendapatan, pengeluaran, piutang) untuk analisis profitabilitas proyek. '
-                    . 'Gunakan untuk: "bagaimana kondisi proyek dan keuangan kita?", '
-                    . '"analisis budget proyek vs arus kas", "laporan project dan keuangan terpadu".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'dengan data keuangan (pendapatan, pengeluaran, piutang) untuk analisis profitabilitas proyek. '
+                    .'Gunakan untuk: "bagaimana kondisi proyek dan keuangan kita?", '
+                    .'"analisis budget proyek vs arus kas", "laporan project dan keuangan terpadu".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'period'         => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
-                        'status'         => ['type' => 'string', 'description' => 'Filter status proyek: planning, active, on_hold, completed, cancelled (opsional)'],
+                        'period' => ['type' => 'string', 'description' => 'Periode analisis: today, this_week, this_month, last_month, this_year, atau YYYY-MM. Default: this_month'],
+                        'status' => ['type' => 'string', 'description' => 'Filter status proyek: planning, active, on_hold, completed, cancelled (opsional)'],
                         'active_modules' => [
-                            'type'        => 'array',
-                            'items'       => ['type' => 'string'],
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
                             'description' => 'Daftar modul aktif tenant (opsional).',
                         ],
                     ],
@@ -143,18 +143,18 @@ class WorkflowTools
 
             // ── 6. List Workflows (Task 14) ───────────────────────────────────
             [
-                'name'        => 'list_workflows',
+                'name' => 'list_workflows',
                 'description' => 'Tampilkan daftar workflow otomatis (Automation Builder) yang tersedia untuk tenant ini. '
-                    . 'Mengembalikan nama, deskripsi, status aktif/nonaktif, tipe trigger, dan jumlah eksekusi. '
-                    . 'Gunakan untuk: "workflow apa saja yang ada?", "tampilkan daftar otomasi", '
-                    . '"workflow mana yang aktif?", "ada automation apa di sistem?".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'Mengembalikan nama, deskripsi, status aktif/nonaktif, tipe trigger, dan jumlah eksekusi. '
+                    .'Gunakan untuk: "workflow apa saja yang ada?", "tampilkan daftar otomasi", '
+                    .'"workflow mana yang aktif?", "ada automation apa di sistem?".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'status' => [
-                            'type'        => 'string',
+                            'type' => 'string',
                             'description' => 'Filter status: all (default), active, inactive.',
-                            'enum'        => ['all', 'active', 'inactive'],
+                            'enum' => ['all', 'active', 'inactive'],
                         ],
                     ],
                     'required' => [],
@@ -163,42 +163,42 @@ class WorkflowTools
 
             // ── 7. Trigger Workflow (Task 14) ─────────────────────────────────
             [
-                'name'        => 'trigger_workflow',
+                'name' => 'trigger_workflow',
                 'description' => 'Picu (jalankan) sebuah workflow otomatis dari Automation Builder berdasarkan nama atau ID. '
-                    . 'Jika workflow tidak aktif, agent akan menginformasikan statusnya dan menawarkan alternatif. '
-                    . 'Jika aksi memerlukan approval, agent akan menginisiasi proses approval. '
-                    . 'Gunakan untuk: "jalankan workflow reorder stok", "trigger automation pengiriman notifikasi", '
-                    . '"aktifkan workflow approval PO".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'Jika workflow tidak aktif, agent akan menginformasikan statusnya dan menawarkan alternatif. '
+                    .'Jika aksi memerlukan approval, agent akan menginisiasi proses approval. '
+                    .'Gunakan untuk: "jalankan workflow reorder stok", "trigger automation pengiriman notifikasi", '
+                    .'"aktifkan workflow approval PO".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'workflow_name' => [
-                            'type'        => 'string',
+                            'type' => 'string',
                             'description' => 'Nama workflow yang akan dipicu (pencarian parsial diperbolehkan).',
                         ],
                         'workflow_id' => [
-                            'type'        => 'integer',
+                            'type' => 'integer',
                             'description' => 'ID workflow yang akan dipicu (opsional, lebih presisi dari nama).',
                         ],
                         'parameters' => [
-                            'type'        => 'object',
+                            'type' => 'object',
                             'description' => 'Parameter konteks yang diteruskan ke workflow (opsional). '
-                                . 'Contoh: {"product_id": 5, "quantity": 100}.',
+                                .'Contoh: {"product_id": 5, "quantity": 100}.',
                         ],
                         'requires_approval' => [
-                            'type'        => 'boolean',
+                            'type' => 'boolean',
                             'description' => 'Set true jika aksi ini memerlukan approval workflow sebelum dieksekusi.',
                         ],
                         'model_type' => [
-                            'type'        => 'string',
+                            'type' => 'string',
                             'description' => 'Tipe model yang memerlukan approval (opsional, contoh: "PurchaseOrder").',
                         ],
                         'model_id' => [
-                            'type'        => 'integer',
+                            'type' => 'integer',
                             'description' => 'ID model yang memerlukan approval (opsional).',
                         ],
                         'amount' => [
-                            'type'        => 'number',
+                            'type' => 'number',
                             'description' => 'Nilai transaksi untuk pengecekan approval workflow (opsional).',
                         ],
                     ],
@@ -215,30 +215,35 @@ class WorkflowTools
     public function queryAkuntansiInventory(array $args): array
     {
         $service = $this->makeService($args);
+
         return $service->queryAkuntansiInventory($args);
     }
 
     public function queryAkuntansiHrm(array $args): array
     {
         $service = $this->makeService($args);
+
         return $service->queryAkuntansiHrm($args);
     }
 
     public function queryPenjualanCrmInventory(array $args): array
     {
         $service = $this->makeService($args);
+
         return $service->queryPenjualanCrmInventory($args);
     }
 
     public function queryHrmPayrollAbsensi(array $args): array
     {
         $service = $this->makeService($args);
+
         return $service->queryHrmPayrollAbsensi($args);
     }
 
     public function queryProjectKeuangan(array $args): array
     {
         $service = $this->makeService($args);
+
         return $service->queryProjectKeuangan($args);
     }
 
@@ -267,48 +272,48 @@ class WorkflowTools
 
             if ($workflows->isEmpty()) {
                 return [
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => 'Belum ada workflow yang dikonfigurasi untuk tenant ini.',
-                    'data'    => [],
-                    'total'   => 0,
+                    'data' => [],
+                    'total' => 0,
                 ];
             }
 
             $data = $workflows->map(function (Workflow $wf) {
                 return [
-                    'id'              => $wf->id,
-                    'name'            => $wf->name,
-                    'description'     => $wf->description,
-                    'status'          => $wf->is_active ? 'aktif' : 'nonaktif',
-                    'trigger_type'    => $wf->trigger_type,
-                    'trigger_config'  => $wf->trigger_config,
-                    'action_count'    => $wf->actions->count(),
+                    'id' => $wf->id,
+                    'name' => $wf->name,
+                    'description' => $wf->description,
+                    'status' => $wf->is_active ? 'aktif' : 'nonaktif',
+                    'trigger_type' => $wf->trigger_type,
+                    'trigger_config' => $wf->trigger_config,
+                    'action_count' => $wf->actions->count(),
                     'execution_count' => $wf->execution_count,
                     'last_executed_at' => $wf->last_executed_at?->format('Y-m-d H:i:s'),
                 ];
             })->values()->toArray();
 
-            $activeCount   = $workflows->where('is_active', true)->count();
+            $activeCount = $workflows->where('is_active', true)->count();
             $inactiveCount = $workflows->where('is_active', false)->count();
 
             return [
-                'status'         => 'success',
-                'message'        => "Ditemukan {$workflows->count()} workflow ({$activeCount} aktif, {$inactiveCount} nonaktif).",
-                'data'           => $data,
-                'total'          => $workflows->count(),
-                'active_count'   => $activeCount,
+                'status' => 'success',
+                'message' => "Ditemukan {$workflows->count()} workflow ({$activeCount} aktif, {$inactiveCount} nonaktif).",
+                'data' => $data,
+                'total' => $workflows->count(),
+                'active_count' => $activeCount,
                 'inactive_count' => $inactiveCount,
             ];
 
         } catch (\Throwable $e) {
             Log::error('WorkflowTools::listWorkflows error', [
                 'tenant_id' => $this->tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return [
-                'status'  => 'error',
-                'message' => 'Gagal mengambil daftar workflow: ' . $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Gagal mengambil daftar workflow: '.$e->getMessage(),
             ];
         }
     }
@@ -327,49 +332,50 @@ class WorkflowTools
             // ── 1. Resolve workflow ───────────────────────────────────────────
             $workflow = $this->resolveWorkflow($args);
 
-            if (!$workflow) {
+            if (! $workflow) {
                 $identifier = $args['workflow_id'] ?? $args['workflow_name'] ?? '(tidak diketahui)';
+
                 return [
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => "Workflow \"{$identifier}\" tidak ditemukan. Gunakan tool list_workflows untuk melihat daftar workflow yang tersedia.",
                 ];
             }
 
             // ── 2. Cek apakah workflow aktif (Requirement 10.5) ───────────────
-            if (!$workflow->is_active) {
+            if (! $workflow->is_active) {
                 $alternatives = $this->findAlternativeWorkflows($workflow);
 
                 $altMessage = '';
-                if (!empty($alternatives)) {
-                    $altNames   = implode(', ', array_column($alternatives, 'name'));
+                if (! empty($alternatives)) {
+                    $altNames = implode(', ', array_column($alternatives, 'name'));
                     $altMessage = " Alternatif workflow yang aktif: {$altNames}.";
                 } else {
                     $altMessage = ' Tidak ada workflow alternatif yang aktif saat ini. Anda dapat mengaktifkan workflow ini melalui menu Automation Builder.';
                 }
 
                 return [
-                    'status'       => 'inactive_workflow',
-                    'message'      => "Workflow \"{$workflow->name}\" saat ini dalam kondisi **nonaktif** dan tidak dapat dijalankan.{$altMessage}",
-                    'workflow'     => [
-                        'id'          => $workflow->id,
-                        'name'        => $workflow->name,
+                    'status' => 'inactive_workflow',
+                    'message' => "Workflow \"{$workflow->name}\" saat ini dalam kondisi **nonaktif** dan tidak dapat dijalankan.{$altMessage}",
+                    'workflow' => [
+                        'id' => $workflow->id,
+                        'name' => $workflow->name,
                         'description' => $workflow->description,
-                        'status'      => 'nonaktif',
+                        'status' => 'nonaktif',
                     ],
                     'alternatives' => $alternatives,
                 ];
             }
 
             // ── 3. Cek apakah memerlukan approval (Requirement 10.4) ──────────
-            if (!empty($args['requires_approval']) || $this->workflowRequiresApproval($args)) {
+            if (! empty($args['requires_approval']) || $this->workflowRequiresApproval($args)) {
                 return $this->initiateApprovalProcess($workflow, $args);
             }
 
             // ── 4. Eksekusi workflow (Requirement 10.1) ───────────────────────
             $context = array_merge($args['parameters'] ?? [], [
-                'triggered_by'    => 'ai_agent',
+                'triggered_by' => 'ai_agent',
                 'triggered_by_user' => $this->userId,
-                'tenant_id'       => $this->tenantId,
+                'tenant_id' => $this->tenantId,
             ]);
 
             $success = $workflow->execute($context);
@@ -382,28 +388,28 @@ class WorkflowTools
 
             if ($success) {
                 return [
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => "Workflow \"{$workflow->name}\" berhasil dijalankan.",
-                    'data'    => [
-                        'workflow_id'    => $workflow->id,
-                        'workflow_name'  => $workflow->name,
+                    'data' => [
+                        'workflow_id' => $workflow->id,
+                        'workflow_name' => $workflow->name,
                         'execution_status' => $lastLog?->status ?? 'success',
-                        'started_at'     => $lastLog?->started_at?->format('Y-m-d H:i:s'),
-                        'completed_at'   => $lastLog?->completed_at?->format('Y-m-d H:i:s'),
-                        'duration_ms'    => $lastLog?->duration_ms,
+                        'started_at' => $lastLog?->started_at?->format('Y-m-d H:i:s'),
+                        'completed_at' => $lastLog?->completed_at?->format('Y-m-d H:i:s'),
+                        'duration_ms' => $lastLog?->duration_ms,
                         'execution_log_id' => $lastLog?->id,
                     ],
                 ];
             }
 
             return [
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => "Workflow \"{$workflow->name}\" gagal dijalankan. "
-                    . ($lastLog?->error_message ?? 'Periksa log eksekusi untuk detail lebih lanjut.'),
-                'data'    => [
-                    'workflow_id'   => $workflow->id,
+                    .($lastLog?->error_message ?? 'Periksa log eksekusi untuk detail lebih lanjut.'),
+                'data' => [
+                    'workflow_id' => $workflow->id,
                     'workflow_name' => $workflow->name,
-                    'error'         => $lastLog?->error_message,
+                    'error' => $lastLog?->error_message,
                     'execution_log_id' => $lastLog?->id,
                 ],
             ];
@@ -411,13 +417,13 @@ class WorkflowTools
         } catch (\Throwable $e) {
             Log::error('WorkflowTools::triggerWorkflow error', [
                 'tenant_id' => $this->tenantId,
-                'args'      => $args,
-                'error'     => $e->getMessage(),
+                'args' => $args,
+                'error' => $e->getMessage(),
             ]);
 
             return [
-                'status'  => 'error',
-                'message' => 'Gagal memicu workflow: ' . $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Gagal memicu workflow: '.$e->getMessage(),
             ];
         }
     }
@@ -429,14 +435,14 @@ class WorkflowTools
      */
     private function resolveWorkflow(array $args): ?Workflow
     {
-        if (!empty($args['workflow_id'])) {
+        if (! empty($args['workflow_id'])) {
             return Workflow::where('tenant_id', $this->tenantId)
                 ->find((int) $args['workflow_id']);
         }
 
-        if (!empty($args['workflow_name'])) {
+        if (! empty($args['workflow_name'])) {
             return Workflow::where('tenant_id', $this->tenantId)
-                ->where('name', 'like', '%' . $args['workflow_name'] . '%')
+                ->where('name', 'like', '%'.$args['workflow_name'].'%')
                 ->orderBy('is_active', 'desc') // aktif lebih diprioritaskan
                 ->first();
         }
@@ -455,9 +461,9 @@ class WorkflowTools
             ->orderBy('execution_count', 'desc')
             ->limit(3)
             ->get(['id', 'name', 'description', 'trigger_type'])
-            ->map(fn($wf) => [
-                'id'          => $wf->id,
-                'name'        => $wf->name,
+            ->map(fn ($wf) => [
+                'id' => $wf->id,
+                'name' => $wf->name,
                 'description' => $wf->description,
                 'trigger_type' => $wf->trigger_type,
             ])
@@ -494,9 +500,9 @@ class WorkflowTools
      */
     private function initiateApprovalProcess(Workflow $workflow, array $args): array
     {
-        $amount    = (float) ($args['amount'] ?? 0);
+        $amount = (float) ($args['amount'] ?? 0);
         $modelType = $args['model_type'] ?? null;
-        $modelId   = (int) ($args['model_id'] ?? 0);
+        $modelId = (int) ($args['model_id'] ?? 0);
 
         // Cari approval workflow yang berlaku
         $approvalWorkflow = null;
@@ -521,16 +527,16 @@ class WorkflowTools
                 ->where('status', 'pending')
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 $approvalRequest = ApprovalRequest::create([
-                    'tenant_id'    => $this->tenantId,
-                    'workflow_id'  => $approvalWorkflow->id,
+                    'tenant_id' => $this->tenantId,
+                    'workflow_id' => $approvalWorkflow->id,
                     'requested_by' => $this->userId,
-                    'model_type'   => $modelType,
-                    'model_id'     => $modelId,
-                    'status'       => 'pending',
-                    'amount'       => $amount,
-                    'notes'        => "Approval diminta oleh AI Agent untuk workflow: {$workflow->name}",
+                    'model_type' => $modelType,
+                    'model_id' => $modelId,
+                    'status' => 'pending',
+                    'amount' => $amount,
+                    'notes' => "Approval diminta oleh AI Agent untuk workflow: {$workflow->name}",
                 ]);
             } else {
                 $approvalRequest = $existing;
@@ -542,22 +548,22 @@ class WorkflowTools
             : 'approver yang berwenang';
 
         $message = "Aksi ini memerlukan persetujuan sebelum workflow \"{$workflow->name}\" dapat dijalankan. "
-            . "Permintaan approval telah dikirimkan kepada {$approverRoles}. "
-            . "Workflow akan dieksekusi secara otomatis setelah mendapat persetujuan.";
+            ."Permintaan approval telah dikirimkan kepada {$approverRoles}. "
+            .'Workflow akan dieksekusi secara otomatis setelah mendapat persetujuan.';
 
         return [
-            'status'           => 'pending_approval',
-            'message'          => $message,
-            'data'             => [
-                'workflow_id'         => $workflow->id,
-                'workflow_name'       => $workflow->name,
+            'status' => 'pending_approval',
+            'message' => $message,
+            'data' => [
+                'workflow_id' => $workflow->id,
+                'workflow_name' => $workflow->name,
                 'approval_request_id' => $approvalRequest?->id,
-                'approval_workflow'   => $approvalWorkflow ? [
-                    'id'             => $approvalWorkflow->id,
-                    'name'           => $approvalWorkflow->name,
+                'approval_workflow' => $approvalWorkflow ? [
+                    'id' => $approvalWorkflow->id,
+                    'name' => $approvalWorkflow->name,
                     'approver_roles' => $approvalWorkflow->approver_roles,
                 ] : null,
-                'amount'              => $amount > 0 ? $amount : null,
+                'amount' => $amount > 0 ? $amount : null,
             ],
         ];
     }
@@ -567,6 +573,7 @@ class WorkflowTools
     private function makeService(array $args): CrossModuleQueryService
     {
         $activeModules = $args['active_modules'] ?? [];
+
         return new CrossModuleQueryService($this->tenantId, $activeModules);
     }
 }

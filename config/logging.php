@@ -1,6 +1,8 @@
 <?php
 
 use Monolog\Handler\NullHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\SlackWebhookHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
@@ -89,7 +91,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],
@@ -130,7 +132,7 @@ return [
         // Database channel for error tracking
         'database' => [
             'driver' => 'monolog',
-            'handler' => Monolog\Handler\RotatingFileHandler::class,
+            'handler' => RotatingFileHandler::class,
             'handler_with' => [
                 'filename' => storage_path('logs/error.log'),
                 'maxFiles' => 30,
@@ -141,7 +143,7 @@ return [
         // Alert channel for critical errors
         'alert' => [
             'driver' => 'monolog',
-            'handler' => Monolog\Handler\SlackWebhookHandler::class,
+            'handler' => SlackWebhookHandler::class,
             'handler_with' => [
                 'url' => config('services.slack.error_webhook'),
                 'channel' => '#alerts',

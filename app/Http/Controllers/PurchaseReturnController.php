@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\GoodsReceipt;
-use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
@@ -18,24 +16,29 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseReturnController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
         $query = PurchaseReturn::with(['supplier', 'purchaseOrder'])
             ->where('tenant_id', $this->tid());
 
-        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('supplier', fn($c) => $c->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('supplier', fn ($c) => $c->where('name', 'like', "%$s%")));
         }
 
         $returns = $query->latest()->paginate(20)->withQueryString();
         $stats = [
-            'draft'     => PurchaseReturn::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
-            'sent'      => PurchaseReturn::where('tenant_id', $this->tid())->where('status', 'sent')->count(),
+            'draft' => PurchaseReturn::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
+            'sent' => PurchaseReturn::where('tenant_id', $this->tid())->where('status', 'sent')->count(),
             'completed' => PurchaseReturn::where('tenant_id', $this->tid())->where('status', 'completed')->count(),
         ];
 
@@ -44,9 +47,9 @@ class PurchaseReturnController extends Controller
 
     public function create()
     {
-        $tid    = $this->tid();
-        $suppliers  = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
-        $orders     = PurchaseOrder::with('supplier')
+        $tid = $this->tid();
+        $suppliers = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $orders = PurchaseOrder::with('supplier')
             ->where('tenant_id', $tid)
             ->whereIn('status', ['received', 'completed'])
             ->orderBy('number')
@@ -60,57 +63,57 @@ class PurchaseReturnController extends Controller
     {
         $data = $request->validate([
             'purchase_order_id' => 'required|exists:purchase_orders,id',
-            'supplier_id'       => 'required|exists:suppliers,id',
-            'warehouse_id'      => 'required|exists:warehouses,id',
-            'return_date'       => 'required|date',
-            'reason'            => 'required|string|max:500',
-            'refund_method'     => 'required|in:debit_note,cash,bank_transfer',
-            'notes'             => 'nullable|string|max:1000',
-            'items'             => 'required|array|min:1',
-            'items.*.product_id'=> 'required|exists:products,id',
-            'items.*.quantity'  => 'required|numeric|min:0.001',
-            'items.*.price'     => 'required|numeric|min:0',
-            'items.*.reason'    => 'nullable|string|max:255',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'return_date' => 'required|date',
+            'reason' => 'required|string|max:500',
+            'refund_method' => 'required|in:debit_note,cash,bank_transfer',
+            'notes' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.reason' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tid();
-        $po  = PurchaseOrder::where('tenant_id', $tid)->findOrFail($data['purchase_order_id']);
+        $po = PurchaseOrder::where('tenant_id', $tid)->findOrFail($data['purchase_order_id']);
 
-        DB::transaction(function () use ($data, $tid, $po) {
-            $subtotal  = 0;
+        DB::transaction(function () use ($data, $tid) {
+            $subtotal = 0;
             $itemsData = [];
 
             foreach ($data['items'] as $item) {
-                $total     = $item['quantity'] * $item['price'];
+                $total = $item['quantity'] * $item['price'];
                 $subtotal += $total;
                 $itemsData[] = [
                     'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'price'      => $item['price'],
-                    'total'      => $total,
-                    'reason'     => $item['reason'] ?? null,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $total,
+                    'reason' => $item['reason'] ?? null,
                 ];
             }
 
             $number = app(DocumentNumberService::class)->generate($tid, 'PR');
 
             $return = PurchaseReturn::create([
-                'tenant_id'         => $tid,
+                'tenant_id' => $tid,
                 'purchase_order_id' => $data['purchase_order_id'],
-                'supplier_id'       => $data['supplier_id'],
-                'warehouse_id'      => $data['warehouse_id'],
-                'created_by'        => auth()->id(),
-                'number'            => $number,
-                'return_date'       => $data['return_date'],
-                'reason'            => $data['reason'],
-                'status'            => 'draft',
-                'subtotal'          => $subtotal,
-                'tax_amount'        => 0,
-                'total'             => $subtotal,
-                'refund_method'     => $data['refund_method'],
-                'refund_amount'     => $subtotal,
-                'is_cross_period'   => false,
-                'notes'             => $data['notes'] ?? null,
+                'supplier_id' => $data['supplier_id'],
+                'warehouse_id' => $data['warehouse_id'],
+                'created_by' => auth()->id(),
+                'number' => $number,
+                'return_date' => $data['return_date'],
+                'reason' => $data['reason'],
+                'status' => 'draft',
+                'subtotal' => $subtotal,
+                'tax_amount' => 0,
+                'total' => $subtotal,
+                'refund_method' => $data['refund_method'],
+                'refund_amount' => $subtotal,
+                'is_cross_period' => false,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             $return->items()->createMany($itemsData);
@@ -139,16 +142,16 @@ class PurchaseReturnController extends Controller
                     $stock->decrement('quantity', $item->quantity);
 
                     StockMovement::create([
-                        'tenant_id'       => $tid,
-                        'product_id'      => $item->product_id,
-                        'warehouse_id'    => $purchaseReturn->warehouse_id,
-                        'user_id'         => auth()->id(),
-                        'type'            => 'out',
-                        'quantity'        => $item->quantity,
+                        'tenant_id' => $tid,
+                        'product_id' => $item->product_id,
+                        'warehouse_id' => $purchaseReturn->warehouse_id,
+                        'user_id' => auth()->id(),
+                        'type' => 'out',
+                        'quantity' => $item->quantity,
                         'quantity_before' => $before,
-                        'quantity_after'  => $before - $item->quantity,
-                        'reference'       => $purchaseReturn->number,
-                        'notes'           => "Retur pembelian {$purchaseReturn->number}",
+                        'quantity_after' => $before - $item->quantity,
+                        'reference' => $purchaseReturn->number,
+                        'notes' => "Retur pembelian {$purchaseReturn->number}",
                     ]);
                 }
             }
@@ -168,14 +171,14 @@ class PurchaseReturnController extends Controller
         DB::transaction(function () use ($purchaseReturn) {
             // GL Posting
             $glResult = app(GlPostingService::class)->postPurchaseReturn(
-                tenantId:     $this->tid(),
-                userId:       auth()->id(),
+                tenantId: $this->tid(),
+                userId: auth()->id(),
                 returnNumber: $purchaseReturn->number,
-                returnId:     $purchaseReturn->id,
-                subtotal:     (float) $purchaseReturn->subtotal,
-                taxAmount:    (float) $purchaseReturn->tax_amount,
-                total:        (float) $purchaseReturn->total,
-                date:         $purchaseReturn->return_date->toDateString(),
+                returnId: $purchaseReturn->id,
+                subtotal: (float) $purchaseReturn->subtotal,
+                taxAmount: (float) $purchaseReturn->tax_amount,
+                total: (float) $purchaseReturn->total,
+                date: $purchaseReturn->return_date->toDateString(),
             );
             if ($glResult->isFailed()) {
                 session()->flash('warning', $glResult->warningMessage());
@@ -204,12 +207,12 @@ class PurchaseReturnController extends Controller
     {
         abort_if($purchaseOrder->tenant_id !== $this->tid(), 403);
         $purchaseOrder->load('items.product');
-        $items = $purchaseOrder->items->map(fn($i) => [
-            'product_id'   => $i->product_id,
+        $items = $purchaseOrder->items->map(fn ($i) => [
+            'product_id' => $i->product_id,
             'product_name' => $i->product->name,
-            'quantity'     => $i->quantity,
-            'price'        => $i->price,
-            'unit'         => $i->product->unit ?? 'pcs',
+            'quantity' => $i->quantity,
+            'price' => $i->price,
+            'unit' => $i->product->unit ?? 'pcs',
         ]);
 
         return response()->json($items);

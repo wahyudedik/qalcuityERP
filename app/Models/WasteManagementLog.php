@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WasteManagementLog extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -27,7 +26,7 @@ use HasFactory, BelongsToTenant;
         'revenue_amount',
         'environmental_impact',
         'notes',
-        'recorded_by'
+        'recorded_by',
     ];
 
     protected $casts = [
@@ -93,7 +92,7 @@ use HasFactory, BelongsToTenant;
      */
     public function getProcessingEfficiencyAttribute(): ?float
     {
-        if (!$this->quantity_kg || !$this->processed_quantity_kg) {
+        if (! $this->quantity_kg || ! $this->processed_quantity_kg) {
             return null;
         }
 

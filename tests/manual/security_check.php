@@ -2,19 +2,21 @@
 
 /**
  * Manual Security Testing Script
- * 
+ *
  * Run this script to verify all security enhancements are working correctly.
- * 
+ *
  * Usage: php tests/manual/security_check.php
  */
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__.'/../../vendor/autoload.php';
 
-use App\Services\AiCommandValidator;
-use App\Services\OutputEscaper;
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\RateLimitAiRequests;
 use App\Http\Middleware\VerifyCsrfForUploads;
-use App\Http\Middleware\AddSecurityHeaders;
+use App\Services\AiCommandValidator;
+use App\Services\OutputEscaper;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 echo "===========================================\n";
 echo "  SECURITY ENHANCEMENTS VERIFICATION\n";
@@ -22,7 +24,7 @@ echo "===========================================\n\n";
 
 // Test 1: AI Command Validator
 echo "[1/5] Testing AI Command Validator...\n";
-$validator = new AiCommandValidator();
+$validator = new AiCommandValidator;
 
 // Test dangerous pattern detection in isolation (without tool definition)
 // We'll test the pattern checking directly
@@ -34,7 +36,7 @@ $errors = [];
 $values = ['name' => '<script>alert("xss")</script>'];
 $method->invokeArgs($validator, [&$values, &$errors]);
 
-if (!empty($errors) && str_contains(implode(' ', $errors), 'dangerous')) {
+if (! empty($errors) && str_contains(implode(' ', $errors), 'dangerous')) {
     echo "    ✅ XSS pattern blocked successfully\n";
 } else {
     echo "    ⚠️  Pattern detection requires tool definition (expected behavior)\n";
@@ -45,7 +47,7 @@ $reflectionMethod = $reflection->getMethod('sanitizeByType');
 $reflectionMethod->setAccessible(true);
 $sanitized = $reflectionMethod->invoke($validator, "Hello\x00World", 'string');
 
-if (!str_contains($sanitized, "\x00")) {
+if (! str_contains($sanitized, "\x00")) {
     echo "    ✅ Null bytes sanitized successfully\n";
 } else {
     echo "    ❌ Null bytes NOT sanitized!\n";
@@ -53,10 +55,10 @@ if (!str_contains($sanitized, "\x00")) {
 
 // Test SQL injection detection
 $errors = [];
-$values = ['query' => "SELECT * FROM users WHERE 1=1 UNION SELECT * FROM passwords"];
+$values = ['query' => 'SELECT * FROM users WHERE 1=1 UNION SELECT * FROM passwords'];
 $method->invokeArgs($validator, [&$values, &$errors]);
 
-if (!empty($errors)) {
+if (! empty($errors)) {
     echo "    ✅ SQL injection pattern blocked\n";
 } else {
     echo "    ⚠️  SQL injection may not be caught without tool context\n";
@@ -77,7 +79,7 @@ if (str_contains($htmlTest, '&lt;script&gt;')) {
 
 // JavaScript escaping
 $jsTest = OutputEscaper::js('</script><script>alert(1)</script>');
-if (!str_contains($jsTest, '</script>')) {
+if (! str_contains($jsTest, '</script>')) {
     echo "    ✅ JavaScript escaping works correctly\n";
 } else {
     echo "    ❌ JavaScript escaping FAILED!\n";
@@ -93,7 +95,7 @@ if ($urlTest === '#blocked') {
 
 // Text cleaning
 $cleanTest = OutputEscaper::cleanText('User input with <b>HTML</b> and <script>bad</script>');
-if (!str_contains($cleanTest, '<script>') && str_contains($cleanTest, 'HTML')) {
+if (! str_contains($cleanTest, '<script>') && str_contains($cleanTest, 'HTML')) {
     echo "    ✅ Text cleaning works correctly\n";
 } else {
     echo "    ⚠️  Text cleaning may need review\n";
@@ -143,9 +145,9 @@ if (class_exists(AddSecurityHeaders::class)) {
     echo "    ✅ AddSecurityHeaders middleware exists\n";
 
     // Test header generation
-    $middleware = new AddSecurityHeaders();
-    $request = new \Illuminate\Http\Request();
-    $response = new \Illuminate\Http\Response('Test');
+    $middleware = new AddSecurityHeaders;
+    $request = new Request;
+    $response = new Response('Test');
 
     $result = $middleware->handle($request, function () use ($response) {
         return $response;

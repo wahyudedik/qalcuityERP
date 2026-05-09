@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserPointsLog extends Model
 {
     use BelongsToTenant;
+
     protected $table = 'user_points_log';
 
     protected $fillable = [

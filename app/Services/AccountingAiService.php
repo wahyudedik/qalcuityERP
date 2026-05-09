@@ -39,11 +39,13 @@ class AccountingAiService
     public function suggestAccounts(int $tenantId, string $description, float $amount = 0): array
     {
         $desc = strtolower(trim($description));
-        if (empty($desc)) return [];
+        if (empty($desc)) {
+            return [];
+        }
 
         // ── a) Histori: cari jurnal dengan deskripsi mirip ────────
         $historySuggestions = $this->suggestFromHistory($tenantId, $desc);
-        if (!empty($historySuggestions)) {
+        if (! empty($historySuggestions)) {
             return $historySuggestions;
         }
 
@@ -57,8 +59,10 @@ class AccountingAiService
     private function suggestFromHistory(int $tenantId, string $desc): array
     {
         // Ambil kata-kata penting (>= 4 karakter)
-        $words = array_filter(explode(' ', $desc), fn($w) => strlen($w) >= 4);
-        if (empty($words)) return [];
+        $words = array_filter(explode(' ', $desc), fn ($w) => strlen($w) >= 4);
+        if (empty($words)) {
+            return [];
+        }
 
         // Cari jurnal posted dengan deskripsi mirip (max 6 bulan terakhir)
         $query = JournalEntry::where('tenant_id', $tenantId)
@@ -74,44 +78,53 @@ class AccountingAiService
             ->limit(5)
             ->get();
 
-        if ($similar->isEmpty()) return [];
+        if ($similar->isEmpty()) {
+            return [];
+        }
 
         // Ambil pasangan akun yang paling sering muncul
         $pairs = [];
         foreach ($similar as $journal) {
-            $debits  = $journal->lines->where('debit', '>', 0)->sortByDesc('debit');
+            $debits = $journal->lines->where('debit', '>', 0)->sortByDesc('debit');
             $credits = $journal->lines->where('credit', '>', 0)->sortByDesc('credit');
 
-            $debitAcc  = $debits->first()?->account;
+            $debitAcc = $debits->first()?->account;
             $creditAcc = $credits->first()?->account;
 
-            if (!$debitAcc || !$creditAcc) continue;
+            if (! $debitAcc || ! $creditAcc) {
+                continue;
+            }
 
             $key = "{$debitAcc->id}_{$creditAcc->id}";
             $pairs[$key] = ($pairs[$key] ?? 0) + 1;
         }
 
-        if (empty($pairs)) return [];
+        if (empty($pairs)) {
+            return [];
+        }
 
         arsort($pairs);
         $topKey = array_key_first($pairs);
         [$debitId, $creditId] = explode('_', $topKey);
 
-        $debitAcc  = ChartOfAccount::find($debitId);
+        $debitAcc = ChartOfAccount::find($debitId);
         $creditAcc = ChartOfAccount::find($creditId);
 
-        if (!$debitAcc || !$creditAcc) return [];
+        if (! $debitAcc || ! $creditAcc) {
+            return [];
+        }
 
         $count = $pairs[$topKey];
+
         return [[
-            'debit_account_id'    => (int) $debitId,
-            'debit_account_code'  => $debitAcc->code,
-            'debit_account_name'  => $debitAcc->name,
-            'credit_account_id'   => (int) $creditId,
+            'debit_account_id' => (int) $debitId,
+            'debit_account_code' => $debitAcc->code,
+            'debit_account_name' => $debitAcc->name,
+            'credit_account_id' => (int) $creditId,
             'credit_account_code' => $creditAcc->code,
             'credit_account_name' => $creditAcc->name,
-            'confidence'          => $count >= 3 ? 'high' : 'medium',
-            'basis'               => "Berdasarkan {$count} jurnal serupa sebelumnya",
+            'confidence' => $count >= 3 ? 'high' : 'medium',
+            'basis' => "Berdasarkan {$count} jurnal serupa sebelumnya",
         ]];
     }
 
@@ -125,7 +138,7 @@ class AccountingAiService
             ->where('is_active', true)
             ->where('is_header', false)
             ->get()
-            ->keyBy(fn($a) => strtolower($a->name));
+            ->keyBy(fn ($a) => strtolower($a->name));
 
         $rules = $this->getKeywordRules();
 
@@ -137,23 +150,27 @@ class AccountingAiService
                     break;
                 }
             }
-            if (!$matched) continue;
+            if (! $matched) {
+                continue;
+            }
 
             // Cari akun yang namanya mengandung kata kunci COA
-            $debitAcc  = $this->findAccountByKeywords($accounts, $rule['debit_keywords']);
+            $debitAcc = $this->findAccountByKeywords($accounts, $rule['debit_keywords']);
             $creditAcc = $this->findAccountByKeywords($accounts, $rule['credit_keywords']);
 
-            if (!$debitAcc || !$creditAcc) continue;
+            if (! $debitAcc || ! $creditAcc) {
+                continue;
+            }
 
             return [[
-                'debit_account_id'    => $debitAcc->id,
-                'debit_account_code'  => $debitAcc->code,
-                'debit_account_name'  => $debitAcc->name,
-                'credit_account_id'   => $creditAcc->id,
+                'debit_account_id' => $debitAcc->id,
+                'debit_account_code' => $debitAcc->code,
+                'debit_account_name' => $debitAcc->name,
+                'credit_account_id' => $creditAcc->id,
                 'credit_account_code' => $creditAcc->code,
                 'credit_account_name' => $creditAcc->name,
-                'confidence'          => 'low',
-                'basis'               => "Berdasarkan kata kunci: \"{$rule['label']}\"",
+                'confidence' => 'low',
+                'basis' => "Berdasarkan kata kunci: \"{$rule['label']}\"",
             ]];
         }
 
@@ -170,88 +187,88 @@ class AccountingAiService
             [
                 'keywords' => ['penjualan', 'jual', 'sales', 'revenue', 'pendapatan'],
                 'label' => 'Penjualan',
-                'debit_keywords'  => ['kas', 'bank', 'piutang'],
-                'credit_keywords' => ['penjualan', 'pendapatan', 'revenue']
+                'debit_keywords' => ['kas', 'bank', 'piutang'],
+                'credit_keywords' => ['penjualan', 'pendapatan', 'revenue'],
             ],
 
             // Pembelian / Pengadaan
             [
                 'keywords' => ['pembelian', 'beli', 'purchase', 'pengadaan', 'po'],
                 'label' => 'Pembelian',
-                'debit_keywords'  => ['persediaan', 'inventory', 'pembelian'],
-                'credit_keywords' => ['kas', 'bank', 'hutang', 'utang']
+                'debit_keywords' => ['persediaan', 'inventory', 'pembelian'],
+                'credit_keywords' => ['kas', 'bank', 'hutang', 'utang'],
             ],
 
             // Gaji / Payroll
             [
                 'keywords' => ['gaji', 'salary', 'payroll', 'upah', 'tunjangan'],
                 'label' => 'Gaji',
-                'debit_keywords'  => ['beban gaji', 'gaji', 'biaya gaji'],
-                'credit_keywords' => ['kas', 'bank', 'hutang gaji']
+                'debit_keywords' => ['beban gaji', 'gaji', 'biaya gaji'],
+                'credit_keywords' => ['kas', 'bank', 'hutang gaji'],
             ],
 
             // Sewa
             [
                 'keywords' => ['sewa', 'rent', 'rental', 'kontrak'],
                 'label' => 'Sewa',
-                'debit_keywords'  => ['beban sewa', 'sewa', 'biaya sewa'],
-                'credit_keywords' => ['kas', 'bank']
+                'debit_keywords' => ['beban sewa', 'sewa', 'biaya sewa'],
+                'credit_keywords' => ['kas', 'bank'],
             ],
 
             // Listrik / Utilitas
             [
                 'keywords' => ['listrik', 'pln', 'air', 'pdam', 'telepon', 'internet', 'utilitas'],
                 'label' => 'Utilitas',
-                'debit_keywords'  => ['beban listrik', 'beban utilitas', 'utilitas', 'listrik'],
-                'credit_keywords' => ['kas', 'bank']
+                'debit_keywords' => ['beban listrik', 'beban utilitas', 'utilitas', 'listrik'],
+                'credit_keywords' => ['kas', 'bank'],
             ],
 
             // Depresiasi
             [
                 'keywords' => ['depresiasi', 'depreciation', 'penyusutan'],
                 'label' => 'Depresiasi',
-                'debit_keywords'  => ['beban depresiasi', 'penyusutan'],
-                'credit_keywords' => ['akumulasi depresiasi', 'akumulasi penyusutan']
+                'debit_keywords' => ['beban depresiasi', 'penyusutan'],
+                'credit_keywords' => ['akumulasi depresiasi', 'akumulasi penyusutan'],
             ],
 
             // Pajak
             [
                 'keywords' => ['pajak', 'tax', 'ppn', 'pph', 'bphtb'],
                 'label' => 'Pajak',
-                'debit_keywords'  => ['pajak', 'ppn masukan', 'beban pajak'],
-                'credit_keywords' => ['kas', 'bank', 'hutang pajak', 'ppn keluaran']
+                'debit_keywords' => ['pajak', 'ppn masukan', 'beban pajak'],
+                'credit_keywords' => ['kas', 'bank', 'hutang pajak', 'ppn keluaran'],
             ],
 
             // Kas masuk / transfer
             [
                 'keywords' => ['transfer masuk', 'setoran', 'deposit', 'penerimaan'],
                 'label' => 'Penerimaan Kas',
-                'debit_keywords'  => ['kas', 'bank'],
-                'credit_keywords' => ['piutang', 'pendapatan']
+                'debit_keywords' => ['kas', 'bank'],
+                'credit_keywords' => ['piutang', 'pendapatan'],
             ],
 
             // Kas keluar
             [
                 'keywords' => ['transfer keluar', 'penarikan', 'pembayaran', 'bayar'],
                 'label' => 'Pembayaran',
-                'debit_keywords'  => ['hutang', 'utang', 'beban'],
-                'credit_keywords' => ['kas', 'bank']
+                'debit_keywords' => ['hutang', 'utang', 'beban'],
+                'credit_keywords' => ['kas', 'bank'],
             ],
 
             // Biaya operasional
             [
                 'keywords' => ['operasional', 'kantor', 'atk', 'alat tulis', 'supplies'],
                 'label' => 'Biaya Operasional',
-                'debit_keywords'  => ['beban operasional', 'biaya operasional', 'perlengkapan'],
-                'credit_keywords' => ['kas', 'bank']
+                'debit_keywords' => ['beban operasional', 'biaya operasional', 'perlengkapan'],
+                'credit_keywords' => ['kas', 'bank'],
             ],
 
             // Asuransi
             [
                 'keywords' => ['asuransi', 'insurance', 'premi'],
                 'label' => 'Asuransi',
-                'debit_keywords'  => ['beban asuransi', 'asuransi dibayar dimuka'],
-                'credit_keywords' => ['kas', 'bank']
+                'debit_keywords' => ['beban asuransi', 'asuransi dibayar dimuka'],
+                'credit_keywords' => ['kas', 'bank'],
             ],
         ];
     }
@@ -265,6 +282,7 @@ class AccountingAiService
                 }
             }
         }
+
         return null;
     }
 
@@ -286,7 +304,7 @@ class AccountingAiService
     public function detectJournalAnomalies(int $tenantId, array $lines, string $date, string $description, float $totalAmount): array
     {
         $warnings = [];
-        $errors   = [];
+        $errors = [];
 
         // ── 1. Deskripsi tidak informatif ─────────────────────────
         if (strlen(trim($description)) < 5) {
@@ -294,10 +312,10 @@ class AccountingAiService
         }
 
         // ── 2. Akun sama di debit dan kredit ──────────────────────
-        $debitAccounts  = collect($lines)->where('debit', '>', 0)->pluck('account_id')->filter()->toArray();
+        $debitAccounts = collect($lines)->where('debit', '>', 0)->pluck('account_id')->filter()->toArray();
         $creditAccounts = collect($lines)->where('credit', '>', 0)->pluck('account_id')->filter()->toArray();
         $overlap = array_intersect($debitAccounts, $creditAccounts);
-        if (!empty($overlap)) {
+        if (! empty($overlap)) {
             $errors[] = 'Akun yang sama muncul di debit dan kredit sekaligus. Periksa kembali baris jurnal.';
         }
 
@@ -309,8 +327,8 @@ class AccountingAiService
             ->avg('journal_entry_lines.debit') ?? 0;
 
         if ($avgAmount > 0 && $totalAmount > ($avgAmount * 5)) {
-            $fmt = 'Rp ' . number_format($totalAmount, 0, ',', '.');
-            $fmtAvg = 'Rp ' . number_format($avgAmount, 0, ',', '.');
+            $fmt = 'Rp '.number_format($totalAmount, 0, ',', '.');
+            $fmtAvg = 'Rp '.number_format($avgAmount, 0, ',', '.');
             $warnings[] = "Jumlah jurnal ({$fmt}) jauh di atas rata-rata ({$fmtAvg}). Pastikan angka sudah benar.";
         }
 
@@ -333,7 +351,7 @@ class AccountingAiService
 
         // ── 7. Pasangan akun tidak lazim ──────────────────────────
         $unusualPairs = $this->detectUnusualAccountPairs($tenantId, $debitAccounts, $creditAccounts);
-        if (!empty($unusualPairs)) {
+        if (! empty($unusualPairs)) {
             $warnings = array_merge($warnings, $unusualPairs);
         }
 
@@ -344,10 +362,10 @@ class AccountingAiService
 
         // Risk level
         $risk = match (true) {
-            !empty($errors)          => 'high',
-            count($warnings) >= 2    => 'medium',
-            count($warnings) === 1   => 'low',
-            default                  => 'none',
+            ! empty($errors) => 'high',
+            count($warnings) >= 2 => 'medium',
+            count($warnings) === 1 => 'low',
+            default => 'none',
         };
 
         return compact('warnings', 'errors', 'risk');
@@ -358,7 +376,9 @@ class AccountingAiService
      */
     private function detectUnusualAccountPairs(int $tenantId, array $debitIds, array $creditIds): array
     {
-        if (empty($debitIds) || empty($creditIds)) return [];
+        if (empty($debitIds) || empty($creditIds)) {
+            return [];
+        }
 
         $warnings = [];
 
@@ -367,23 +387,25 @@ class AccountingAiService
 
         foreach ($debitIds as $dId) {
             foreach ($creditIds as $cId) {
-                $debitAcc  = $accounts[$dId] ?? null;
+                $debitAcc = $accounts[$dId] ?? null;
                 $creditAcc = $accounts[$cId] ?? null;
-                if (!$debitAcc || !$creditAcc) continue;
+                if (! $debitAcc || ! $creditAcc) {
+                    continue;
+                }
 
                 // Cek pasangan yang tidak pernah muncul di histori (6 bulan)
                 $existsInHistory = JournalEntryLine::where('account_id', $dId)
                     ->where('debit', '>', 0)
                     ->whereHas(
                         'journalEntry',
-                        fn($q) => $q
+                        fn ($q) => $q
                             ->where('tenant_id', $tenantId)
                             ->where('status', 'posted')
                             ->where('date', '>=', now()->subMonths(6)->toDateString())
-                            ->whereHas('lines', fn($q2) => $q2->where('account_id', $cId)->where('credit', '>', 0))
+                            ->whereHas('lines', fn ($q2) => $q2->where('account_id', $cId)->where('credit', '>', 0))
                     )->exists();
 
-                if (!$existsInHistory) {
+                if (! $existsInHistory) {
                     // Cek apakah tipe akun tidak lazim dipasangkan
                     $unusual = $this->isUnusualTypePair($debitAcc->type, $creditAcc->type);
                     if ($unusual) {
@@ -409,7 +431,9 @@ class AccountingAiService
         ];
 
         foreach ($unusual as [$d, $c]) {
-            if ($debitType === $d && $creditType === $c) return true;
+            if ($debitType === $d && $creditType === $c) {
+                return true;
+            }
         }
 
         return false;
@@ -440,7 +464,9 @@ class AccountingAiService
 
         // ── a) Cari dari histori matched statements ───────────────
         $historyResult = $this->categorizeFromHistory($tenantId, $desc, $type);
-        if ($historyResult) return $historyResult;
+        if ($historyResult) {
+            return $historyResult;
+        }
 
         // ── b) Rule-based ─────────────────────────────────────────
         return $this->categorizeFromRules($tenantId, $desc, $type, $amount);
@@ -452,8 +478,10 @@ class AccountingAiService
     private function categorizeFromHistory(int $tenantId, string $desc, string $type): ?array
     {
         // Cari statement yang sudah matched dengan deskripsi mirip
-        $words = array_filter(explode(' ', $desc), fn($w) => strlen($w) >= 4);
-        if (empty($words)) return null;
+        $words = array_filter(explode(' ', $desc), fn ($w) => strlen($w) >= 4);
+        if (empty($words)) {
+            return null;
+        }
 
         $query = DB::table('bank_statements')
             ->where('tenant_id', $tenantId)
@@ -467,16 +495,20 @@ class AccountingAiService
 
         $matched = $query->orderByDesc('transaction_date')->limit(5)->get();
 
-        if ($matched->isEmpty()) return null;
+        if ($matched->isEmpty()) {
+            return null;
+        }
 
         // Ambil akun dari jurnal yang terkait dengan transaksi tersebut
         $transactionIds = $matched->pluck('matched_transaction_id')->filter()->toArray();
-        if (empty($transactionIds)) return null;
+        if (empty($transactionIds)) {
+            return null;
+        }
 
         // Cari journal lines yang terkait
         $accountId = JournalEntryLine::whereHas(
             'journalEntry',
-            fn($q) => $q
+            fn ($q) => $q
                 ->where('tenant_id', $tenantId)
                 ->whereIn('reference_id', $transactionIds)
         )
@@ -485,17 +517,21 @@ class AccountingAiService
             ->orderByRaw('COUNT(*) DESC')
             ->value('account_id');
 
-        if (!$accountId) return null;
+        if (! $accountId) {
+            return null;
+        }
 
         $account = ChartOfAccount::find($accountId);
-        if (!$account) return null;
+        if (! $account) {
+            return null;
+        }
 
         return [
-            'account_id'   => $account->id,
+            'account_id' => $account->id,
             'account_code' => $account->code,
             'account_name' => $account->name,
-            'confidence'   => 'high',
-            'basis'        => 'Berdasarkan histori transaksi serupa yang sudah dikategorikan',
+            'confidence' => 'high',
+            'basis' => 'Berdasarkan histori transaksi serupa yang sudah dikategorikan',
             'journal_type' => $type === 'credit' ? 'credit' : 'debit',
         ];
     }
@@ -515,7 +551,9 @@ class AccountingAiService
 
         foreach ($rules as $rule) {
             // Filter berdasarkan tipe transaksi bank
-            if (isset($rule['bank_type']) && $rule['bank_type'] !== $type) continue;
+            if (isset($rule['bank_type']) && $rule['bank_type'] !== $type) {
+                continue;
+            }
 
             $matched = false;
             foreach ($rule['keywords'] as $kw) {
@@ -524,38 +562,41 @@ class AccountingAiService
                     break;
                 }
             }
-            if (!$matched) continue;
+            if (! $matched) {
+                continue;
+            }
 
             $account = $accounts->first(
-                fn($a) => collect($rule['account_keywords'])
-                    ->contains(fn($kw) => str_contains(strtolower($a->name), $kw))
+                fn ($a) => collect($rule['account_keywords'])
+                    ->contains(fn ($kw) => str_contains(strtolower($a->name), $kw))
             );
 
-            if (!$account) continue;
+            if (! $account) {
+                continue;
+            }
 
             return [
-                'account_id'   => $account->id,
+                'account_id' => $account->id,
                 'account_code' => $account->code,
                 'account_name' => $account->name,
-                'confidence'   => 'medium',
-                'basis'        => "Kata kunci: \"{$rule['label']}\"",
+                'confidence' => 'medium',
+                'basis' => "Kata kunci: \"{$rule['label']}\"",
                 'journal_type' => $rule['journal_side'],
             ];
         }
 
         // Fallback: kas/bank
         $bankAccount = $accounts->first(
-            fn($a) =>
-            str_contains(strtolower($a->name), 'kas') ||
+            fn ($a) => str_contains(strtolower($a->name), 'kas') ||
                 str_contains(strtolower($a->name), 'bank')
         );
 
         return [
-            'account_id'   => $bankAccount?->id,
+            'account_id' => $bankAccount?->id,
             'account_code' => $bankAccount?->code ?? '-',
             'account_name' => $bankAccount?->name ?? 'Tidak ditemukan',
-            'confidence'   => 'low',
-            'basis'        => 'Tidak ada pola yang cocok, gunakan akun kas/bank sebagai default',
+            'confidence' => 'low',
+            'basis' => 'Tidak ada pola yang cocok, gunakan akun kas/bank sebagai default',
             'journal_type' => $type === 'credit' ? 'debit' : 'credit',
         ];
     }
@@ -569,7 +610,7 @@ class AccountingAiService
                 'bank_type' => 'credit',
                 'label' => 'Penerimaan',
                 'account_keywords' => ['piutang', 'pendapatan', 'penjualan'],
-                'journal_side' => 'credit'
+                'journal_side' => 'credit',
             ],
 
             [
@@ -577,7 +618,7 @@ class AccountingAiService
                 'bank_type' => 'credit',
                 'label' => 'Penjualan',
                 'account_keywords' => ['penjualan', 'pendapatan'],
-                'journal_side' => 'credit'
+                'journal_side' => 'credit',
             ],
 
             // Debit bank (uang keluar) → Hutang / Beban
@@ -586,7 +627,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Gaji',
                 'account_keywords' => ['beban gaji', 'gaji', 'hutang gaji'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -594,7 +635,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Sewa',
                 'account_keywords' => ['beban sewa', 'sewa'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -602,7 +643,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Utilitas',
                 'account_keywords' => ['beban listrik', 'utilitas', 'listrik'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -610,7 +651,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Pajak',
                 'account_keywords' => ['hutang pajak', 'pajak', 'beban pajak'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -618,7 +659,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Pembelian',
                 'account_keywords' => ['hutang', 'utang usaha', 'persediaan'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -626,7 +667,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Operasional',
                 'account_keywords' => ['beban operasional', 'biaya operasional'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
 
             [
@@ -634,7 +675,7 @@ class AccountingAiService
                 'bank_type' => 'debit',
                 'label' => 'Asuransi',
                 'account_keywords' => ['beban asuransi', 'asuransi'],
-                'journal_side' => 'debit'
+                'journal_side' => 'debit',
             ],
         ];
     }

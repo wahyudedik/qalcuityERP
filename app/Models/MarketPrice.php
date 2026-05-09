@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MarketPrice extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -51,17 +50,21 @@ use HasFactory, BelongsToTenant;
 
     public function getPriceChangeAttribute(): string
     {
-        if (!$this->price_change_percent)
+        if (! $this->price_change_percent) {
             return '0%';
+        }
 
         $sign = $this->price_change_percent > 0 ? '+' : '';
+
         return "{$sign}{$this->price_change_percent}%";
     }
 
     public function getChangeDirectionAttribute(): string
     {
-        if (!$this->price_change_percent)
+        if (! $this->price_change_percent) {
             return 'stable';
+        }
+
         return $this->price_change_percent > 0 ? 'up' : 'down';
     }
 }

@@ -20,7 +20,18 @@ class BomLine extends Model
         return ['quantity_per_batch' => 'decimal:3'];
     }
 
-    public function bom(): BelongsTo { return $this->belongsTo(Bom::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
-    public function childBom(): BelongsTo { return $this->belongsTo(Bom::class, 'child_bom_id'); }
+    public function bom(): BelongsTo
+    {
+        return $this->belongsTo(Bom::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function childBom(): BelongsTo
+    {
+        return $this->belongsTo(Bom::class, 'child_bom_id');
+    }
 }

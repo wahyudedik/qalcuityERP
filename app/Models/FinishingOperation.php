@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FinishingOperation extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -26,7 +25,7 @@ use HasFactory, BelongsToTenant;
         'operator_id',
         'machine_used',
         'quality_notes',
-        'issues'
+        'issues',
     ];
 
     protected $casts = [

@@ -7,14 +7,17 @@ use App\Models\PickingList;
 use App\Models\PickingListItem;
 use App\Models\Product;
 use App\Models\PutawayRule;
-use App\Models\StockMovement;
 use App\Models\StockOpnameItem;
 use App\Models\StockOpnameSession;
+use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\WarehouseBin;
 use App\Models\WarehouseZone;
+use App\Services\BarcodeService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class WmsController extends Controller
 {
@@ -30,8 +33,9 @@ class WmsController extends Controller
         $warehouseId = $request->warehouse_id;
         $warehouses = Warehouse::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
 
-        if (!$warehouseId && $warehouses->isNotEmpty())
+        if (! $warehouseId && $warehouses->isNotEmpty()) {
             $warehouseId = $warehouses->first()->id;
+        }
 
         $zones = WarehouseZone::where('tenant_id', $this->tid())
             ->where('warehouse_id', $warehouseId)->withCount('bins')->get();
@@ -39,15 +43,15 @@ class WmsController extends Controller
         $bins = WarehouseBin::where('tenant_id', $this->tid())
             ->where('warehouse_id', $warehouseId)
             ->with(['zone', 'stocks.product'])
-            ->when($request->zone_id, fn($q, $z) => $q->where('zone_id', $z))
-            ->when($request->search, fn($q, $s) => $q->where('code', 'like', "%$s%"))
+            ->when($request->zone_id, fn ($q, $z) => $q->where('zone_id', $z))
+            ->when($request->search, fn ($q, $s) => $q->where('code', 'like', "%$s%"))
             ->orderBy('code')->paginate(30)->withQueryString();
 
         $stats = [
             'zones' => $zones->count(),
             'bins' => WarehouseBin::where('tenant_id', $this->tid())->where('warehouse_id', $warehouseId)->count(),
-            'occupied' => BinStock::where('tenant_id', $this->tid())->whereHas('bin', fn($q) => $q->where('warehouse_id', $warehouseId))->where('quantity', '>', 0)->distinct('bin_id')->count('bin_id'),
-            'products' => BinStock::where('tenant_id', $this->tid())->whereHas('bin', fn($q) => $q->where('warehouse_id', $warehouseId))->where('quantity', '>', 0)->distinct('product_id')->count('product_id'),
+            'occupied' => BinStock::where('tenant_id', $this->tid())->whereHas('bin', fn ($q) => $q->where('warehouse_id', $warehouseId))->where('quantity', '>', 0)->distinct('bin_id')->count('bin_id'),
+            'products' => BinStock::where('tenant_id', $this->tid())->whereHas('bin', fn ($q) => $q->where('warehouse_id', $warehouseId))->where('quantity', '>', 0)->distinct('product_id')->count('product_id'),
         ];
 
         return view('wms.index', compact('warehouses', 'warehouseId', 'zones', 'bins', 'stats'));
@@ -65,6 +69,7 @@ class WmsController extends Controller
         ]);
 
         WarehouseZone::create(array_merge($data, ['tenant_id' => $this->tid(), 'is_active' => true]));
+
         return back()->with('success', 'Zone berhasil dibuat.');
     }
 
@@ -83,7 +88,7 @@ class WmsController extends Controller
         ]);
 
         $zone = $data['zone_id'] ? WarehouseZone::find($data['zone_id']) : null;
-        $code = ($zone ? $zone->code : 'X') . '-' . ($data['aisle'] ?? '00') . '-' . ($data['rack'] ?? '00') . '-' . ($data['shelf'] ?? '00');
+        $code = ($zone ? $zone->code : 'X').'-'.($data['aisle'] ?? '00').'-'.($data['rack'] ?? '00').'-'.($data['shelf'] ?? '00');
 
         WarehouseBin::create(array_merge($data, [
             'tenant_id' => $this->tid(),
@@ -116,7 +121,7 @@ class WmsController extends Controller
         for ($a = $data['aisle_from']; $a <= $data['aisle_to']; $a++) {
             for ($r = $data['rack_from']; $r <= $data['rack_to']; $r++) {
                 for ($s = $data['shelf_from']; $s <= $data['shelf_to']; $s++) {
-                    $code = $prefix . '-' . str_pad($a, 2, '0', STR_PAD_LEFT) . '-' . str_pad($r, 2, '0', STR_PAD_LEFT) . '-' . str_pad($s, 2, '0', STR_PAD_LEFT);
+                    $code = $prefix.'-'.str_pad($a, 2, '0', STR_PAD_LEFT).'-'.str_pad($r, 2, '0', STR_PAD_LEFT).'-'.str_pad($s, 2, '0', STR_PAD_LEFT);
                     WarehouseBin::firstOrCreate(
                         ['warehouse_id' => $data['warehouse_id'], 'code' => $code],
                         ['tenant_id' => $this->tid(), 'zone_id' => $data['zone_id'], 'aisle' => str_pad($a, 2, '0', STR_PAD_LEFT), 'rack' => str_pad($r, 2, '0', STR_PAD_LEFT), 'shelf' => str_pad($s, 2, '0', STR_PAD_LEFT), 'bin_type' => $data['bin_type'], 'is_active' => true]
@@ -151,7 +156,7 @@ class WmsController extends Controller
             ['tenant_id' => $this->tid()]
         )->increment('quantity', $data['quantity']);
 
-        return back()->with('success', 'Putaway berhasil. ' . $data['quantity'] . ' unit ke ' . $bin->code);
+        return back()->with('success', 'Putaway berhasil. '.$data['quantity'].' unit ke '.$bin->code);
     }
 
     public function suggestBin(Request $request)
@@ -163,7 +168,7 @@ class WmsController extends Controller
         $rule = PutawayRule::where('tenant_id', $this->tid())
             ->where('warehouse_id', $warehouseId)
             ->where('is_active', true)
-            ->where(fn($q) => $q->where('product_id', $product->id)->orWhere('product_category', $product->category))
+            ->where(fn ($q) => $q->where('product_id', $product->id)->orWhere('product_category', $product->category))
             ->orderBy('priority')->first();
 
         if ($rule && $rule->bin_id) {
@@ -172,11 +177,12 @@ class WmsController extends Controller
 
         // Fallback: first available bin in zone or warehouse
         $query = WarehouseBin::where('warehouse_id', $warehouseId)->where('is_active', true)->where('bin_type', 'storage');
-        if ($rule && $rule->zone_id)
+        if ($rule && $rule->zone_id) {
             $query->where('zone_id', $rule->zone_id);
+        }
 
-        $bin = $query->whereDoesntHave('stocks', fn($q) => $q->where('quantity', '>', 0))
-            ->orWhereHas('stocks', fn($q) => $q->where('product_id', $product->id))
+        $bin = $query->whereDoesntHave('stocks', fn ($q) => $q->where('quantity', '>', 0))
+            ->orWhereHas('stocks', fn ($q) => $q->where('product_id', $product->id))
             ->first();
 
         return response()->json(['bin_id' => $bin?->id, 'bin_code' => $bin?->code ?? 'Tidak ada bin tersedia']);
@@ -188,11 +194,11 @@ class WmsController extends Controller
     {
         $lists = PickingList::with(['warehouse', 'assignee', 'items.product'])
             ->where('tenant_id', $this->tid())
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest()->paginate(20)->withQueryString();
 
         $warehouses = Warehouse::where('tenant_id', $this->tid())->where('is_active', true)->get();
-        $users = \App\Models\User::where('tenant_id', $this->tid())->whereIn('role', ['admin', 'manager', 'staff', 'gudang'])->get();
+        $users = User::where('tenant_id', $this->tid())->whereIn('role', ['admin', 'manager', 'staff', 'gudang'])->get();
 
         return view('wms.picking', compact('lists', 'warehouses', 'users'));
     }
@@ -223,7 +229,7 @@ class WmsController extends Controller
 
             foreach ($data['items'] as $item) {
                 // Find best bin for this product
-                $binStock = BinStock::whereHas('bin', fn($q) => $q->where('warehouse_id', $data['warehouse_id']))
+                $binStock = BinStock::whereHas('bin', fn ($q) => $q->where('warehouse_id', $data['warehouse_id']))
                     ->where('product_id', $item['product_id'])
                     ->where('quantity', '>', 0)
                     ->where('tenant_id', $this->tid())
@@ -245,30 +251,32 @@ class WmsController extends Controller
     {
         abort_if($pickingList->tenant_id !== $this->tid(), 403);
         $pickingList->load(['items.product', 'items.bin', 'warehouse']);
+
         return view('wms.picking-scan', compact('pickingList'));
     }
 
     public function printBinLabel(WarehouseBin $bin)
     {
         abort_if($bin->tenant_id !== $this->tid(), 403);
-        $barcodeService = app(\App\Services\BarcodeService::class);
+        $barcodeService = app(BarcodeService::class);
         $barcodeImage = $barcodeService->generate($bin->code, 'code128', 'png');
         $barcodes = [['bin' => $bin, 'image' => base64_encode($barcodeImage), 'value' => $bin->code]];
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('wms.bin-label', compact('barcodes'));
+        $pdf = Pdf::loadView('wms.bin-label', compact('barcodes'));
         $pdf->setPaper([0, 0, 170.08, 85.04]); // 60mm x 30mm in points
         $pdf->setOption('margin-top', 0);
         $pdf->setOption('margin-right', 0);
         $pdf->setOption('margin-bottom', 0);
         $pdf->setOption('margin-left', 0);
-        return $pdf->stream('bin-' . $bin->code . '.pdf');
+
+        return $pdf->stream('bin-'.$bin->code.'.pdf');
     }
 
     public function printBinLabelsBatch(Request $request)
     {
         $binIds = $request->validate(['bin_ids' => 'required|array'])['bin_ids'];
-        $barcodeService = app(\App\Services\BarcodeService::class);
+        $barcodeService = app(BarcodeService::class);
         $bins = WarehouseBin::whereIn('id', $binIds)->where('tenant_id', $this->tid())->orderBy('code')->get();
-        $barcodes = $bins->map(fn($b) => [
+        $barcodes = $bins->map(fn ($b) => [
             'bin' => $b,
             'image' => base64_encode($barcodeService->generate($b->code, 'code128', 'png')),
             'value' => $b->code,
@@ -277,12 +285,13 @@ class WmsController extends Controller
         while (count($barcodes) % 4 !== 0) {
             $barcodes[] = null;
         }
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('wms.bin-label', compact('barcodes'));
+        $pdf = Pdf::loadView('wms.bin-label', compact('barcodes'));
         $pdf->setPaper('A4');
         $pdf->setOption('margin-top', 10);
         $pdf->setOption('margin-right', 10);
         $pdf->setOption('margin-bottom', 10);
         $pdf->setOption('margin-left', 10);
+
         return $pdf->stream('bin-labels.pdf');
     }
 
@@ -303,8 +312,9 @@ class WmsController extends Controller
             if ($pickingListItem->bin_id && $qty > 0) {
                 $binStock = BinStock::where('bin_id', $pickingListItem->bin_id)
                     ->where('product_id', $pickingListItem->product_id)->first();
-                if ($binStock)
+                if ($binStock) {
                     $binStock->decrement('quantity', min($qty, $binStock->quantity));
+                }
             }
 
             // Check if all items picked
@@ -316,7 +326,7 @@ class WmsController extends Controller
             }
         });
 
-        return back()->with('success', 'Item picked: ' . $qty);
+        return back()->with('success', 'Item picked: '.$qty);
     }
 
     // ── Stock Opname ──────────────────────────────────────────────
@@ -342,14 +352,14 @@ class WmsController extends Controller
         $session = StockOpnameSession::create([
             'tenant_id' => $this->tid(),
             'warehouse_id' => $data['warehouse_id'],
-            'number' => 'OPN-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4)),
+            'number' => 'OPN-'.date('Ymd').'-'.strtoupper(Str::random(4)),
             'opname_date' => $data['opname_date'],
             'status' => 'draft',
             'user_id' => auth()->id(),
         ]);
 
         // Auto-populate items from bin stocks
-        $binStocks = BinStock::whereHas('bin', fn($q) => $q->where('warehouse_id', $data['warehouse_id']))
+        $binStocks = BinStock::whereHas('bin', fn ($q) => $q->where('warehouse_id', $data['warehouse_id']))
             ->where('tenant_id', $this->tid())
             ->with('bin')->get();
 
@@ -362,13 +372,14 @@ class WmsController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Sesi opname dibuat dengan ' . $binStocks->count() . ' item.');
+        return back()->with('success', 'Sesi opname dibuat dengan '.$binStocks->count().' item.');
     }
 
     public function showOpname(StockOpnameSession $stockOpnameSession)
     {
         abort_if($stockOpnameSession->tenant_id !== $this->tid(), 403);
         $stockOpnameSession->load(['items.product', 'items.bin', 'warehouse']);
+
         return view('wms.opname-show', compact('stockOpnameSession'));
     }
 
@@ -432,6 +443,7 @@ class WmsController extends Controller
         ]);
 
         PutawayRule::create(array_merge($data, ['tenant_id' => $this->tid(), 'is_active' => true, 'priority' => $data['priority'] ?? 0]));
+
         return back()->with('success', 'Putaway rule berhasil dibuat.');
     }
 
@@ -439,6 +451,7 @@ class WmsController extends Controller
     {
         abort_if($putawayRule->tenant_id !== $this->tid(), 403);
         $putawayRule->delete();
+
         return back()->with('success', 'Rule dihapus.');
     }
 }

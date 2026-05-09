@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * BUG-SET-002 FIX: Module Cleanup Service
- * 
+ *
  * Handles data cleanup when modules are disabled to prevent orphaned data.
  * Provides options to: archive, soft-delete, or keep data.
  */
@@ -110,7 +110,7 @@ class ModuleCleanupService
      */
     public function analyzeImpact(int $tenantId, string $module): array
     {
-        if (!isset(self::MODULE_TABLES[$module])) {
+        if (! isset(self::MODULE_TABLES[$module])) {
             return ['error' => 'Module not found'];
         }
 
@@ -144,16 +144,16 @@ class ModuleCleanupService
                 }
             } catch (\Exception $e) {
                 $analysis['data_summary'][$table] = 0;
-                Log::warning("Failed to count table {$table}: " . $e->getMessage());
+                Log::warning("Failed to count table {$table}: ".$e->getMessage());
             }
         }
 
         // Add specific recommendations
         if ($analysis['total_records'] > 0) {
             $analysis['recommendations'][] = "Total {$analysis['total_records']} records will be affected.";
-            $analysis['recommendations'][] = "Choose cleanup strategy: archive, soft_delete, or keep.";
+            $analysis['recommendations'][] = 'Choose cleanup strategy: archive, soft_delete, or keep.';
         } else {
-            $analysis['recommendations'][] = "No data found. Safe to disable module.";
+            $analysis['recommendations'][] = 'No data found. Safe to disable module.';
         }
 
         return $analysis;
@@ -164,11 +164,11 @@ class ModuleCleanupService
      */
     public function cleanupModule(int $tenantId, string $module, string $strategy = 'keep'): array
     {
-        if (!isset(self::MODULE_TABLES[$module])) {
+        if (! isset(self::MODULE_TABLES[$module])) {
             return ['success' => false, 'message' => 'Module not found'];
         }
 
-        if (!in_array($strategy, ['archive', 'soft_delete', 'keep'])) {
+        if (! in_array($strategy, ['archive', 'soft_delete', 'keep'])) {
             return ['success' => false, 'message' => 'Invalid strategy. Use: archive, soft_delete, or keep'];
         }
 
@@ -213,8 +213,8 @@ class ModuleCleanupService
                     $result['records_affected'] += $affected;
 
                 } catch (\Exception $e) {
-                    $result['errors'][] = "Failed to process {$table}: " . $e->getMessage();
-                    Log::error("Module cleanup error for {$table}: " . $e->getMessage());
+                    $result['errors'][] = "Failed to process {$table}: ".$e->getMessage();
+                    Log::error("Module cleanup error for {$table}: ".$e->getMessage());
                 }
             }
 
@@ -229,8 +229,8 @@ class ModuleCleanupService
         } catch (\Exception $e) {
             DB::rollBack();
             $result['success'] = false;
-            $result['errors'][] = "Transaction failed: " . $e->getMessage();
-            Log::error("Module cleanup transaction failed: " . $e->getMessage());
+            $result['errors'][] = 'Transaction failed: '.$e->getMessage();
+            Log::error('Module cleanup transaction failed: '.$e->getMessage());
         }
 
         return $result;
@@ -241,10 +241,10 @@ class ModuleCleanupService
      */
     protected function archiveTableData(int $tenantId, string $table): int
     {
-        $archiveTable = $table . '_archive';
+        $archiveTable = $table.'_archive';
 
         // Check if archive table exists
-        if (!$this->tableExists($archiveTable)) {
+        if (! $this->tableExists($archiveTable)) {
             // Create archive table with same structure
             $this->createArchiveTable($table, $archiveTable);
         }
@@ -283,7 +283,7 @@ class ModuleCleanupService
         // Check if table has deleted_at column
         $hasSoftDelete = $this->columnExists($table, 'deleted_at');
 
-        if (!$hasSoftDelete) {
+        if (! $hasSoftDelete) {
             // Can't soft delete, just count
             return DB::table($table)
                 ->where('tenant_id', $tenantId)
@@ -310,7 +310,7 @@ class ModuleCleanupService
      */
     protected function columnExists(string $table, string $column): bool
     {
-        if (!$this->tableExists($table)) {
+        if (! $this->tableExists($table)) {
             return false;
         }
 
@@ -344,7 +344,7 @@ class ModuleCleanupService
     public function getTenantCleanupSummary(int $tenantId): array
     {
         $tenant = Tenant::find($tenantId);
-        if (!$tenant) {
+        if (! $tenant) {
             return ['error' => 'Tenant not found'];
         }
 
@@ -381,7 +381,7 @@ class ModuleCleanupService
      */
     public function restoreArchivedData(int $tenantId, string $module): array
     {
-        if (!isset(self::MODULE_TABLES[$module])) {
+        if (! isset(self::MODULE_TABLES[$module])) {
             return ['success' => false, 'message' => 'Module not found'];
         }
 
@@ -398,9 +398,9 @@ class ModuleCleanupService
             DB::beginTransaction();
 
             foreach ($moduleInfo['tables'] as $table) {
-                $archiveTable = $table . '_archive';
+                $archiveTable = $table.'_archive';
 
-                if (!$this->tableExists($archiveTable)) {
+                if (! $this->tableExists($archiveTable)) {
                     continue;
                 }
 
@@ -438,7 +438,7 @@ class ModuleCleanupService
         } catch (\Exception $e) {
             DB::rollBack();
             $result['success'] = false;
-            $result['errors'][] = "Restore failed: " . $e->getMessage();
+            $result['errors'][] = 'Restore failed: '.$e->getMessage();
         }
 
         return $result;

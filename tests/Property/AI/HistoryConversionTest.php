@@ -41,6 +41,7 @@ class HistoryConversionTest extends TestCase
         $reflection = new ReflectionClass($provider);
         $method = $reflection->getMethod('convertHistory');
         $method->setAccessible(true);
+
         return $method->invoke($provider, $history);
     }
 
@@ -58,7 +59,7 @@ class HistoryConversionTest extends TestCase
         Config::set('ai.providers.anthropic.max_tokens', 8192);
         Config::set('ai.providers.anthropic.timeout', 60);
 
-        return new AnthropicProvider();
+        return new AnthropicProvider;
     }
 
     /**
@@ -123,7 +124,7 @@ class HistoryConversionTest extends TestCase
                 $this->assertCount(
                     count($history),
                     $result,
-                    "Jumlah pesan output harus sama dengan jumlah pesan input non-kosong"
+                    'Jumlah pesan output harus sama dengan jumlah pesan input non-kosong'
                 );
 
                 // Urutan teks harus sama
@@ -167,7 +168,7 @@ class HistoryConversionTest extends TestCase
                     $this->assertSame(
                         trim($entry['text']),
                         $result[$i]['content'],
-                        "Konten teks harus dipertahankan setelah konversi"
+                        'Konten teks harus dipertahankan setelah konversi'
                     );
                 }
             });
@@ -237,16 +238,16 @@ class HistoryConversionTest extends TestCase
                 // Hitung entri non-kosong dalam input
                 $nonEmptyInputCount = count(array_filter(
                     $history,
-                    fn($entry) => trim($entry['text'] ?? '') !== ''
+                    fn ($entry) => trim($entry['text'] ?? '') !== ''
                 ));
 
                 // Output harus memiliki jumlah yang sama dengan entri non-kosong
                 $this->assertCount(
                     $nonEmptyInputCount,
                     $result,
-                    "Output harus hanya berisi entri dengan teks non-kosong. " .
-                        "Input memiliki {$nonEmptyInputCount} entri non-kosong, " .
-                        "output memiliki " . count($result) . " entri"
+                    'Output harus hanya berisi entri dengan teks non-kosong. '.
+                        "Input memiliki {$nonEmptyInputCount} entri non-kosong, ".
+                        'output memiliki '.count($result).' entri'
                 );
 
                 // Semua entri dalam output harus memiliki content non-kosong (bukan string kosong)
@@ -272,8 +273,8 @@ class HistoryConversionTest extends TestCase
         $provider = $this->makeProvider();
         $result = $this->callConvertHistory($provider, []);
 
-        $this->assertIsArray($result, "Output harus berupa array");
-        $this->assertEmpty($result, "Konversi history kosong harus menghasilkan array kosong");
+        $this->assertIsArray($result, 'Output harus berupa array');
+        $this->assertEmpty($result, 'Konversi history kosong harus menghasilkan array kosong');
     }
 
     /**
@@ -302,7 +303,7 @@ class HistoryConversionTest extends TestCase
                 $this->assertCount(
                     count($history),
                     $result,
-                    "Setiap entri non-kosong dalam input harus memiliki tepat satu padanan dalam output"
+                    'Setiap entri non-kosong dalam input harus memiliki tepat satu padanan dalam output'
                 );
 
                 // Setiap pasangan (input[i], output[i]) harus konsisten

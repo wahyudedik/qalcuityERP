@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\EcommerceWebhookLog;
 use App\Models\EcommerceProductMapping;
+use App\Models\EcommerceWebhookLog;
 use App\Models\ProductStock;
 use App\Services\EcommerceService;
 use Illuminate\Bus\Queueable;
@@ -23,8 +23,9 @@ class ProcessMarketplaceWebhook implements ShouldQueue
     {
         $log = EcommerceWebhookLog::with('channel')->find($this->webhookLogId);
 
-        if (!$log || !$log->channel) {
+        if (! $log || ! $log->channel) {
             Log::warning("Webhook log #{$this->webhookLogId} not found or channel missing");
+
             return;
         }
 
@@ -92,7 +93,7 @@ class ProcessMarketplaceWebhook implements ShouldQueue
     private function handleProductEvent(EcommerceWebhookLog $log): void
     {
         Log::info("Product event from {$log->platform}: {$log->event_type}", [
-            'channel_id'  => $log->channel_id,
+            'channel_id' => $log->channel_id,
             'payload_keys' => array_keys($log->payload ?? []),
         ]);
     }
@@ -136,6 +137,6 @@ class ProcessMarketplaceWebhook implements ShouldQueue
                 break;
         }
 
-        return array_filter($items, fn($i) => !empty($i['sku']));
+        return array_filter($items, fn ($i) => ! empty($i['sku']));
     }
 }

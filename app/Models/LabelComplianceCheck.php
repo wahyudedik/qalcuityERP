@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LabelComplianceCheck extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -47,6 +46,7 @@ use HasFactory, BelongsToTenant;
         if ($this->is_compliant === null) {
             return 'Not Checked';
         }
+
         return $this->is_compliant ? 'Compliant' : 'Non-Compliant';
     }
 

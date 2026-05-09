@@ -68,10 +68,10 @@ class WasteTrackingController extends Controller
         // If inventory item selected, get its cost
         if ($validated['inventory_item_id']) {
             $item = InventoryItem::find($validated['inventory_item_id']);
-            if ($item && !$request->filled('cost_per_unit')) {
+            if ($item && ! $request->filled('cost_per_unit')) {
                 $validated['cost_per_unit'] = $item->unit_cost ?? 0;
             }
-            if ($item && !$request->filled('item_name')) {
+            if ($item && ! $request->filled('item_name')) {
                 $validated['item_name'] = $item->name;
             }
         }

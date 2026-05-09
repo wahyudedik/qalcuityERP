@@ -5,11 +5,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('erp_notifications', function (Blueprint $table) {
-            if (!Schema::hasColumn('erp_notifications', 'module')) {
+            if (! Schema::hasColumn('erp_notifications', 'module')) {
                 $table->string('module', 50)->nullable()->after('type')->index();
             }
         });

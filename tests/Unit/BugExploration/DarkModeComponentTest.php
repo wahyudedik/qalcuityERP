@@ -32,7 +32,7 @@ class DarkModeComponentTest extends TestCase
         // After dark mode removal, bg-white without dark: equivalent is the correct state.
         // This test now verifies that no dark: classes remain.
         foreach ($this->coreViewDirs as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 continue;
             }
 
@@ -48,7 +48,7 @@ class DarkModeComponentTest extends TestCase
             }
         }
 
-        $this->assertTrue(true, "No dark: classes found in core view directories");
+        $this->assertTrue(true, 'No dark: classes found in core view directories');
     }
 
     /**
@@ -61,7 +61,7 @@ class DarkModeComponentTest extends TestCase
 
         foreach ($modalFiles as $file) {
             $content = file_get_contents($file);
-            $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file);
+            $relativePath = str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file);
 
             $this->assertStringNotContainsString(
                 'dark:bg-',
@@ -70,7 +70,7 @@ class DarkModeComponentTest extends TestCase
             );
         }
 
-        $this->assertTrue(true, "No dark: classes found in modal components");
+        $this->assertTrue(true, 'No dark: classes found in modal components');
     }
 
     /**
@@ -85,7 +85,7 @@ class DarkModeComponentTest extends TestCase
         ];
 
         foreach ($baseComponents as $component) {
-            if (!file_exists($component)) {
+            if (! file_exists($component)) {
                 // Component not existing is acceptable
                 continue;
             }
@@ -98,7 +98,7 @@ class DarkModeComponentTest extends TestCase
             );
         }
 
-        $this->assertTrue(true, "No dark: classes found in base components");
+        $this->assertTrue(true, 'No dark: classes found in base components');
     }
 
     private function getBladeFiles(string $dir): array
@@ -120,7 +120,7 @@ class DarkModeComponentTest extends TestCase
     private function findFilesContaining(string $dir, string $keyword): array
     {
         $files = [];
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return $files;
         }
 

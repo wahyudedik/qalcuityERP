@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Warehouse;
 use App\Models\ActivityLog;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
@@ -12,12 +12,12 @@ class WarehouseController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = Warehouse::where('tenant_id', $tid)->withCount('productStocks')->withSum('productStocks', 'quantity');
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('code', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('code', 'like', "%$s%"));
         }
         if ($request->status === 'active') {
             $query->where('is_active', true);
@@ -27,7 +27,7 @@ class WarehouseController extends Controller
 
         $warehouses = $query->orderBy('name')->paginate(20)->withQueryString();
 
-        $totalWarehouses  = Warehouse::where('tenant_id', $tid)->count();
+        $totalWarehouses = Warehouse::where('tenant_id', $tid)->count();
         $activeWarehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->count();
 
         return view('warehouses.index', compact('warehouses', 'totalWarehouses', 'activeWarehouses'));
@@ -36,13 +36,13 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
         ]);
 
-        $tid  = $this->tenantId();
-        $code = $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 4)) . '-' . rand(10, 99);
+        $tid = $this->tenantId();
+        $code = $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 4)).'-'.rand(10, 99);
 
         if (Warehouse::where('tenant_id', $tid)->where('name', $data['name'])->exists()) {
             return back()->withErrors(['name' => 'Gudang dengan nama ini sudah ada.'])->withInput();
@@ -50,9 +50,9 @@ class WarehouseController extends Controller
 
         $warehouse = Warehouse::create([
             'tenant_id' => $tid,
-            'name'      => $data['name'],
-            'code'      => $code,
-            'address'   => $data['address'] ?? null,
+            'name' => $data['name'],
+            'code' => $code,
+            'address' => $data['address'] ?? null,
             'is_active' => true,
         ]);
 
@@ -66,8 +66,8 @@ class WarehouseController extends Controller
         abort_unless($warehouse->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
         ]);
 
@@ -81,8 +81,9 @@ class WarehouseController extends Controller
     public function toggleActive(Warehouse $warehouse)
     {
         abort_unless($warehouse->tenant_id === $this->tenantId(), 403);
-        $warehouse->update(['is_active' => !$warehouse->is_active]);
+        $warehouse->update(['is_active' => ! $warehouse->is_active]);
         $status = $warehouse->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
         return back()->with('success', "Gudang {$warehouse->name} berhasil {$status}.");
     }
 
@@ -99,6 +100,7 @@ class WarehouseController extends Controller
         if ($hasMovements) {
             $warehouse->update(['is_active' => false]);
             ActivityLog::record('warehouse_deactivated', "Gudang dinonaktifkan (ada riwayat mutasi): {$warehouse->name}", $warehouse);
+
             return back()->with('success', 'Gudang dinonaktifkan karena memiliki riwayat mutasi stok.');
         }
 

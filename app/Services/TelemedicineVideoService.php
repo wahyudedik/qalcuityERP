@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Teleconsultation;
 use App\Models\TeleconsultationRecording;
 use App\Models\TelemedicineSetting;
+use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -35,9 +36,9 @@ class TelemedicineVideoService
 
         // Add query parameters for better UX
         $meetingUrl .= '?config.startWithAudioMuted=false'
-            . '&config.startWithVideoMuted=false'
-            . '&config.disableDeepLinking=true'
-            . '&config.enableWelcomePage=false';
+            .'&config.startWithVideoMuted=false'
+            .'&config.disableDeepLinking=true'
+            .'&config.enableWelcomePage=false';
 
         // Generate tokens if using self-hosted with auth
         $moderatorToken = null;
@@ -85,14 +86,15 @@ class TelemedicineVideoService
     {
         // JWT generation requires firebase/php-jwt package
         // For now, return null - Jitsi public server doesn't need JWT
-        if (!class_exists('\\Firebase\\JWT\\JWT')) {
+        if (! class_exists('\\Firebase\\JWT\\JWT')) {
             Log::warning('Firebase JWT not installed. JWT tokens not generated.');
+
             return null;
         }
 
         $settings = TelemedicineSetting::getForTenant(1); // Get current tenant settings
 
-        if (!$settings->jitsi_secret) {
+        if (! $settings->jitsi_secret) {
             return null;
         }
 
@@ -112,9 +114,10 @@ class TelemedicineVideoService
         ];
 
         try {
-            return \Firebase\JWT\JWT::encode($payload, $settings->jitsi_secret, 'HS256');
+            return JWT::encode($payload, $settings->jitsi_secret, 'HS256');
         } catch (\Exception $e) {
             Log::error('Failed to generate JWT', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -126,8 +129,9 @@ class TelemedicineVideoService
     {
         $settings = TelemedicineSetting::getForTenant($consultation->patient?->tenant_id ?? 1);
 
-        if (!$settings->enable_recording) {
+        if (! $settings->enable_recording) {
             Log::warning('Recording is disabled in settings');
+
             return false;
         }
 
@@ -194,7 +198,7 @@ class TelemedicineVideoService
     {
         $recording = TeleconsultationRecording::where('recording_id', $recordingId)->first();
 
-        if (!$recording) {
+        if (! $recording) {
             return ['status' => 'not_found'];
         }
 

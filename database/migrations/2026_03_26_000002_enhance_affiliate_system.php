@@ -10,28 +10,28 @@ return new class extends Migration
     {
         // Add demo tenant to affiliates
         Schema::table('affiliates', function (Blueprint $table) {
-            if (!Schema::hasColumn('affiliates', 'demo_tenant_id')) {
+            if (! Schema::hasColumn('affiliates', 'demo_tenant_id')) {
                 $table->foreignId('demo_tenant_id')->nullable()->after('user_id')
-                      ->constrained('tenants')->nullOnDelete();
+                    ->constrained('tenants')->nullOnDelete();
             }
         });
 
         // Add withdraw request fields to payouts
         Schema::table('affiliate_payouts', function (Blueprint $table) {
-            if (!Schema::hasColumn('affiliate_payouts', 'requested_by')) {
+            if (! Schema::hasColumn('affiliate_payouts', 'requested_by')) {
                 $table->foreignId('requested_by')->nullable()->after('affiliate_id')
-                      ->constrained('users')->nullOnDelete();
+                    ->constrained('users')->nullOnDelete();
             }
-            if (!Schema::hasColumn('affiliate_payouts', 'requested_at')) {
+            if (! Schema::hasColumn('affiliate_payouts', 'requested_at')) {
                 $table->timestamp('requested_at')->nullable()->after('status');
             }
-            if (!Schema::hasColumn('affiliate_payouts', 'reject_reason')) {
+            if (! Schema::hasColumn('affiliate_payouts', 'reject_reason')) {
                 $table->string('reject_reason')->nullable()->after('notes');
             }
         });
 
         // Fraud monitoring / audit log
-        if (!Schema::hasTable('affiliate_audit_logs')) {
+        if (! Schema::hasTable('affiliate_audit_logs')) {
             Schema::create('affiliate_audit_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('affiliate_id')->constrained()->cascadeOnDelete();
@@ -41,7 +41,7 @@ return new class extends Migration
                 $table->json('metadata')->nullable();
                 $table->string('ip_address', 45)->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['affiliate_id', 'severity']);
             });
         }

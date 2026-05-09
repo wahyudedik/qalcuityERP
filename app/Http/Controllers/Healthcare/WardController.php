@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ward;
 use App\Models\Bed;
 use App\Models\PatientVisit;
+use App\Models\Ward;
 use Illuminate\Http\Request;
 
 class WardController extends Controller
@@ -69,7 +69,7 @@ class WardController extends Controller
         $ward = Ward::create($validated);
 
         return redirect()->route('healthcare.wards.show', $ward)
-            ->with('success', 'Ward created successfully: ' . $ward->ward_code);
+            ->with('success', 'Ward created successfully: '.$ward->ward_code);
     }
 
     /**
@@ -80,7 +80,7 @@ class WardController extends Controller
         $ward->load([
             'beds' => function ($query) {
                 $query->orderBy('bed_number');
-            }
+            },
         ]);
 
         $statistics = [

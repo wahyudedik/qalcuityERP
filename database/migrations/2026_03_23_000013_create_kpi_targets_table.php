@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('kpi_targets')) {
+        if (! Schema::hasTable('kpi_targets')) {
             Schema::create('kpi_targets', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->string('color')->default('#3b82f6');
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'period']);
                 $table->unique(['tenant_id', 'metric', 'period']);
             });

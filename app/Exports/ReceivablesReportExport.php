@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ReceivablesReportExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $startDate,
         protected string $endDate,
     ) {}
@@ -22,7 +22,7 @@ class ReceivablesReportExport implements FromCollection, WithHeadings, WithMappi
     {
         return Invoice::with(['customer'])
             ->where('tenant_id', $this->tenantId)
-            ->whereBetween('created_at', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$this->startDate.' 00:00:00', $this->endDate.' 23:59:59'])
             ->orderBy('due_date')
             ->get();
     }
@@ -35,6 +35,7 @@ class ReceivablesReportExport implements FromCollection, WithHeadings, WithMappi
     public function map($row): array
     {
         $overdue = $row->status !== 'paid' && $row->due_date < now() ? $row->due_date->diffInDays(now()) : 0;
+
         return [
             $row->number,
             $row->customer?->name ?? '-',
@@ -54,5 +55,8 @@ class ReceivablesReportExport implements FromCollection, WithHeadings, WithMappi
         ];
     }
 
-    public function title(): string { return 'Laporan Piutang'; }
+    public function title(): string
+    {
+        return 'Laporan Piutang';
+    }
 }

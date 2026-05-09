@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class DailySiteReport extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'project_id',
@@ -81,7 +81,7 @@ class DailySiteReport extends Model
             return [];
         }
 
-        return array_map(fn($photo) => storage_path("app/public/{$photo}"), $this->photos);
+        return array_map(fn ($photo) => storage_path("app/public/{$photo}"), $this->photos);
     }
 
     /**
@@ -89,8 +89,8 @@ class DailySiteReport extends Model
      */
     public function isComplete(): bool
     {
-        return !empty($this->work_performed)
+        return ! empty($this->work_performed)
             && $this->manpower_count > 0
-            && !empty($this->progress_percentage);
+            && ! empty($this->progress_percentage);
     }
 }

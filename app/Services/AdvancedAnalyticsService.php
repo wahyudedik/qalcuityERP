@@ -3,11 +3,8 @@
 namespace App\Services;
 
 use App\Models\Customer;
-use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\SalesOrder;
-use App\Models\SalesOrderItem;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class AdvancedAnalyticsService
@@ -304,13 +301,13 @@ class AdvancedAnalyticsService
                 'salesOrders' => function ($query) use ($cutoffDate) {
                     $query->where('status', 'completed')
                         ->where('date', '>=', $cutoffDate);
-                }
+                },
             ])
             ->withSum([
                 'salesOrders' => function ($query) {
                     $query->where('status', 'completed')
                         ->where('date', '>=', now()->subDays(365));
-                }
+                },
             ], 'total')
             ->get();
 
@@ -413,8 +410,9 @@ class AdvancedAnalyticsService
             ->whereYear('date', now()->subMonth()->year)
             ->sum('total');
 
-        if ($lastMonth <= 0)
+        if ($lastMonth <= 0) {
             return 50;
+        }
 
         $growthRate = (($thisMonth - $lastMonth) / $lastMonth) * 100;
 
@@ -437,8 +435,9 @@ class AdvancedAnalyticsService
             ->whereMonth('sales_orders.date', now()->month)
             ->sum(DB::raw('sales_order_items.quantity * COALESCE(products.cost_price, 0)'));
 
-        if ($revenue <= 0)
+        if ($revenue <= 0) {
             return 0;
+        }
 
         $margin = (($revenue - $cost) / $revenue) * 100;
 
@@ -450,7 +449,7 @@ class AdvancedAnalyticsService
         $forecastService = app(ForecastService::class);
         $forecast = $forecastService->cashFlowForecast($tenantId, 3, 3);
 
-        $recentNetCash = collect($forecast)->filter(fn($item) => $item['type'] === 'actual')
+        $recentNetCash = collect($forecast)->filter(fn ($item) => $item['type'] === 'actual')
             ->take(3)->avg('net');
 
         if ($recentNetCash >= 0) {
@@ -471,8 +470,9 @@ class AdvancedAnalyticsService
             ->havingRaw('COUNT(*) > 1')
             ->count();
 
-        if ($totalCustomers <= 0)
+        if ($totalCustomers <= 0) {
             return 50;
+        }
 
         $retentionRate = ($repeatCustomers / $totalCustomers) * 100;
 
@@ -489,8 +489,9 @@ class AdvancedAnalyticsService
             ->whereColumn('product_stocks.quantity', '<=', 'products.minimum_stock')
             ->count();
 
-        if ($totalProducts <= 0)
+        if ($totalProducts <= 0) {
             return 50;
+        }
 
         $healthyPercentage = (($totalProducts - $lowStock) / $totalProducts) * 100;
 
@@ -501,38 +502,50 @@ class AdvancedAnalyticsService
     {
         $employeeMetrics = $this->employeePerformanceMetrics($tenantId, 3);
 
-        if (empty($employeeMetrics['employees']))
+        if (empty($employeeMetrics['employees'])) {
             return 50;
+        }
 
         $avgRevenue = $employeeMetrics['summary']['avg_revenue_per_employee'];
 
         // Score based on average revenue per employee
-        if ($avgRevenue >= 50000000)
+        if ($avgRevenue >= 50000000) {
             return 100;
-        if ($avgRevenue >= 30000000)
+        }
+        if ($avgRevenue >= 30000000) {
             return 80;
-        if ($avgRevenue >= 20000000)
+        }
+        if ($avgRevenue >= 20000000) {
             return 60;
-        if ($avgRevenue >= 10000000)
+        }
+        if ($avgRevenue >= 10000000) {
             return 40;
+        }
 
         return 20;
     }
 
     private function scoreToGrade(float $score): string
     {
-        if ($score >= 90)
+        if ($score >= 90) {
             return 'A';
-        if ($score >= 80)
+        }
+        if ($score >= 80) {
             return 'B+';
-        if ($score >= 70)
+        }
+        if ($score >= 70) {
             return 'B';
-        if ($score >= 60)
+        }
+        if ($score >= 60) {
             return 'C+';
-        if ($score >= 50)
+        }
+        if ($score >= 50) {
             return 'C';
-        if ($score >= 40)
+        }
+        if ($score >= 40) {
             return 'D';
+        }
+
         return 'F';
     }
 
@@ -562,8 +575,9 @@ class AdvancedAnalyticsService
         $scores = [];
         $count = count($values);
 
-        if ($count === 0)
+        if ($count === 0) {
             return [];
+        }
 
         foreach ($values as $value) {
             $percentile = array_search($value, $values) / $count;
@@ -582,47 +596,61 @@ class AdvancedAnalyticsService
 
     private function determineRFMSegment(int $r, int $f, int $m): string
     {
-        if ($r >= 4 && $f >= 4 && $m >= 4)
+        if ($r >= 4 && $f >= 4 && $m >= 4) {
             return 'Champions';
-        if ($r >= 4 && $f >= 3 && $m >= 3)
+        }
+        if ($r >= 4 && $f >= 3 && $m >= 3) {
             return 'Loyal Customers';
-        if ($r >= 4 && $f <= 2)
+        }
+        if ($r >= 4 && $f <= 2) {
             return 'New Customers';
-        if ($r >= 3 && $f >= 3 && $m >= 3)
+        }
+        if ($r >= 3 && $f >= 3 && $m >= 3) {
             return 'Potential Loyalists';
-        if ($r >= 3 && $f >= 1 && $m >= 3)
+        }
+        if ($r >= 3 && $f >= 1 && $m >= 3) {
             return 'Promising';
-        if ($r <= 2 && $f >= 3 && $m >= 3)
+        }
+        if ($r <= 2 && $f >= 3 && $m >= 3) {
             return 'Need Attention';
-        if ($r <= 2 && $f >= 3 && $m <= 2)
+        }
+        if ($r <= 2 && $f >= 3 && $m <= 2) {
             return 'About to Sleep';
-        if ($r <= 2 && $f <= 2 && $m >= 3)
+        }
+        if ($r <= 2 && $f <= 2 && $m >= 3) {
             return 'At Risk';
-        if ($r <= 2 && $f <= 2 && $m <= 2)
+        }
+        if ($r <= 2 && $f <= 2 && $m <= 2) {
             return 'Lost';
+        }
 
         return 'Others';
     }
 
     private function determineProfitabilityQuadrant(float $margin, float $velocity, $allProducts): string
     {
-        $avgMargin = $allProducts->avg(fn($p) => ($p->total_revenue - $p->total_cost) / $p->total_revenue * 100);
+        $avgMargin = $allProducts->avg(fn ($p) => ($p->total_revenue - $p->total_cost) / $p->total_revenue * 100);
         $avgVelocity = $allProducts->avg('total_qty_sold');
 
-        if ($margin >= $avgMargin && $velocity >= $avgVelocity)
+        if ($margin >= $avgMargin && $velocity >= $avgVelocity) {
             return 'Stars';
-        if ($margin >= $avgMargin && $velocity < $avgVelocity)
+        }
+        if ($margin >= $avgMargin && $velocity < $avgVelocity) {
             return 'Cash Cows';
-        if ($margin < $avgMargin && $velocity >= $avgVelocity)
+        }
+        if ($margin < $avgMargin && $velocity >= $avgVelocity) {
             return 'Question Marks';
+        }
+
         return 'Dogs';
     }
 
     private function calculateEmployeeScore($emp, $allEmployees): float
     {
         $maxRevenue = $allEmployees->max('total_revenue');
-        if ($maxRevenue <= 0)
+        if ($maxRevenue <= 0) {
             return 50;
+        }
 
         $revenueScore = ($emp->total_revenue / $maxRevenue) * 100;
 
@@ -643,15 +671,19 @@ class AdvancedAnalyticsService
             ->whereMonth('date', now()->subMonth()->month)
             ->sum('total');
 
-        if ($lastMonth <= 0)
+        if ($lastMonth <= 0) {
             return 'stable';
+        }
 
         $change = (($thisMonth - $lastMonth) / $lastMonth) * 100;
 
-        if ($change > 10)
+        if ($change > 10) {
             return 'up';
-        if ($change < -10)
+        }
+        if ($change < -10) {
             return 'down';
+        }
+
         return 'stable';
     }
 
@@ -732,8 +764,9 @@ class AdvancedAnalyticsService
     {
         $byYear = $monthlyTrends->groupBy('year');
 
-        if ($byYear->count() < 2)
+        if ($byYear->count() < 2) {
             return [];
+        }
 
         $years = $byYear->keys()->sort()->values();
         $currentYear = $years->last();
@@ -767,12 +800,12 @@ class AdvancedAnalyticsService
     private function identifyPeakSeasons($monthlyTrends): array
     {
         $avgRevenue = $monthlyTrends->avg('total_revenue');
-        $stdDev = sqrt($monthlyTrends->avg(fn($t) => pow($t->total_revenue - $avgRevenue, 2)));
+        $stdDev = sqrt($monthlyTrends->avg(fn ($t) => pow($t->total_revenue - $avgRevenue, 2)));
 
         $threshold = $avgRevenue + ($stdDev * 0.5);
 
-        return $monthlyTrends->filter(fn($t) => $t->total_revenue >= $threshold)
-            ->map(fn($t) => [
+        return $monthlyTrends->filter(fn ($t) => $t->total_revenue >= $threshold)
+            ->map(fn ($t) => [
                 'year' => $t->year,
                 'month' => $t->month,
                 'month_name' => $t->month_name,
@@ -787,9 +820,9 @@ class AdvancedAnalyticsService
     {
         $insights = [];
 
-        if (!empty($peakSeasons)) {
+        if (! empty($peakSeasons)) {
             $peakMonths = collect($peakSeasons)->pluck('month_name')->unique();
-            $insights[] = "Peak season terjadi di bulan: " . $peakMonths->join(', ');
+            $insights[] = 'Peak season terjadi di bulan: '.$peakMonths->join(', ');
         }
 
         $latestMonth = $monthlyTrends->last();
@@ -799,9 +832,9 @@ class AdvancedAnalyticsService
             $momGrowth = (($latestMonth->total_revenue - $previousMonth->total_revenue) / $previousMonth->total_revenue) * 100;
 
             if ($momGrowth > 10) {
-                $insights[] = "Revenue bulan ini naik " . round($momGrowth, 1) . "% vs bulan lalu";
+                $insights[] = 'Revenue bulan ini naik '.round($momGrowth, 1).'% vs bulan lalu';
             } elseif ($momGrowth < -10) {
-                $insights[] = "Revenue bulan ini turun " . abs(round($momGrowth, 1)) . "% vs bulan lalu";
+                $insights[] = 'Revenue bulan ini turun '.abs(round($momGrowth, 1)).'% vs bulan lalu';
             }
         }
 

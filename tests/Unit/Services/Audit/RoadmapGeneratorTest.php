@@ -11,7 +11,7 @@ class RoadmapGeneratorTest extends TestCase
 {
     public function test_severity_based_prioritization_ordering(): void
     {
-        $generator = new RoadmapGenerator();
+        $generator = new RoadmapGenerator;
         $result = $generator->generate([
             $this->finding('security', Severity::Low, 'Low issue'),
             $this->finding('security', Severity::Critical, 'Critical issue'),
@@ -24,7 +24,7 @@ class RoadmapGeneratorTest extends TestCase
 
     public function test_timeframe_categorization_logic(): void
     {
-        $generator = new RoadmapGenerator();
+        $generator = new RoadmapGenerator;
 
         $this->assertSame('short-term', $generator->categorizeByTimeframe($this->finding('security', Severity::Critical, 'a')));
         $this->assertSame('short-term', $generator->categorizeByTimeframe($this->finding('security', Severity::High, 'b')));
@@ -34,7 +34,7 @@ class RoadmapGeneratorTest extends TestCase
 
     public function test_permission_matrix_output_structure(): void
     {
-        $generator = new RoadmapGenerator();
+        $generator = new RoadmapGenerator;
         $matrix = $generator->generatePermissionMatrix([
             $this->finding('permission', Severity::High, 'Missing role check'),
         ]);
@@ -48,7 +48,7 @@ class RoadmapGeneratorTest extends TestCase
 
     public function test_crud_matrix_output_structure(): void
     {
-        $generator = new RoadmapGenerator();
+        $generator = new RoadmapGenerator;
         $finding = new AuditFinding(
             category: 'crud',
             severity: Severity::High,

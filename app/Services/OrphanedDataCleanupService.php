@@ -2,28 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\BulkPaymentItem;
-use App\Models\ChartOfAccount;
-use App\Models\Customer;
-use App\Models\DeliveryOrderItem;
-use App\Models\GoodsReceiptItem;
 use App\Models\Invoice;
-use App\Models\JournalEntryLine;
-use App\Models\Payment;
-use App\Models\Product;
-use App\Models\PurchaseOrderItem;
-use App\Models\SalesOrderItem;
-use App\Models\StockMovement;
-use App\Models\Supplier;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Service for identifying and cleaning up orphaned records.
- * 
+ *
  * Detects records that reference non-existent parent records
  * through foreign key relationships, and safely removes them.
  */
@@ -116,7 +102,7 @@ class OrphanedDataCleanupService
     /**
      * Scan all configured tables for orphaned records
      *
-     * @param int|null $tenantId Specific tenant ID (null = all tenants)
+     * @param  int|null  $tenantId  Specific tenant ID (null = all tenants)
      * @return array Scan results
      */
     public function scanAll(?int $tenantId = null): array
@@ -128,7 +114,7 @@ class OrphanedDataCleanupService
                 $result = $this->scanType($type, $tenantId);
                 $results[$type] = $result;
             } catch (\Throwable $e) {
-                Log::error("Failed to scan {$type}: " . $e->getMessage());
+                Log::error("Failed to scan {$type}: ".$e->getMessage());
                 $results[$type] = [
                     'success' => false,
                     'error' => $e->getMessage(),
@@ -145,7 +131,7 @@ class OrphanedDataCleanupService
      */
     public function scanType(string $type, ?int $tenantId = null): array
     {
-        if (!isset($this->orphanConfigs[$type])) {
+        if (! isset($this->orphanConfigs[$type])) {
             throw new \InvalidArgumentException("Unknown orphan type: {$type}");
         }
 
@@ -177,8 +163,8 @@ class OrphanedDataCleanupService
     /**
      * Clean up all orphaned records
      *
-     * @param int|null $tenantId Specific tenant ID
-     * @param bool $dryRun Show what would be deleted without deleting
+     * @param  int|null  $tenantId  Specific tenant ID
+     * @param  bool  $dryRun  Show what would be deleted without deleting
      * @return array Cleanup results
      */
     public function cleanupAll(?int $tenantId = null, bool $dryRun = false): array
@@ -192,7 +178,7 @@ class OrphanedDataCleanupService
                 $results[$type] = $result;
                 $totalDeleted += $result['deleted_count'] ?? 0;
             } catch (\Throwable $e) {
-                Log::error("Failed to cleanup {$type}: " . $e->getMessage());
+                Log::error("Failed to cleanup {$type}: ".$e->getMessage());
                 $results[$type] = [
                     'success' => false,
                     'error' => $e->getMessage(),
@@ -213,7 +199,7 @@ class OrphanedDataCleanupService
      */
     public function cleanupType(string $type, ?int $tenantId = null, bool $dryRun = false): array
     {
-        if (!isset($this->orphanConfigs[$type])) {
+        if (! isset($this->orphanConfigs[$type])) {
             throw new \InvalidArgumentException("Unknown orphan type: {$type}");
         }
 
@@ -233,6 +219,7 @@ class OrphanedDataCleanupService
 
         if ($dryRun) {
             $count = $query->count();
+
             return [
                 'success' => true,
                 'deleted_count' => 0,
@@ -357,6 +344,6 @@ class OrphanedDataCleanupService
     {
         // This would integrate with Laravel's scheduler
         // Example: Run weekly in app/Console/Kernel.php
-        Log::info("Orphan cleanup scheduled - configure in Kernel.php");
+        Log::info('Orphan cleanup scheduled - configure in Kernel.php');
     }
 }

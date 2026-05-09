@@ -20,12 +20,19 @@ class WorkOrderOperation extends Model
     {
         return [
             'estimated_hours' => 'decimal:2',
-            'actual_hours'    => 'decimal:2',
-            'started_at'      => 'datetime',
-            'completed_at'    => 'datetime',
+            'actual_hours' => 'decimal:2',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
-    public function workOrder(): BelongsTo { return $this->belongsTo(WorkOrder::class); }
-    public function workCenter(): BelongsTo { return $this->belongsTo(WorkCenter::class); }
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(WorkOrder::class);
+    }
+
+    public function workCenter(): BelongsTo
+    {
+        return $this->belongsTo(WorkCenter::class);
+    }
 }

@@ -11,17 +11,13 @@ use App\Models\ErpNotification;
 use App\Models\ErrorLog;
 use App\Models\HarvestLog;
 use App\Models\LivestockHealthRecord;
-use App\Models\MaintenanceLog;
-use App\Models\QualityControlLog;
 use App\Models\StockMovement;
-use App\Models\UserPointLog;
-use App\Models\WarehouseTransfer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Service for archiving old data to improve database performance.
- * 
+ *
  * Moves historical data from active tables to archive tables based on
  * configurable retention policies. Supports multi-tenant archival.
  */
@@ -106,8 +102,8 @@ class DataArchivalService
     /**
      * Archive all configured data types
      *
-     * @param int|null $tenantId Specific tenant ID (null = all tenants)
-     * @param bool $dryRun Show what would be archived without deleting
+     * @param  int|null  $tenantId  Specific tenant ID (null = all tenants)
+     * @param  bool  $dryRun  Show what would be archived without deleting
      * @return array Archival results
      */
     public function archiveAll(?int $tenantId = null, bool $dryRun = false): array
@@ -121,7 +117,7 @@ class DataArchivalService
                 $result = $this->archiveType($type, $tenantId, $dryRun);
                 $results[$type] = $result;
             } catch (\Throwable $e) {
-                Log::error("Failed to archive {$type}: " . $e->getMessage());
+                Log::error("Failed to archive {$type}: ".$e->getMessage());
                 $results[$type] = [
                     'success' => false,
                     'error' => $e->getMessage(),
@@ -136,14 +132,14 @@ class DataArchivalService
     /**
      * Archive specific data type
      *
-     * @param string $type Type of data to archive
-     * @param int|null $tenantId Specific tenant ID
-     * @param bool $dryRun Dry run mode
+     * @param  string  $type  Type of data to archive
+     * @param  int|null  $tenantId  Specific tenant ID
+     * @param  bool  $dryRun  Dry run mode
      * @return array Archival result
      */
     public function archiveType(string $type, ?int $tenantId = null, bool $dryRun = false): array
     {
-        if (!isset($this->archivalConfigs[$type])) {
+        if (! isset($this->archivalConfigs[$type])) {
             throw new \InvalidArgumentException("Unknown archival type: {$type}");
         }
 
@@ -167,6 +163,7 @@ class DataArchivalService
 
         if ($count === 0) {
             Log::info("No {$type} found for archival");
+
             return ['success' => true, 'archived_count' => 0, 'message' => 'No records to archive'];
         }
 
@@ -224,7 +221,7 @@ class DataArchivalService
         $archiveTable = $config['archive_table'];
 
         // Check if archive table exists
-        if (!$this->archiveTableExists($archiveTable)) {
+        if (! $this->archiveTableExists($archiveTable)) {
             Log::warning("Archive table {$archiveTable} does not exist. Creating...");
             $this->createArchiveTable($config);
         }
@@ -257,7 +254,7 @@ class DataArchivalService
         $archiveTable = $config['archive_table'];
         $modelClass = $config['model'];
 
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
 
         // Get table structure
@@ -267,7 +264,7 @@ class DataArchivalService
         DB::statement("CREATE TABLE IF NOT EXISTS {$archiveTable} LIKE {$table}");
 
         // Add archived_at column if not exists
-        if (!collect($columns)->contains('Field', 'archived_at')) {
+        if (! collect($columns)->contains('Field', 'archived_at')) {
             DB::statement("ALTER TABLE {$archiveTable} ADD COLUMN archived_at TIMESTAMP NULL");
         }
     }
@@ -306,7 +303,7 @@ class DataArchivalService
      */
     public function restore(string $type, int $tenantId, int $limit = 1000): int
     {
-        if (!isset($this->archivalConfigs[$type])) {
+        if (! isset($this->archivalConfigs[$type])) {
             throw new \InvalidArgumentException("Unknown archival type: {$type}");
         }
 
@@ -314,7 +311,7 @@ class DataArchivalService
         $modelClass = $config['model'];
         $archiveTable = $config['archive_table'];
 
-        if (!$this->archiveTableExists($archiveTable)) {
+        if (! $this->archiveTableExists($archiveTable)) {
             throw new \RuntimeException("Archive table {$archiveTable} does not exist");
         }
 
@@ -335,6 +332,7 @@ class DataArchivalService
             $data = $batch->map(function ($record) {
                 $arr = (array) $record;
                 unset($arr['archived_at']);
+
                 return $arr;
             })->toArray();
 
@@ -343,7 +341,7 @@ class DataArchivalService
                     $modelClass::create($row);
                     $restored++;
                 } catch (\Throwable $e) {
-                    Log::error("Failed to restore record: " . $e->getMessage());
+                    Log::error('Failed to restore record: '.$e->getMessage());
                 }
             }
 

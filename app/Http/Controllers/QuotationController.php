@@ -29,8 +29,8 @@ class QuotationController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%$s%")));
         }
 
         $quotations = $query->latest()->paginate(20)->withQueryString();
@@ -40,7 +40,7 @@ class QuotationController extends Controller
             'sent' => Quotation::where('tenant_id', $this->tid())->where('status', 'sent')->count(),
             'accepted' => Quotation::where('tenant_id', $this->tid())->where('status', 'accepted')->count(),
             'expired' => Quotation::where('tenant_id', $this->tid())->where('status', 'expired')
-                ->orWhere(fn($q) => $q->where('tenant_id', $this->tid())
+                ->orWhere(fn ($q) => $q->where('tenant_id', $this->tid())
                     ->where('status', 'draft')->where('valid_until', '<', today()))->count(),
         ];
 
@@ -84,7 +84,7 @@ class QuotationController extends Controller
             $discount = $data['discount'] ?? 0;
             $grandTotal = $subtotal - $discount;
 
-            $number = 'QT-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+            $number = 'QT-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
             $quotation = Quotation::create([
                 'tenant_id' => $this->tid(),
@@ -113,6 +113,7 @@ class QuotationController extends Controller
     {
         abort_if($quotation->tenant_id !== $this->tid(), 403);
         $quotation->load(['customer', 'items.product', 'user', 'salesOrders']);
+
         return view('quotations.show', compact('quotation'));
     }
 
@@ -195,9 +196,10 @@ class QuotationController extends Controller
         $customer = $quotation->customer;
         if ($customer && $customer->wouldExceedCreditLimit($quotation->total)) {
             $available = number_format($customer->availableCredit(), 0, ',', '.');
+
             return back()->withErrors([
-                'credit_limit' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}. " .
-                    "Silakan hubungi finance untuk peningkatan limit atau minta pembayaran DP."
+                'credit_limit' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}. ".
+                    'Silakan hubungi finance untuk peningkatan limit atau minta pembayaran DP.',
             ])->withInput();
         }
 
@@ -209,7 +211,7 @@ class QuotationController extends Controller
                 'customer_id' => $quotation->customer_id,
                 'user_id' => auth()->id(),
                 'quotation_id' => $quotation->id,
-                'number' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+                'number' => 'SO-'.date('Ymd').'-'.strtoupper(Str::random(4)),
                 'status' => 'confirmed',
                 'date' => today(),
                 'subtotal' => $quotation->subtotal,
@@ -243,6 +245,7 @@ class QuotationController extends Controller
         abort_if($quotation->status === 'accepted', 403, 'Penawaran yang sudah diterima tidak bisa dihapus.');
 
         $quotation->delete();
+
         return back()->with('success', 'Penawaran berhasil dihapus.');
     }
 }

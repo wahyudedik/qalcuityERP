@@ -2,8 +2,107 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
+use App\Models\AccountingPeriod;
+use App\Models\AiMemory;
+use App\Models\AiTourSession;
+use App\Models\AnomalyAlert;
+use App\Models\ApiToken;
+use App\Models\ApprovalRequest;
+use App\Models\ApprovalWorkflow;
+use App\Models\Asset;
+use App\Models\Attendance;
+use App\Models\BankAccount;
+use App\Models\BankStatement;
+use App\Models\BinStock;
+use App\Models\Bom;
+use App\Models\Budget;
+use App\Models\BulkPayment;
+use App\Models\ChartOfAccount;
+use App\Models\ChatSession;
+use App\Models\CommissionCalculation;
+use App\Models\CommissionRule;
+use App\Models\ConsignmentPartner;
+use App\Models\ConsignmentSalesReport;
+use App\Models\ConsignmentShipment;
+use App\Models\Contract;
+use App\Models\ContractBilling;
+use App\Models\ContractSlaLog;
+use App\Models\ContractTemplate;
+use App\Models\CostCenter;
+use App\Models\CrmLead;
+use App\Models\Customer;
+use App\Models\CustomerSubscription;
+use App\Models\CustomerSubscriptionPlan;
+use App\Models\CustomField;
+use App\Models\DeferredItem;
+use App\Models\DeliveryOrder;
+use App\Models\DisciplinaryLetter;
+use App\Models\Document;
+use App\Models\DocumentTemplate;
+use App\Models\DownPayment;
+use App\Models\EcommerceChannel;
+use App\Models\Employee;
+use App\Models\ErpNotification;
+use App\Models\FleetDriver;
+use App\Models\FleetFuelLog;
+use App\Models\FleetMaintenance;
+use App\Models\FleetTrip;
+use App\Models\FleetVehicle;
+use App\Models\GoodsReceipt;
+use App\Models\HelpdeskTicket;
+use App\Models\Invoice;
+use App\Models\InvoiceInstallment;
+use App\Models\JournalEntry;
+use App\Models\KbArticle;
+use App\Models\KpiTarget;
+use App\Models\LandedCost;
+use App\Models\LeaveRequest;
+use App\Models\LoyaltyPoint;
+use App\Models\OvertimeRequest;
+use App\Models\Payable;
+use App\Models\PayrollRun;
+use App\Models\PerformanceReview;
+use App\Models\PickingList;
+use App\Models\PriceList;
+use App\Models\Product;
+use App\Models\Project;
+use App\Models\ProjectBillingConfig;
+use App\Models\ProjectInvoice;
+use App\Models\ProjectMilestone;
+use App\Models\ProjectTask;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseRequisition;
+use App\Models\PurchaseReturn;
+use App\Models\Quotation;
+use App\Models\RecurringJournal;
+use App\Models\Reimbursement;
+use App\Models\Reminder;
+use App\Models\Rfq;
+use App\Models\SalesOrder;
+use App\Models\SalesReturn;
+use App\Models\SalesTarget;
+use App\Models\Shipment;
+use App\Models\Simulation;
+use App\Models\StockOpnameSession;
+use App\Models\StockTransfer;
+use App\Models\SubscriptionInvoice;
+use App\Models\Supplier;
+use App\Models\Tenant;
+use App\Models\Timesheet;
+use App\Models\TrainingProgram;
+use App\Models\TrainingSession;
+use App\Models\UserPermission;
+use App\Models\Warehouse;
+use App\Models\WarehouseBin;
+use App\Models\WarehouseZone;
+use App\Models\WebhookSubscription;
+use App\Models\WorkCenter;
+use App\Models\Workflow;
+use App\Models\WorkOrder;
+use App\Models\Writeoff;
+use App\Models\ZeroInputLog;
 use App\Services\Security\AuditLogService;
+use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,11 +132,12 @@ class EnforceTenantIsolation
         if ($user && $user->isSuperAdmin()) {
             // Log superadmin access untuk compliance
             $this->logSuperAdminAccess($user, $request);
+
             return $next($request);
         }
 
         // Guest tidak perlu isolasi
-        if (!$user || !$user->tenant_id) {
+        if (! $user || ! $user->tenant_id) {
             return $next($request);
         }
 
@@ -45,116 +145,118 @@ class EnforceTenantIsolation
 
         // Daftar model yang perlu dicek tenant_id-nya dari route binding
         $tenantModels = [
-            \App\Models\Product::class,
-            \App\Models\Warehouse::class,
-            \App\Models\SalesOrder::class,
-            \App\Models\PurchaseOrder::class,
-            \App\Models\Invoice::class,
-            \App\Models\Employee::class,
-            \App\Models\Customer::class,
-            \App\Models\Supplier::class,
-            \App\Models\Asset::class,
-            \App\Models\Budget::class,
-            \App\Models\Project::class,
-            \App\Models\CrmLead::class,
-            \App\Models\EcommerceChannel::class,
-            \App\Models\ChatSession::class,
-            \App\Models\ApprovalRequest::class,
-            \App\Models\ApprovalWorkflow::class,
-            \App\Models\BankAccount::class,
-            \App\Models\BankStatement::class,
-            \App\Models\Document::class,
+            Product::class,
+            Warehouse::class,
+            SalesOrder::class,
+            PurchaseOrder::class,
+            Invoice::class,
+            Employee::class,
+            Customer::class,
+            Supplier::class,
+            Asset::class,
+            Budget::class,
+            Project::class,
+            CrmLead::class,
+            EcommerceChannel::class,
+            ChatSession::class,
+            ApprovalRequest::class,
+            ApprovalWorkflow::class,
+            BankAccount::class,
+            BankStatement::class,
+            Document::class,
             // Extended coverage
-            \App\Models\Quotation::class,
-            \App\Models\DeliveryOrder::class,
-            \App\Models\SalesReturn::class,
-            \App\Models\PurchaseReturn::class,
-            \App\Models\DownPayment::class,
-            \App\Models\BulkPayment::class,
-            \App\Models\Payable::class,
-            \App\Models\JournalEntry::class,
-            \App\Models\ChartOfAccount::class,
-            \App\Models\AccountingPeriod::class,
-            \App\Models\Timesheet::class,
-            \App\Models\KpiTarget::class,
-            \App\Models\Simulation::class,
-            \App\Models\ZeroInputLog::class,
-            \App\Models\AnomalyAlert::class,
-            \App\Models\DisciplinaryLetter::class,
-            \App\Models\OvertimeRequest::class,
-            \App\Models\TrainingSession::class,
-            \App\Models\TrainingProgram::class,
-            \App\Models\LoyaltyPoint::class,
-            \App\Models\Reminder::class,
-            \App\Models\Shipment::class,
-            \App\Models\WorkOrder::class,
-            \App\Models\Bom::class,
-            \App\Models\WorkCenter::class,
-            \App\Models\FleetVehicle::class,
-            \App\Models\FleetDriver::class,
-            \App\Models\FleetTrip::class,
-            \App\Models\FleetFuelLog::class,
-            \App\Models\FleetMaintenance::class,
-            \App\Models\Contract::class,
-            \App\Models\ContractTemplate::class,
-            \App\Models\ContractBilling::class,
-            \App\Models\ContractSlaLog::class,
-            \App\Models\LandedCost::class,
-            \App\Models\ConsignmentPartner::class,
-            \App\Models\ConsignmentShipment::class,
-            \App\Models\ConsignmentSalesReport::class,
-            \App\Models\CommissionRule::class,
-            \App\Models\SalesTarget::class,
-            \App\Models\CommissionCalculation::class,
-            \App\Models\HelpdeskTicket::class,
-            \App\Models\KbArticle::class,
-            \App\Models\ProjectBillingConfig::class,
-            \App\Models\ProjectMilestone::class,
-            \App\Models\ProjectInvoice::class,
-            \App\Models\CustomerSubscriptionPlan::class,
-            \App\Models\CustomerSubscription::class,
-            \App\Models\SubscriptionInvoice::class,
-            \App\Models\Reimbursement::class,
-            \App\Models\WarehouseZone::class,
-            \App\Models\WarehouseBin::class,
-            \App\Models\BinStock::class,
-            \App\Models\PickingList::class,
-            \App\Models\StockOpnameSession::class,
-            \App\Models\RecurringJournal::class,
-            \App\Models\DeferredItem::class,
-            \App\Models\Writeoff::class,
-            \App\Models\CostCenter::class,
-            \App\Models\ApiToken::class,
-            \App\Models\WebhookSubscription::class,
-            \App\Models\AiMemory::class,
-            \App\Models\StockTransfer::class,
-            \App\Models\GoodsReceipt::class,
-            \App\Models\Rfq::class,
-            \App\Models\PurchaseRequisition::class,
-            \App\Models\PayrollRun::class,
-            \App\Models\LeaveRequest::class,
-            \App\Models\PerformanceReview::class,
-            \App\Models\Attendance::class,
-            \App\Models\InvoiceInstallment::class,
-            \App\Models\ProjectTask::class,
-            \App\Models\PriceList::class,
+            Quotation::class,
+            DeliveryOrder::class,
+            SalesReturn::class,
+            PurchaseReturn::class,
+            DownPayment::class,
+            BulkPayment::class,
+            Payable::class,
+            JournalEntry::class,
+            ChartOfAccount::class,
+            AccountingPeriod::class,
+            Timesheet::class,
+            KpiTarget::class,
+            Simulation::class,
+            ZeroInputLog::class,
+            AnomalyAlert::class,
+            DisciplinaryLetter::class,
+            OvertimeRequest::class,
+            TrainingSession::class,
+            TrainingProgram::class,
+            LoyaltyPoint::class,
+            Reminder::class,
+            Shipment::class,
+            WorkOrder::class,
+            Bom::class,
+            WorkCenter::class,
+            FleetVehicle::class,
+            FleetDriver::class,
+            FleetTrip::class,
+            FleetFuelLog::class,
+            FleetMaintenance::class,
+            Contract::class,
+            ContractTemplate::class,
+            ContractBilling::class,
+            ContractSlaLog::class,
+            LandedCost::class,
+            ConsignmentPartner::class,
+            ConsignmentShipment::class,
+            ConsignmentSalesReport::class,
+            CommissionRule::class,
+            SalesTarget::class,
+            CommissionCalculation::class,
+            HelpdeskTicket::class,
+            KbArticle::class,
+            ProjectBillingConfig::class,
+            ProjectMilestone::class,
+            ProjectInvoice::class,
+            CustomerSubscriptionPlan::class,
+            CustomerSubscription::class,
+            SubscriptionInvoice::class,
+            Reimbursement::class,
+            WarehouseZone::class,
+            WarehouseBin::class,
+            BinStock::class,
+            PickingList::class,
+            StockOpnameSession::class,
+            RecurringJournal::class,
+            DeferredItem::class,
+            Writeoff::class,
+            CostCenter::class,
+            ApiToken::class,
+            WebhookSubscription::class,
+            AiMemory::class,
+            StockTransfer::class,
+            GoodsReceipt::class,
+            Rfq::class,
+            PurchaseRequisition::class,
+            PayrollRun::class,
+            LeaveRequest::class,
+            PerformanceReview::class,
+            Attendance::class,
+            InvoiceInstallment::class,
+            ProjectTask::class,
+            PriceList::class,
             // Bug 6 fix — model yang sebelumnya hilang dari daftar
-            \App\Models\ErpNotification::class,
-            \App\Models\UserPermission::class,
-            \App\Models\CustomField::class,
-            \App\Models\DocumentTemplate::class,
-            \App\Models\Workflow::class,
-            \App\Models\AiTourSession::class,
+            ErpNotification::class,
+            UserPermission::class,
+            CustomField::class,
+            DocumentTemplate::class,
+            Workflow::class,
+            AiTourSession::class,
         ];
 
         // Cek semua route parameters yang merupakan Eloquent model
         foreach ($request->route()->parameters() as $param) {
-            if (!is_object($param))
+            if (! is_object($param)) {
                 continue;
+            }
 
             $modelClass = get_class($param);
-            if (!in_array($modelClass, $tenantModels))
+            if (! in_array($modelClass, $tenantModels)) {
                 continue;
+            }
 
             // Model punya tenant_id tapi tidak cocok → 403
             if (isset($param->tenant_id) && (int) $param->tenant_id !== (int) $tenantId) {
@@ -175,13 +277,13 @@ class EnforceTenantIsolation
             ?? $request->route('tenant_id')
             ?? $request->input('tenant_id');
 
-        if (!$routeTenantId) {
+        if (! $routeTenantId) {
             return; // Tidak ada tenant spesifik, tidak perlu log
         }
 
         // Get target tenant info
-        $targetTenant = \App\Models\Tenant::find($routeTenantId);
-        if (!$targetTenant) {
+        $targetTenant = Tenant::find($routeTenantId);
+        if (! $targetTenant) {
             return;
         }
 

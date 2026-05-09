@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebhookSubscription extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -101,7 +101,7 @@ use HasFactory, BelongsToTenant;
      */
     public function toggle(): void
     {
-        $this->update(['is_active' => !$this->is_active]);
+        $this->update(['is_active' => ! $this->is_active]);
     }
 
     /**
@@ -127,7 +127,7 @@ use HasFactory, BelongsToTenant;
     {
         $events = $this->events;
 
-        if (!in_array($event, $events)) {
+        if (! in_array($event, $events)) {
             $events[] = $event;
             $this->update(['events' => $events]);
         }
@@ -138,7 +138,7 @@ use HasFactory, BelongsToTenant;
      */
     public function removeEvent(string $event): void
     {
-        $events = array_filter($this->events, fn($e) => $e !== $event);
+        $events = array_filter($this->events, fn ($e) => $e !== $event);
         $this->update(['events' => array_values($events)]);
     }
 

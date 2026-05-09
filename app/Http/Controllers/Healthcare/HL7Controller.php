@@ -75,6 +75,7 @@ class HL7Controller extends Controller
     public function destroy(HL7Message $message)
     {
         $message->delete();
+
         return response()->json(['success' => true, 'message' => 'Message deleted']);
     }
 }

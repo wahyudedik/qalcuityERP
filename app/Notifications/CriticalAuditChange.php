@@ -39,8 +39,7 @@ class CriticalAuditChange extends Notification implements ShouldQueue
     public function __construct(
         public ActivityLog $activityLog,
         public string $priority = 'high' // low, medium, high, critical
-    ) {
-    }
+    ) {}
 
     /**
      * Determine if this change should trigger a notification
@@ -54,12 +53,12 @@ class CriticalAuditChange extends Notification implements ShouldQueue
         $isCriticalModel = in_array($modelClass, $this->criticalModels);
 
         // Check if action is critical
-        $isCriticalAction = collect($this->criticalActions)->contains(fn($ca) => str_contains($action, $ca));
+        $isCriticalAction = collect($this->criticalActions)->contains(fn ($ca) => str_contains($action, $ca));
 
         // Check if sensitive fields changed
         $sensitiveFields = ['password', 'role', 'permissions', 'is_active', 'email', 'bank_account'];
         $changedFields = array_keys($this->activityLog->new_values ?? []);
-        $hasSensitiveChange = !empty(array_intersect($sensitiveFields, $changedFields));
+        $hasSensitiveChange = ! empty(array_intersect($sensitiveFields, $changedFields));
 
         return $isCriticalModel || $isCriticalAction || $hasSensitiveChange;
     }
@@ -94,12 +93,12 @@ class CriticalAuditChange extends Notification implements ShouldQueue
         $mailMessage = (new MailMessage)
             ->subject("🔍 Audit Alert: {$log->action} on {$modelClass}")
             ->greeting('Audit Trail Alert')
-            ->line("A significant change has been detected in the system.")
+            ->line('A significant change has been detected in the system.')
             ->line("**Action:** {$log->action}")
             ->line("**Model:** {$modelClass} #{$log->model_id}")
             ->line("**User:** {$userName}")
             ->line("**Time:** {$log->created_at->format('d/m/Y H:i:s')}")
-            ->line("**Fields Changed:** " . implode(', ', $changedFields))
+            ->line('**Fields Changed:** '.implode(', ', $changedFields))
             ->action('View Audit Trail', url('/audit'))
             ->line('Please review this change in the Audit Trail viewer.');
 

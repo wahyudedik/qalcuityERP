@@ -21,9 +21,9 @@ class ManufacturingService
      * Bug Condition: module = 'manufacturing' AND bomDepth > 2 AND NOT recursiveExplosion(input)
      * Expected Behavior: all components at all levels (including level 3+) are present in result.
      *
-     * @param  int   $productId  The product whose BOM should be exploded
-     * @param  float $quantity   Production quantity
-     * @param  int   $depth      Current recursion depth (internal use)
+     * @param  int  $productId  The product whose BOM should be exploded
+     * @param  float  $quantity  Production quantity
+     * @param  int  $depth  Current recursion depth (internal use)
      * @return array<int, array{product_id: int, quantity: float, depth: int}>
      *
      * @throws \DomainException when BOM depth exceeds 10 (circular reference guard)
@@ -32,7 +32,7 @@ class ManufacturingService
     {
         if ($depth > 10) {
             throw new \DomainException(
-                "BOM terlalu dalam (>10 level) untuk product_id {$productId}. " .
+                "BOM terlalu dalam (>10 level) untuk product_id {$productId}. ".
                 'Kemungkinan ada circular reference pada struktur BOM.'
             );
         }
@@ -43,7 +43,7 @@ class ManufacturingService
             ->with('lines.childBom')
             ->first();
 
-        if (!$bom) {
+        if (! $bom) {
             return [];
         }
 
@@ -55,8 +55,8 @@ class ManufacturingService
 
             $result[] = [
                 'product_id' => $line->product_id,
-                'quantity'   => $neededQty,
-                'depth'      => $depth,
+                'quantity' => $neededQty,
+                'depth' => $depth,
             ];
 
             // Recurse into sub-assemblies (child_bom_id indicates a sub-assembly)
@@ -79,9 +79,9 @@ class ManufacturingService
      * Delegates to Bom::explode() which handles circular reference detection,
      * eager loading of the full tree, and multi-level sub-assembly recursion.
      *
-     * @param  Bom   $bom      The BOM to explode
-     * @param  float $quantity Production quantity
-     * @return array           Flat list of all raw materials with level info
+     * @param  Bom  $bom  The BOM to explode
+     * @param  float  $quantity  Production quantity
+     * @return array Flat list of all raw materials with level info
      *
      * @throws \RuntimeException on circular reference or depth exceeded
      */

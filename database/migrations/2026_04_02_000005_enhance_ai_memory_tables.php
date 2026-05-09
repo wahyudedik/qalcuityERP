@@ -9,18 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('ai_memories', function (Blueprint $table) {
-            if (!Schema::hasColumn('ai_memories', 'first_observed_at')) {
+            if (! Schema::hasColumn('ai_memories', 'first_observed_at')) {
                 $table->timestamp('first_observed_at')->nullable()->after('last_seen_at');
             }
-            if (!Schema::hasColumn('ai_memories', 'confidence_score')) {
+            if (! Schema::hasColumn('ai_memories', 'confidence_score')) {
                 $table->float('confidence_score')->default(0.5)->after('first_observed_at');
             }
-            if (!Schema::hasColumn('ai_memories', 'metadata')) {
+            if (! Schema::hasColumn('ai_memories', 'metadata')) {
                 $table->json('metadata')->nullable()->after('confidence_score');
             }
         });
 
-        if (!Schema::hasTable('ai_learned_patterns')) {
+        if (! Schema::hasTable('ai_learned_patterns')) {
             Schema::create('ai_learned_patterns', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

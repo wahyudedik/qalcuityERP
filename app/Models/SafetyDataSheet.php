@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SafetyDataSheet extends Model
@@ -70,7 +69,7 @@ class SafetyDataSheet extends Model
 
     public function needsReview(): bool
     {
-        if (!$this->review_date) {
+        if (! $this->review_date) {
             return false;
         }
 
@@ -93,7 +92,8 @@ class SafetyDataSheet extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'SDS-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'SDS-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     public function scopeActive($query)

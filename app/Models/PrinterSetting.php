@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Services\PosPrinterService;
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PrinterSetting extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'printer_name',
@@ -66,7 +67,7 @@ class PrinterSetting extends Model
     public function testConnection(): array
     {
         try {
-            $printerService = new \App\Services\PosPrinterService();
+            $printerService = new PosPrinterService;
             $connected = $printerService->connect($this->printer_type, $this->printer_destination);
 
             if ($connected) {

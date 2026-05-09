@@ -30,8 +30,8 @@ class ReceivablesController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%$s%")));
         }
         if ($request->boolean('overdue')) {
             $query->whereIn('status', ['unpaid', 'partial'])->where('due_date', '<', today());
@@ -42,10 +42,10 @@ class ReceivablesController extends Controller
         $stats = [
             'total_outstanding' => Invoice::where('tenant_id', $this->tid())
                 ->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount'),
-            'overdue_count'     => Invoice::where('tenant_id', $this->tid())
+            'overdue_count' => Invoice::where('tenant_id', $this->tid())
                 ->whereIn('status', ['unpaid', 'partial'])->where('due_date', '<', today())->count(),
-            'unpaid_count'      => Invoice::where('tenant_id', $this->tid())->where('status', 'unpaid')->count(),
-            'partial_count'     => Invoice::where('tenant_id', $this->tid())->where('status', 'partial')->count(),
+            'unpaid_count' => Invoice::where('tenant_id', $this->tid())->where('status', 'unpaid')->count(),
+            'partial_count' => Invoice::where('tenant_id', $this->tid())->where('status', 'partial')->count(),
         ];
 
         $customers = Customer::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
@@ -58,31 +58,31 @@ class ReceivablesController extends Controller
         abort_if($invoice->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $invoice->remaining_amount,
+            'amount' => 'required|numeric|min:1|max:'.$invoice->remaining_amount,
             'method' => 'required|in:cash,transfer,qris,other',
-            'notes'  => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $invoice->payments()->create([
-            'tenant_id'      => $this->tid(),
-            'amount'         => $data['amount'],
+            'tenant_id' => $this->tid(),
+            'amount' => $data['amount'],
             'payment_method' => $data['method'],
-            'notes'          => $data['notes'] ?? null,
-            'payment_date'   => today(),
-            'user_id'        => auth()->id(),
+            'notes' => $data['notes'] ?? null,
+            'payment_date' => today(),
+            'user_id' => auth()->id(),
         ]);
 
         $invoice->updatePaymentStatus();
 
         // GL Auto-Posting: Dr Kas/Bank / Cr Piutang Usaha
         $glResult = app(GlPostingService::class)->postInvoicePayment(
-            tenantId:      $this->tid(),
-            userId:        auth()->id(),
-            invoiceNumber: $invoice->number . '-PAY-' . now()->format('His'),
-            invoiceId:     $invoice->id,
-            amount:        (float) $data['amount'],
-            method:        $data['method'],
-            date:          today()->toDateString(),
+            tenantId: $this->tid(),
+            userId: auth()->id(),
+            invoiceNumber: $invoice->number.'-PAY-'.now()->format('His'),
+            invoiceId: $invoice->id,
+            amount: (float) $data['amount'],
+            method: $data['method'],
+            date: today()->toDateString(),
         );
         if ($glResult->isFailed()) {
             return back()->with('success', 'Pembayaran piutang berhasil dicatat.')
@@ -107,20 +107,20 @@ class ReceivablesController extends Controller
         // Build aging buckets per customer
         $aging = [];
         foreach ($invoices as $inv) {
-            $cid    = $inv->customer_id;
+            $cid = $inv->customer_id;
             $bucket = $inv->agingBucket();
-            $name   = $inv->customer?->name ?? 'Unknown';
+            $name = $inv->customer?->name ?? 'Unknown';
 
             if (! isset($aging[$cid])) {
                 $aging[$cid] = [
-                    'customer'  => $name,
+                    'customer' => $name,
                     'credit_limit' => (float) ($inv->customer?->credit_limit ?? 0),
-                    'current'   => 0,
-                    '1-30'      => 0,
-                    '31-60'     => 0,
-                    '61-90'     => 0,
-                    '90+'       => 0,
-                    'total'     => 0,
+                    'current' => 0,
+                    '1-30' => 0,
+                    '31-60' => 0,
+                    '61-90' => 0,
+                    '90+' => 0,
+                    'total' => 0,
                 ];
             }
 
@@ -129,15 +129,15 @@ class ReceivablesController extends Controller
         }
 
         // Sort by total descending
-        usort($aging, fn($a, $b) => $b['total'] <=> $a['total']);
+        usort($aging, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         $summary = [
             'current' => collect($aging)->sum('current'),
-            '1-30'    => collect($aging)->sum('1-30'),
-            '31-60'   => collect($aging)->sum('31-60'),
-            '61-90'   => collect($aging)->sum('61-90'),
-            '90+'     => collect($aging)->sum('90+'),
-            'total'   => collect($aging)->sum('total'),
+            '1-30' => collect($aging)->sum('1-30'),
+            '31-60' => collect($aging)->sum('31-60'),
+            '61-90' => collect($aging)->sum('61-90'),
+            '90+' => collect($aging)->sum('90+'),
+            'total' => collect($aging)->sum('total'),
         ];
 
         return view('receivables.aging', compact('aging', 'summary'));
@@ -149,6 +149,7 @@ class ReceivablesController extends Controller
     {
         abort_if($invoice->tenant_id !== $this->tid(), 403);
         $invoice->load(['customer', 'installments']);
+
         return view('receivables.installments', compact('invoice'));
     }
 
@@ -157,16 +158,16 @@ class ReceivablesController extends Controller
         abort_if($invoice->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'installments'             => 'required|array|min:1',
-            'installments.*.amount'    => 'required|numeric|min:1',
-            'installments.*.due_date'  => 'required|date',
-            'installments.*.notes'     => 'nullable|string|max:255',
+            'installments' => 'required|array|min:1',
+            'installments.*.amount' => 'required|numeric|min:1',
+            'installments.*.due_date' => 'required|date',
+            'installments.*.notes' => 'nullable|string|max:255',
         ]);
 
         // Validasi total installment = total invoice
         $total = collect($data['installments'])->sum('amount');
         if (abs($total - (float) $invoice->total_amount) > 1) {
-            return back()->withErrors(['installments' => 'Total cicilan harus sama dengan total invoice (Rp ' . number_format($invoice->total_amount, 0, ',', '.') . ').'])->withInput();
+            return back()->withErrors(['installments' => 'Total cicilan harus sama dengan total invoice (Rp '.number_format($invoice->total_amount, 0, ',', '.').').'])->withInput();
         }
 
         DB::transaction(function () use ($invoice, $data) {
@@ -175,14 +176,14 @@ class ReceivablesController extends Controller
 
             foreach ($data['installments'] as $i => $inst) {
                 InvoiceInstallment::create([
-                    'tenant_id'          => $invoice->tenant_id,
-                    'invoice_id'         => $invoice->id,
+                    'tenant_id' => $invoice->tenant_id,
+                    'invoice_id' => $invoice->id,
                     'installment_number' => $i + 1,
-                    'amount'             => $inst['amount'],
-                    'due_date'           => $inst['due_date'],
-                    'paid_amount'        => 0,
-                    'status'             => 'unpaid',
-                    'notes'              => $inst['notes'] ?? null,
+                    'amount' => $inst['amount'],
+                    'due_date' => $inst['due_date'],
+                    'paid_amount' => 0,
+                    'status' => 'unpaid',
+                    'notes' => $inst['notes'] ?? null,
                 ]);
             }
         });
@@ -195,7 +196,7 @@ class ReceivablesController extends Controller
         abort_if($installment->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $installment->remaining(),
+            'amount' => 'required|numeric|min:1|max:'.$installment->remaining(),
         ]);
 
         $installment->paid_amount += $data['amount'];
@@ -205,12 +206,12 @@ class ReceivablesController extends Controller
 
         // Sync ke invoice payment
         $installment->invoice->payments()->create([
-            'tenant_id'      => $this->tid(),
-            'amount'         => $data['amount'],
+            'tenant_id' => $this->tid(),
+            'amount' => $data['amount'],
             'payment_method' => $request->input('method', 'transfer'),
-            'notes'          => "Cicilan #{$installment->installment_number}",
-            'payment_date'   => today(),
-            'user_id'        => auth()->id(),
+            'notes' => "Cicilan #{$installment->installment_number}",
+            'payment_date' => today(),
+            'user_id' => auth()->id(),
         ]);
         $installment->invoice->updatePaymentStatus();
 
@@ -229,8 +230,8 @@ class ReceivablesController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('supplier', fn($c) => $c->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('supplier', fn ($c) => $c->where('name', 'like', "%$s%")));
         }
         if ($request->boolean('overdue')) {
             $query->whereIn('status', ['unpaid', 'partial'])->where('due_date', '<', today());
@@ -241,10 +242,10 @@ class ReceivablesController extends Controller
         $stats = [
             'total_outstanding' => Payable::where('tenant_id', $this->tid())
                 ->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount'),
-            'overdue_count'     => Payable::where('tenant_id', $this->tid())
+            'overdue_count' => Payable::where('tenant_id', $this->tid())
                 ->whereIn('status', ['unpaid', 'partial'])->where('due_date', '<', today())->count(),
-            'unpaid_count'      => Payable::where('tenant_id', $this->tid())->where('status', 'unpaid')->count(),
-            'partial_count'     => Payable::where('tenant_id', $this->tid())->where('status', 'partial')->count(),
+            'unpaid_count' => Payable::where('tenant_id', $this->tid())->where('status', 'unpaid')->count(),
+            'partial_count' => Payable::where('tenant_id', $this->tid())->where('status', 'partial')->count(),
         ];
 
         $suppliers = Supplier::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
@@ -257,18 +258,18 @@ class ReceivablesController extends Controller
         abort_if($payable->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $payable->remaining_amount,
+            'amount' => 'required|numeric|min:1|max:'.$payable->remaining_amount,
             'method' => 'required|in:cash,transfer,qris,other',
-            'notes'  => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $payable->payments()->create([
-            'tenant_id'      => $this->tid(),
-            'amount'         => $data['amount'],
+            'tenant_id' => $this->tid(),
+            'amount' => $data['amount'],
             'payment_method' => $data['method'],
-            'notes'          => $data['notes'] ?? null,
-            'payment_date'   => today(),
-            'user_id'        => auth()->id(),
+            'notes' => $data['notes'] ?? null,
+            'payment_date' => today(),
+            'user_id' => auth()->id(),
         ]);
 
         $payable->updatePaymentStatus();
@@ -276,12 +277,12 @@ class ReceivablesController extends Controller
         // GL Auto-Posting: Dr Hutang Usaha / Cr Kas/Bank
         $glResult = app(GlPostingService::class)->postPurchasePayment(
             tenantId: $this->tid(),
-            userId:   auth()->id(),
-            poNumber: $payable->number . '-PAY-' . now()->format('His'),
-            poId:     $payable->id,
-            amount:   (float) $data['amount'],
-            method:   $data['method'],
-            date:     today()->toDateString(),
+            userId: auth()->id(),
+            poNumber: $payable->number.'-PAY-'.now()->format('His'),
+            poId: $payable->id,
+            amount: (float) $data['amount'],
+            method: $data['method'],
+            date: today()->toDateString(),
         );
         if ($glResult->isFailed()) {
             return back()->with('success', 'Pembayaran hutang berhasil dicatat.')

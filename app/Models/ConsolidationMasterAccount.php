@@ -49,7 +49,7 @@ class ConsolidationMasterAccount extends Model
 
     public function getTypeLabel(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'asset' => 'Aset',
             'liability' => 'Kewajiban',
             'equity' => 'Ekuitas',

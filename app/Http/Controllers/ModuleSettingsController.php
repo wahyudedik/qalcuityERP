@@ -27,11 +27,11 @@ class ModuleSettingsController extends Controller
         $allowedByPlan = PlanModuleMap::getAllowedModules($planSlug);
 
         return view('settings.modules', [
-            'tenant'        => $tenant,
-            'enabled'       => $enabled,
-            'meta'          => ModuleRecommendationService::MODULE_META,
-            'all'           => ModuleRecommendationService::ALL_MODULES,
-            'planSlug'      => $planSlug,
+            'tenant' => $tenant,
+            'enabled' => $enabled,
+            'meta' => ModuleRecommendationService::MODULE_META,
+            'all' => ModuleRecommendationService::ALL_MODULES,
+            'planSlug' => $planSlug,
             'allowedByPlan' => $allowedByPlan,
         ]);
     }
@@ -40,7 +40,7 @@ class ModuleSettingsController extends Controller
     {
         $request->validate([
             'modules' => ['nullable', 'array'],
-            'modules.*' => ['string', 'in:' . implode(',', ModuleRecommendationService::ALL_MODULES)],
+            'modules.*' => ['string', 'in:'.implode(',', ModuleRecommendationService::ALL_MODULES)],
             // BUG-SET-002 FIX: Cleanup strategy for disabled modules
             'cleanup_strategy' => ['nullable', 'in:keep,archive,soft_delete'],
         ]);
@@ -55,14 +55,14 @@ class ModuleSettingsController extends Controller
         if ($tenant->enabled_modules !== null) {
             $disallowedModules = PlanModuleMap::getDisallowedModules($newModules, $planSlug);
 
-            if (!empty($disallowedModules)) {
+            if (! empty($disallowedModules)) {
                 $disallowedLabels = array_map(function ($key) {
                     return ModuleRecommendationService::MODULE_META[$key]['label'] ?? $key;
                 }, $disallowedModules);
 
-                $errorMessage = 'Modul berikut tidak tersedia untuk paket ' . strtoupper($planSlug ?? 'Anda') . ': '
-                    . implode(', ', $disallowedLabels)
-                    . '. Silakan upgrade paket untuk mengaktifkan modul ini.';
+                $errorMessage = 'Modul berikut tidak tersedia untuk paket '.strtoupper($planSlug ?? 'Anda').': '
+                    .implode(', ', $disallowedLabels)
+                    .'. Silakan upgrade paket untuk mengaktifkan modul ini.';
 
                 if ($request->expectsJson()) {
                     return response()->json(['errors' => ['modules' => [$errorMessage]]], 422);
@@ -79,7 +79,7 @@ class ModuleSettingsController extends Controller
         $disabledModules = array_diff($oldModules, $newModules);
         $cleanupResults = [];
 
-        if (!empty($disabledModules)) {
+        if (! empty($disabledModules)) {
             $cleanupService = app(ModuleCleanupService::class);
 
             foreach ($disabledModules as $module) {
@@ -122,10 +122,10 @@ class ModuleSettingsController extends Controller
         $this->cacheService->clearTenantCache($tenant->id);
 
         $message = 'Pengaturan modul berhasil disimpan.';
-        if (!empty($disabledModules)) {
-            $message .= ' Modul dinonaktifkan: ' . implode(', ', $disabledModules) . '.';
-            if (!empty($cleanupResults)) {
-                $message .= ' Data telah di-' . $cleanupStrategy . '.';
+        if (! empty($disabledModules)) {
+            $message .= ' Modul dinonaktifkan: '.implode(', ', $disabledModules).'.';
+            if (! empty($cleanupResults)) {
+                $message .= ' Data telah di-'.$cleanupStrategy.'.';
             }
         }
 
@@ -136,7 +136,8 @@ class ModuleSettingsController extends Controller
     public function recommend(Request $request)
     {
         $industry = $request->input('industry', 'other');
-        $svc = new ModuleRecommendationService();
+        $svc = new ModuleRecommendationService;
+
         return response()->json($svc->recommend($industry));
     }
 
@@ -144,7 +145,7 @@ class ModuleSettingsController extends Controller
     public function analyzeImpact(Request $request)
     {
         $request->validate([
-            'module' => 'required|string|in:' . implode(',', ModuleRecommendationService::ALL_MODULES),
+            'module' => 'required|string|in:'.implode(',', ModuleRecommendationService::ALL_MODULES),
         ]);
 
         $tenant = auth()->user()->tenant;
@@ -168,7 +169,7 @@ class ModuleSettingsController extends Controller
     public function restoreData(Request $request)
     {
         $request->validate([
-            'module' => 'required|string|in:' . implode(',', ModuleRecommendationService::ALL_MODULES),
+            'module' => 'required|string|in:'.implode(',', ModuleRecommendationService::ALL_MODULES),
         ]);
 
         $tenant = auth()->user()->tenant;
@@ -182,6 +183,6 @@ class ModuleSettingsController extends Controller
             );
         }
 
-        return back()->with('error', 'Gagal memulihkan data: ' . implode(', ', $result['errors']));
+        return back()->with('error', 'Gagal memulihkan data: '.implode(', ', $result['errors']));
     }
 }

@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\AccessViolation;
 use App\Models\AuditTrail;
-use App\Models\ComplianceReport;
 use App\Models\BackupLog;
+use App\Models\ComplianceReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
 
 class ComplianceController extends Controller
 {
@@ -99,7 +98,7 @@ class ComplianceController extends Controller
                 'notes' => $validated['notes'],
             ]);
 
-            return back()->with('error', 'Backup failed: ' . $e->getMessage());
+            return back()->with('error', 'Backup failed: '.$e->getMessage());
         }
     }
 
@@ -182,7 +181,7 @@ class ComplianceController extends Controller
         // Log anonymization
         // Update patient records with anonymized data
 
-        return back()->with('success', count($validated['patient_ids']) . ' patients anonymized successfully');
+        return back()->with('success', count($validated['patient_ids']).' patients anonymized successfully');
     }
 
     /**

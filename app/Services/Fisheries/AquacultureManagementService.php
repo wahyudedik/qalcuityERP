@@ -3,9 +3,9 @@
 namespace App\Services\Fisheries;
 
 use App\Models\AquaculturePond;
-use App\Models\WaterQualityLog;
 use App\Models\FeedingSchedule;
 use App\Models\MortalityLog;
+use App\Models\WaterQualityLog;
 
 class AquacultureManagementService
 {
@@ -31,7 +31,7 @@ class AquacultureManagementService
     /**
      * Stock pond with fish
      */
-    public function stockPond(int $pondId, int $speciesId, float $quantity, string $stockingDate = null): bool
+    public function stockPond(int $pondId, int $speciesId, float $quantity, ?string $stockingDate = null): bool
     {
         try {
             $pond = AquaculturePond::findOrFail($pondId);
@@ -45,6 +45,7 @@ class AquacultureManagementService
             return true;
         } catch (\Exception $e) {
             \Log::error('Stock pond failed', ['pond_id' => $pondId, 'error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -81,11 +82,11 @@ class AquacultureManagementService
 
         $issues = [];
 
-        if (!$log->isPhSafe()) {
+        if (! $log->isPhSafe()) {
             $issues[] = "pH level {$log->ph_level} is outside safe range (6.5-9.0)";
         }
 
-        if (!$log->isOxygenAdequate()) {
+        if (! $log->isOxygenAdequate()) {
             $issues[] = "Dissolved oxygen {$log->dissolved_oxygen} mg/L is below minimum (5.0 mg/L)";
         }
 
@@ -133,6 +134,7 @@ class AquacultureManagementService
             return true;
         } catch (\Exception $e) {
             \Log::error('Record feeding failed', ['schedule_id' => $scheduleId, 'error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -140,7 +142,7 @@ class AquacultureManagementService
     /**
      * Record mortality
      */
-    public function recordMortality(int $tenantId, ?int $pondId = null, ?int $tripId = null, int $count, float $totalWeight = null, string $cause = null, string $symptoms = null, ?int $userId = null): MortalityLog
+    public function recordMortality(int $tenantId, ?int $pondId, ?int $tripId, int $count, ?float $totalWeight = null, ?string $cause = null, ?string $symptoms = null, ?int $userId = null): MortalityLog
     {
         return MortalityLog::create([
             'tenant_id' => $tenantId,

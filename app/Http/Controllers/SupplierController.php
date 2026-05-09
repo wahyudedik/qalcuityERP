@@ -12,12 +12,12 @@ class SupplierController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = Supplier::where('tenant_id', $tid);
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")
                 ->orWhere('company', 'like', "%$s%")
                 ->orWhere('email', 'like', "%$s%")
                 ->orWhere('phone', 'like', "%$s%"));
@@ -32,8 +32,8 @@ class SupplierController extends Controller
         $suppliers = $query->orderBy('name')->paginate(20)->withQueryString();
 
         $stats = [
-            'total'    => Supplier::where('tenant_id', $tid)->count(),
-            'active'   => Supplier::where('tenant_id', $tid)->where('is_active', true)->count(),
+            'total' => Supplier::where('tenant_id', $tid)->count(),
+            'active' => Supplier::where('tenant_id', $tid)->where('is_active', true)->count(),
             'inactive' => Supplier::where('tenant_id', $tid)->where('is_active', false)->count(),
         ];
 
@@ -43,15 +43,15 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'company'      => 'nullable|string|max:255',
-            'email'        => 'nullable|email|max:255',
-            'phone'        => 'nullable|string|max:20',
-            'address'      => 'nullable|string',
-            'npwp'         => 'nullable|string|max:30',
-            'bank_name'    => 'nullable|string|max:100',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'npwp' => 'nullable|string|max:30',
+            'bank_name' => 'nullable|string|max:100',
             'bank_account' => 'nullable|string|max:50',
-            'bank_holder'  => 'nullable|string|max:255',
+            'bank_holder' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tenantId();
@@ -75,16 +75,16 @@ class SupplierController extends Controller
         abort_unless($supplier->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'company'      => 'nullable|string|max:255',
-            'email'        => 'nullable|email|max:255',
-            'phone'        => 'nullable|string|max:20',
-            'address'      => 'nullable|string',
-            'npwp'         => 'nullable|string|max:30',
-            'bank_name'    => 'nullable|string|max:100',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'npwp' => 'nullable|string|max:30',
+            'bank_name' => 'nullable|string|max:100',
             'bank_account' => 'nullable|string|max:50',
-            'bank_holder'  => 'nullable|string|max:255',
-            'is_active'    => 'boolean',
+            'bank_holder' => 'nullable|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
         $old = $supplier->getOriginal();
@@ -99,7 +99,7 @@ class SupplierController extends Controller
     {
         abort_unless($supplier->tenant_id === $this->tenantId(), 403);
 
-        $supplier->update(['is_active' => !$supplier->is_active]);
+        $supplier->update(['is_active' => ! $supplier->is_active]);
         $status = $supplier->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
         ActivityLog::record('supplier_toggled', "Supplier {$supplier->name} {$status}", $supplier);
@@ -114,7 +114,8 @@ class SupplierController extends Controller
         if ($supplier->purchaseOrders()->exists()) {
             $supplier->update(['is_active' => false]);
             ActivityLog::record('supplier_deactivated', "Supplier dinonaktifkan (ada PO): {$supplier->name}", $supplier);
-            return back()->with('success', "Supplier dinonaktifkan karena sudah memiliki Purchase Order.");
+
+            return back()->with('success', 'Supplier dinonaktifkan karena sudah memiliki Purchase Order.');
         }
 
         ActivityLog::record('supplier_deleted', "Supplier dihapus: {$supplier->name}", $supplier, $supplier->toArray());

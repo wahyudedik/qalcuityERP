@@ -12,7 +12,7 @@ return new class extends Migration
             return;
         }
 
-        if (!Schema::hasTable('qc_test_results')) {
+        if (! Schema::hasTable('qc_test_results')) {
             Schema::create('qc_test_results', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

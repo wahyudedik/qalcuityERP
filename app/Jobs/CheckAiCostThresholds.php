@@ -34,11 +34,12 @@ class CheckAiCostThresholds implements ShouldQueue
 
         if ($threshold <= 0) {
             Log::debug('[CheckAiCostThresholds] Threshold tidak dikonfigurasi atau <= 0, skip check.');
+
             return;
         }
 
         $period = now()->format('Y-m');
-        $startOfMonth = Carbon::parse($period . '-01')->startOfDay();
+        $startOfMonth = Carbon::parse($period.'-01')->startOfDay();
         $endOfMonth = now()->endOfDay();
 
         // Ambil semua tenant aktif
@@ -57,6 +58,7 @@ class CheckAiCostThresholds implements ShouldQueue
 
                 if (Cache::has($cacheKey)) {
                     Log::debug("[CheckAiCostThresholds] Notifikasi untuk tenant {$tenant->id} periode {$period} sudah dikirim, skip.");
+
                     continue;
                 }
 
@@ -75,7 +77,7 @@ class CheckAiCostThresholds implements ShouldQueue
 
                 // Tandai bahwa notifikasi sudah dikirim untuk periode ini
                 // Cache sampai akhir bulan + 1 hari
-                $cacheExpiry = Carbon::parse($period . '-01')->endOfMonth()->addDay();
+                $cacheExpiry = Carbon::parse($period.'-01')->endOfMonth()->addDay();
                 Cache::put($cacheKey, true, $cacheExpiry);
 
                 Log::info("[CheckAiCostThresholds] Notifikasi threshold biaya AI dikirim untuk tenant {$tenant->name} (ID: {$tenant->id}). Total: Rp {$totalCost}, Threshold: Rp {$threshold}");

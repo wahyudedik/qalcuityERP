@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Payment Gateway Configurations
-        if (!Schema::hasTable('payment_gateways')) {
+        if (! Schema::hasTable('payment_gateways')) {
             Schema::create('payment_gateways', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -33,7 +34,7 @@ return new class extends Migration {
         }
 
         // 2. Payment Transactions
-        if (!Schema::hasTable('payment_transactions')) {
+        if (! Schema::hasTable('payment_transactions')) {
             Schema::create('payment_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -59,7 +60,7 @@ return new class extends Migration {
         }
 
         // 3. E-commerce Platforms
-        if (!Schema::hasTable('ecommerce_platforms')) {
+        if (! Schema::hasTable('ecommerce_platforms')) {
             Schema::create('ecommerce_platforms', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -84,7 +85,7 @@ return new class extends Migration {
         }
 
         // 4. E-commerce Orders
-        if (!Schema::hasTable('ecommerce_orders')) {
+        if (! Schema::hasTable('ecommerce_orders')) {
             Schema::create('ecommerce_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -113,7 +114,7 @@ return new class extends Migration {
         }
 
         // 5. Logistics Providers
-        if (!Schema::hasTable('logistics_providers')) {
+        if (! Schema::hasTable('logistics_providers')) {
             Schema::create('logistics_providers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -131,7 +132,7 @@ return new class extends Migration {
         }
 
         // 6. Shipments & Tracking
-        if (!Schema::hasTable('shipments')) {
+        if (! Schema::hasTable('shipments')) {
             Schema::create('shipments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -156,7 +157,7 @@ return new class extends Migration {
         }
 
         // 7. Accounting Integrations
-        if (!Schema::hasTable('accounting_integrations')) {
+        if (! Schema::hasTable('accounting_integrations')) {
             Schema::create('accounting_integrations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -180,7 +181,7 @@ return new class extends Migration {
         }
 
         // 8. Accounting Sync Logs
-        if (!Schema::hasTable('accounting_sync_logs')) {
+        if (! Schema::hasTable('accounting_sync_logs')) {
             Schema::create('accounting_sync_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -200,7 +201,7 @@ return new class extends Migration {
         }
 
         // 9. Communication Channels
-        if (!Schema::hasTable('communication_channels')) {
+        if (! Schema::hasTable('communication_channels')) {
             Schema::create('communication_channels', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -222,7 +223,7 @@ return new class extends Migration {
         }
 
         // 10. Message Logs
-        if (!Schema::hasTable('message_logs')) {
+        if (! Schema::hasTable('message_logs')) {
             Schema::create('message_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -245,7 +246,7 @@ return new class extends Migration {
         }
 
         // 11. Bank Accounts
-        if (!Schema::hasTable('bank_accounts')) {
+        if (! Schema::hasTable('bank_accounts')) {
             Schema::create('bank_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -267,7 +268,7 @@ return new class extends Migration {
         }
 
         // 12. Bank Transactions (Imported)
-        if (!Schema::hasTable('bank_transactions')) {
+        if (! Schema::hasTable('bank_transactions')) {
             Schema::create('bank_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

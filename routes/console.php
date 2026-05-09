@@ -1,29 +1,40 @@
 <?php
 
 use App\Jobs\AnalyzeUserPatterns;
+use App\Jobs\CalculatePriceElasticity;
+use App\Jobs\CheckAiCostThresholds;
+use App\Jobs\CheckAiFallbackRates;
 use App\Jobs\CheckTrialExpiry;
-use App\Jobs\GenerateProactiveInsightsJob;
-use App\Jobs\ProcessRecurringJournals;
 use App\Jobs\ExpireLoyaltyPoints;
+use App\Jobs\GenerateAiAdvisorRecommendations;
 use App\Jobs\GenerateAiInsights;
+use App\Jobs\GenerateProactiveInsightsJob;
 use App\Jobs\GenerateTenantReport;
+use App\Jobs\Integrations\RetryWebhookDeliveriesJob;
+use App\Jobs\Integrations\SyncInventoryJob;
+use App\Jobs\Integrations\SyncOrdersJob;
+use App\Jobs\Integrations\SyncProductsJob;
+use App\Jobs\ProcessRecurringJournals;
+use App\Jobs\RetryFailedMarketplaceSyncs;
 use App\Jobs\RunAssetDepreciation;
 use App\Jobs\SendAiDigest;
+use App\Jobs\SendErpNotificationBatch;
 use App\Jobs\SyncEcommerceOrders;
-use App\Jobs\RetryFailedMarketplaceSyncs;
 use App\Jobs\SyncMarketplacePrices;
 use App\Jobs\SyncMarketplaceStock;
-use App\Jobs\UpdateCurrencyRates;
-use App\Jobs\Telecom\PollRouterUsageJob;
 use App\Jobs\Telecom\CheckQuotaExpiryJob;
+use App\Jobs\Telecom\PollRouterUsageJob;
 use App\Jobs\Telecom\SyncHotspotUsersJob;
-use App\Models\AiUsageLog;
-use App\Models\ChatMessage;
+use App\Jobs\UpdateCurrencyRates;
 use App\Models\ChatSession;
+use App\Models\Integration;
 use App\Models\Tenant;
+use App\Models\Workflow;
+use App\Services\Integrations\WebhookDeliveryService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -52,7 +63,7 @@ Schedule::call(function () {
 // AI Financial Advisor — rekomendasi strategis mingguan — Senin jam 09:00
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\GenerateAiAdvisorRecommendations::dispatch($tenant->id, 'weekly')
+        GenerateAiAdvisorRecommendations::dispatch($tenant->id, 'weekly')
             ->delay(now()->addSeconds(rand(1, 120)));
     });
 })->weeklyOn(1, '09:00')->name('ai-advisor-weekly')->withoutOverlapping();
@@ -68,26 +79,25 @@ Schedule::call(function () {
 // ─── AI Use-Case Routing Monitoring ──────────────────────────────────────────
 
 // Cek threshold biaya AI per tenant — setiap hari jam 09:00
-Schedule::job(new \App\Jobs\CheckAiCostThresholds())
+Schedule::job(new CheckAiCostThresholds)
     ->dailyAt('09:00')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('check-ai-cost-thresholds');
 
 // Cek persentase fallback event per use case — setiap jam
-Schedule::job(new \App\Jobs\CheckAiFallbackRates())
+Schedule::job(new CheckAiFallbackRates)
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('check-ai-fallback-rates');
-
 
 // ─── Proactive Insights (ERP AI Agent) ───────────────────────────────────────
 
 // Generate proactive insights untuk semua tenant aktif — setiap 6 jam
 // Job memanggil ProactiveInsightEngine::analyze() per tenant dan mengirim
 // push notification untuk insight high/critical jika push aktif.
-Schedule::job(new GenerateProactiveInsightsJob())
+Schedule::job(new GenerateProactiveInsightsJob)
     ->everySixHours()
     ->withoutOverlapping()
     ->onOneServer()
@@ -109,35 +119,35 @@ Schedule::command('erp:check-notifications')
 // Cek laporan mingguan belum masuk — Senin jam 09:00
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'missing_reports', 'weekly');
+        SendErpNotificationBatch::dispatch($tenant->id, 'missing_reports', 'weekly');
     });
 })->weeklyOn(1, '09:00')->name('check-weekly-reports')->withoutOverlapping();
 
 // Cek invoice overdue — setiap hari jam 09:00
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'invoice_overdue');
+        SendErpNotificationBatch::dispatch($tenant->id, 'invoice_overdue');
     });
 })->dailyAt('09:00')->name('check-invoice-overdue')->withoutOverlapping();
 
 // Cek asset maintenance due — setiap hari jam 08:30
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'asset_maintenance_due');
+        SendErpNotificationBatch::dispatch($tenant->id, 'asset_maintenance_due');
     });
 })->dailyAt('08:30')->name('check-asset-maintenance')->withoutOverlapping();
 
 // Cek budget exceeded — setiap hari jam 10:00
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'budget_exceeded');
+        SendErpNotificationBatch::dispatch($tenant->id, 'budget_exceeded');
     });
 })->dailyAt('10:00')->name('check-budget-exceeded')->withoutOverlapping();
 
 // Cek expiry produk — setiap hari jam 07:30 (sebelum jam kerja)
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'product_expiry');
+        SendErpNotificationBatch::dispatch($tenant->id, 'product_expiry');
     });
 })->dailyAt('07:30')->name('check-product-expiry')->withoutOverlapping();
 
@@ -166,7 +176,7 @@ Schedule::command('notifications:send-digest --weekly')
 // ─── Trial & Plan Expiry ──────────────────────────────────────────────────────
 
 // Cek trial/plan akan berakhir — setiap hari jam 07:00
-Schedule::job(new CheckTrialExpiry())
+Schedule::job(new CheckTrialExpiry)
     ->dailyAt('07:00')
     ->withoutOverlapping()
     ->onOneServer();
@@ -186,7 +196,7 @@ Schedule::call(function () {
 // ─── Currency Rates ───────────────────────────────────────────────────────────
 
 // Update kurs mata uang — setiap hari jam 06:00
-Schedule::job(new UpdateCurrencyRates())
+Schedule::job(new UpdateCurrencyRates)
     ->dailyAt('06:00')
     ->withoutOverlapping()
     ->onOneServer();
@@ -194,7 +204,7 @@ Schedule::job(new UpdateCurrencyRates())
 // ─── Loyalty Points Expiry ────────────────────────────────────────────────────
 
 // Expire poin loyalitas yang kadaluarsa — setiap hari jam 01:00
-Schedule::job(new ExpireLoyaltyPoints())
+Schedule::job(new ExpireLoyaltyPoints)
     ->dailyAt('01:00')
     ->withoutOverlapping()
     ->onOneServer();
@@ -202,31 +212,31 @@ Schedule::job(new ExpireLoyaltyPoints())
 // ─── E-Commerce Sync ─────────────────────────────────────────────────────────
 
 // Sinkronisasi order e-commerce — setiap 30 menit
-Schedule::job(new SyncEcommerceOrders())
+Schedule::job(new SyncEcommerceOrders)
     ->everyThirtyMinutes()
     ->withoutOverlapping()
     ->onOneServer();
 
 // Sinkronisasi stok ke marketplace — setiap jam
-Schedule::job(new SyncMarketplaceStock())
+Schedule::job(new SyncMarketplaceStock)
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer();
 
 // Sinkronisasi harga ke marketplace — setiap 6 jam
-Schedule::job(new SyncMarketplacePrices())
+Schedule::job(new SyncMarketplacePrices)
     ->everySixHours()
     ->withoutOverlapping()
     ->onOneServer();
 
 // Retry sync marketplace yang gagal — setiap 5 menit
-Schedule::job(new RetryFailedMarketplaceSyncs())
+Schedule::job(new RetryFailedMarketplaceSyncs)
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
 
 // Hitung elastisitas harga — setiap hari jam 04:00
-Schedule::job(new \App\Jobs\CalculatePriceElasticity())
+Schedule::job(new CalculatePriceElasticity)
     ->dailyAt('04:00')
     ->withoutOverlapping()
     ->onOneServer();
@@ -245,7 +255,7 @@ Schedule::call(function () {
 // ─── Recurring Journals ───────────────────────────────────────────────────────
 
 // Proses jurnal berulang — setiap hari jam 00:05
-Schedule::job(new ProcessRecurringJournals())
+Schedule::job(new ProcessRecurringJournals)
     ->dailyAt('00:05')
     ->withoutOverlapping()
     ->onOneServer();
@@ -280,7 +290,7 @@ Schedule::call(function () {
     $deleted = ChatSession::where('is_active', false)
         ->where('updated_at', '<', now()->subDays(90))
         ->delete();
-    \Illuminate\Support\Facades\Log::info("Cleanup: deleted {$deleted} old chat sessions.");
+    Log::info("Cleanup: deleted {$deleted} old chat sessions.");
 })->weeklyOn(0, '02:00')->name('cleanup-old-sessions');
 
 // Hapus failed jobs lebih dari 7 hari — setiap hari jam 03:00
@@ -340,7 +350,7 @@ Schedule::command('audit:purge --no-interaction')
 //  AI User Pattern Analysis
 
 // Analisis pola perilaku user dari data transaksi  setiap hari jam 03:00
-Schedule::job(new AnalyzeUserPatterns())
+Schedule::job(new AnalyzeUserPatterns)
     ->dailyAt('03:00')
     ->withoutOverlapping()
     ->onOneServer()
@@ -349,21 +359,21 @@ Schedule::job(new AnalyzeUserPatterns())
 // ─── Telecom Module ──────────────────────────────────────────────────────
 
 // Poll router usage data — setiap 10 menit
-Schedule::job(new PollRouterUsageJob())
+Schedule::job(new PollRouterUsageJob)
     ->everyTenMinutes()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('telecom-poll-router-usage');
 
 // Sync hotspot users online status — setiap jam
-Schedule::job(new SyncHotspotUsersJob())
+Schedule::job(new SyncHotspotUsersJob)
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('telecom-sync-hotspot-users');
 
 // Check quota expiry & reset quotas — setiap hari jam 00:30
-Schedule::job(new CheckQuotaExpiryJob())
+Schedule::job(new CheckQuotaExpiryJob)
     ->dailyAt('00:30')
     ->withoutOverlapping()
     ->onOneServer()
@@ -388,7 +398,7 @@ Schedule::command('workflows:process-scheduled')
 
 // Invoice overdue check — daily at 9 AM (triggers workflow)
 Schedule::call(function () {
-    \App\Models\Workflow::where('trigger_type', 'schedule')
+    Workflow::where('trigger_type', 'schedule')
         ->where('is_active', true)
         ->whereJsonContains('trigger_config->schedule', 'invoice_overdue_check')
         ->each(function ($workflow) {
@@ -398,7 +408,7 @@ Schedule::call(function () {
 
 // Monthly bonus calculation — 1st of month at midnight
 Schedule::call(function () {
-    \App\Models\Workflow::where('trigger_type', 'schedule')
+    Workflow::where('trigger_type', 'schedule')
         ->where('is_active', true)
         ->whereJsonContains('trigger_config->schedule', 'monthly_bonus_calculation')
         ->each(function ($workflow) {
@@ -444,7 +454,7 @@ Schedule::command('reports:process-scheduled')
 // ─── INTEGRATION MARKETPLACE ─────────────────────────────────────────────
 
 // Retry failed webhook deliveries — setiap 5 menit
-Schedule::job(new \App\Jobs\Integrations\RetryWebhookDeliveriesJob())
+Schedule::job(new RetryWebhookDeliveriesJob)
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer()
@@ -452,37 +462,37 @@ Schedule::job(new \App\Jobs\Integrations\RetryWebhookDeliveriesJob())
 
 // Auto-sync integrations based on frequency — setiap jam
 Schedule::call(function () {
-    \App\Models\Integration::where('status', 'active')
+    Integration::where('status', 'active')
         ->where('sync_frequency', 'hourly')
         ->where(function ($query) {
             $query->whereNull('next_sync_at')
                 ->orWhere('next_sync_at', '<=', now());
         })
         ->each(function ($integration) {
-            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
-            \App\Jobs\Integrations\SyncOrdersJob::dispatch($integration);
-            \App\Jobs\Integrations\SyncInventoryJob::dispatch($integration);
+            SyncProductsJob::dispatch($integration);
+            SyncOrdersJob::dispatch($integration);
+            SyncInventoryJob::dispatch($integration);
         });
 })->hourly()->name('integration-auto-sync-hourly')->withoutOverlapping();
 
 // Daily sync for integrations — setiap hari jam 01:00
 Schedule::call(function () {
-    \App\Models\Integration::where('status', 'active')
+    Integration::where('status', 'active')
         ->where('sync_frequency', 'daily')
         ->where(function ($query) {
             $query->whereNull('next_sync_at')
                 ->orWhere('next_sync_at', '<=', now());
         })
         ->each(function ($integration) {
-            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
+            SyncProductsJob::dispatch($integration);
         });
 })->dailyAt('01:00')->name('integration-auto-sync-daily')->withoutOverlapping();
 
 // Cleanup old webhook deliveries — setiap hari jam 03:00
 Schedule::call(function () {
-    $service = new \App\Services\Integrations\WebhookDeliveryService();
+    $service = new WebhookDeliveryService;
     $deleted = $service->cleanupOldDeliveries(30);
-    \Illuminate\Support\Facades\Log::info("Integration cleanup: deleted {$deleted} old webhook deliveries");
+    Log::info("Integration cleanup: deleted {$deleted} old webhook deliveries");
 })->dailyAt('03:00')->name('integration-cleanup-webhooks')->withoutOverlapping();
 
 // ─────────────────────────────────────────────────────────────────────────────

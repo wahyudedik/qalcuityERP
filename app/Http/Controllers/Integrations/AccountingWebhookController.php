@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * AccountingWebhookController — Handle webhook dari layanan akuntansi eksternal
- * 
+ *
  * Requirement 16: THE System SHALL memastikan webhook dari layanan eksternal
  * diverifikasi signature-nya sebelum diproses untuk mencegah request palsu.
  */
@@ -32,10 +32,11 @@ class AccountingWebhookController extends Controller
             $signature = $request->header('X-Jurnal-Signature');
             $payload = $request->getContent();
 
-            if (!$signature || !$payload) {
+            if (! $signature || ! $payload) {
                 Log::warning('AccountingWebhookController: missing signature or payload', [
                     'provider' => 'jurnal_id',
                 ]);
+
                 return response()->json(['error' => 'Invalid request'], 400);
             }
 
@@ -44,19 +45,21 @@ class AccountingWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$integration) {
+            if (! $integration) {
                 Log::warning('AccountingWebhookController: integration not found', [
                     'provider' => 'jurnal_id',
                 ]);
+
                 return response()->json(['error' => 'Integration not found'], 404);
             }
 
             // Verifikasi signature
-            if (!$this->integrationService->verifyWebhookSignature($integration, $payload, $signature)) {
+            if (! $this->integrationService->verifyWebhookSignature($integration, $payload, $signature)) {
                 Log::warning('AccountingWebhookController: invalid signature', [
                     'provider' => 'jurnal_id',
                     'integration_id' => $integration->id,
                 ]);
+
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 
@@ -102,10 +105,11 @@ class AccountingWebhookController extends Controller
             $signature = $request->header('X-Accurate-Signature');
             $payload = $request->getContent();
 
-            if (!$signature || !$payload) {
+            if (! $signature || ! $payload) {
                 Log::warning('AccountingWebhookController: missing signature or payload', [
                     'provider' => 'accurate_online',
                 ]);
+
                 return response()->json(['error' => 'Invalid request'], 400);
             }
 
@@ -114,19 +118,21 @@ class AccountingWebhookController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$integration) {
+            if (! $integration) {
                 Log::warning('AccountingWebhookController: integration not found', [
                     'provider' => 'accurate_online',
                 ]);
+
                 return response()->json(['error' => 'Integration not found'], 404);
             }
 
             // Verifikasi signature
-            if (!$this->integrationService->verifyWebhookSignature($integration, $payload, $signature)) {
+            if (! $this->integrationService->verifyWebhookSignature($integration, $payload, $signature)) {
                 Log::warning('AccountingWebhookController: invalid signature', [
                     'provider' => 'accurate_online',
                     'integration_id' => $integration->id,
                 ]);
+
                 return response()->json(['error' => 'Invalid signature'], 403);
             }
 

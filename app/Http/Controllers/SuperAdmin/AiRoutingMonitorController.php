@@ -7,7 +7,6 @@ use App\Models\AiProviderSwitchLog;
 use App\Models\AiUsageCostLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -67,18 +66,18 @@ class AiRoutingMonitorController extends Controller
     {
         try {
             $stats = [
-                'use_case_distribution'    => $this->getUseCaseDistribution(),
-                'provider_distribution'    => $this->getProviderDistribution(),
-                'fallback_trend'           => $this->getFallbackTrend(),
+                'use_case_distribution' => $this->getUseCaseDistribution(),
+                'provider_distribution' => $this->getProviderDistribution(),
+                'fallback_trend' => $this->getFallbackTrend(),
                 'response_time_by_use_case' => $this->getResponseTimeByUseCase(),
                 'response_time_by_provider' => $this->getResponseTimeByProvider(),
                 'fallback_count_by_use_case' => $this->getFallbackCountByUseCase(),
-                'generated_at'             => now()->toIso8601String(),
+                'generated_at' => now()->toIso8601String(),
             ];
 
             return response()->json([
                 'success' => true,
-                'data'    => $stats,
+                'data' => $stats,
             ]);
         } catch (\Throwable $e) {
             Log::error('AiRoutingMonitorController: gagal mengambil statistik routing', [
@@ -87,7 +86,7 @@ class AiRoutingMonitorController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil statistik routing: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil statistik routing: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -114,12 +113,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderByDesc('count')
                     ->get();
 
-                return $data->map(fn($item) => [
+                return $data->map(fn ($item) => [
                     'use_case' => $item->use_case,
-                    'count'    => $item->count,
+                    'count' => $item->count,
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load use case distribution.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -145,12 +145,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderByDesc('count')
                     ->get();
 
-                return $data->map(fn($item) => [
+                return $data->map(fn ($item) => [
                     'provider' => $item->provider,
-                    'count'    => $item->count,
+                    'count' => $item->count,
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load provider distribution.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -177,12 +178,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderBy('hour')
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'hour'  => $item->hour,
+                return $data->map(fn ($item) => [
+                    'hour' => $item->hour,
                     'count' => $item->count,
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load fallback trend.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -209,12 +211,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderBy('use_case')
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'use_case'          => $item->use_case,
+                return $data->map(fn ($item) => [
+                    'use_case' => $item->use_case,
                     'avg_response_time' => round($item->avg_response_time, 2),
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load response time by use case.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -241,12 +244,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderBy('provider')
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'provider'          => $item->provider,
+                return $data->map(fn ($item) => [
+                    'provider' => $item->provider,
                     'avg_response_time' => round($item->avg_response_time, 2),
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load response time by provider.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -274,12 +278,13 @@ class AiRoutingMonitorController extends Controller
                     ->orderByDesc('count')
                     ->get();
 
-                return $data->map(fn($item) => [
+                return $data->map(fn ($item) => [
                     'use_case' => $item->use_case,
-                    'count'    => $item->count,
+                    'count' => $item->count,
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiRoutingMonitorController: could not load fallback count by use case.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });

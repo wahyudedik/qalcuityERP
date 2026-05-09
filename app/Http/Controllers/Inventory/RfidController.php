@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
-use App\Models\RfidTag;
-use App\Models\RfidScannerDevice;
 use App\Models\RfidScanLog;
+use App\Models\RfidScannerDevice;
+use App\Models\RfidTag;
 use Illuminate\Http\Request;
 
 class RfidController extends Controller
@@ -63,7 +63,7 @@ class RfidController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Tag berhasil di-assign ke ' . class_basename($model),
+            'message' => 'Tag berhasil di-assign ke '.class_basename($model),
         ]);
     }
 
@@ -87,7 +87,7 @@ class RfidController extends Controller
             ->where('tenant_id', auth()->user()->tenant_id)
             ->first();
 
-        if (!$tag) {
+        if (! $tag) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tag tidak ditemukan',

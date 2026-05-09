@@ -13,7 +13,7 @@ class BankFormatParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new BankFormatParser();
+        $this->parser = new BankFormatParser;
     }
 
     /** @test */
@@ -276,10 +276,10 @@ class BankFormatParserTest extends TestCase
      */
     private function createCsvFile(string $name, string $content): UploadedFile
     {
-        $path = storage_path('app/testing/' . $name);
+        $path = storage_path('app/testing/'.$name);
 
         // Ensure directory exists
-        if (!file_exists(dirname($path))) {
+        if (! file_exists(dirname($path))) {
             mkdir(dirname($path), 0755, true);
         }
 

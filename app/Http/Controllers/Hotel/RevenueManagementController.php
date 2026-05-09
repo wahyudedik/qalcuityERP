@@ -3,21 +3,19 @@
 namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
-use App\Models\RatePlan;
-use App\Models\DynamicPricingRule;
-use App\Models\OccupancyForecast;
 use App\Models\CompetitorRate;
-use App\Models\SpecialEvent;
+use App\Models\DynamicPricingRule;
 use App\Models\PricingRecommendation;
+use App\Models\RatePlan;
 use App\Models\RevenueSnapshot;
 use App\Models\RoomType;
+use App\Models\SpecialEvent;
+use App\Services\CompetitorRateTrackingService;
 use App\Services\DynamicPricingEngine;
 use App\Services\OccupancyForecastingService;
 use App\Services\RateOptimizationService;
-use App\Services\CompetitorRateTrackingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RevenueManagementController extends Controller
 {
@@ -133,9 +131,10 @@ class RevenueManagementController extends Controller
 
             if ($overlapping->isNotEmpty()) {
                 $overlapNames = $overlapping->pluck('name')->join(', ');
+
                 return back()
                     ->withErrors([
-                        'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama."
+                        'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama.",
                     ])
                     ->withInput();
             }
@@ -178,9 +177,10 @@ class RevenueManagementController extends Controller
 
         if ($overlapping->isNotEmpty()) {
             $overlapNames = $overlapping->pluck('name')->join(', ');
+
             return back()
                 ->withErrors([
-                    'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama."
+                    'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama.",
                 ])
                 ->withInput();
         }
@@ -409,7 +409,7 @@ class RevenueManagementController extends Controller
         // Update the actual room type rate
         if ($recommendation->roomType) {
             $recommendation->roomType->update([
-                'base_rate' => $recommendation->recommended_rate
+                'base_rate' => $recommendation->recommended_rate,
             ]);
         }
 

@@ -2,17 +2,18 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\PurchaseOrder;
 use App\Traits\ChecksModuleStatus;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class PurchaseOrderApprovedNotification extends Notification implements ShouldQueue
 {
-    use Queueable, ChecksModuleStatus;
+    use ChecksModuleStatus, Queueable;
 
     public function __construct(public PurchaseOrder $purchaseOrder) {}
 
@@ -25,26 +26,26 @@ class PurchaseOrderApprovedNotification extends Notification implements ShouldQu
     {
         // Respect user preferences
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'purchase_order_approved', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         $channels = $channels ?: ['database']; // fallback to in-app
-        
+
         // Filter by module status - if module disabled, return empty array
         return $this->filterChannelsByModuleStatus($notifiable, $channels);
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        $total = 'Rp ' . number_format($this->purchaseOrder->total, 0, ',', '.');
+        $total = 'Rp '.number_format($this->purchaseOrder->total, 0, ',', '.');
 
         return (new MailMessage)
             ->subject("Purchase Order #{$this->purchaseOrder->po_number} Telah Disetujui")
@@ -52,7 +53,7 @@ class PurchaseOrderApprovedNotification extends Notification implements ShouldQu
             ->line("Purchase Order **#{$this->purchaseOrder->po_number}** telah disetujui.")
             ->line("**Supplier:** {$this->purchaseOrder->supplier->name}")
             ->line("**Total:** {$total}")
-            ->line("**Tanggal:** " . $this->purchaseOrder->po_date->format('d/m/Y'))
+            ->line('**Tanggal:** '.$this->purchaseOrder->po_date->format('d/m/Y'))
             ->action('Lihat Purchase Order', url("/purchasing/purchase-orders/{$this->purchaseOrder->id}"))
             ->line('Silakan lanjutkan proses penerimaan barang.')
             ->salutation('Salam, Qalcuity ERP');

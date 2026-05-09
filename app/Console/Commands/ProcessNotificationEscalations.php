@@ -50,7 +50,8 @@ class ProcessNotificationEscalations extends Command
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error("❌ Failed to process escalations: " . $e->getMessage());
+            $this->error('❌ Failed to process escalations: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

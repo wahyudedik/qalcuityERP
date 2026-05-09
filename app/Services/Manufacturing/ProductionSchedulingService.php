@@ -4,11 +4,10 @@ namespace App\Services\Manufacturing;
 
 use App\Models\WorkOrder;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Production Scheduling Service
- * 
+ *
  * TASK-2.14: Advanced production scheduling with capacity planning,
  * conflict detection, and optimization.
  */
@@ -29,7 +28,7 @@ class ProductionSchedulingService
             ->where('tenant_id', $tenantId)
             ->first();
 
-        if (!$workOrder) {
+        if (! $workOrder) {
             return ['success' => false, 'message' => 'Work Order not found'];
         }
 
@@ -40,7 +39,7 @@ class ProductionSchedulingService
         // Check for scheduling conflicts
         $conflicts = $this->detectSchedulingConflicts($tenantId, $startDate, $endDate, $workOrderId);
 
-        if (!empty($conflicts) && $priority <= 2) {
+        if (! empty($conflicts) && $priority <= 2) {
             // High priority can override conflicts
             return [
                 'success' => false,
@@ -63,7 +62,7 @@ class ProductionSchedulingService
             'message' => 'Work Order scheduled successfully',
             'work_order' => $workOrder,
             'conflicts' => $conflicts,
-            'warnings' => !empty($conflicts) ? ['Scheduling conflict exists but overridden'] : [],
+            'warnings' => ! empty($conflicts) ? ['Scheduling conflict exists but overridden'] : [],
         ];
     }
 
@@ -85,9 +84,9 @@ class ProductionSchedulingService
                 $q->whereBetween('planned_start_date', [$startDate, $endDate])
                     ->orWhereBetween('planned_end_date', [$startDate, $endDate])
                     ->orWhere(function ($q2) use ($startDate, $endDate) {
-                    $q2->where('planned_start_date', '<=', $startDate)
-                        ->where('planned_end_date', '>=', $endDate);
-                });
+                        $q2->where('planned_start_date', '<=', $startDate)
+                            ->where('planned_end_date', '>=', $endDate);
+                    });
             });
 
         if ($excludeWorkOrderId) {

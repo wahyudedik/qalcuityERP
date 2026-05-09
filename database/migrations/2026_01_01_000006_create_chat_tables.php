@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('chat_sessions')) {
+        if (! Schema::hasTable('chat_sessions')) {
             Schema::create('chat_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->nullable()->constrained()->nullOnDelete();
@@ -21,7 +21,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('chat_messages')) {
+        if (! Schema::hasTable('chat_messages')) {
             Schema::create('chat_messages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('chat_session_id')->constrained()->cascadeOnDelete();

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class IntegrationSyncLog extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',

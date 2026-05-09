@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Log;
+use Picqer\Barcode\BarcodeGeneratorHTML;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Picqer\Barcode\BarcodeGeneratorSVG;
-use Picqer\Barcode\BarcodeGeneratorHTML;
 use Picqer\Barcode\Exceptions\BarcodeException;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Contracts\View\View;
 
 /**
  * Barcode Service - Generate and Print Barcodes
- * 
+ *
  * Supports multiple barcode formats:
  * - Code 128 (default, recommended for products)
  * - EAN-13 (retail products)
@@ -41,13 +41,14 @@ class BarcodeService
 
     /**
      * Generate barcode image
-     * 
-     * @param string $value Barcode value/data
-     * @param string $type Barcode type (code128, ean13, upca, qr, etc.)
-     * @param string $format Output format (png, svg, html)
-     * @param int $width Barcode width in pixels
-     * @param int $height Barcode height in pixels
+     *
+     * @param  string  $value  Barcode value/data
+     * @param  string  $type  Barcode type (code128, ean13, upca, qr, etc.)
+     * @param  string  $format  Output format (png, svg, html)
+     * @param  int  $width  Barcode width in pixels
+     * @param  int  $height  Barcode height in pixels
      * @return string Image data (binary for PNG/SVG, HTML for HTML format)
+     *
      * @throws BarcodeException
      */
     public function generate(
@@ -80,12 +81,13 @@ class BarcodeService
     protected function generatePNG(string $value, string $type, int $width, int $height): string
     {
         /** @var BarcodeGeneratorPNG $generator */
-        $generator = new BarcodeGeneratorPNG();
+        $generator = new BarcodeGeneratorPNG;
         $typeConstant = $this->getTypeConstant($type);
 
         // Suppress false positive: Picqer library DOES have generate() method
         // but IntelliSense cannot detect it from stubs
         $result = call_user_func([$generator, 'generate'], $value, $typeConstant, $width, $height);
+
         return $result;
     }
 
@@ -95,12 +97,13 @@ class BarcodeService
     protected function generateSVG(string $value, string $type): string
     {
         /** @var BarcodeGeneratorSVG $generator */
-        $generator = new BarcodeGeneratorSVG();
+        $generator = new BarcodeGeneratorSVG;
         $typeConstant = $this->getTypeConstant($type);
 
         // Suppress false positive: Picqer library DOES have generate() method
         // but IntelliSense cannot detect it from stubs
         $result = call_user_func([$generator, 'generate'], $value, $typeConstant, 2, 30);
+
         return $result;
     }
 
@@ -110,12 +113,13 @@ class BarcodeService
     protected function generateHTML(string $value, string $type): string
     {
         /** @var BarcodeGeneratorHTML $generator */
-        $generator = new BarcodeGeneratorHTML();
+        $generator = new BarcodeGeneratorHTML;
         $typeConstant = $this->getTypeConstant($type);
 
         // Suppress false positive: Picqer library DOES have generate() method
         // but IntelliSense cannot detect it from stubs
         $result = call_user_func([$generator, 'generate'], $value, $typeConstant, 2, 30);
+
         return $result;
     }
 
@@ -129,7 +133,7 @@ class BarcodeService
 
     /**
      * Auto-generate barcode from product SKU
-     * 
+     *
      * Format: QAL-{SKU} (removes special characters)
      * Example: SKU "ABC-123" → "QALABC123"
      */
@@ -139,16 +143,16 @@ class BarcodeService
         $cleanSku = preg_replace('/[^A-Z0-9]/i', '', $sku);
 
         // Add prefix
-        $barcode = $prefix . '-' . strtoupper($cleanSku);
+        $barcode = $prefix.'-'.strtoupper($cleanSku);
 
         return $barcode;
     }
 
     /**
      * Validate barcode format
-     * 
-     * @param string $barcode Barcode value to validate
-     * @param string $type Expected barcode type
+     *
+     * @param  string  $barcode  Barcode value to validate
+     * @param  string  $type  Expected barcode type
      * @return bool True if valid
      */
     public function validate(string $barcode, string $type = 'code128'): bool
@@ -156,6 +160,7 @@ class BarcodeService
         try {
             // Try to generate barcode - if it fails, validation fails
             $this->generate($barcode, $type);
+
             return true;
         } catch (BarcodeException $e) {
             return false;
@@ -168,7 +173,7 @@ class BarcodeService
      */
     public function validateEAN13(string $barcode): bool
     {
-        if (strlen($barcode) !== 13 || !ctype_digit($barcode)) {
+        if (strlen($barcode) !== 13 || ! ctype_digit($barcode)) {
             return false;
         }
 
@@ -179,6 +184,7 @@ class BarcodeService
         }
 
         $checkDigit = (10 - ($checksum % 10)) % 10;
+
         return $checkDigit === (int) $barcode[12];
     }
 
@@ -189,7 +195,7 @@ class BarcodeService
     public function generateWithText(
         string $value,
         string $type = 'code128',
-        string $text = null
+        ?string $text = null
     ): string {
         $barcodeImage = $this->generate($value, $type, 'png');
         $displayText = $text ?? $value;
@@ -207,8 +213,8 @@ class BarcodeService
 
     /**
      * Batch generate barcodes for multiple products
-     * 
-     * @param array $products Array of products with barcode/SKU
+     *
+     * @param  array  $products  Array of products with barcode/SKU
      * @return array Array of generated barcodes
      */
     public function batchGenerate(array $products): array
@@ -241,12 +247,12 @@ class BarcodeService
 
     /**
      * Print barcode label to PDF (via DomPDF)
-     * 
-     * @param string $barcodeValue Barcode value
-     * @param string $productName Product name for display
-     * @param string $sku Product SKU
-     * @param float $price Product price
-     * @param string $template Template name (avery, thermal, custom)
+     *
+     * @param  string  $barcodeValue  Barcode value
+     * @param  string  $productName  Product name for display
+     * @param  string  $sku  Product SKU
+     * @param  float  $price  Product price
+     * @param  string  $template  Template name (avery, thermal, custom)
      * @return View View instance
      */
     public function printLabel(
@@ -255,7 +261,7 @@ class BarcodeService
         string $sku,
         float $price = 0,
         string $template = 'thermal'
-    ): \Illuminate\Contracts\View\View {
+    ): View {
         $barcodeImage = $this->generate($barcodeValue, 'code128', 'png');
 
         $viewData = [

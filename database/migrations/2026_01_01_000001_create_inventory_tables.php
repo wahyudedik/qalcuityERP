@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('warehouses')) {
+        if (! Schema::hasTable('warehouses')) {
             Schema::create('warehouses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -20,7 +21,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('products')) {
+        if (! Schema::hasTable('products')) {
             Schema::create('products', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -39,7 +40,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('stock_movements')) {
+        if (! Schema::hasTable('stock_movements')) {
             Schema::create('stock_movements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -57,7 +58,7 @@ return new class extends Migration {
         }
 
         // Stok per produk per gudang
-        if (!Schema::hasTable('product_stocks')) {
+        if (! Schema::hasTable('product_stocks')) {
             Schema::create('product_stocks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('product_id')->constrained()->cascadeOnDelete();

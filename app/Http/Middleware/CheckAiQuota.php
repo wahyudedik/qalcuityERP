@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\AiQuotaService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -15,26 +16,24 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class CheckAiQuota
 {
-    public function __construct(private AiQuotaService $quota)
-    {
-    }
+    public function __construct(private AiQuotaService $quota) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
         // Super admin and users without tenant bypass quota
-        if (!$user || !$user->tenant_id || $user->isSuperAdmin()) {
+        if (! $user || ! $user->tenant_id || $user->isSuperAdmin()) {
             return $next($request);
         }
 
         $tenantId = $user->tenant_id;
 
         try {
-            if (!$this->quota->isAllowed($tenantId)) {
+            if (! $this->quota->isAllowed($tenantId)) {
                 $status = $this->quota->status($tenantId);
                 $message = "Kuota AI bulan ini sudah habis ({$status['used']}/{$status['limit']} pesan). "
-                    . "Upgrade paket untuk mendapatkan lebih banyak akses AI.";
+                    .'Upgrade paket untuk mendapatkan lebih banyak akses AI.';
 
                 if ($request->expectsJson() || $request->is('*/ai/*') || $request->is('chat/*')) {
                     return response()->json([
@@ -51,7 +50,7 @@ class CheckAiQuota
         } catch (\Throwable $e) {
             // BUG-AI-004 FIX: If quota check itself fails, log and DENY access
             // This is safer than allowing unlimited usage
-            \Illuminate\Support\Facades\Log::error('CheckAiQuota: Quota check failed, denying access', [
+            Log::error('CheckAiQuota: Quota check failed, denying access', [
                 'tenant_id' => $tenantId,
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),

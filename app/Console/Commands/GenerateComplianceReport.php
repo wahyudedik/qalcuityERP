@@ -2,8 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AuditLog;
+use App\Models\Emr;
+use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class GenerateComplianceReport extends Command
 {
@@ -36,8 +41,8 @@ class GenerateComplianceReport extends Command
         $this->info("📋 Generating compliance report for {$month->format('F Y')}...");
 
         $tenants = $tenantId
-            ? [\App\Models\Tenant::find($tenantId)]
-            : \App\Models\Tenant::where('is_active', true)->get();
+            ? [Tenant::find($tenantId)]
+            : Tenant::where('is_active', true)->get();
 
         $generatedCount = 0;
 
@@ -105,11 +110,11 @@ class GenerateComplianceReport extends Command
      */
     protected function getAccessAuditStats(int $tenantId, $startDate, $endDate): array
     {
-        $totalAccess = \App\Models\AuditLog::where('tenant_id', $tenantId)
+        $totalAccess = AuditLog::where('tenant_id', $tenantId)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-        $afterHoursAccess = \App\Models\AuditLog::where('tenant_id', $tenantId)
+        $afterHoursAccess = AuditLog::where('tenant_id', $tenantId)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereJsonContains('metadata->is_after_hours', true)
             ->count();
@@ -150,7 +155,7 @@ class GenerateComplianceReport extends Command
      */
     protected function getUserAccessReview(int $tenantId): array
     {
-        $activeUsers = \App\Models\User::where('tenant_id', $tenantId)
+        $activeUsers = User::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->count();
 
@@ -167,8 +172,8 @@ class GenerateComplianceReport extends Command
     protected function getDataRetentionStats(int $tenantId): array
     {
         return [
-            'medical_records_count' => \App\Models\Emr::where('tenant_id', $tenantId)->count(),
-            'oldest_record_date' => \App\Models\Emr::where('tenant_id', $tenantId)
+            'medical_records_count' => Emr::where('tenant_id', $tenantId)->count(),
+            'oldest_record_date' => Emr::where('tenant_id', $tenantId)
                 ->orderBy('created_at')
                 ->value('created_at'),
         ];
@@ -180,7 +185,7 @@ class GenerateComplianceReport extends Command
     protected function getBackupStatus(int $tenantId, $month): array
     {
         $backupDir = "backups/medical/{$tenantId}";
-        $backupCount = count(\Illuminate\Support\Facades\Storage::disk('local')->files($backupDir));
+        $backupCount = count(Storage::disk('local')->files($backupDir));
 
         return [
             'total_backups' => $backupCount,
@@ -210,7 +215,7 @@ class GenerateComplianceReport extends Command
         $filePath = "reports/compliance/{$fileName}";
 
         // Placeholder - implement PDF generation
-        \Illuminate\Support\Facades\Storage::disk('local')->put(
+        Storage::disk('local')->put(
             $filePath,
             json_encode($reportData, JSON_PRETTY_PRINT)
         );
@@ -227,7 +232,7 @@ class GenerateComplianceReport extends Command
         $filePath = "reports/compliance/{$fileName}";
 
         // Placeholder - implement Excel generation using Laravel Excel
-        \Illuminate\Support\Facades\Storage::disk('local')->put(
+        Storage::disk('local')->put(
             $filePath,
             json_encode($reportData, JSON_PRETTY_PRINT)
         );
@@ -243,7 +248,7 @@ class GenerateComplianceReport extends Command
         $fileName = "compliance_report_{$tenant->id}_{$month->format('Y_m')}.json";
         $filePath = "reports/compliance/{$fileName}";
 
-        \Illuminate\Support\Facades\Storage::disk('local')->put(
+        Storage::disk('local')->put(
             $filePath,
             json_encode($reportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
         );

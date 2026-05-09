@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\TourTravel;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingPassenger;
 use App\Models\TourBooking;
 use App\Models\TourPackage;
-use App\Models\BookingPassenger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -75,7 +75,7 @@ class TourBookingController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($validated, $request) {
+            DB::transaction(function () use ($validated) {
                 $package = TourPackage::findOrFail($validated['tour_package_id']);
 
                 $totalPax = $validated['adults'] + ($validated['children'] ?? 0) + ($validated['infants'] ?? 0);
@@ -84,9 +84,9 @@ class TourBookingController extends Controller
                 $tax = $validated['tax_amount'] ?? 0;
                 $totalAmount = $subtotal - $discount + $tax;
 
-                $booking = new TourBooking();
+                $booking = new TourBooking;
                 $booking->tenant_id = auth()->user()->tenant_id;
-                $booking->booking_number = 'TB-' . now()->format('Y') . '-' . str_pad(TourBooking::count() + 1, 4, '0', STR_PAD_LEFT);
+                $booking->booking_number = 'TB-'.now()->format('Y').'-'.str_pad(TourBooking::count() + 1, 4, '0', STR_PAD_LEFT);
                 $booking->fill($validated);
                 $booking->unit_price = $package->price_per_person;
                 $booking->total_pax = $totalPax;
@@ -130,7 +130,7 @@ class TourBookingController extends Controller
             'visaApplications',
             'documents',
             'assignedGuide',
-            'customer'
+            'customer',
         ])->findOrFail($id);
 
         return view('tour-travel.bookings.show', compact('booking'));

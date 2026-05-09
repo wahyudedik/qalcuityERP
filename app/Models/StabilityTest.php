@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StabilityTest extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'formula_id',
@@ -162,11 +162,12 @@ class StabilityTest extends Model
      */
     public function getDurationDaysAttribute(): ?int
     {
-        if (!$this->start_date) {
+        if (! $this->start_date) {
             return null;
         }
 
         $endDate = $this->actual_end_date ?? now();
+
         return $this->start_date->diffInDays($endDate);
     }
 
@@ -175,7 +176,7 @@ class StabilityTest extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->expected_end_date || $this->isCompleted()) {
+        if (! $this->expected_end_date || $this->isCompleted()) {
             return false;
         }
 
@@ -187,7 +188,7 @@ class StabilityTest extends Model
      */
     public function getDaysUntilCompletionAttribute(): ?int
     {
-        if (!$this->expected_end_date || $this->isCompleted()) {
+        if (! $this->expected_end_date || $this->isCompleted()) {
             return null;
         }
 
@@ -199,11 +200,12 @@ class StabilityTest extends Model
      */
     public function hasSignificantPhChange(float $threshold = 0.5): bool
     {
-        if (!$this->initial_ph || !$this->final_ph) {
+        if (! $this->initial_ph || ! $this->final_ph) {
             return false;
         }
 
         $diff = abs($this->initial_ph - $this->final_ph);
+
         return $diff > $threshold;
     }
 
@@ -214,7 +216,8 @@ class StabilityTest extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'ST-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'ST-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**

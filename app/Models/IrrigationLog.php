@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class IrrigationLog extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -31,6 +30,7 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function schedule()
     {
         return $this->belongsTo(IrrigationSchedule::class, 'irrigation_schedule_id');

@@ -3,10 +3,12 @@
 namespace App\Notifications;
 
 use App\Models\FarmPlot;
+use App\Models\NotificationPreference;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class PlantingScheduleNotification extends Notification implements ShouldQueue
@@ -16,23 +18,23 @@ class PlantingScheduleNotification extends Notification implements ShouldQueue
     public function __construct(
         public FarmPlot $plot,
         public string $cropName,
-        public \Carbon\Carbon $scheduledDate
+        public Carbon $scheduledDate
     ) {}
 
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'planting_schedule', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 

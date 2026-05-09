@@ -14,6 +14,13 @@ class HelpdeskReply extends Model
         return ['is_internal' => 'boolean'];
     }
 
-    public function ticket(): BelongsTo { return $this->belongsTo(HelpdeskTicket::class, 'ticket_id'); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(HelpdeskTicket::class, 'ticket_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

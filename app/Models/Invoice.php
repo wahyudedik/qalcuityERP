@@ -2,27 +2,33 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
+    use BelongsToTenant;
 
     // Konstanta status untuk type safety
-    const STATUS_UNPAID       = 'unpaid';
-    const STATUS_PARTIAL      = 'partial';
+    const STATUS_UNPAID = 'unpaid';
+
+    const STATUS_PARTIAL = 'partial';
+
     const STATUS_PARTIAL_PAID = 'partial_paid';
-    const STATUS_PAID         = 'paid';
-    const STATUS_CANCELLED    = 'cancelled';
-    const STATUS_VOIDED       = 'voided';
-    const STATUS_OVERDUE      = 'overdue';
+
+    const STATUS_PAID = 'paid';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_VOIDED = 'voided';
+
+    const STATUS_OVERDUE = 'overdue';
 
     const STATUSES = [
         self::STATUS_UNPAID,
@@ -117,7 +123,7 @@ class Invoice extends Model
     }
 
     /** Revisi transaksi */
-    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function revisions(): HasMany
     {
         return $this->hasMany(TransactionRevision::class, 'model_id')
             ->where('model_type', self::class)
@@ -126,34 +132,40 @@ class Invoice extends Model
 
     public function taxRate()
     {
-        return $this->belongsTo(\App\Models\TaxRate::class);
+        return $this->belongsTo(TaxRate::class);
     }
 
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
     }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function payments(): MorphMany
     {
         return $this->morphMany(Payment::class, 'payable');
     }
-    public function installments(): \Illuminate\Database\Eloquent\Relations\HasMany
+
+    public function installments(): HasMany
     {
         return $this->hasMany(InvoiceInstallment::class);
     }
-    public function salesReturns(): \Illuminate\Database\Eloquent\Relations\HasMany
+
+    public function salesReturns(): HasMany
     {
         return $this->hasMany(SalesReturn::class);
     }
-    public function downPaymentApplications(): \Illuminate\Database\Eloquent\Relations\HasMany
+
+    public function downPaymentApplications(): HasMany
     {
         return $this->hasMany(DownPaymentApplication::class);
     }
@@ -161,17 +173,23 @@ class Invoice extends Model
     /** Aging bucket: 0-30, 31-60, 61-90, 90+ hari */
     public function agingBucket(): string
     {
-        if ($this->status === 'paid')
+        if ($this->status === 'paid') {
             return 'paid';
+        }
         $days = $this->daysOverdue();
-        if ($days <= 0)
+        if ($days <= 0) {
             return 'current';
-        if ($days <= 30)
+        }
+        if ($days <= 30) {
             return '1-30';
-        if ($days <= 60)
+        }
+        if ($days <= 60) {
             return '31-60';
-        if ($days <= 90)
+        }
+        if ($days <= 90) {
             return '61-90';
+        }
+
         return '90+';
     }
 

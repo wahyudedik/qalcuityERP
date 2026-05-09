@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\TenantApiSetting;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -11,7 +10,9 @@ use Illuminate\Support\Facades\Storage;
 class CctvIntegrationService
 {
     protected string $nvrUrl;
+
     protected string $apiKey;
+
     protected array $cameras;
 
     public function __construct(protected ?int $tenantId = null)
@@ -37,7 +38,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -72,7 +73,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -86,8 +87,8 @@ class CctvIntegrationService
                     'end_time' => $endTime,
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Failed to retrieve recordings");
+            if (! $response->successful()) {
+                throw new \Exception('Failed to retrieve recordings');
             }
 
             $recordings = $response->json();
@@ -118,7 +119,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -131,12 +132,12 @@ class CctvIntegrationService
                     'camera_id' => $camera['channel'],
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Failed to capture snapshot");
+            if (! $response->successful()) {
+                throw new \Exception('Failed to capture snapshot');
             }
 
             // Save snapshot
-            $filename = "cctv/snapshots/camera_{$cameraId}_" . now()->format('Ymd_His') . '.jpg';
+            $filename = "cctv/snapshots/camera_{$cameraId}_".now()->format('Ymd_His').'.jpg';
             Storage::disk('public')->put($filename, $response->body());
 
             return [
@@ -165,7 +166,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -177,8 +178,8 @@ class CctvIntegrationService
                     'camera_id' => $camera['channel'],
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Motion detection failed");
+            if (! $response->successful()) {
+                throw new \Exception('Motion detection failed');
             }
 
             $result = $response->json();
@@ -211,7 +212,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -223,8 +224,8 @@ class CctvIntegrationService
                     'camera_id' => $camera['channel'],
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Failed to get camera status");
+            if (! $response->successful()) {
+                throw new \Exception('Failed to get camera status');
             }
 
             $status = $response->json();
@@ -291,13 +292,13 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
             $validCommands = ['up', 'down', 'left', 'right', 'zoom_in', 'zoom_out', 'stop'];
 
-            if (!in_array($command, $validCommands)) {
+            if (! in_array($command, $validCommands)) {
                 throw new \Exception("Invalid PTZ command: {$command}");
             }
 
@@ -331,7 +332,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -365,7 +366,7 @@ class CctvIntegrationService
         try {
             $camera = $this->getCameraConfig($cameraId);
 
-            if (!$camera) {
+            if (! $camera) {
                 throw new \Exception("Camera {$cameraId} not found");
             }
 
@@ -380,8 +381,8 @@ class CctvIntegrationService
                     'format' => $format,
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Export failed");
+            if (! $response->successful()) {
+                throw new \Exception('Export failed');
             }
 
             $result = $response->json();

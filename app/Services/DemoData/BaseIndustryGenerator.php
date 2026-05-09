@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 abstract class BaseIndustryGenerator
 {
     abstract public function generate(CoreDataContext $ctx): array;
+
     abstract public function getIndustryName(): string;
 
     protected function bulkInsert(string $table, array $rows): int

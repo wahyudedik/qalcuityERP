@@ -16,9 +16,9 @@ class HealthcareGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId       = $ctx->tenantId;
+        $tenantId = $ctx->tenantId;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // 1. Doctors (3 with different specializations)
         $doctorIds = [];
@@ -29,7 +29,7 @@ class HealthcareGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HealthcareGenerator: failed to seed doctors', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['doctors'] = 0;
         }
@@ -43,7 +43,7 @@ class HealthcareGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HealthcareGenerator: failed to seed patients', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['patients'] = 0;
         }
@@ -56,7 +56,7 @@ class HealthcareGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HealthcareGenerator: failed to seed appointments', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['appointments'] = 0;
         }
@@ -69,7 +69,7 @@ class HealthcareGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HealthcareGenerator: failed to seed medical records', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['medical_records'] = 0;
         }
@@ -82,23 +82,23 @@ class HealthcareGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HealthcareGenerator: failed to seed medicine inventory', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['medicine_inventory'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
     private function seedDoctors(int $tenantId): array
     {
         $doctors = [
-            ['doctor_number' => 'DR-HC-001', 'license_number' => 'SIP-001-DEMO', 'sip_number' => 'SIP-001-DEMO', 'specialization' => 'Umum', 'consultation_fee' => 150000, 'practice_days' => json_encode(['monday','tuesday','wednesday','thursday','friday']), 'practice_start_time' => '08:00:00', 'practice_end_time' => '16:00:00', 'years_of_experience' => 10],
-            ['doctor_number' => 'DR-HC-002', 'license_number' => 'SIP-002-DEMO', 'sip_number' => 'SIP-002-DEMO', 'specialization' => 'Spesialis Anak', 'consultation_fee' => 250000, 'practice_days' => json_encode(['monday','wednesday','friday']), 'practice_start_time' => '09:00:00', 'practice_end_time' => '15:00:00', 'years_of_experience' => 8],
-            ['doctor_number' => 'DR-HC-003', 'license_number' => 'SIP-003-DEMO', 'sip_number' => 'SIP-003-DEMO', 'specialization' => 'Spesialis Penyakit Dalam', 'consultation_fee' => 300000, 'practice_days' => json_encode(['tuesday','thursday','saturday']), 'practice_start_time' => '10:00:00', 'practice_end_time' => '17:00:00', 'years_of_experience' => 15],
+            ['doctor_number' => 'DR-HC-001', 'license_number' => 'SIP-001-DEMO', 'sip_number' => 'SIP-001-DEMO', 'specialization' => 'Umum', 'consultation_fee' => 150000, 'practice_days' => json_encode(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']), 'practice_start_time' => '08:00:00', 'practice_end_time' => '16:00:00', 'years_of_experience' => 10],
+            ['doctor_number' => 'DR-HC-002', 'license_number' => 'SIP-002-DEMO', 'sip_number' => 'SIP-002-DEMO', 'specialization' => 'Spesialis Anak', 'consultation_fee' => 250000, 'practice_days' => json_encode(['monday', 'wednesday', 'friday']), 'practice_start_time' => '09:00:00', 'practice_end_time' => '15:00:00', 'years_of_experience' => 8],
+            ['doctor_number' => 'DR-HC-003', 'license_number' => 'SIP-003-DEMO', 'sip_number' => 'SIP-003-DEMO', 'specialization' => 'Spesialis Penyakit Dalam', 'consultation_fee' => 300000, 'practice_days' => json_encode(['tuesday', 'thursday', 'saturday']), 'practice_start_time' => '10:00:00', 'practice_end_time' => '17:00:00', 'years_of_experience' => 15],
         ];
 
         $ids = [];
@@ -111,22 +111,23 @@ class HealthcareGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $ids[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('doctors')->insertGetId(array_merge($doc, [
-                'tenant_id'                  => $tenantId,
-                'status'                     => 'active',
-                'accepting_patients'         => true,
+                'tenant_id' => $tenantId,
+                'status' => 'active',
+                'accepting_patients' => true,
                 'available_for_telemedicine' => false,
-                'available_for_home_visit'   => false,
-                'available_for_emergency'    => false,
-                'total_consultations'        => 0,
-                'total_patients'             => 0,
-                'average_rating'             => 0,
-                'total_reviews'              => 0,
-                'created_at'                 => now(),
-                'updated_at'                 => now(),
+                'available_for_home_visit' => false,
+                'available_for_emergency' => false,
+                'total_consultations' => 0,
+                'total_patients' => 0,
+                'average_rating' => 0,
+                'total_reviews' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
 
             $ids[] = (int) $id;
@@ -160,38 +161,39 @@ class HealthcareGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $ids[] = (int) $existing->id;
+
                 continue;
             }
 
             $firstName = explode(' ', $p['full_name'])[0];
             $id = DB::table('patients')->insertGetId([
-                'tenant_id'                  => $tenantId,
-                'medical_record_number'      => $p['mrn'],
-                'nik'                        => $p['nik'],
-                'full_name'                  => $p['full_name'],
-                'short_name'                 => $firstName,
-                'birth_date'                 => $p['birth_date'],
-                'birth_place'                => $p['city'],
-                'gender'                     => $p['gender'],
-                'blood_type'                 => $p['blood_type'],
-                'religion'                   => 'Islam',
-                'marital_status'             => $i < 5 ? 'married' : 'single',
-                'nationality'                => 'WNI',
-                'phone_primary'              => $p['phone'],
-                'email'                      => strtolower(str_replace(' ', '.', $p['full_name'])) . '@demo-health.com',
-                'address_street'             => 'Jl. Demo Kesehatan No. ' . ($i + 1),
-                'address_city'               => $p['city'],
-                'address_province'           => 'Jawa',
-                'emergency_contact_name'     => 'Keluarga ' . $firstName,
-                'emergency_contact_phone'    => '0812345' . str_pad((string) ($i + 100), 5, '0', STR_PAD_LEFT),
+                'tenant_id' => $tenantId,
+                'medical_record_number' => $p['mrn'],
+                'nik' => $p['nik'],
+                'full_name' => $p['full_name'],
+                'short_name' => $firstName,
+                'birth_date' => $p['birth_date'],
+                'birth_place' => $p['city'],
+                'gender' => $p['gender'],
+                'blood_type' => $p['blood_type'],
+                'religion' => 'Islam',
+                'marital_status' => $i < 5 ? 'married' : 'single',
+                'nationality' => 'WNI',
+                'phone_primary' => $p['phone'],
+                'email' => strtolower(str_replace(' ', '.', $p['full_name'])).'@demo-health.com',
+                'address_street' => 'Jl. Demo Kesehatan No. '.($i + 1),
+                'address_city' => $p['city'],
+                'address_province' => 'Jawa',
+                'emergency_contact_name' => 'Keluarga '.$firstName,
+                'emergency_contact_phone' => '0812345'.str_pad((string) ($i + 100), 5, '0', STR_PAD_LEFT),
                 'emergency_contact_relation' => 'Keluarga',
-                'status'                     => 'active',
-                'is_blacklisted'             => false,
-                'total_visits'               => 0,
-                'total_admissions'           => 0,
-                'qr_code'                    => 'QR-HC-' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
-                'created_at'                 => now(),
-                'updated_at'                 => now(),
+                'status' => 'active',
+                'is_blacklisted' => false,
+                'total_visits' => 0,
+                'total_admissions' => 0,
+                'qr_code' => 'QR-HC-'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $ids[] = (int) $id;
@@ -206,6 +208,7 @@ class HealthcareGenerator extends BaseIndustryGenerator
             $this->logWarning('HealthcareGenerator: missing patients or doctors, skipping appointments', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
@@ -236,46 +239,46 @@ class HealthcareGenerator extends BaseIndustryGenerator
             }
 
             $patientId = $patientIds[$i % count($patientIds)];
-            $doctorId  = $doctorIds[$i % count($doctorIds)];
-            $aptDate   = Carbon::today()->addDays($apt['day_offset']);
+            $doctorId = $doctorIds[$i % count($doctorIds)];
+            $aptDate = Carbon::today()->addDays($apt['day_offset']);
 
-            $checkedInAt          = null;
-            $consultationStarted  = null;
-            $consultationEnded    = null;
-            $cancelledAt          = null;
-            $cancellationReason   = null;
+            $checkedInAt = null;
+            $consultationStarted = null;
+            $consultationEnded = null;
+            $cancelledAt = null;
+            $cancellationReason = null;
 
             if ($apt['status'] === 'completed') {
-                $checkedInAt         = $aptDate->copy()->setTimeFromTimeString($apt['time'])->subMinutes(15);
+                $checkedInAt = $aptDate->copy()->setTimeFromTimeString($apt['time'])->subMinutes(15);
                 $consultationStarted = $aptDate->copy()->setTimeFromTimeString($apt['time']);
-                $consultationEnded   = $consultationStarted->copy()->addMinutes(30);
+                $consultationEnded = $consultationStarted->copy()->addMinutes(30);
             } elseif ($apt['status'] === 'cancelled') {
-                $cancelledAt        = $aptDate->copy()->subDays(1);
+                $cancelledAt = $aptDate->copy()->subDays(1);
                 $cancellationReason = 'Pasien tidak dapat hadir';
             }
 
             DB::table('appointments')->insert([
-                'tenant_id'               => $tenantId,
-                'patient_id'              => $patientId,
-                'doctor_id'               => $doctorId,
-                'appointment_number'      => $apt['number'],
-                'appointment_date'        => $aptDate->format('Y-m-d'),
-                'appointment_time'        => $apt['time'] . ':00',
-                'estimated_duration'      => 30,
-                'appointment_type'        => $apt['type'],
-                'visit_type'              => 'outpatient',
-                'status'                  => $apt['status'],
-                'reason_for_visit'        => $apt['reason'],
-                'is_urgent'               => false,
-                'reminder_sent_24h'       => false,
-                'reminder_sent_1h'        => false,
-                'checked_in_at'           => $checkedInAt?->format('Y-m-d H:i:s'),
+                'tenant_id' => $tenantId,
+                'patient_id' => $patientId,
+                'doctor_id' => $doctorId,
+                'appointment_number' => $apt['number'],
+                'appointment_date' => $aptDate->format('Y-m-d'),
+                'appointment_time' => $apt['time'].':00',
+                'estimated_duration' => 30,
+                'appointment_type' => $apt['type'],
+                'visit_type' => 'outpatient',
+                'status' => $apt['status'],
+                'reason_for_visit' => $apt['reason'],
+                'is_urgent' => false,
+                'reminder_sent_24h' => false,
+                'reminder_sent_1h' => false,
+                'checked_in_at' => $checkedInAt?->format('Y-m-d H:i:s'),
                 'consultation_started_at' => $consultationStarted?->format('Y-m-d H:i:s'),
-                'consultation_ended_at'   => $consultationEnded?->format('Y-m-d H:i:s'),
-                'cancelled_at'            => $cancelledAt?->format('Y-m-d H:i:s'),
-                'cancellation_reason'     => $cancellationReason,
-                'created_at'              => now(),
-                'updated_at'              => now(),
+                'consultation_ended_at' => $consultationEnded?->format('Y-m-d H:i:s'),
+                'cancelled_at' => $cancelledAt?->format('Y-m-d H:i:s'),
+                'cancellation_reason' => $cancellationReason,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -290,66 +293,67 @@ class HealthcareGenerator extends BaseIndustryGenerator
             $this->logWarning('HealthcareGenerator: missing patients or doctors, skipping medical records', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $records = [
             [
-                'record_type'     => 'outpatient',
+                'record_type' => 'outpatient',
                 'chief_complaint' => 'Demam tinggi selama 3 hari',
-                'diagnosis'       => 'Infeksi Saluran Pernapasan Atas (ISPA)',
-                'treatment_plan'  => 'Antibiotik amoxicillin 500mg 3x1, istirahat cukup, minum air putih',
-                'vital_signs'     => json_encode(['temperature' => 38.5, 'bp_systolic' => 120, 'bp_diastolic' => 80, 'heart_rate' => 88, 'spo2' => 98, 'weight' => 65, 'height' => 170]),
-                'status'          => 'completed',
+                'diagnosis' => 'Infeksi Saluran Pernapasan Atas (ISPA)',
+                'treatment_plan' => 'Antibiotik amoxicillin 500mg 3x1, istirahat cukup, minum air putih',
+                'vital_signs' => json_encode(['temperature' => 38.5, 'bp_systolic' => 120, 'bp_diastolic' => 80, 'heart_rate' => 88, 'spo2' => 98, 'weight' => 65, 'height' => 170]),
+                'status' => 'completed',
                 'requires_follow_up' => true,
-                'follow_up_date'  => Carbon::today()->addDays(7)->format('Y-m-d'),
+                'follow_up_date' => Carbon::today()->addDays(7)->format('Y-m-d'),
             ],
             [
-                'record_type'     => 'outpatient',
+                'record_type' => 'outpatient',
                 'chief_complaint' => 'Nyeri dada dan sesak napas',
-                'diagnosis'       => 'Hipertensi Grade I',
-                'treatment_plan'  => 'Amlodipine 5mg 1x1, diet rendah garam, olahraga teratur',
-                'vital_signs'     => json_encode(['temperature' => 36.8, 'bp_systolic' => 150, 'bp_diastolic' => 95, 'heart_rate' => 92, 'spo2' => 97, 'weight' => 78, 'height' => 168]),
-                'status'          => 'completed',
+                'diagnosis' => 'Hipertensi Grade I',
+                'treatment_plan' => 'Amlodipine 5mg 1x1, diet rendah garam, olahraga teratur',
+                'vital_signs' => json_encode(['temperature' => 36.8, 'bp_systolic' => 150, 'bp_diastolic' => 95, 'heart_rate' => 92, 'spo2' => 97, 'weight' => 78, 'height' => 168]),
+                'status' => 'completed',
                 'requires_follow_up' => true,
-                'follow_up_date'  => Carbon::today()->addDays(14)->format('Y-m-d'),
+                'follow_up_date' => Carbon::today()->addDays(14)->format('Y-m-d'),
             ],
             [
-                'record_type'     => 'outpatient',
+                'record_type' => 'outpatient',
                 'chief_complaint' => 'Batuk berdahak lebih dari 2 minggu',
-                'diagnosis'       => 'Bronkitis Akut',
-                'treatment_plan'  => 'Ambroxol 30mg 3x1, Salbutamol inhaler, hindari asap rokok',
-                'vital_signs'     => json_encode(['temperature' => 37.2, 'bp_systolic' => 118, 'bp_diastolic' => 76, 'heart_rate' => 82, 'spo2' => 96, 'weight' => 60, 'height' => 162]),
-                'status'          => 'completed',
+                'diagnosis' => 'Bronkitis Akut',
+                'treatment_plan' => 'Ambroxol 30mg 3x1, Salbutamol inhaler, hindari asap rokok',
+                'vital_signs' => json_encode(['temperature' => 37.2, 'bp_systolic' => 118, 'bp_diastolic' => 76, 'heart_rate' => 82, 'spo2' => 96, 'weight' => 60, 'height' => 162]),
+                'status' => 'completed',
                 'requires_follow_up' => false,
-                'follow_up_date'  => null,
+                'follow_up_date' => null,
             ],
             [
-                'record_type'     => 'outpatient',
+                'record_type' => 'outpatient',
                 'chief_complaint' => 'Gula darah tidak terkontrol',
-                'diagnosis'       => 'Diabetes Mellitus Tipe 2',
-                'treatment_plan'  => 'Metformin 500mg 2x1, diet DM, cek gula darah rutin',
-                'vital_signs'     => json_encode(['temperature' => 36.6, 'bp_systolic' => 130, 'bp_diastolic' => 85, 'heart_rate' => 78, 'spo2' => 99, 'weight' => 82, 'height' => 172]),
-                'status'          => 'completed',
+                'diagnosis' => 'Diabetes Mellitus Tipe 2',
+                'treatment_plan' => 'Metformin 500mg 2x1, diet DM, cek gula darah rutin',
+                'vital_signs' => json_encode(['temperature' => 36.6, 'bp_systolic' => 130, 'bp_diastolic' => 85, 'heart_rate' => 78, 'spo2' => 99, 'weight' => 82, 'height' => 172]),
+                'status' => 'completed',
                 'requires_follow_up' => true,
-                'follow_up_date'  => Carbon::today()->addDays(30)->format('Y-m-d'),
+                'follow_up_date' => Carbon::today()->addDays(30)->format('Y-m-d'),
             ],
             [
-                'record_type'     => 'outpatient',
+                'record_type' => 'outpatient',
                 'chief_complaint' => 'Sakit kepala berulang dan pusing',
-                'diagnosis'       => 'Migrain',
-                'treatment_plan'  => 'Paracetamol 500mg bila nyeri, hindari pemicu migrain, istirahat cukup',
-                'vital_signs'     => json_encode(['temperature' => 36.5, 'bp_systolic' => 115, 'bp_diastolic' => 75, 'heart_rate' => 72, 'spo2' => 99, 'weight' => 55, 'height' => 158]),
-                'status'          => 'completed',
+                'diagnosis' => 'Migrain',
+                'treatment_plan' => 'Paracetamol 500mg bila nyeri, hindari pemicu migrain, istirahat cukup',
+                'vital_signs' => json_encode(['temperature' => 36.5, 'bp_systolic' => 115, 'bp_diastolic' => 75, 'heart_rate' => 72, 'spo2' => 99, 'weight' => 55, 'height' => 158]),
+                'status' => 'completed',
                 'requires_follow_up' => false,
-                'follow_up_date'  => null,
+                'follow_up_date' => null,
             ],
         ];
 
         $rows = [];
         foreach ($records as $i => $rec) {
             $patientId = $patientIds[$i % count($patientIds)];
-            $doctorId  = $doctorIds[$i % count($doctorIds)];
+            $doctorId = $doctorIds[$i % count($doctorIds)];
 
             $exists = DB::table('patient_medical_records')
                 ->where('patient_id', $patientId)
@@ -362,23 +366,23 @@ class HealthcareGenerator extends BaseIndustryGenerator
             }
 
             $rows[] = [
-                'patient_id'                  => $patientId,
-                'doctor_id'                   => $doctorId,
-                'record_type'                 => $rec['record_type'],
-                'chief_complaint'             => $rec['chief_complaint'],
-                'diagnosis'                   => $rec['diagnosis'],
-                'treatment_plan'              => $rec['treatment_plan'],
-                'vital_signs'                 => $rec['vital_signs'],
-                'status'                      => $rec['status'],
-                'is_emergency'                => false,
-                'requires_follow_up'          => $rec['requires_follow_up'],
-                'follow_up_date'              => $rec['follow_up_date'],
-                'created_at'                  => Carbon::now()->subDays(($i + 1) * 3)->format('Y-m-d H:i:s'),
-                'updated_at'                  => now(),
+                'patient_id' => $patientId,
+                'doctor_id' => $doctorId,
+                'record_type' => $rec['record_type'],
+                'chief_complaint' => $rec['chief_complaint'],
+                'diagnosis' => $rec['diagnosis'],
+                'treatment_plan' => $rec['treatment_plan'],
+                'vital_signs' => $rec['vital_signs'],
+                'status' => $rec['status'],
+                'is_emergency' => false,
+                'requires_follow_up' => $rec['requires_follow_up'],
+                'follow_up_date' => $rec['follow_up_date'],
+                'created_at' => Carbon::now()->subDays(($i + 1) * 3)->format('Y-m-d H:i:s'),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             $this->bulkInsert('patient_medical_records', $rows);
         }
 
@@ -397,13 +401,13 @@ class HealthcareGenerator extends BaseIndustryGenerator
             ['sku' => 'MED-HC-007', 'name' => 'Cetirizine 10mg',         'unit' => 'strip', 'price_buy' => 7000,   'price_sell' => 11000,  'stock_min' => 20,  'qty' => 90],
             ['sku' => 'MED-HC-008', 'name' => 'Salbutamol Inhaler',      'unit' => 'pcs',   'price_buy' => 35000,  'price_sell' => 55000,  'stock_min' => 10,  'qty' => 40],
             ['sku' => 'MED-HC-009', 'name' => 'Tensimeter Digital',      'unit' => 'unit',  'price_buy' => 250000, 'price_sell' => 350000, 'stock_min' => 2,   'qty' => 5],
-            ['sku' => 'MED-HC-010', 'name' => 'Stetoskop Littmann',      'unit' => 'unit',  'price_buy' => 800000, 'price_sell' => 1100000,'stock_min' => 2,   'qty' => 4],
+            ['sku' => 'MED-HC-010', 'name' => 'Stetoskop Littmann',      'unit' => 'unit',  'price_buy' => 800000, 'price_sell' => 1100000, 'stock_min' => 2,   'qty' => 4],
             ['sku' => 'MED-HC-011', 'name' => 'Glukometer Accu-Check',   'unit' => 'unit',  'price_buy' => 350000, 'price_sell' => 500000, 'stock_min' => 3,   'qty' => 8],
             ['sku' => 'MED-HC-012', 'name' => 'Strip Gula Darah',        'unit' => 'box',   'price_buy' => 80000,  'price_sell' => 120000, 'stock_min' => 10,  'qty' => 50],
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($medicines as $m) {
             $existing = DB::table('products')
@@ -413,19 +417,20 @@ class HealthcareGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $m['name'],
-                'sku'        => $m['sku'],
-                'category'   => 'medicine',
-                'unit'       => $m['unit'],
-                'price_buy'  => $m['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $m['name'],
+                'sku' => $m['sku'],
+                'category' => 'medicine',
+                'unit' => $m['unit'],
+                'price_buy' => $m['price_buy'],
                 'price_sell' => $m['price_sell'],
-                'stock_min'  => $m['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $m['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -434,16 +439,16 @@ class HealthcareGenerator extends BaseIndustryGenerator
 
             if ($warehouseId > 0) {
                 $stockRows[] = [
-                    'product_id'   => $id,
+                    'product_id' => $id,
                     'warehouse_id' => $warehouseId,
-                    'quantity'     => $m['qty'],
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'quantity' => $m['qty'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 

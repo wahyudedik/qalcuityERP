@@ -11,6 +11,7 @@ use App\Models\SystemSetting;
 use App\Models\TenantApiSetting;
 use App\Services\AI\Providers\AnthropicProvider;
 use App\Services\AI\Providers\GeminiProvider;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -85,6 +86,7 @@ class AiProviderRouter implements AiProvider
     public function withTenantContext(string $context): static
     {
         $this->tenantContext = $context;
+
         return $this;
     }
 
@@ -96,6 +98,7 @@ class AiProviderRouter implements AiProvider
     public function withLanguage(string $language): static
     {
         $this->language = $language;
+
         return $this;
     }
 
@@ -105,6 +108,7 @@ class AiProviderRouter implements AiProvider
     public function withTenantId(?int $tenantId): static
     {
         $this->activeTenantId = $tenantId;
+
         return $this;
     }
 
@@ -113,10 +117,10 @@ class AiProviderRouter implements AiProvider
      * Return: ['text' => string, 'model' => string]
      * Requirements: 1.1, 3.1–3.8, 2.7, 2.8
      *
-     * @param  string  $prompt   Prompt untuk AI
-     * @param  array  $history   History percakapan
-     * @param  array  $options   Opsi tambahan
-     * @param  string|null  $useCase   Use case identifier untuk routing berbasis use case (opsional)
+     * @param  string  $prompt  Prompt untuk AI
+     * @param  array  $history  History percakapan
+     * @param  array  $options  Opsi tambahan
+     * @param  string|null  $useCase  Use case identifier untuk routing berbasis use case (opsional)
      */
     public function chat(string $prompt, array $history = [], array $options = [], ?string $useCase = null): array
     {
@@ -124,13 +128,13 @@ class AiProviderRouter implements AiProvider
         if ($useCase !== null) {
             return $this->routeViaUseCase(
                 $useCase,
-                fn(AiProvider $provider) => $provider->chat($prompt, $history, $options)
+                fn (AiProvider $provider) => $provider->chat($prompt, $history, $options)
             );
         }
 
         // Perilaku lama (backward compatible)
         return $this->executeWithFallback(
-            fn(AiProvider $provider) => $provider->chat($prompt, $history, $options),
+            fn (AiProvider $provider) => $provider->chat($prompt, $history, $options),
             $this->activeTenantId,
         );
     }
@@ -140,9 +144,9 @@ class AiProviderRouter implements AiProvider
      * Return: ['text' => string, 'model' => string]
      * Requirements: 1.2, 3.1–3.8, 2.7, 2.8
      *
-     * @param  string  $prompt   Prompt untuk AI
-     * @param  array  $options   Opsi tambahan
-     * @param  string|null  $useCase   Use case identifier untuk routing berbasis use case (opsional)
+     * @param  string  $prompt  Prompt untuk AI
+     * @param  array  $options  Opsi tambahan
+     * @param  string|null  $useCase  Use case identifier untuk routing berbasis use case (opsional)
      */
     public function generate(string $prompt, array $options = [], ?string $useCase = null): array
     {
@@ -150,13 +154,13 @@ class AiProviderRouter implements AiProvider
         if ($useCase !== null) {
             return $this->routeViaUseCase(
                 $useCase,
-                fn(AiProvider $provider) => $provider->generate($prompt, $options)
+                fn (AiProvider $provider) => $provider->generate($prompt, $options)
             );
         }
 
         // Perilaku lama (backward compatible)
         return $this->executeWithFallback(
-            fn(AiProvider $provider) => $provider->generate($prompt, $options),
+            fn (AiProvider $provider) => $provider->generate($prompt, $options),
             $this->activeTenantId,
         );
     }
@@ -166,11 +170,11 @@ class AiProviderRouter implements AiProvider
      * Return: ['text' => string, 'model' => string]
      * Requirements: 1.3, 3.1–3.8, 2.7, 2.8
      *
-     * @param  string  $message   Pesan untuk AI
-     * @param  array  $files   Array file/gambar
-     * @param  array  $history   History percakapan
-     * @param  array  $options   Opsi tambahan
-     * @param  string|null  $useCase   Use case identifier untuk routing berbasis use case (opsional)
+     * @param  string  $message  Pesan untuk AI
+     * @param  array  $files  Array file/gambar
+     * @param  array  $history  History percakapan
+     * @param  array  $options  Opsi tambahan
+     * @param  string|null  $useCase  Use case identifier untuk routing berbasis use case (opsional)
      */
     public function chatWithMedia(string $message, array $files, array $history = [], array $options = [], ?string $useCase = null): array
     {
@@ -178,13 +182,13 @@ class AiProviderRouter implements AiProvider
         if ($useCase !== null) {
             return $this->routeViaUseCase(
                 $useCase,
-                fn(AiProvider $provider) => $provider->chatWithMedia($message, $files, $history, $options)
+                fn (AiProvider $provider) => $provider->chatWithMedia($message, $files, $history, $options)
             );
         }
 
         // Perilaku lama (backward compatible)
         return $this->executeWithFallback(
-            fn(AiProvider $provider) => $provider->chatWithMedia($message, $files, $history, $options),
+            fn (AiProvider $provider) => $provider->chatWithMedia($message, $files, $history, $options),
             $this->activeTenantId,
         );
     }
@@ -194,10 +198,10 @@ class AiProviderRouter implements AiProvider
      * Return: ['text' => string, 'model' => string]
      * Requirements: 1.4, 3.1–3.8, 2.7, 2.8
      *
-     * @param  string  $prompt   Prompt untuk AI
-     * @param  string  $imageData   Data gambar dalam format base64
-     * @param  string  $mimeType   MIME type gambar
-     * @param  string|null  $useCase   Use case identifier untuk routing berbasis use case (opsional)
+     * @param  string  $prompt  Prompt untuk AI
+     * @param  string  $imageData  Data gambar dalam format base64
+     * @param  string  $mimeType  MIME type gambar
+     * @param  string|null  $useCase  Use case identifier untuk routing berbasis use case (opsional)
      */
     public function generateWithImage(string $prompt, string $imageData, string $mimeType, ?string $useCase = null): array
     {
@@ -205,13 +209,13 @@ class AiProviderRouter implements AiProvider
         if ($useCase !== null) {
             return $this->routeViaUseCase(
                 $useCase,
-                fn(AiProvider $provider) => $provider->generateWithImage($prompt, $imageData, $mimeType)
+                fn (AiProvider $provider) => $provider->generateWithImage($prompt, $imageData, $mimeType)
             );
         }
 
         // Perilaku lama (backward compatible)
         return $this->executeWithFallback(
-            fn(AiProvider $provider) => $provider->generateWithImage($prompt, $imageData, $mimeType),
+            fn (AiProvider $provider) => $provider->generateWithImage($prompt, $imageData, $mimeType),
             $this->activeTenantId,
         );
     }
@@ -261,9 +265,9 @@ class AiProviderRouter implements AiProvider
      *
      * Requirements: 2.7, 2.8, 8.7
      *
-     * @param  string  $useCase   Use case identifier
-     * @param  callable  $fn   Callable yang menerima AiProvider dan mengembalikan array result
-     * @return array  Result dari callable
+     * @param  string  $useCase  Use case identifier
+     * @param  callable  $fn  Callable yang menerima AiProvider dan mengembalikan array result
+     * @return array Result dari callable
      */
     private function routeViaUseCase(string $useCase, callable $fn): array
     {
@@ -314,12 +318,13 @@ class AiProviderRouter implements AiProvider
         $fromProvider = null;
 
         foreach ($orderedFallback as $providerName) {
-            if (!isset($providerInstances[$providerName])) {
+            if (! isset($providerInstances[$providerName])) {
                 continue;
             }
 
-            if (!$this->switcher->isProviderAvailable($providerName)) {
+            if (! $this->switcher->isProviderAvailable($providerName)) {
                 Log::debug("AiProviderRouter: provider [{$providerName}] dalam cooldown, melewati.");
+
                 continue;
             }
 
@@ -341,7 +346,7 @@ class AiProviderRouter implements AiProvider
             } catch (RateLimitException $e) {
                 Log::warning("AiProviderRouter: rate limit pada provider [{$providerName}]", [
                     'provider' => $providerName,
-                    'error'    => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
 
                 $this->switcher->markProviderUnavailable($providerName, 'rate_limit');
@@ -350,6 +355,7 @@ class AiProviderRouter implements AiProvider
                 // fromProvider diset ke providerName saat ini agar switch berikutnya bisa dicatat
                 $fromProvider = $providerName;
                 $lastException = $e;
+
                 continue;
             } catch (\RuntimeException $e) {
                 $statusCode = $e->getCode();
@@ -358,13 +364,14 @@ class AiProviderRouter implements AiProvider
                 if ($statusCode >= 500) {
                     Log::warning("AiProviderRouter: server error pada provider [{$providerName}] (HTTP {$statusCode})", [
                         'provider' => $providerName,
-                        'error'    => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]);
 
                     $this->switcher->markProviderUnavailable($providerName, 'server_error');
 
                     $fromProvider = $providerName;
                     $lastException = $e;
+
                     continue;
                 }
 
@@ -407,14 +414,14 @@ class AiProviderRouter implements AiProvider
         // 1. Cek TenantApiSetting
         if ($tenantId !== null) {
             $tenantProvider = TenantApiSetting::get($tenantId, 'ai_provider');
-            if (!empty($tenantProvider)) {
+            if (! empty($tenantProvider)) {
                 return $tenantProvider;
             }
         }
 
         // 2. Cek SystemSetting
         $systemProvider = SystemSetting::get('ai_default_provider');
-        if (!empty($systemProvider)) {
+        if (! empty($systemProvider)) {
             return $systemProvider;
         }
 
@@ -431,9 +438,9 @@ class AiProviderRouter implements AiProvider
     {
         $systemFallbackOrder = SystemSetting::get('ai_provider_fallback_order');
 
-        if (!empty($systemFallbackOrder)) {
+        if (! empty($systemFallbackOrder)) {
             $decoded = json_decode($systemFallbackOrder, true);
-            if (is_array($decoded) && !empty($decoded)) {
+            if (is_array($decoded) && ! empty($decoded)) {
                 return $decoded;
             }
         }
@@ -466,7 +473,7 @@ class AiProviderRouter implements AiProvider
     {
         return match ($providerName) {
             'anthropic' => $this->anthropicProvider,
-            default     => $this->geminiProvider,  // 'gemini' dan default
+            default => $this->geminiProvider,  // 'gemini' dan default
         };
     }
 
@@ -507,7 +514,7 @@ class AiProviderRouter implements AiProvider
     private function applyTenantApiKey(AiProvider $provider, string $providerName, int $tenantId): AiProvider
     {
         $keyMap = [
-            'gemini'    => 'gemini_api_key',
+            'gemini' => 'gemini_api_key',
             'anthropic' => 'anthropic_api_key',
         ];
 
@@ -545,10 +552,10 @@ class AiProviderRouter implements AiProvider
     private function reloadSystemConfig(): void
     {
         SystemSetting::loadIntoConfig([
-            'ai_default_provider'        => 'ai.default_provider',
-            'ai_provider_mode'           => 'ai.mode',
-            'anthropic_api_key'          => 'ai.providers.anthropic.api_key',
-            'anthropic_model'            => 'ai.providers.anthropic.model',
+            'ai_default_provider' => 'ai.default_provider',
+            'ai_provider_mode' => 'ai.mode',
+            'anthropic_api_key' => 'ai.providers.anthropic.api_key',
+            'anthropic_model' => 'ai.providers.anthropic.model',
         ]);
     }
 
@@ -589,15 +596,15 @@ class AiProviderRouter implements AiProvider
             AiUsageLog::withoutGlobalScope('tenant')
                 ->where('id', $log->id)
                 ->update([
-                    'message_count' => \Illuminate\Support\Facades\DB::raw('message_count + 1'),
-                    'provider'      => $providerName,
+                    'message_count' => DB::raw('message_count + 1'),
+                    'provider' => $providerName,
                 ]);
         } catch (\Throwable $e) {
             // Logging tidak boleh mengganggu request utama
             Log::warning('AiProviderRouter: gagal mencatat ai_usage_logs', [
                 'tenant_id' => $tenantId,
-                'provider'  => $providerName,
-                'error'     => $e->getMessage(),
+                'provider' => $providerName,
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -616,20 +623,20 @@ class AiProviderRouter implements AiProvider
     ): void {
         try {
             AiProviderSwitchLog::withoutGlobalScope('tenant')->create([
-                'tenant_id'     => $tenantId,
+                'tenant_id' => $tenantId,
                 'from_provider' => $fromProvider,
-                'to_provider'   => $toProvider,
-                'reason'        => $reason,
+                'to_provider' => $toProvider,
+                'reason' => $reason,
                 'error_message' => $errorMessage ? mb_substr($errorMessage, 0, 65535) : null,
-                'created_at'    => now(),
+                'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
             // Logging tidak boleh mengganggu request utama
             Log::warning('AiProviderRouter: gagal mencatat ai_provider_switch_logs', [
                 'from_provider' => $fromProvider,
-                'to_provider'   => $toProvider,
-                'reason'        => $reason,
-                'error'         => $e->getMessage(),
+                'to_provider' => $toProvider,
+                'reason' => $reason,
+                'error' => $e->getMessage(),
             ]);
         }
     }

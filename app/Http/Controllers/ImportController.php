@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\ChartOfAccount;
 use App\Models\Customer;
 use App\Models\Employee;
@@ -9,9 +10,11 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\Supplier;
 use App\Models\Warehouse;
-use App\Models\ActivityLog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportController extends Controller
 {
@@ -29,15 +32,15 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
-        if (!in_array('name', $headers)) {
+        if (! in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
@@ -49,12 +52,14 @@ class ImportController extends Controller
         $mode = $request->input('mode', 'skip'); // skip | update
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (!is_array($row) || count($row) < 1 || empty(trim($row[0] ?? '')))
+            if (! is_array($row) || count($row) < 1 || empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) {
+            if (! $name) {
                 $skipped++;
+
                 continue;
             }
 
@@ -65,7 +70,8 @@ class ImportController extends Controller
                 'stock_min' => 'nullable|integer|min:0',
             ]);
             if ($validator->fails()) {
-                $errors[] = "Baris " . ($i + 2) . ": " . implode(', ', $validator->errors()->all());
+                $errors[] = 'Baris '.($i + 2).': '.implode(', ', $validator->errors()->all());
+
                 continue;
             }
 
@@ -79,16 +85,18 @@ class ImportController extends Controller
                     'price_sell' => isset($data['price_sell']) && $data['price_sell'] !== '' ? (float) $data['price_sell'] : null,
                     'price_buy' => isset($data['price_buy']) && $data['price_buy'] !== '' ? (float) $data['price_buy'] : null,
                     'stock_min' => isset($data['stock_min']) && $data['stock_min'] !== '' ? (int) $data['stock_min'] : null,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
+
                 continue;
             } elseif ($existing) {
                 $skipped++;
+
                 continue;
             }
 
-            $sku = !empty($data['sku']) ? trim($data['sku'])
-                : strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)) . '-' . rand(100, 999);
+            $sku = ! empty($data['sku']) ? trim($data['sku'])
+                : strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)).'-'.rand(100, 999);
 
             $product = Product::create([
                 'tenant_id' => $this->tenantId(),
@@ -104,7 +112,7 @@ class ImportController extends Controller
                 'is_active' => true,
             ]);
 
-            if ($warehouse && !empty($data['initial_stock']) && (int) $data['initial_stock'] > 0) {
+            if ($warehouse && ! empty($data['initial_stock']) && (int) $data['initial_stock'] > 0) {
                 ProductStock::create([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouse->id,
@@ -126,15 +134,15 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
-        if (!in_array('name', $headers)) {
+        if (! in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
@@ -145,12 +153,14 @@ class ImportController extends Controller
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? '')))
+            if (empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) {
+            if (! $name) {
                 $skipped++;
+
                 continue;
             }
 
@@ -164,7 +174,7 @@ class ImportController extends Controller
                     'address' => $data['address'] ?? null,
                     'npwp' => $data['npwp'] ?? null,
                     'credit_limit' => isset($data['credit_limit']) && $data['credit_limit'] !== '' ? (float) $data['credit_limit'] : null,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
@@ -196,15 +206,15 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
-        if (!in_array('name', $headers)) {
+        if (! in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
@@ -215,12 +225,14 @@ class ImportController extends Controller
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? '')))
+            if (empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) {
+            if (! $name) {
                 $skipped++;
+
                 continue;
             }
 
@@ -236,7 +248,7 @@ class ImportController extends Controller
                     'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
                     'bank_holder' => $data['bank_holder'] ?? null,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
@@ -270,15 +282,15 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
-        if (!in_array('name', $headers)) {
+        if (! in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
@@ -290,19 +302,21 @@ class ImportController extends Controller
         $counter = Employee::where('tenant_id', $this->tenantId())->count();
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? '')))
+            if (empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) {
+            if (! $name) {
                 $skipped++;
+
                 continue;
             }
 
             $joinDate = null;
-            if (!empty($data['join_date'])) {
+            if (! empty($data['join_date'])) {
                 try {
-                    $joinDate = \Carbon\Carbon::parse($data['join_date'])->format('Y-m-d');
+                    $joinDate = Carbon::parse($data['join_date'])->format('Y-m-d');
                 } catch (\Exception $e) {
                 }
             }
@@ -319,7 +333,7 @@ class ImportController extends Controller
                     'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
                     'address' => $data['address'] ?? null,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
@@ -338,7 +352,7 @@ class ImportController extends Controller
                     'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
                     'address' => $data['address'] ?? null,
-                    'employee_id' => $data['employee_id'] ?? ('EMP-' . str_pad($counter, 4, '0', STR_PAD_LEFT)),
+                    'employee_id' => $data['employee_id'] ?? ('EMP-'.str_pad($counter, 4, '0', STR_PAD_LEFT)),
                 ]);
                 $created++;
             }
@@ -356,15 +370,15 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
-        if (!in_array('name', $headers)) {
+        if (! in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
@@ -375,12 +389,14 @@ class ImportController extends Controller
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? '')))
+            if (empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) {
+            if (! $name) {
                 $skipped++;
+
                 continue;
             }
 
@@ -390,7 +406,7 @@ class ImportController extends Controller
                 $existing->update(array_filter([
                     'code' => $data['code'] ?? null,
                     'address' => $data['address'] ?? null,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
@@ -418,17 +434,17 @@ class ImportController extends Controller
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
         $rows = $this->parseFile($request->file('file'));
-        if (!is_array($rows) || empty($rows)) {
+        if (! is_array($rows) || empty($rows)) {
             return back()->with('error', 'File parsing failed or file is empty.');
         }
-        if (!isset($rows[0]) || !is_array($rows[0])) {
+        if (! isset($rows[0]) || ! is_array($rows[0])) {
             return back()->with('error', 'File header row is invalid.');
         }
         $headers = $this->normalizeHeaders($rows[0]);
 
         $required = ['code', 'name', 'type'];
         foreach ($required as $col) {
-            if (!in_array($col, $headers)) {
+            if (! in_array($col, $headers)) {
                 return back()->with('error', "Kolom wajib tidak ditemukan: \"{$col}\".");
             }
         }
@@ -441,27 +457,30 @@ class ImportController extends Controller
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? '')))
+            if (empty(trim($row[0] ?? ''))) {
                 continue;
+            }
             $data = $this->mapRow($headers, $row);
 
             $code = trim($data['code'] ?? '');
             $name = trim($data['name'] ?? '');
             $type = strtolower(trim($data['type'] ?? ''));
 
-            if (!$code || !$name) {
+            if (! $code || ! $name) {
                 $skipped++;
+
                 continue;
             }
 
-            if (!in_array($type, $validTypes)) {
-                $errors[] = "Baris " . ($i + 2) . ": Tipe \"{$type}\" tidak valid. Gunakan: " . implode(', ', $validTypes);
+            if (! in_array($type, $validTypes)) {
+                $errors[] = 'Baris '.($i + 2).": Tipe \"{$type}\" tidak valid. Gunakan: ".implode(', ', $validTypes);
+
                 continue;
             }
 
             $normalBalance = in_array($type, ['asset', 'expense', 'cogs']) ? 'debit' : 'credit';
             $level = strlen(preg_replace('/[^0-9]/', '', $code)) <= 1 ? 1 : (strlen(preg_replace('/[^0-9]/', '', $code)) <= 2 ? 2 : 3);
-            $isHeader = !empty($data['is_header']) && in_array(strtolower($data['is_header']), ['1', 'yes', 'ya', 'true']);
+            $isHeader = ! empty($data['is_header']) && in_array(strtolower($data['is_header']), ['1', 'yes', 'ya', 'true']);
 
             // Find parent by code prefix
             $parentId = null;
@@ -487,7 +506,7 @@ class ImportController extends Controller
                     'description' => $data['description'] ?? null,
                     'is_header' => $isHeader,
                     'parent_id' => $parentId,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
@@ -526,7 +545,7 @@ class ImportController extends Controller
 
         $headers = ['name', 'sku', 'barcode', 'category', 'unit', 'price_sell', 'price_buy', 'stock_min', 'total_stock', 'description'];
 
-        $rows = $products->map(fn($p) => [
+        $rows = $products->map(fn ($p) => [
             $p->name,
             $p->sku,
             $p->barcode,
@@ -539,7 +558,7 @@ class ImportController extends Controller
             $p->description,
         ]);
 
-        return $this->downloadCsv("export-produk-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-produk-'.date('Ymd'), $headers, $rows);
     }
 
     public function exportCustomers()
@@ -548,7 +567,7 @@ class ImportController extends Controller
         $items = Customer::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'email', 'phone', 'company', 'address', 'npwp', 'credit_limit', 'is_active'];
-        $rows = $items->map(fn($c) => [
+        $rows = $items->map(fn ($c) => [
             $c->name,
             $c->email,
             $c->phone,
@@ -559,7 +578,7 @@ class ImportController extends Controller
             $c->is_active ? '1' : '0',
         ]);
 
-        return $this->downloadCsv("export-customer-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-customer-'.date('Ymd'), $headers, $rows);
     }
 
     public function exportSuppliers()
@@ -568,7 +587,7 @@ class ImportController extends Controller
         $items = Supplier::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'email', 'phone', 'company', 'address', 'npwp', 'bank_name', 'bank_account', 'bank_holder', 'is_active'];
-        $rows = $items->map(fn($s) => [
+        $rows = $items->map(fn ($s) => [
             $s->name,
             $s->email,
             $s->phone,
@@ -581,7 +600,7 @@ class ImportController extends Controller
             $s->is_active ? '1' : '0',
         ]);
 
-        return $this->downloadCsv("export-supplier-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-supplier-'.date('Ymd'), $headers, $rows);
     }
 
     public function exportEmployees()
@@ -590,7 +609,7 @@ class ImportController extends Controller
         $items = Employee::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'employee_id', 'email', 'phone', 'position', 'department', 'join_date', 'status', 'salary', 'bank_name', 'bank_account', 'address'];
-        $rows = $items->map(fn($e) => [
+        $rows = $items->map(fn ($e) => [
             $e->name,
             $e->employee_id,
             $e->email,
@@ -605,7 +624,7 @@ class ImportController extends Controller
             $e->address,
         ]);
 
-        return $this->downloadCsv("export-karyawan-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-karyawan-'.date('Ymd'), $headers, $rows);
     }
 
     public function exportWarehouses()
@@ -614,9 +633,9 @@ class ImportController extends Controller
         $items = Warehouse::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'code', 'address', 'is_active'];
-        $rows = $items->map(fn($w) => [$w->name, $w->code, $w->address, $w->is_active ? '1' : '0']);
+        $rows = $items->map(fn ($w) => [$w->name, $w->code, $w->address, $w->is_active ? '1' : '0']);
 
-        return $this->downloadCsv("export-gudang-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-gudang-'.date('Ymd'), $headers, $rows);
     }
 
     public function exportChartOfAccounts()
@@ -625,7 +644,7 @@ class ImportController extends Controller
         $items = ChartOfAccount::where('tenant_id', $tid)->orderBy('code')->get();
 
         $headers = ['code', 'name', 'type', 'normal_balance', 'level', 'is_header', 'description'];
-        $rows = $items->map(fn($a) => [
+        $rows = $items->map(fn ($a) => [
             $a->code,
             $a->name,
             $a->type,
@@ -635,7 +654,7 @@ class ImportController extends Controller
             $a->description,
         ]);
 
-        return $this->downloadCsv("export-coa-" . date('Ymd'), $headers, $rows);
+        return $this->downloadCsv('export-coa-'.date('Ymd'), $headers, $rows);
     }
 
     // ─── CSV Template Download ────────────────────────────────────
@@ -669,10 +688,10 @@ class ImportController extends Controller
             ],
         ];
 
-        abort_if(!isset($templates[$type]), 404);
+        abort_if(! isset($templates[$type]), 404);
 
         $t = $templates[$type];
-        $csv = implode(',', $t['headers']) . "\n" . implode(',', $t['examples']) . "\n";
+        $csv = implode(',', $t['headers'])."\n".implode(',', $t['examples'])."\n";
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -712,6 +731,7 @@ class ImportController extends Controller
             }
             fclose($handle);
         }
+
         return $rows;
     }
 
@@ -719,21 +739,22 @@ class ImportController extends Controller
     {
         $rows = [];
         try {
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            $spreadsheet = IOFactory::load($file->getRealPath());
             $sheet = $spreadsheet->getActiveSheet();
             foreach ($sheet->toArray() as $row) {
-                $rows[] = array_map(fn($v) => (string) ($v ?? ''), $row);
+                $rows[] = array_map(fn ($v) => (string) ($v ?? ''), $row);
             }
         } catch (\Throwable $e) {
             // Fallback: try as CSV
             return $this->parseCsv($file);
         }
+
         return $rows;
     }
 
     private function normalizeHeaders(array $row): array
     {
-        return array_map(fn($h) => strtolower(trim(str_replace(["\xEF\xBB\xBF", "\r", "\n"], '', $h))), $row);
+        return array_map(fn ($h) => strtolower(trim(str_replace(["\xEF\xBB\xBF", "\r", "\n"], '', $h))), $row);
     }
 
     private function mapRow(array $headers, array $row): array
@@ -741,16 +762,17 @@ class ImportController extends Controller
         return array_combine($headers, array_pad(array_map('trim', $row), count($headers), ''));
     }
 
-    private function downloadCsv(string $filename, array $headers, $rows): \Illuminate\Http\Response
+    private function downloadCsv(string $filename, array $headers, $rows): Response
     {
         $csv = "\xEF\xBB\xBF"; // UTF-8 BOM for Excel compat
-        $csv .= implode(',', $headers) . "\n";
+        $csv .= implode(',', $headers)."\n";
 
         foreach ($rows as $row) {
             $csv .= implode(',', array_map(function ($v) {
                 $v = str_replace('"', '""', (string) $v);
+
                 return str_contains($v, ',') || str_contains($v, '"') || str_contains($v, "\n") ? "\"{$v}\"" : $v;
-            }, is_array($row) ? $row : $row->toArray())) . "\n";
+            }, is_array($row) ? $row : $row->toArray()))."\n";
         }
 
         return response($csv, 200, [

@@ -2,8 +2,8 @@
 
 namespace App\Jobs\Healthcare;
 
-use App\Models\LabResult;
 use App\Models\ErpNotification;
+use App\Models\LabResult;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,7 +34,7 @@ class EscalateCriticalLabResult implements ShouldQueue
     {
         $result = LabResult::with(['labOrder', 'labOrder.visit.patient'])->find($this->resultId);
 
-        if (!$result || !$result->requires_urgent_review) {
+        if (! $result || ! $result->requires_urgent_review) {
             return;
         }
 
@@ -43,7 +43,7 @@ class EscalateCriticalLabResult implements ShouldQueue
             return;
         }
 
-        Log::warning("Critical lab result not reviewed - escalating", [
+        Log::warning('Critical lab result not reviewed - escalating', [
             'result_id' => $result->id,
             'patient_id' => $result->sample->patient_id ?? null,
             'parameter' => $result->parameter_name,
@@ -58,9 +58,9 @@ class EscalateCriticalLabResult implements ShouldQueue
                     'user_id' => $doctor->department_head_id,
                     'type' => 'critical_lab_result_escalation',
                     'title' => '🚨 ESCALATION - Hasil Lab Kritis Belum Direview',
-                    'body' => "Hasil lab kritis untuk pasien {$result->sample->patient->full_name} " .
-                        "belum direview lebih dari 15 menit.\n" .
-                        "Parameter: {$result->parameter_name}\n" .
+                    'body' => "Hasil lab kritis untuk pasien {$result->sample->patient->full_name} ".
+                        "belum direview lebih dari 15 menit.\n".
+                        "Parameter: {$result->parameter_name}\n".
                         "Nilai: {$result->result_value} {$result->unit}",
                     'data' => [
                         'result_id' => $result->id,

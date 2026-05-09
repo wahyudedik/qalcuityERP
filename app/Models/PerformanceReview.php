@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PerformanceReview extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'employee_id', 'reviewer_id', 'period', 'period_type',
         'score_work_quality', 'score_productivity', 'score_teamwork',
@@ -20,11 +20,18 @@ class PerformanceReview extends Model
 
     protected $casts = [
         'overall_score' => 'decimal:2',
-        'submitted_at'  => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
-    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
-    public function reviewer(): BelongsTo { return $this->belongsTo(Employee::class, 'reviewer_id'); }
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'reviewer_id');
+    }
 
     public function computeOverall(): float
     {
@@ -39,23 +46,23 @@ class PerformanceReview extends Model
 
     public function overallLabel(): string
     {
-        return match(true) {
+        return match (true) {
             $this->overall_score >= 4.5 => 'Luar Biasa',
             $this->overall_score >= 3.5 => 'Baik',
             $this->overall_score >= 2.5 => 'Cukup',
             $this->overall_score >= 1.5 => 'Perlu Perbaikan',
-            default                     => 'Tidak Memuaskan',
+            default => 'Tidak Memuaskan',
         };
     }
 
     public function recommendationLabel(): string
     {
-        return match($this->recommendation) {
-            'promote'   => 'Promosi',
-            'retain'    => 'Pertahankan',
-            'pip'       => 'PIP (Rencana Perbaikan)',
+        return match ($this->recommendation) {
+            'promote' => 'Promosi',
+            'retain' => 'Pertahankan',
+            'pip' => 'PIP (Rencana Perbaikan)',
             'terminate' => 'Pertimbangkan PHK',
-            default     => '-',
+            default => '-',
         };
     }
 }

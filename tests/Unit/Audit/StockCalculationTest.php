@@ -5,7 +5,6 @@ namespace Tests\Unit\Audit;
 use App\Models\Product;
 use App\Models\ProductAvgCost;
 use App\Models\ProductBatch;
-use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Tenant;
 use App\Models\User;
@@ -15,9 +14,9 @@ use Tests\TestCase;
 
 /**
  * Task 24.8: Unit test for FIFO and Average Cost stock calculation
- * 
+ *
  * Validates: Requirements 11.2
- * 
+ *
  * This test ensures that:
  * - FIFO (First-In-First-Out) costing method calculates HPP correctly
  * - Average Cost costing method calculates HPP correctly
@@ -26,11 +25,14 @@ use Tests\TestCase;
  */
 class StockCalculationTest extends TestCase
 {
-
     protected Tenant $tenant;
+
     protected User $user;
+
     protected Warehouse $warehouse;
+
     protected Product $product;
+
     protected InventoryCostingService $costingService;
 
     protected function setUp(): void
@@ -53,10 +55,10 @@ class StockCalculationTest extends TestCase
     private function makeMovement(array $attrs): StockMovement
     {
         return StockMovement::create(array_merge([
-            'tenant_id'    => $this->tenant->id,
-            'product_id'   => $this->product->id,
+            'tenant_id' => $this->tenant->id,
+            'product_id' => $this->product->id,
             'warehouse_id' => $this->warehouse->id,
-            'user_id'      => $this->user->id,
+            'user_id' => $this->user->id,
         ], $attrs));
     }
 

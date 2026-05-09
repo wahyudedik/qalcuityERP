@@ -5,23 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\Bom;
 use App\Models\BomLine;
 use App\Models\ConcreteMixDesign;
+use App\Models\DefectRecord;
 use App\Models\MixDesignVersion;
 use App\Models\MrpAccuracy;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
-use App\Models\WorkCenter;
-use App\Models\WorkOrder;
 use App\Models\QualityCheck;
 use App\Models\QualityCheckStandard;
-use App\Models\DefectRecord;
+use App\Models\WorkCenter;
+use App\Models\WorkOrder;
 use App\Services\GlPostingService;
 use App\Services\Manufacturing\MixDesignCalculatorService;
 use App\Services\Manufacturing\MrpPlanningService;
-use App\Services\MrpService;
 use App\Services\Manufacturing\QualityControlService;
+use App\Services\MrpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ManufacturingController extends Controller
 {
@@ -39,8 +40,8 @@ class ManufacturingController extends Controller
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")
-                ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")
+                ->orWhereHas('product', fn ($p) => $p->where('name', 'like', "%$s%")));
         }
 
         $boms = $query->latest()->paginate(20)->withQueryString();
@@ -147,6 +148,7 @@ class ManufacturingController extends Controller
     {
         abort_if($bom->tenant_id !== $this->tid(), 403);
         $bom->delete();
+
         return back()->with('success', 'BOM berhasil dihapus.');
     }
 
@@ -158,7 +160,7 @@ class ManufacturingController extends Controller
         // Extract child_bom_ids from lines
         $childBomIds = array_filter(
             array_column($lines, 'child_bom_id'),
-            fn($id) => $id !== null
+            fn ($id) => $id !== null
         );
 
         if (empty($childBomIds)) {
@@ -169,9 +171,9 @@ class ManufacturingController extends Controller
         foreach ($childBomIds as $childBomId) {
             // Check self-reference
             if ($childBomId == $bomId) {
-                throw new \Illuminate\Validation\ValidationException(
+                throw new ValidationException(
                     validator([], [
-                        'lines' => "BOM tidak boleh refer ke dirinya sendiri (BOM #{$bomId})."
+                        'lines' => "BOM tidak boleh refer ke dirinya sendiri (BOM #{$bomId}).",
                     ])
                 );
             }
@@ -179,9 +181,9 @@ class ManufacturingController extends Controller
             // Check if child BOM eventually references back to parent
             if ($this->createsCircularReference($bomId, $childBomId, [$bomId])) {
                 $childBom = Bom::find($childBomId);
-                throw new \Illuminate\Validation\ValidationException(
+                throw new ValidationException(
                     validator([], [
-                        'lines' => "Circular reference terdeteksi! BOM #{$bomId} → ... → BOM #{$childBomId} ({$childBom->name}) → BOM #{$bomId}."
+                        'lines' => "Circular reference terdeteksi! BOM #{$bomId} → ... → BOM #{$childBomId} ({$childBom->name}) → BOM #{$bomId}.",
                     ])
                 );
             }
@@ -201,7 +203,7 @@ class ManufacturingController extends Controller
 
         // Get all child BOMs of this child
         $childBom = Bom::with('lines')->find($childBomId);
-        if (!$childBom) {
+        if (! $childBom) {
             return false;
         }
 
@@ -233,7 +235,7 @@ class ManufacturingController extends Controller
         // Extract child_bom_ids from lines
         $childBomIds = array_filter(
             array_column($lines, 'child_bom_id'),
-            fn($id) => $id !== null
+            fn ($id) => $id !== null
         );
 
         if (empty($childBomIds)) {
@@ -249,10 +251,10 @@ class ManufacturingController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$childBom) {
-                throw new \Illuminate\Validation\ValidationException(
+            if (! $childBom) {
+                throw new ValidationException(
                     validator([], [
-                        'lines' => "Child BOM #{$childBomId} tidak ditemukan atau tidak aktif."
+                        'lines' => "Child BOM #{$childBomId} tidak ditemukan atau tidak aktif.",
                     ])
                 );
             }
@@ -260,9 +262,9 @@ class ManufacturingController extends Controller
             // Check if child BOM references itself
             $childBomLines = $childBom->lines()->where('child_bom_id', $childBomId)->exists();
             if ($childBomLines) {
-                throw new \Illuminate\Validation\ValidationException(
+                throw new ValidationException(
                     validator([], [
-                        'lines' => "Child BOM #{$childBomId} ({$childBom->name}) sudah memiliki circular reference internal."
+                        'lines' => "Child BOM #{$childBomId} ({$childBom->name}) sudah memiliki circular reference internal.",
                     ])
                 );
             }
@@ -274,7 +276,7 @@ class ManufacturingController extends Controller
     public function workCenters(Request $request)
     {
         $workCenters = WorkCenter::where('tenant_id', $this->tid())
-            ->when($request->search, fn($q, $s) => $q->where('name', 'like', "%$s%")->orWhere('code', 'like', "%$s%"))
+            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', "%$s%")->orWhere('code', 'like', "%$s%"))
             ->latest()->paginate(20)->withQueryString();
 
         return view('manufacturing.work-centers', compact('workCenters'));
@@ -314,6 +316,7 @@ class ManufacturingController extends Controller
         ]);
 
         $workCenter->update($data);
+
         return back()->with('success', 'Work Center berhasil diperbarui.');
     }
 
@@ -321,6 +324,7 @@ class ManufacturingController extends Controller
     {
         abort_if($workCenter->tenant_id !== $this->tid(), 403);
         $workCenter->delete();
+
         return back()->with('success', 'Work Center berhasil dihapus.');
     }
 
@@ -461,7 +465,7 @@ class ManufacturingController extends Controller
 
         $mixDesign->updateWithVersion($data, $changeReason);
 
-        return back()->with('success', 'Mix Design berhasil diupdate (Version ' . ($mixDesign->current_version + 1) . ' created).');
+        return back()->with('success', 'Mix Design berhasil diupdate (Version '.($mixDesign->current_version + 1).' created).');
     }
 
     public function deleteMixDesign(ConcreteMixDesign $mixDesign)
@@ -573,7 +577,7 @@ class ManufacturingController extends Controller
             'quantity_ordered' => $data['quantity'],
             'quantity_received' => 0,
             'unit_price' => $product->price_buy ?? 0,
-            'notes' => "MRP shortage fulfillment",
+            'notes' => 'MRP shortage fulfillment',
         ]);
 
         return back()->with('success', "Purchase Order {$po->number} created successfully.");
@@ -601,6 +605,7 @@ class ManufacturingController extends Controller
             ->get()
             ->map(function ($item) {
                 $item->product_name = Product::find($item->product_id)?->name ?? 'Unknown';
+
                 return $item;
             });
 
@@ -623,7 +628,7 @@ class ManufacturingController extends Controller
 
         $result = $mrpService->consumeMaterials($workOrder);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -645,9 +650,9 @@ class ManufacturingController extends Controller
             }
         }
 
-        $msg = 'Material berhasil dikonsumsi. Total biaya: Rp ' . number_format($result['material_cost'], 0, ',', '.');
-        if (!empty($result['shortages'])) {
-            $msg .= ' ⚠️ Kekurangan stok: ' . implode(', ', $result['shortages']);
+        $msg = 'Material berhasil dikonsumsi. Total biaya: Rp '.number_format($result['material_cost'], 0, ',', '.');
+        if (! empty($result['shortages'])) {
+            $msg .= ' ⚠️ Kekurangan stok: '.implode(', ', $result['shortages']);
         }
 
         return back()->with('success', $msg);
@@ -670,7 +675,7 @@ class ManufacturingController extends Controller
             // Group by product_id and sum quantities
             foreach ($explodedBom as $item) {
                 $productId = $item['product_id'];
-                if (!isset($requiredMaterials[$productId])) {
+                if (! isset($requiredMaterials[$productId])) {
                     $product = Product::find($productId);
                     $requiredMaterials[$productId] = [
                         'product_id' => $productId,
@@ -714,7 +719,7 @@ class ManufacturingController extends Controller
         }
 
         foreach ($data['scanned_materials'] as $material) {
-            if (!in_array((int) $material['product_id'], $bomProductIds)) {
+            if (! in_array((int) $material['product_id'], $bomProductIds)) {
                 return back()->with('error', "Produk ID {$material['product_id']} tidak ada di BOM.");
             }
         }
@@ -722,7 +727,7 @@ class ManufacturingController extends Controller
         // Call existing MrpService::consumeMaterials() - it will handle the actual consumption
         $result = $mrpService->consumeMaterials($workOrder);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -744,9 +749,9 @@ class ManufacturingController extends Controller
             }
         }
 
-        $msg = 'Material dari scan berhasil dikonsumsi. Total biaya: Rp ' . number_format($result['material_cost'], 0, ',', '.');
-        if (!empty($result['shortages'])) {
-            $msg .= ' ⚠️ Kekurangan stok: ' . implode(', ', $result['shortages']);
+        $msg = 'Material dari scan berhasil dikonsumsi. Total biaya: Rp '.number_format($result['material_cost'], 0, ',', '.');
+        if (! empty($result['shortages'])) {
+            $msg .= ' ⚠️ Kekurangan stok: '.implode(', ', $result['shortages']);
         }
 
         return redirect()->route('production.index')->with('success', $msg);
@@ -851,7 +856,7 @@ class ManufacturingController extends Controller
         $qualityCheck = $qcService->createQualityCheck($validated);
 
         return redirect()->route('manufacturing.quality.checks.edit', $qualityCheck)
-            ->with('success', 'Quality check created: ' . $qualityCheck->check_number);
+            ->with('success', 'Quality check created: '.$qualityCheck->check_number);
     }
 
     public function editQualityCheck(QualityCheck $qualityCheck)
@@ -888,7 +893,7 @@ class ManufacturingController extends Controller
 
         $message = $qualityCheck->status === 'passed'
             ? 'Quality check passed!'
-            : 'Quality check ' . str_replace('_', ' ', $qualityCheck->status);
+            : 'Quality check '.str_replace('_', ' ', $qualityCheck->status);
 
         return redirect()->route('manufacturing.quality.checks')
             ->with('success', $message);
@@ -910,7 +915,7 @@ class ManufacturingController extends Controller
 
         $defect = $qcService->recordDefect($validated);
 
-        return back()->with('success', 'Defect recorded: ' . $defect->defect_code);
+        return back()->with('success', 'Defect recorded: '.$defect->defect_code);
     }
 
     public function resolveDefect(Request $request, DefectRecord $defect, QualityControlService $qcService)
@@ -925,7 +930,7 @@ class ManufacturingController extends Controller
 
         $qcService->resolveDefect($defect, $validated);
 
-        return back()->with('success', 'Defect resolved: ' . $defect->defect_code);
+        return back()->with('success', 'Defect resolved: '.$defect->defect_code);
     }
 
     public function defectRecords(Request $request)
@@ -989,7 +994,7 @@ class ManufacturingController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Quality standard created: ' . $validated['code']);
+        return back()->with('success', 'Quality standard created: '.$validated['code']);
     }
 
     /**
@@ -997,7 +1002,7 @@ class ManufacturingController extends Controller
      */
     public function qcDashboardEnhanced()
     {
-        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $qcService = new QualityControlService($this->tid());
         $dashboardData = $qcService->getDashboardData();
 
         return view('manufacturing.quality.dashboard-enhanced', $dashboardData);
@@ -1008,7 +1013,7 @@ class ManufacturingController extends Controller
      */
     public function getRootCauseTemplates()
     {
-        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $qcService = new QualityControlService($this->tid());
         $templates = $qcService->getRootCauseTemplates();
 
         return response()->json([
@@ -1034,7 +1039,7 @@ class ManufacturingController extends Controller
             'priority' => 'nullable|in:low,medium,high,critical',
         ]);
 
-        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $qcService = new QualityControlService($this->tid());
         $capa = $qcService->createCAPA($validated);
 
         return back()->with('success', "CAPA created: {$capa['capa_number']}");
@@ -1045,7 +1050,7 @@ class ManufacturingController extends Controller
      */
     public function generateCOA($qualityCheckId)
     {
-        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $qcService = new QualityControlService($this->tid());
         $coa = $qcService->generateCOA($qualityCheckId);
 
         return view('manufacturing.quality.coa', compact('coa'));
@@ -1056,7 +1061,7 @@ class ManufacturingController extends Controller
      */
     public function printCOA($qualityCheckId)
     {
-        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $qcService = new QualityControlService($this->tid());
         $coa = $qcService->generateCOA($qualityCheckId);
 
         return view('manufacturing.quality.coa-print', compact('coa'));

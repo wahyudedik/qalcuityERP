@@ -2,10 +2,11 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run migrations for GDPR compliance tables.
      * Task 030: GDPR compliance features
@@ -13,7 +14,7 @@ return new class extends Migration {
     public function up(): void
     {
         // GDPR Consent tracking
-        if (!Schema::hasTable('gdpr_consents')) {
+        if (! Schema::hasTable('gdpr_consents')) {
             Schema::create('gdpr_consents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -24,14 +25,14 @@ return new class extends Migration {
                 $table->timestamp('withdrawn_at')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['user_id', 'consent_type']);
                 $table->index(['user_id', 'is_active']);
             });
         }
 
         // GDPR Data Export requests
-        if (!Schema::hasTable('gdpr_data_exports')) {
+        if (! Schema::hasTable('gdpr_data_exports')) {
             Schema::create('gdpr_data_exports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -45,14 +46,14 @@ return new class extends Migration {
                 $table->timestamp('expires_at');
                 $table->text('error_message')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['user_id', 'status']);
                 $table->index(['status', 'requested_at']);
             });
         }
 
         // GDPR Deletion requests
-        if (!Schema::hasTable('gdpr_deletion_requests')) {
+        if (! Schema::hasTable('gdpr_deletion_requests')) {
             Schema::create('gdpr_deletion_requests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -65,7 +66,7 @@ return new class extends Migration {
                 $table->string('anonymization_method')->nullable(); // pseudonymization, generalization, suppression
                 $table->text('error_message')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['user_id', 'status']);
                 $table->index(['status', 'requested_at']);
             });

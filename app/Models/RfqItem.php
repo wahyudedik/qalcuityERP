@@ -11,6 +11,13 @@ class RfqItem extends Model
 
     protected $casts = ['quantity' => 'decimal:2'];
 
-    public function rfq(): BelongsTo     { return $this->belongsTo(Rfq::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function rfq(): BelongsTo
+    {
+        return $this->belongsTo(Rfq::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

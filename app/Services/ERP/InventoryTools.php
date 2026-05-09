@@ -4,15 +4,14 @@ namespace App\Services\ERP;
 
 use App\Models\Product;
 use App\Models\ProductStock;
+use App\Models\SalesOrderItem;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use Illuminate\Support\Facades\Storage;
 
 class InventoryTools
 {
-    public function __construct(protected int $tenantId, protected int $userId)
-    {
-    }
+    public function __construct(protected int $tenantId, protected int $userId) {}
 
     // ─── Tool Definitions (dikirim ke Gemini) ────────────────────
 
@@ -70,9 +69,9 @@ class InventoryTools
             [
                 'name' => 'create_product',
                 'description' => 'Tambah produk baru ke sistem. Gunakan untuk perintah seperti: '
-                    . '"tambah produk Kopi Hitam harga jual 8000 stok awal 100", '
-                    . '"daftarkan barang Teh Botol harga 5000", '
-                    . '"buat produk baru Mie Ayam satuan porsi harga 15000".',
+                    .'"tambah produk Kopi Hitam harga jual 8000 stok awal 100", '
+                    .'"daftarkan barang Teh Botol harga 5000", '
+                    .'"buat produk baru Mie Ayam satuan porsi harga 15000".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -92,10 +91,10 @@ class InventoryTools
             [
                 'name' => 'update_product',
                 'description' => 'Ubah data produk yang sudah ada. Gunakan untuk: '
-                    . '"ubah harga Kopi Hitam jadi 9000", '
-                    . '"ganti nama Teh Manis jadi Teh Botol", '
-                    . '"update stok minimum Kopi jadi 20", '
-                    . '"nonaktifkan produk Sirup Merah".',
+                    .'"ubah harga Kopi Hitam jadi 9000", '
+                    .'"ganti nama Teh Manis jadi Teh Botol", '
+                    .'"update stok minimum Kopi jadi 20", '
+                    .'"nonaktifkan produk Sirup Merah".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -115,8 +114,8 @@ class InventoryTools
             [
                 'name' => 'delete_product',
                 'description' => 'Hapus atau nonaktifkan produk. Gunakan untuk: '
-                    . '"hapus produk Teh Tawar", "nonaktifkan Kopi Susu". '
-                    . 'Produk yang sudah pernah terjual akan dinonaktifkan, bukan dihapus permanen.',
+                    .'"hapus produk Teh Tawar", "nonaktifkan Kopi Susu". '
+                    .'Produk yang sudah pernah terjual akan dinonaktifkan, bukan dihapus permanen.',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -129,7 +128,7 @@ class InventoryTools
             [
                 'name' => 'create_warehouse',
                 'description' => 'Buat gudang baru. Gunakan untuk: '
-                    . '"buat gudang Toko Utama", "tambah gudang Cabang Selatan", "setup gudang baru".',
+                    .'"buat gudang Toko Utama", "tambah gudang Cabang Selatan", "setup gudang baru".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -143,8 +142,8 @@ class InventoryTools
             [
                 'name' => 'update_product_image',
                 'description' => 'Simpan gambar ke produk tertentu. Gunakan setelah user mengirim foto produk via chat. '
-                    . 'Sistem akan otomatis menyediakan image_url dari file yang diupload. '
-                    . 'Contoh: "simpan gambar ini untuk produk Kopi Hitam", "set foto produk Teh Botol".',
+                    .'Sistem akan otomatis menyediakan image_url dari file yang diupload. '
+                    .'Contoh: "simpan gambar ini untuk produk Kopi Hitam", "set foto produk Teh Botol".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -157,8 +156,8 @@ class InventoryTools
             [
                 'name' => 'identify_product_from_image',
                 'description' => 'Identifikasi produk dari gambar yang dikirim user, lalu cocokkan dengan produk yang ada di sistem. '
-                    . 'Gunakan tool ini PERTAMA KALI ketika user mengirim foto produk tanpa menyebut nama produk secara eksplisit. '
-                    . 'Tool ini akan mencari produk yang paling cocok berdasarkan nama yang kamu deteksi dari gambar.',
+                    .'Gunakan tool ini PERTAMA KALI ketika user mengirim foto produk tanpa menyebut nama produk secara eksplisit. '
+                    .'Tool ini akan mencari produk yang paling cocok berdasarkan nama yang kamu deteksi dari gambar.',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -181,15 +180,15 @@ class InventoryTools
             ->with([
                 'productStocks' => function ($q) {
                     $q->select('id', 'product_id', 'warehouse_id', 'quantity');
-                }
+                },
             ]);
 
-        if (!empty($args['search'])) {
+        if (! empty($args['search'])) {
             $kw = $args['search'];
-            $query->where(fn($q) => $q->where('name', 'like', "%{$kw}%")->orWhere('sku', 'like', "%{$kw}%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%{$kw}%")->orWhere('sku', 'like', "%{$kw}%"));
         }
 
-        if (!empty($args['category'])) {
+        if (! empty($args['category'])) {
             $query->where('category', 'like', "%{$args['category']}%");
         }
 
@@ -202,12 +201,12 @@ class InventoryTools
         return [
             'status' => 'success',
             'total' => $products->count(),
-            'data' => $products->map(fn($p) => [
+            'data' => $products->map(fn ($p) => [
                 'name' => $p->name,
                 'sku' => $p->sku,
                 'category' => $p->category ?? '-',
                 'unit' => $p->unit,
-                'price_sell' => 'Rp ' . number_format($p->price_sell ?? 0, 0, ',', '.'),
+                'price_sell' => 'Rp '.number_format($p->price_sell ?? 0, 0, ',', '.'),
                 'total_stock' => $p->productStocks->sum('quantity'),
                 'stock_min' => $p->stock_min,
                 'status' => $p->productStocks->sum('quantity') <= $p->stock_min ? 'LOW' : 'OK',
@@ -225,7 +224,7 @@ class InventoryTools
             return ['status' => 'error', 'message' => "Gudang '{$args['name']}' sudah ada."];
         }
 
-        $code = $args['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $args['name']), 0, 4)) . '-' . rand(10, 99);
+        $code = $args['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $args['name']), 0, 4)).'-'.rand(10, 99);
 
         $warehouse = Warehouse::create([
             'tenant_id' => $this->tenantId,
@@ -245,7 +244,7 @@ class InventoryTools
     public function checkInventory(array $args): array
     {
         $query = Product::where('tenant_id', $this->tenantId)
-            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+            ->where(fn ($q) => $q->where('name', 'like', "%{$args['product_name']}%")
                 ->orWhere('sku', $args['product_name']));
 
         // BUG-INV-002 FIX: Eager load warehouse relationship to prevent N+1
@@ -255,9 +254,9 @@ class InventoryTools
                 $q->with([
                     'warehouse' => function ($q2) {
                         $q2->select('id', 'name');
-                    }
+                    },
                 ]);
-            }
+            },
         ])->get();
 
         if ($products->isEmpty()) {
@@ -268,8 +267,8 @@ class InventoryTools
         foreach ($products as $product) {
             $stocks = $product->productStocks;
 
-            if (!empty($args['warehouse'])) {
-                $stocks = $stocks->filter(fn($s) => str_contains(
+            if (! empty($args['warehouse'])) {
+                $stocks = $stocks->filter(fn ($s) => str_contains(
                     strtolower($s->warehouse->name),
                     strtolower($args['warehouse'])
                 ));
@@ -280,7 +279,7 @@ class InventoryTools
                 'sku' => $product->sku,
                 'unit' => $product->unit,
                 'stock_min' => $product->stock_min,
-                'stocks' => $stocks->map(fn($s) => [
+                'stocks' => $stocks->map(fn ($s) => [
                     'warehouse' => $s->warehouse->name,
                     'quantity' => $s->quantity,
                     'status' => $s->quantity <= $product->stock_min ? 'LOW' : 'OK',
@@ -294,14 +293,14 @@ class InventoryTools
     public function getLowStock(array $args): array
     {
         $stocks = ProductStock::with(['product', 'warehouse'])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $this->tenantId))
+            ->whereHas('product', fn ($q) => $q->where('tenant_id', $this->tenantId))
             ->whereColumn('quantity', '<=', 'products.stock_min')
             ->join('products', 'product_stocks.product_id', '=', 'products.id')
             ->select('product_stocks.*')
             ->get();
 
-        if (!empty($args['warehouse'])) {
-            $stocks = $stocks->filter(fn($s) => str_contains(
+        if (! empty($args['warehouse'])) {
+            $stocks = $stocks->filter(fn ($s) => str_contains(
                 strtolower($s->warehouse->name),
                 strtolower($args['warehouse'])
             ));
@@ -313,7 +312,7 @@ class InventoryTools
 
         return [
             'status' => 'success',
-            'data' => $stocks->map(fn($s) => [
+            'data' => $stocks->map(fn ($s) => [
                 'product' => $s->product->name,
                 'warehouse' => $s->warehouse->name,
                 'quantity' => $s->quantity,
@@ -325,11 +324,11 @@ class InventoryTools
     public function addStock(array $args): array
     {
         $product = Product::where('tenant_id', $this->tenantId)
-            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+            ->where(fn ($q) => $q->where('name', 'like', "%{$args['product_name']}%")
                 ->orWhere('sku', $args['product_name']))
             ->first();
 
-        if (!$product) {
+        if (! $product) {
             return ['status' => 'error', 'message' => "Produk '{$args['product_name']}' tidak ditemukan."];
         }
 
@@ -337,7 +336,7 @@ class InventoryTools
             ->where('name', 'like', "%{$args['warehouse']}%")
             ->first();
 
-        if (!$warehouse) {
+        if (! $warehouse) {
             return ['status' => 'error', 'message' => "Gudang '{$args['warehouse']}' tidak ditemukan."];
         }
 
@@ -364,7 +363,7 @@ class InventoryTools
 
         return [
             'status' => 'success',
-            'message' => "Stok {$product->name} di {$warehouse->name} berhasil ditambah {$args['quantity']} {$product->unit}. Total sekarang: " . ($before + $args['quantity']) . " {$product->unit}.",
+            'message' => "Stok {$product->name} di {$warehouse->name} berhasil ditambah {$args['quantity']} {$product->unit}. Total sekarang: ".($before + $args['quantity'])." {$product->unit}.",
         ];
     }
 
@@ -379,7 +378,7 @@ class InventoryTools
             return ['status' => 'error', 'message' => "Produk \"{$args['name']}\" sudah terdaftar. Gunakan update_product untuk mengubahnya."];
         }
 
-        $sku = $args['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $args['name']), 0, 6)) . '-' . rand(100, 999);
+        $sku = $args['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $args['name']), 0, 6)).'-'.rand(100, 999);
 
         $product = Product::create([
             'tenant_id' => $this->tenantId,
@@ -396,7 +395,7 @@ class InventoryTools
 
         // Jika ada stok awal, masukkan ke gudang default
         $stockMsg = '';
-        if (!empty($args['initial_stock']) && $args['initial_stock'] > 0) {
+        if (! empty($args['initial_stock']) && $args['initial_stock'] > 0) {
             $warehouse = Warehouse::where('tenant_id', $this->tenantId)->first();
             if ($warehouse) {
                 ProductStock::create([
@@ -421,7 +420,7 @@ class InventoryTools
 
         return [
             'status' => 'success',
-            'message' => "✅ Produk **{$product->name}** berhasil ditambahkan. SKU: `{$product->sku}`, Harga jual: Rp " . number_format($product->price_sell, 0, ',', '.') . ".{$stockMsg}",
+            'message' => "✅ Produk **{$product->name}** berhasil ditambahkan. SKU: `{$product->sku}`, Harga jual: Rp ".number_format($product->price_sell, 0, ',', '.').".{$stockMsg}",
             'data' => [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -435,11 +434,11 @@ class InventoryTools
     public function updateProduct(array $args): array
     {
         $product = Product::where('tenant_id', $this->tenantId)
-            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+            ->where(fn ($q) => $q->where('name', 'like', "%{$args['product_name']}%")
                 ->orWhere('sku', $args['product_name']))
             ->first();
 
-        if (!$product) {
+        if (! $product) {
             return ['status' => 'error', 'message' => "Produk \"{$args['product_name']}\" tidak ditemukan."];
         }
 
@@ -458,7 +457,7 @@ class InventoryTools
         }
         if (isset($args['price_buy'])) {
             $updates['price_buy'] = $args['price_buy'];
-            $changes[] = "harga beli: Rp " . number_format($args['price_buy'], 0, ',', '.');
+            $changes[] = 'harga beli: Rp '.number_format($args['price_buy'], 0, ',', '.');
         }
         if (isset($args['unit'])) {
             $updates['unit'] = $args['unit'];
@@ -474,11 +473,11 @@ class InventoryTools
         }
         if (isset($args['is_active'])) {
             $updates['is_active'] = $args['is_active'];
-            $changes[] = $args['is_active'] ? "status: **Aktif**" : "status: **Nonaktif**";
+            $changes[] = $args['is_active'] ? 'status: **Aktif**' : 'status: **Nonaktif**';
         }
         if (isset($args['description'])) {
             $updates['description'] = $args['description'];
-            $changes[] = "deskripsi diperbarui";
+            $changes[] = 'deskripsi diperbarui';
         }
 
         if (empty($updates)) {
@@ -489,39 +488,41 @@ class InventoryTools
 
         return [
             'status' => 'success',
-            'message' => "✅ Produk **{$product->name}** berhasil diperbarui.\nPerubahan: " . implode(', ', $changes) . '.',
+            'message' => "✅ Produk **{$product->name}** berhasil diperbarui.\nPerubahan: ".implode(', ', $changes).'.',
         ];
     }
 
     public function deleteProduct(array $args): array
     {
         $product = Product::where('tenant_id', $this->tenantId)
-            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+            ->where(fn ($q) => $q->where('name', 'like', "%{$args['product_name']}%")
                 ->orWhere('sku', $args['product_name']))
             ->first();
 
-        if (!$product) {
+        if (! $product) {
             return ['status' => 'error', 'message' => "Produk \"{$args['product_name']}\" tidak ditemukan."];
         }
 
         $permanent = $args['permanent'] ?? false;
 
         // Cek apakah produk pernah terjual
-        $hasSales = \App\Models\SalesOrderItem::where('product_id', $product->id)->exists();
+        $hasSales = SalesOrderItem::where('product_id', $product->id)->exists();
 
         if ($permanent && $hasSales) {
             // Tidak bisa hapus permanen, nonaktifkan saja
             $product->update(['is_active' => false]);
+
             return [
                 'status' => 'success',
                 'message' => "Produk **{$product->name}** tidak bisa dihapus permanen karena sudah pernah terjual. Produk telah **dinonaktifkan** sebagai gantinya.",
             ];
         }
 
-        if ($permanent && !$hasSales) {
+        if ($permanent && ! $hasSales) {
             $name = $product->name;
             $product->productStocks()->delete();
             $product->delete();
+
             return [
                 'status' => 'success',
                 'message' => "🗑️ Produk **{$name}** berhasil dihapus permanen.",
@@ -530,6 +531,7 @@ class InventoryTools
 
         // Default: nonaktifkan saja
         $product->update(['is_active' => false]);
+
         return [
             'status' => 'success',
             'message' => "Produk **{$product->name}** berhasil dinonaktifkan. Produk tidak akan muncul di daftar aktif, tapi riwayat transaksinya tetap tersimpan.",
@@ -539,21 +541,21 @@ class InventoryTools
     public function updateProductImage(array $args): array
     {
         $product = Product::where('tenant_id', $this->tenantId)
-            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+            ->where(fn ($q) => $q->where('name', 'like', "%{$args['product_name']}%")
                 ->orWhere('sku', $args['product_name']))
             ->first();
 
-        if (!$product) {
+        if (! $product) {
             return ['status' => 'error', 'message' => "Produk \"{$args['product_name']}\" tidak ditemukan."];
         }
 
         $imageUrl = $args['image_url'] ?? null;
 
         // Jika tidak ada URL (AI tidak kirim), cek apakah ada pending_image_url di session
-        if (!$imageUrl) {
+        if (! $imageUrl) {
             return [
                 'status' => 'error',
-                'message' => "URL gambar tidak tersedia. Pastikan kamu mengirim gambar bersamaan dengan perintah.",
+                'message' => 'URL gambar tidak tersedia. Pastikan kamu mengirim gambar bersamaan dengan perintah.',
             ];
         }
 
@@ -583,12 +585,13 @@ class InventoryTools
             $contents = @file_get_contents($imageUrl);
             if ($contents === false) {
                 $product->update(['image' => $imageUrl]);
+
                 return ['status' => 'success', 'message' => "✅ Foto produk **{$product->name}** berhasil diperbarui."];
             }
 
             $ext = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
             $ext = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'webp', 'gif']) ? strtolower($ext) : 'jpg';
-            $filename = 'products/' . uniqid('prod_') . '.' . $ext;
+            $filename = 'products/'.uniqid('prod_').'.'.$ext;
 
             Storage::disk('public')->put($filename, $contents);
 
@@ -606,7 +609,7 @@ class InventoryTools
                 'data' => ['product_id' => $product->id, 'product' => $product->name, 'image_url' => $storedUrl],
             ];
         } catch (\Throwable $e) {
-            return ['status' => 'error', 'message' => 'Gagal menyimpan gambar: ' . $e->getMessage()];
+            return ['status' => 'error', 'message' => 'Gagal menyimpan gambar: '.$e->getMessage()];
         }
     }
 
@@ -616,7 +619,7 @@ class InventoryTools
         $confidence = $args['confidence'] ?? 'medium';
         $description = $args['description'] ?? '';
 
-        if (!$detectedName) {
+        if (! $detectedName) {
             return ['status' => 'error', 'message' => 'Tidak dapat mendeteksi nama produk dari gambar.'];
         }
 
@@ -624,7 +627,7 @@ class InventoryTools
         $products = Product::where('tenant_id', $this->tenantId)
             ->where('is_active', true)
             ->where(
-                fn($q) => $q
+                fn ($q) => $q
                     ->where('name', 'like', "%{$detectedName}%")
                     ->orWhere('sku', 'like', "%{$detectedName}%")
                     ->orWhere('category', 'like', "%{$detectedName}%")
@@ -672,7 +675,7 @@ class InventoryTools
             ];
         }
 
-        $matchList = $products->map(fn($p) => [
+        $matchList = $products->map(fn ($p) => [
             'id' => $p->id,
             'name' => $p->name,
             'sku' => $p->sku,
@@ -685,7 +688,7 @@ class InventoryTools
             'confidence' => $confidence,
             'description' => $description,
             'matches' => $matchList,
-            'message' => "Gambar terdeteksi sebagai **{$detectedName}** (keyakinan: {$confidenceLabel}). Ditemukan " . count($matchList) . " produk yang cocok.",
+            'message' => "Gambar terdeteksi sebagai **{$detectedName}** (keyakinan: {$confidenceLabel}). Ditemukan ".count($matchList).' produk yang cocok.',
         ];
     }
 }

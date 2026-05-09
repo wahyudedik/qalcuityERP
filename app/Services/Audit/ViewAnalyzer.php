@@ -76,7 +76,7 @@ class ViewAnalyzer implements AnalyzerInterface
                 $this->basePath = getcwd();
             }
         }
-        $this->viewPath = $viewPath ?? ($this->basePath . '/resources/views');
+        $this->viewPath = $viewPath ?? ($this->basePath.'/resources/views');
     }
 
     /**
@@ -112,7 +112,7 @@ class ViewAnalyzer implements AnalyzerInterface
      * Layout files and files with grid/flex layouts should use
      * responsive Tailwind breakpoint classes (sm:, md:, lg:, xl:).
      *
-     * @param string $viewPath Absolute path to the Blade file
+     * @param  string  $viewPath  Absolute path to the Blade file
      * @return AuditFinding[]
      */
     public function checkResponsiveness(string $viewPath): array
@@ -127,7 +127,7 @@ class ViewAnalyzer implements AnalyzerInterface
         // Only check files that have layout-related classes (grid, flex, columns)
         // These are the files most likely to need responsive breakpoints
         $hasLayoutClasses = preg_match('/\b(grid|flex|columns|col-span|grid-cols|w-\d|max-w-)\b/', $content);
-        if (!$hasLayoutClasses) {
+        if (! $hasLayoutClasses) {
             return $findings;
         }
 
@@ -140,18 +140,18 @@ class ViewAnalyzer implements AnalyzerInterface
             }
         }
 
-        if (!$hasResponsiveClasses) {
+        if (! $hasResponsiveClasses) {
             $relativePath = $this->relativePath($viewPath);
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
                 title: "No responsive breakpoints in {$relativePath}",
-                description: "Blade template uses layout classes (grid/flex) but has no responsive "
-                    . "breakpoint prefixes (sm:, md:, lg:, xl:). This may cause layout issues on smaller screens.",
+                description: 'Blade template uses layout classes (grid/flex) but has no responsive '
+                    .'breakpoint prefixes (sm:, md:, lg:, xl:). This may cause layout issues on smaller screens.',
                 file: $relativePath,
                 line: null,
-                recommendation: "Add responsive breakpoint classes (e.g., sm:grid-cols-2, md:flex-row) "
-                    . "to ensure proper layout on mobile and tablet devices.",
+                recommendation: 'Add responsive breakpoint classes (e.g., sm:grid-cols-2, md:flex-row) '
+                    .'to ensure proper layout on mobile and tablet devices.',
                 metadata: [
                     'check' => 'responsiveness',
                 ],
@@ -168,7 +168,7 @@ class ViewAnalyzer implements AnalyzerInterface
      * or inline `Npx` values where N >= a threshold (to skip small
      * border/decoration values like 1px, 2px).
      *
-     * @param string $viewPath Absolute path to the Blade file
+     * @param  string  $viewPath  Absolute path to the Blade file
      * @return AuditFinding[]
      */
     public function findHardcodedPixels(string $viewPath): array
@@ -212,7 +212,7 @@ class ViewAnalyzer implements AnalyzerInterface
             }
         }
 
-        if (!empty($flaggedLines)) {
+        if (! empty($flaggedLines)) {
             // Group by file — report one finding per file with all occurrences
             $lineNumbers = array_column($flaggedLines, 'line');
             $values = array_unique(array_column($flaggedLines, 'value'));
@@ -223,12 +223,12 @@ class ViewAnalyzer implements AnalyzerInterface
                 severity: Severity::Low,
                 title: "Hardcoded pixel widths in {$relativePath}",
                 description: "Found {$count} hardcoded pixel value(s) ({$this->summarizeValues($values)}) "
-                    . "on line(s) " . implode(', ', array_unique($lineNumbers)) . ". "
-                    . "Hardcoded pixel widths can break responsive layouts on different screen sizes.",
+                    .'on line(s) '.implode(', ', array_unique($lineNumbers)).'. '
+                    .'Hardcoded pixel widths can break responsive layouts on different screen sizes.',
                 file: $relativePath,
                 line: $flaggedLines[0]['line'],
-                recommendation: "Replace hardcoded pixel widths with responsive Tailwind classes "
-                    . "(e.g., w-full, max-w-lg, w-1/2) or responsive utility classes.",
+                recommendation: 'Replace hardcoded pixel widths with responsive Tailwind classes '
+                    .'(e.g., w-full, max-w-lg, w-1/2) or responsive utility classes.',
                 metadata: [
                     'check' => 'hardcoded_pixels',
                     'occurrences' => $flaggedLines,
@@ -248,7 +248,7 @@ class ViewAnalyzer implements AnalyzerInterface
      * - <textarea> elements have associated labels
      * - Forms have validation feedback patterns
      *
-     * @param string $viewPath Absolute path to the Blade file
+     * @param  string  $viewPath  Absolute path to the Blade file
      * @return AuditFinding[]
      */
     public function checkFormAccessibility(string $viewPath): array
@@ -261,7 +261,7 @@ class ViewAnalyzer implements AnalyzerInterface
         }
 
         // Only check files that contain form inputs
-        if (!preg_match('/<(input|select|textarea)\b/i', $content)) {
+        if (! preg_match('/<(input|select|textarea)\b/i', $content)) {
             return $findings;
         }
 
@@ -270,7 +270,7 @@ class ViewAnalyzer implements AnalyzerInterface
 
         // Check for inputs without labels or ARIA attributes
         $unlabeledInputs = $this->findUnlabeledInputs($content);
-        if (!empty($unlabeledInputs)) {
+        if (! empty($unlabeledInputs)) {
             $issues[] = [
                 'type' => 'missing_labels',
                 'count' => count($unlabeledInputs),
@@ -281,7 +281,7 @@ class ViewAnalyzer implements AnalyzerInterface
         // Check for missing validation feedback patterns
         $hasValidationFeedback = $this->hasValidationFeedback($content);
         $hasFormTag = preg_match('/<form\b/i', $content);
-        if ($hasFormTag && !$hasValidationFeedback) {
+        if ($hasFormTag && ! $hasValidationFeedback) {
             $issues[] = [
                 'type' => 'missing_validation_feedback',
                 'count' => 1,
@@ -289,7 +289,7 @@ class ViewAnalyzer implements AnalyzerInterface
             ];
         }
 
-        if (!empty($issues)) {
+        if (! empty($issues)) {
             $descriptions = [];
             foreach ($issues as $issue) {
                 if ($issue['type'] === 'missing_labels') {
@@ -304,12 +304,12 @@ class ViewAnalyzer implements AnalyzerInterface
                 category: $this->category(),
                 severity: Severity::Medium,
                 title: "Form accessibility issues in {$relativePath}",
-                description: "Found form accessibility issues: " . implode('; ', $descriptions) . ". "
-                    . "Forms should have proper label associations and validation feedback for accessibility.",
+                description: 'Found form accessibility issues: '.implode('; ', $descriptions).'. '
+                    .'Forms should have proper label associations and validation feedback for accessibility.',
                 file: $relativePath,
                 line: null,
-                recommendation: "Add <label for=\"...\"> elements or aria-label/aria-labelledby attributes "
-                    . "to all form inputs. Add @error directives or \$errors->has() checks for validation feedback.",
+                recommendation: 'Add <label for="..."> elements or aria-label/aria-labelledby attributes '
+                    .'to all form inputs. Add @error directives or $errors->has() checks for validation feedback.',
                 metadata: [
                     'check' => 'form_accessibility',
                     'issues' => $issues,
@@ -326,7 +326,7 @@ class ViewAnalyzer implements AnalyzerInterface
      * Tables should be wrapped in a container with overflow-x-auto
      * or similar class to enable horizontal scrolling on mobile.
      *
-     * @param string $viewPath Absolute path to the Blade file
+     * @param  string  $viewPath  Absolute path to the Blade file
      * @return AuditFinding[]
      */
     public function checkTableMobile(string $viewPath): array
@@ -339,14 +339,14 @@ class ViewAnalyzer implements AnalyzerInterface
         }
 
         // Only check files that contain <table> tags
-        if (!preg_match('/<table\b/i', $content)) {
+        if (! preg_match('/<table\b/i', $content)) {
             return $findings;
         }
 
         $relativePath = $this->relativePath($viewPath);
         $tablesWithoutOverflow = $this->findTablesWithoutOverflow($content);
 
-        if (!empty($tablesWithoutOverflow)) {
+        if (! empty($tablesWithoutOverflow)) {
             $count = count($tablesWithoutOverflow);
             $lineNumbers = array_column($tablesWithoutOverflow, 'line');
 
@@ -354,13 +354,13 @@ class ViewAnalyzer implements AnalyzerInterface
                 category: $this->category(),
                 severity: Severity::Medium,
                 title: "Table(s) without mobile overflow in {$relativePath}",
-                description: "Found {$count} <table> element(s) on line(s) " . implode(', ', $lineNumbers)
-                    . " without a scrollable overflow container. "
-                    . "Tables without overflow-x-auto will be cut off on mobile screens.",
+                description: "Found {$count} <table> element(s) on line(s) ".implode(', ', $lineNumbers)
+                    .' without a scrollable overflow container. '
+                    .'Tables without overflow-x-auto will be cut off on mobile screens.',
                 file: $relativePath,
                 line: $tablesWithoutOverflow[0]['line'],
-                recommendation: "Wrap each <table> in a <div class=\"overflow-x-auto\"> container "
-                    . "to enable horizontal scrolling on smaller screens.",
+                recommendation: 'Wrap each <table> in a <div class="overflow-x-auto"> container '
+                    .'to enable horizontal scrolling on smaller screens.',
                 metadata: [
                     'check' => 'table_mobile',
                     'tables' => $tablesWithoutOverflow,
@@ -390,7 +390,7 @@ class ViewAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($this->viewPath)) {
+        if (! is_dir($this->viewPath)) {
             return $files;
         }
 
@@ -417,16 +417,16 @@ class ViewAnalyzer implements AnalyzerInterface
     {
         // Safe CSS property patterns where px is commonly acceptable
         $safePatterns = [
-            '/font-size\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/border-radius\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/line-height\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/box-shadow\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/text-shadow\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/border\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/border-\w+\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/outline\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/letter-spacing\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
-            '/gap\s*:\s*[^;]*' . preg_quote($pxValue, '/') . '/',
+            '/font-size\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/border-radius\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/line-height\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/box-shadow\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/text-shadow\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/border\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/border-\w+\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/outline\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/letter-spacing\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
+            '/gap\s*:\s*[^;]*'.preg_quote($pxValue, '/').'/',
         ];
 
         foreach ($safePatterns as $pattern) {
@@ -449,7 +449,8 @@ class ViewAnalyzer implements AnalyzerInterface
 
         $first = array_slice($values, 0, 5);
         $remaining = count($values) - 5;
-        return implode(', ', $first) . " and {$remaining} more";
+
+        return implode(', ', $first)." and {$remaining} more";
     }
 
     /**
@@ -590,7 +591,7 @@ class ViewAnalyzer implements AnalyzerInterface
         $lines = explode("\n", $content);
 
         foreach ($lines as $index => $line) {
-            if (!preg_match('/<table\b/i', $line)) {
+            if (! preg_match('/<table\b/i', $line)) {
                 continue;
             }
 
@@ -608,7 +609,7 @@ class ViewAnalyzer implements AnalyzerInterface
                 }
             }
 
-            if (!$hasOverflow) {
+            if (! $hasOverflow) {
                 $tablesWithoutOverflow[] = [
                     'line' => $lineNumber,
                 ];
@@ -623,7 +624,7 @@ class ViewAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

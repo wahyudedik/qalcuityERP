@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             // customer_id nullable untuk POS (walk-in customer)
-            if (!Schema::hasColumn('sales_orders', 'customer_id')) {
+            if (! Schema::hasColumn('sales_orders', 'customer_id')) {
                 $table->foreignId('customer_id')->nullable()->change();
             }
             // metode pembayaran
-            if (!Schema::hasColumn('sales_orders', 'payment_method')) {
+            if (! Schema::hasColumn('sales_orders', 'payment_method')) {
                 $table->string('payment_method')->nullable()->after('notes'); // cash, transfer, qris
                 // tipe order: pos = quick sale, order = sales order biasa
                 $table->enum('source', ['pos', 'order'])->default('order')->after('payment_method');

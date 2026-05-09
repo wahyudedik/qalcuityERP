@@ -8,9 +8,13 @@ use App\DTOs\Audit\Severity;
 class PerformanceAnalyzer implements AnalyzerInterface
 {
     private string $basePath;
+
     private string $controllerPath;
+
     private string $exportPath;
+
     private string $jobsPath;
+
     private string $servicePath;
 
     public function __construct(
@@ -30,10 +34,10 @@ class PerformanceAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
-        $this->exportPath = $exportPath ?? ($this->basePath . '/app/Exports');
-        $this->jobsPath = $jobsPath ?? ($this->basePath . '/app/Jobs');
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
+        $this->exportPath = $exportPath ?? ($this->basePath.'/app/Exports');
+        $this->jobsPath = $jobsPath ?? ($this->basePath.'/app/Jobs');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
     }
 
     /**
@@ -76,7 +80,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
-                title: 'Missing pagination: ' . $finding->title,
+                title: 'Missing pagination: '.$finding->title,
                 description: $finding->description,
                 file: $finding->file,
                 line: $finding->line,
@@ -108,7 +112,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
-                title: 'Potential eager-loading gap: ' . $finding->title,
+                title: 'Potential eager-loading gap: '.$finding->title,
                 description: $finding->description,
                 file: $finding->file,
                 line: $finding->line,
@@ -136,7 +140,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            if (!$this->isExportClass($source)) {
+            if (! $this->isExportClass($source)) {
                 continue;
             }
 
@@ -178,7 +182,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
             $hasTimeout = preg_match('/\$timeout\s*=/', $source) === 1;
             $hasChunkHint = preg_match('/(chunk|batch|cursor|paginate|chunkById)/i', $source) === 1;
 
-            if (!$hasTimeout) {
+            if (! $hasTimeout) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Medium,
@@ -191,7 +195,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
                 );
             }
 
-            if ($isBulkStyleJob && !$hasChunkHint) {
+            if ($isBulkStyleJob && ! $hasChunkHint) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Low,
@@ -220,7 +224,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
     private function discoverPhpFiles(string $directory): array
     {
         $files = [];
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -251,7 +255,7 @@ class PerformanceAnalyzer implements AnalyzerInterface
 
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

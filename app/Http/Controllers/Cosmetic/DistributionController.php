@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistributionChannel;
-use App\Models\ChannelPricing;
 use App\Models\ChannelInventory;
+use App\Models\ChannelPricing;
 use App\Models\ChannelSalesPerformance;
 use App\Models\CosmeticFormula;
+use App\Models\DistributionChannel;
 use Illuminate\Http\Request;
 
 class DistributionController extends Controller
@@ -27,7 +27,7 @@ class DistributionController extends Controller
 
         // Channels list
         $channels = DistributionChannel::where('tenant_id', $tenantId)
-            ->when($request->type, fn($q) => $q->byType($request->type))
+            ->when($request->type, fn ($q) => $q->byType($request->type))
             ->withCount(['pricing', 'inventory'])
             ->latest()
             ->paginate(15);
@@ -68,8 +68,8 @@ class DistributionController extends Controller
         $formulas = CosmeticFormula::where('tenant_id', $tenantId)->get();
 
         $pricing = ChannelPricing::where('tenant_id', $tenantId)
-            ->when($request->channel_id, fn($q) => $q->where('channel_id', $request->channel_id))
-            ->when($request->formula_id, fn($q) => $q->where('formula_id', $request->formula_id))
+            ->when($request->channel_id, fn ($q) => $q->where('channel_id', $request->channel_id))
+            ->when($request->formula_id, fn ($q) => $q->where('formula_id', $request->formula_id))
             ->with(['channel', 'product'])
             ->latest()
             ->paginate(20);
@@ -113,7 +113,7 @@ class DistributionController extends Controller
         $channels = DistributionChannel::where('tenant_id', $tenantId)->active()->get();
 
         $inventory = ChannelInventory::where('tenant_id', $tenantId)
-            ->when($request->channel_id, fn($q) => $q->where('channel_id', $request->channel_id))
+            ->when($request->channel_id, fn ($q) => $q->where('channel_id', $request->channel_id))
             ->with(['channel', 'product'])
             ->latest()
             ->paginate(20);
@@ -150,9 +150,9 @@ class DistributionController extends Controller
 
         // Performance by channel
         $performance = ChannelSalesPerformance::where('tenant_id', $tenantId)
-            ->when($request->channel_id, fn($q) => $q->where('channel_id', $request->channel_id))
-            ->when($request->date_from, fn($q) => $q->where('sale_date', '>=', $request->date_from))
-            ->when($request->date_to, fn($q) => $q->where('sale_date', '<=', $request->date_to))
+            ->when($request->channel_id, fn ($q) => $q->where('channel_id', $request->channel_id))
+            ->when($request->date_from, fn ($q) => $q->where('sale_date', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->where('sale_date', '<=', $request->date_to))
             ->with('channel')
             ->latest('sale_date')
             ->paginate(20);

@@ -10,20 +10,20 @@ return new class extends Migration
     {
         // Manager/atasan untuk org chart
         Schema::table('employees', function (Blueprint $table) {
-            if (!Schema::hasColumn('employees', 'manager_id')) {
+            if (! Schema::hasColumn('employees', 'manager_id')) {
                 $table->foreignId('manager_id')->nullable()->after('user_id')
-                      ->constrained('employees')->nullOnDelete();
+                    ->constrained('employees')->nullOnDelete();
             }
         });
 
         // Cuti
-        if (!Schema::hasTable('leave_requests')) {
+        if (! Schema::hasTable('leave_requests')) {
             Schema::create('leave_requests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
                 $table->enum('type', ['annual', 'sick', 'maternity', 'paternity', 'unpaid', 'other'])
-                      ->default('annual');
+                    ->default('annual');
                 $table->date('start_date');
                 $table->date('end_date');
                 $table->unsignedSmallInteger('days')->default(1);
@@ -33,13 +33,13 @@ return new class extends Migration
                 $table->text('rejection_reason')->nullable();
                 $table->timestamp('approved_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'employee_id', 'status']);
             });
         }
 
         // Penilaian kinerja
-        if (!Schema::hasTable('performance_reviews')) {
+        if (! Schema::hasTable('performance_reviews')) {
             Schema::create('performance_reviews', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -61,7 +61,7 @@ return new class extends Migration
                 $table->enum('status', ['draft', 'submitted', 'acknowledged'])->default('draft');
                 $table->timestamp('submitted_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['employee_id', 'period', 'period_type']);
                 $table->index(['tenant_id', 'employee_id']);
             });

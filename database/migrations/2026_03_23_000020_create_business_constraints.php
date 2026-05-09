@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('business_constraints')) {
+        if (! Schema::hasTable('business_constraints')) {
             Schema::create('business_constraints', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('description')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'key']);
                 $table->index('tenant_id');
             });

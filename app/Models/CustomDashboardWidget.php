@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomDashboardWidget extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'created_by',
@@ -50,7 +50,7 @@ class CustomDashboardWidget extends Model
      */
     public function registryKey(): string
     {
-        return 'custom_' . $this->id;
+        return 'custom_'.$this->id;
     }
 
     /**
@@ -69,22 +69,23 @@ class CustomDashboardWidget extends Model
 
     // ─── Allowed models (whitelist to prevent arbitrary code execution) ──────
     private const ALLOWED_MODELS = [
-        'SalesOrder' => \App\Models\SalesOrder::class,
-        'PurchaseOrder' => \App\Models\PurchaseOrder::class,
-        'Transaction' => \App\Models\Transaction::class,
-        'Invoice' => \App\Models\Invoice::class,
-        'ProductStock' => \App\Models\ProductStock::class,
-        'Customer' => \App\Models\Customer::class,
-        'Employee' => \App\Models\Employee::class,
-        'EcommerceOrder' => \App\Models\EcommerceOrder::class,
-        'Attendance' => \App\Models\Attendance::class,
+        'SalesOrder' => SalesOrder::class,
+        'PurchaseOrder' => PurchaseOrder::class,
+        'Transaction' => Transaction::class,
+        'Invoice' => Invoice::class,
+        'ProductStock' => ProductStock::class,
+        'Customer' => Customer::class,
+        'Employee' => Employee::class,
+        'EcommerceOrder' => EcommerceOrder::class,
+        'Attendance' => Attendance::class,
     ];
 
     private function buildQuery(int $tenantId)
     {
         $modelClass = self::ALLOWED_MODELS[$this->model_class] ?? null;
-        if (!$modelClass)
+        if (! $modelClass) {
             return null;
+        }
 
         $q = $modelClass::where('tenant_id', $tenantId);
 
@@ -119,16 +120,20 @@ class CustomDashboardWidget extends Model
     private function runSum(int $tenantId): float
     {
         $col = $this->metric_column;
-        if (!$col || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $col))
+        if (! $col || ! preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $col)) {
             return 0;
+        }
+
         return (float) ($this->buildQuery($tenantId)?->sum($col) ?? 0);
     }
 
     private function runAvg(int $tenantId): float
     {
         $col = $this->metric_column;
-        if (!$col || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $col))
+        if (! $col || ! preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $col)) {
             return 0;
+        }
+
         return (float) ($this->buildQuery($tenantId)?->avg($col) ?? 0);
     }
 
@@ -138,14 +143,14 @@ class CustomDashboardWidget extends Model
     public function formatValue(float|int|string $value): string
     {
         $formatted = match ($this->value_format) {
-            'currency' => 'Rp ' . number_format((float) $value, 0, ',', '.'),
-            'percent' => number_format((float) $value, 1) . '%',
+            'currency' => 'Rp '.number_format((float) $value, 0, ',', '.'),
+            'percent' => number_format((float) $value, 1).'%',
             default => number_format((float) $value, 0, ',', '.'),
         };
 
-        $prefix = $this->value_prefix ? ($this->value_prefix . ' ') : '';
-        $suffix = $this->value_suffix ? (' ' . $this->value_suffix) : '';
+        $prefix = $this->value_prefix ? ($this->value_prefix.' ') : '';
+        $suffix = $this->value_suffix ? (' '.$this->value_suffix) : '';
 
-        return $prefix . $formatted . $suffix;
+        return $prefix.$formatted.$suffix;
     }
 }

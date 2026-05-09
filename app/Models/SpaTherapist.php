@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpaTherapist extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -39,7 +39,7 @@ class SpaTherapist extends Model
         ];
     }
 
-    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
@@ -87,7 +87,7 @@ class SpaTherapist extends Model
             })
             ->exists();
 
-        return !$conflictingBooking;
+        return ! $conflictingBooking;
     }
 
     /**

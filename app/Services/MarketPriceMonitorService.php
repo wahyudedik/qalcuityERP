@@ -4,8 +4,6 @@ namespace App\Services;
 
 use App\Models\MarketPrice;
 use App\Models\PriceAlert;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class MarketPriceMonitorService
 {
@@ -119,7 +117,7 @@ class MarketPriceMonitorService
             'commodity' => $commodity,
             'data_points' => $prices->count(),
             'trend' => $trend,
-            'prices' => $prices->map(fn($p) => [
+            'prices' => $prices->map(fn ($p) => [
                 'date' => $p->price_date,
                 'price' => $p->price_per_kg,
                 'change' => $p->price_change_percent,
@@ -186,7 +184,7 @@ class MarketPriceMonitorService
     {
         $trend = $this->getPriceTrends($tenantId, $commodity, 90); // Last 90 days
 
-        if (!$trend['statistics']) {
+        if (! $trend['statistics']) {
             return [
                 'recommendation' => 'Insufficient data',
                 'confidence' => 'low',
@@ -209,7 +207,7 @@ class MarketPriceMonitorService
             return [
                 'recommendation' => 'GOOD TIME TO SELL',
                 'confidence' => 'medium',
-                'reason' => "Price is 10% above average",
+                'reason' => 'Price is 10% above average',
                 'action' => 'consider_selling',
             ];
         } elseif ($trend['trend'] === 'upward') {
@@ -223,7 +221,7 @@ class MarketPriceMonitorService
             return [
                 'recommendation' => 'HOLD - Wait for better price',
                 'confidence' => 'low',
-                'reason' => "Current price below average",
+                'reason' => 'Current price below average',
                 'action' => 'hold',
             ];
         }

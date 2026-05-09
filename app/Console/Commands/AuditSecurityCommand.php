@@ -12,15 +12,16 @@ class AuditSecurityCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:security {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run security audit.';
 
     public function handle(SecurityAnalyzer $analyzer): int
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($analyzer->analyze());
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Affiliate profiles (linked to users with role=affiliate)
-        if (!Schema::hasTable('affiliates')) {
+        if (! Schema::hasTable('affiliates')) {
             Schema::create('affiliates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -30,7 +30,7 @@ return new class extends Migration
         }
 
         // Track which tenant was referred by which affiliate (1 tenant = max 1 affiliate)
-        if (!Schema::hasTable('affiliate_referrals')) {
+        if (! Schema::hasTable('affiliate_referrals')) {
             Schema::create('affiliate_referrals', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('affiliate_id')->constrained()->cascadeOnDelete();
@@ -38,13 +38,13 @@ return new class extends Migration
                 $table->timestamp('referred_at');
                 $table->string('source')->nullable();              // link, wa, manual
                 $table->timestamps();
-    
+
                 $table->unique('tenant_id'); // 1 tenant = max 1 affiliate
             });
         }
 
         // Commission per payment
-        if (!Schema::hasTable('affiliate_commissions')) {
+        if (! Schema::hasTable('affiliate_commissions')) {
             Schema::create('affiliate_commissions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('affiliate_id')->constrained()->cascadeOnDelete();
@@ -60,13 +60,13 @@ return new class extends Migration
                 $table->timestamp('paid_at')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['affiliate_id', 'status']);
             });
         }
 
         // Payouts to affiliates
-        if (!Schema::hasTable('affiliate_payouts')) {
+        if (! Schema::hasTable('affiliate_payouts')) {
             Schema::create('affiliate_payouts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('affiliate_id')->constrained()->cascadeOnDelete();
@@ -83,7 +83,7 @@ return new class extends Migration
 
         // Add affiliate referral code tracking to tenants
         Schema::table('tenants', function (Blueprint $table) {
-            if (!Schema::hasColumn('tenants', 'referred_by_code')) {
+            if (! Schema::hasColumn('tenants', 'referred_by_code')) {
                 $table->string('referred_by_code', 20)->nullable()->after('enabled_modules');
             }
         });

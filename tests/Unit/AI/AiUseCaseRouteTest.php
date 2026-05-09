@@ -39,14 +39,14 @@ class AiUseCaseRouteTest extends TestCase
     private function createRoute(array $attrs = []): AiUseCaseRoute
     {
         $defaults = [
-            'tenant_id'      => null,
-            'use_case'       => 'chatbot',
-            'provider'       => 'gemini',
-            'model'          => 'gemini-2.5-flash',
-            'min_plan'       => null,
+            'tenant_id' => null,
+            'use_case' => 'chatbot',
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'min_plan' => null,
             'fallback_chain' => null,
-            'is_active'      => true,
-            'description'    => null,
+            'is_active' => true,
+            'description' => null,
         ];
 
         $data = array_merge($defaults, $attrs);
@@ -75,7 +75,7 @@ class AiUseCaseRouteTest extends TestCase
     public function active_scope_returns_only_active_records(): void
     {
         // Requirements: 1.2
-        $active   = $this->createRoute(['use_case' => 'chatbot', 'is_active' => true]);
+        $active = $this->createRoute(['use_case' => 'chatbot', 'is_active' => true]);
         $inactive = $this->createRoute(['use_case' => 'crud_ai', 'is_active' => false]);
 
         $results = AiUseCaseRoute::withoutGlobalScopes()->active()->pluck('id');
@@ -139,7 +139,7 @@ class AiUseCaseRouteTest extends TestCase
 
         $tenantA = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => $tenantIdA]);
         $tenantB = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => $tenantIdB]);
-        $global  = $this->createRoute(['use_case' => 'crud_ai', 'tenant_id' => null]);
+        $global = $this->createRoute(['use_case' => 'crud_ai', 'tenant_id' => null]);
 
         $results = AiUseCaseRoute::tenantRules($tenantIdA)->pluck('id');
 
@@ -169,7 +169,7 @@ class AiUseCaseRouteTest extends TestCase
         $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => null]);
 
         $tenantId = $this->newTenantId();
-        $results  = AiUseCaseRoute::tenantRules($tenantId)->get();
+        $results = AiUseCaseRoute::tenantRules($tenantId)->get();
 
         $this->assertEmpty($results);
     }
@@ -180,8 +180,8 @@ class AiUseCaseRouteTest extends TestCase
     public function for_use_case_scope_filters_by_use_case(): void
     {
         // Requirements: 1.2
-        $chatbot  = $this->createRoute(['use_case' => 'chatbot',     'tenant_id' => null]);
-        $crudAi   = $this->createRoute(['use_case' => 'crud_ai',     'tenant_id' => null]);
+        $chatbot = $this->createRoute(['use_case' => 'chatbot',     'tenant_id' => null]);
+        $crudAi = $this->createRoute(['use_case' => 'crud_ai',     'tenant_id' => null]);
         $forecast = $this->createRoute(['use_case' => 'forecasting', 'tenant_id' => null]);
 
         $results = AiUseCaseRoute::withoutGlobalScopes()->forUseCase('chatbot')->pluck('id');
@@ -218,7 +218,7 @@ class AiUseCaseRouteTest extends TestCase
         $this->assertContains($global->id, $globalResults);
 
         // Tidak boleh muncul di tenantRules() untuk tenant manapun
-        $tenantId      = $this->newTenantId();
+        $tenantId = $this->newTenantId();
         $tenantResults = AiUseCaseRoute::tenantRules($tenantId)->pluck('id');
         $this->assertNotContains($global->id, $tenantResults);
     }
@@ -227,7 +227,7 @@ class AiUseCaseRouteTest extends TestCase
     public function non_null_tenant_id_means_tenant_specific_rule(): void
     {
         // Requirements: 1.7
-        $tenantId   = $this->newTenantId();
+        $tenantId = $this->newTenantId();
         $tenantRule = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => $tenantId]);
 
         $this->assertSame($tenantId, $tenantRule->tenant_id);
@@ -248,8 +248,8 @@ class AiUseCaseRouteTest extends TestCase
     {
         // Requirements: 1.2
         $route = $this->createRoute([
-            'use_case'       => 'financial_report',
-            'tenant_id'      => null,
+            'use_case' => 'financial_report',
+            'tenant_id' => null,
             'fallback_chain' => json_encode(['gemini', 'anthropic']),
         ]);
 
@@ -265,8 +265,8 @@ class AiUseCaseRouteTest extends TestCase
     {
         // Requirements: 1.2
         $route = $this->createRoute([
-            'use_case'       => 'chatbot',
-            'tenant_id'      => null,
+            'use_case' => 'chatbot',
+            'tenant_id' => null,
             'fallback_chain' => null,
         ]);
 
@@ -281,8 +281,8 @@ class AiUseCaseRouteTest extends TestCase
         // Requirements: 1.2
         $chain = ['anthropic', 'gemini', 'openai'];
         $route = $this->createRoute([
-            'use_case'       => 'forecasting',
-            'tenant_id'      => null,
+            'use_case' => 'forecasting',
+            'tenant_id' => null,
             'fallback_chain' => json_encode($chain),
         ]);
 
@@ -326,10 +326,10 @@ class AiUseCaseRouteTest extends TestCase
         // globalRules() + active() + forUseCase() dapat dirantai
         $tenantId = $this->newTenantId();
 
-        $match    = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => null,      'is_active' => true]);
+        $match = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => null,      'is_active' => true]);
         $inactive = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => null,      'is_active' => false]);
-        $tenant   = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => $tenantId, 'is_active' => true]);
-        $other    = $this->createRoute(['use_case' => 'crud_ai', 'tenant_id' => null,      'is_active' => true]);
+        $tenant = $this->createRoute(['use_case' => 'chatbot', 'tenant_id' => $tenantId, 'is_active' => true]);
+        $other = $this->createRoute(['use_case' => 'crud_ai', 'tenant_id' => null,      'is_active' => true]);
 
         $results = AiUseCaseRoute::globalRules()
             ->active()

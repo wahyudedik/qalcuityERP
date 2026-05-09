@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('rab_items')) {
+        if (! Schema::hasTable('rab_items')) {
             Schema::create('rab_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->integer('sort_order')->default(0);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->foreign('parent_id')->references('id')->on('rab_items')->nullOnDelete();
                 $table->index(['project_id', 'parent_id']);
                 $table->index(['project_id', 'type']);

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Document Signature Service
- * 
+ *
  * Handles digital and electronic document signing with hash verification.
  */
 class DocumentSignatureService
@@ -88,7 +88,8 @@ class DocumentSignatureService
      */
     protected function generateSignatureHash(string $content, int $documentId): string
     {
-        $data = $content . $documentId . now()->timestamp;
+        $data = $content.$documentId.now()->timestamp;
+
         return hash('sha256', $data);
     }
 
@@ -97,7 +98,7 @@ class DocumentSignatureService
      */
     public function getCertificateInfo(DocumentSignature $signature): ?array
     {
-        if (!$signature->hasCertificate()) {
+        if (! $signature->hasCertificate()) {
             return null;
         }
 
@@ -160,6 +161,7 @@ class DocumentSignatureService
                 if ($document->is_signed) {
                     $results['failed']++;
                     $results['errors'][] = "Document {$documentId} already signed";
+
                     continue;
                 }
 

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\SmartScale;
 use App\Models\ScaleWeighLog;
+use App\Models\SmartScale;
 use Illuminate\Support\Facades\Log;
 
 class SmartScaleService
@@ -65,7 +65,7 @@ class SmartScaleService
                 'serial', 'usb' => $this->sendCommand($config, "T\r\n"),
                 'bluetooth' => $this->sendCommand($config, "T\r\n"),
                 'network' => $this->sendCommand($config, "T\r\n"),
-                default => throw new \Exception("Unsupported connection type"),
+                default => throw new \Exception('Unsupported connection type'),
             };
 
             return true;
@@ -74,6 +74,7 @@ class SmartScaleService
                 'scale_id' => $scale->id,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -123,6 +124,7 @@ class SmartScaleService
             };
 
             $log->update(['status' => 'processed']);
+
             return true;
 
         } catch (\Exception $e) {
@@ -130,6 +132,7 @@ class SmartScaleService
                 'status' => 'error',
                 'error_message' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -145,20 +148,20 @@ class SmartScaleService
             if ($result['success']) {
                 return [
                     'success' => true,
-                    'message' => 'Koneksi berhasil! Berat terbaca: ' . $result['weight'] . ' ' . $result['unit'],
+                    'message' => 'Koneksi berhasil! Berat terbaca: '.$result['weight'].' '.$result['unit'],
                     'weight' => $result['weight'],
                     'unit' => $result['unit'],
                 ];
             } else {
                 return [
                     'success' => false,
-                    'message' => 'Gagal membaca berat: ' . $result['error'],
+                    'message' => 'Gagal membaca berat: '.$result['error'],
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Error koneksi: ' . $e->getMessage(),
+                'message' => 'Error koneksi: '.$e->getMessage(),
             ];
         }
     }
@@ -173,7 +176,7 @@ class SmartScaleService
         // Note: PHP serial communication requires php_serial extension or dio extension
         // For production, consider using a middleware service or Python script
 
-        if (!function_exists('dio_open')) {
+        if (! function_exists('dio_open')) {
             throw new \Exception('PHP DIO extension not installed. Please install php-dio for serial communication.');
         }
 
@@ -182,22 +185,26 @@ class SmartScaleService
 
         // Add proper port prefix for Windows
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $port = '\\\\.\\' . $port;
+            $port = '\\\\.\\'.$port;
         }
 
         // Define constants if not already defined
-        if (!defined('O_RDWR'))
+        if (! defined('O_RDWR')) {
             define('O_RDWR', 2);
-        if (!defined('O_NONBLOCK'))
+        }
+        if (! defined('O_NONBLOCK')) {
             define('O_NONBLOCK', 2048);
-        if (!defined('F_SETFL'))
+        }
+        if (! defined('F_SETFL')) {
             define('F_SETFL', 4);
-        if (!defined('O_SYNC'))
+        }
+        if (! defined('O_SYNC')) {
             define('O_SYNC', 16);
+        }
 
         $device = @dio_open($port, O_RDWR | O_NONBLOCK);
 
-        if (!$device) {
+        if (! $device) {
             throw new \Exception("Cannot open port: {$port}");
         }
 
@@ -259,7 +266,7 @@ class SmartScaleService
 
         $socket = @fsockopen($ip, $port, $errno, $errstr, $timeout);
 
-        if (!$socket) {
+        if (! $socket) {
             throw new \Exception("Cannot connect to {$ip}:{$port} - {$errstr}");
         }
 
@@ -271,10 +278,11 @@ class SmartScaleService
 
         // Read response
         $data = '';
-        while (!feof($socket)) {
+        while (! feof($socket)) {
             $chunk = fgets($socket, 256);
-            if ($chunk === false)
+            if ($chunk === false) {
                 break;
+            }
             $data .= $chunk;
 
             if (strpos($data, "\r") !== false || strpos($data, "\n") !== false) {
@@ -300,26 +308,28 @@ class SmartScaleService
             case 'serial':
             case 'usb':
             case 'bluetooth':
-                if (!function_exists('dio_open')) {
+                if (! function_exists('dio_open')) {
                     throw new \Exception('PHP DIO extension not installed');
                 }
 
                 // Define constants if not already defined
-                if (!defined('O_RDWR'))
+                if (! defined('O_RDWR')) {
                     define('O_RDWR', 2);
+                }
 
                 $port = $config['port'];
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    $port = '\\\\.\\' . $port;
+                    $port = '\\\\.\\'.$port;
                 }
 
                 $device = @dio_open($port, O_RDWR);
-                if (!$device) {
+                if (! $device) {
                     throw new \Exception("Cannot open port: {$port}");
                 }
 
                 @dio_write($device, $command);
                 @dio_close($device);
+
                 return true;
 
             case 'network':
@@ -327,16 +337,17 @@ class SmartScaleService
                 $port = $config['config']['network_port'] ?? 4000;
 
                 $socket = @fsockopen($ip, $port, $errno, $errstr, 5);
-                if (!$socket) {
+                if (! $socket) {
                     throw new \Exception("Cannot connect to {$ip}:{$port}");
                 }
 
                 fwrite($socket, $command);
                 fclose($socket);
+
                 return true;
 
             default:
-                throw new \Exception("Unsupported connection type");
+                throw new \Exception('Unsupported connection type');
         }
     }
 

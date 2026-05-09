@@ -14,6 +14,7 @@ use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Config;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 /**
@@ -45,7 +46,7 @@ class GeminiServiceDelegationTest extends TestCase
      */
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
 
         return new ProviderSwitcher($cache);
     }
@@ -87,7 +88,7 @@ class GeminiServiceDelegationTest extends TestCase
      * kita bisa memverifikasi bahwa GeminiService mendelegasikan ke router dengan
      * argumen yang sama dan mengembalikan hasil yang identik.
      *
-     * @return array{router: AiProviderRouter&\Mockery\MockInterface, service: GeminiService}
+     * @return array{router: AiProviderRouter&MockInterface, service: GeminiService}
      */
     private function makeRouterAndService(array $fixedResponse): array
     {
@@ -147,7 +148,7 @@ class GeminiServiceDelegationTest extends TestCase
                 Generators::string()
             )
             ->then(function (string $prompt) {
-                $fixedResponse = ['text' => 'respons dari router untuk: ' . substr($prompt, 0, 20), 'model' => 'gemini-2.5-flash'];
+                $fixedResponse = ['text' => 'respons dari router untuk: '.substr($prompt, 0, 20), 'model' => 'gemini-2.5-flash'];
 
                 ['router' => $routerMock, 'service' => $service] = $this->makeRouterAndService($fixedResponse);
 
@@ -164,7 +165,7 @@ class GeminiServiceDelegationTest extends TestCase
                     $fixedResponse,
                     $result,
                     sprintf(
-                        "GeminiService::generate('%s') harus mengembalikan hasil yang identik " .
+                        "GeminiService::generate('%s') harus mengembalikan hasil yang identik ".
                             "dengan AiProviderRouter::generate('%s'). Property 6 dilanggar.",
                         mb_substr($prompt, 0, 50),
                         mb_substr($prompt, 0, 50)
@@ -215,7 +216,7 @@ class GeminiServiceDelegationTest extends TestCase
                     $fixedResponse,
                     $result,
                     sprintf(
-                        "GeminiService::chat('%s', history[%d]) harus mengembalikan hasil yang identik " .
+                        "GeminiService::chat('%s', history[%d]) harus mengembalikan hasil yang identik ".
                             "dengan AiProviderRouter::chat('%s', history[%d]). Property 6 dilanggar.",
                         mb_substr($prompt, 0, 50),
                         count($history),
@@ -262,9 +263,9 @@ class GeminiServiceDelegationTest extends TestCase
                     $fixedResponse,
                     $result,
                     sprintf(
-                        "GeminiService::generateWithImage('%s', imageData, '%s') harus mengembalikan " .
-                            "hasil yang identik dengan AiProviderRouter::generateWithImage(...). " .
-                            "Property 6 dilanggar.",
+                        "GeminiService::generateWithImage('%s', imageData, '%s') harus mengembalikan ".
+                            'hasil yang identik dengan AiProviderRouter::generateWithImage(...). '.
+                            'Property 6 dilanggar.',
                         mb_substr($prompt, 0, 50),
                         $mimeType
                     )
@@ -337,7 +338,7 @@ class GeminiServiceDelegationTest extends TestCase
     public function test_router_result_returned_without_modification(): void
     {
         $routerResponse = [
-            'text'  => 'Ini adalah respons dari router yang tidak boleh dimodifikasi.',
+            'text' => 'Ini adalah respons dari router yang tidak boleh dimodifikasi.',
             'model' => 'gemini-2.5-flash-lite',
         ];
 

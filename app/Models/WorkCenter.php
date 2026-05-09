@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -70,7 +69,7 @@ class WorkCenter extends Model
      */
     public function getAvailableCapacity(): float
     {
-        if (!$this->start_time || !$this->end_time) {
+        if (! $this->start_time || ! $this->end_time) {
             return $this->capacity_per_day;
         }
 
@@ -94,7 +93,7 @@ class WorkCenter extends Model
      */
     public function isOperational(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -102,7 +101,7 @@ class WorkCenter extends Model
         $startTime = $this->start_time ? $now->copy()->setTimeFromTimeString($this->start_time) : null;
         $endTime = $this->end_time ? $now->copy()->setTimeFromTimeString($this->end_time) : null;
 
-        if (!$startTime || !$endTime) {
+        if (! $startTime || ! $endTime) {
             return true;
         }
 
@@ -114,7 +113,7 @@ class WorkCenter extends Model
      */
     public function isMaintenanceDue(): bool
     {
-        if (!$this->next_maintenance_date) {
+        if (! $this->next_maintenance_date) {
             return false;
         }
 

@@ -3,7 +3,6 @@
 namespace Tests\Unit\Services\Agent;
 
 use App\DTOs\Agent\AgentPlan;
-use App\DTOs\Agent\AgentStep;
 use App\DTOs\Agent\ErpContext;
 use App\Services\Agent\AgentPlanner;
 use App\Services\GeminiService;
@@ -19,6 +18,7 @@ use Tests\TestCase;
 class AgentPlannerTest extends TestCase
 {
     private ErpContext $context;
+
     private array $tools;
 
     protected function setUp(): void
@@ -28,9 +28,9 @@ class AgentPlannerTest extends TestCase
         $this->context = new ErpContext(
             tenantId: 1,
             kpiSummary: [
-                'revenue'          => 50000000.0,
-                'critical_stock'   => 3,
-                'overdue_ar'       => 10000000.0,
+                'revenue' => 50000000.0,
+                'critical_stock' => 3,
+                'overdue_ar' => 10000000.0,
                 'active_employees' => 25,
             ],
             activeModules: ['accounting', 'inventory', 'hrm', 'sales'],
@@ -51,29 +51,29 @@ class AgentPlannerTest extends TestCase
     // Happy Path: instruksi multi-step menghasilkan plan terurut
     // =========================================================================
 
-    public function testMultiStepInstructionProducesOrderedPlan(): void
+    public function test_multi_step_instruction_produces_ordered_plan(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Analisis stok dan buat laporan',
+                    'goal' => 'Analisis stok dan buat laporan',
                     'summary' => 'Cek stok kritis lalu buat laporan penjualan',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'         => 1,
-                            'name'          => 'Cek stok kritis',
-                            'toolName'      => 'get_stock_report',
-                            'args'          => ['filter' => 'critical'],
-                            'isWriteOp'     => false,
+                            'order' => 1,
+                            'name' => 'Cek stok kritis',
+                            'toolName' => 'get_stock_report',
+                            'args' => ['filter' => 'critical'],
+                            'isWriteOp' => false,
                             'dependsOnStep' => null,
                         ],
                         [
-                            'order'         => 2,
-                            'name'          => 'Buat laporan penjualan',
-                            'toolName'      => 'get_sales_report',
-                            'args'          => ['period' => 'this_month'],
-                            'isWriteOp'     => false,
+                            'order' => 2,
+                            'name' => 'Buat laporan penjualan',
+                            'toolName' => 'get_sales_report',
+                            'args' => ['period' => 'this_month'],
+                            'isWriteOp' => false,
                             'dependsOnStep' => 'Cek stok kritis',
                         ],
                     ],
@@ -82,7 +82,7 @@ class AgentPlannerTest extends TestCase
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan(
+        $plan = $planner->plan(
             'Cek stok kritis kemudian buat laporan penjualan',
             $this->context,
             $this->tools,
@@ -101,21 +101,21 @@ class AgentPlannerTest extends TestCase
         $this->assertSame('get_sales_report', $plan->steps[1]->toolName);
     }
 
-    public function testPlanWithWriteOpsSetHasWriteOpsTrue(): void
+    public function test_plan_with_write_ops_set_has_write_ops_true(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Buat jurnal',
+                    'goal' => 'Buat jurnal',
                     'summary' => 'Buat jurnal penyesuaian',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'         => 1,
-                            'name'          => 'Buat jurnal penyesuaian',
-                            'toolName'      => 'create_journal',
-                            'args'          => ['type' => 'adjustment'],
-                            'isWriteOp'     => true,
+                            'order' => 1,
+                            'name' => 'Buat jurnal penyesuaian',
+                            'toolName' => 'create_journal',
+                            'args' => ['type' => 'adjustment'],
+                            'isWriteOp' => true,
                             'dependsOnStep' => null,
                         ],
                     ],
@@ -124,26 +124,26 @@ class AgentPlannerTest extends TestCase
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Buat jurnal penyesuaian stok', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Buat jurnal penyesuaian stok', $this->context, $this->tools, 'id');
 
         $this->assertTrue($plan->hasWriteOps);
         $this->assertTrue($plan->steps[0]->isWriteOp);
     }
 
-    public function testPlanWithNoWriteOpsSetHasWriteOpsFalse(): void
+    public function test_plan_with_no_write_ops_set_has_write_ops_false(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Cek stok',
+                    'goal' => 'Cek stok',
                     'summary' => 'Laporan stok',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'     => 1,
-                            'name'      => 'Cek stok',
-                            'toolName'  => 'get_stock_report',
-                            'args'      => [],
+                            'order' => 1,
+                            'name' => 'Cek stok',
+                            'toolName' => 'get_stock_report',
+                            'args' => [],
                             'isWriteOp' => false,
                         ],
                     ],
@@ -152,7 +152,7 @@ class AgentPlannerTest extends TestCase
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Cek stok saat ini', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Cek stok saat ini', $this->context, $this->tools, 'id');
 
         $this->assertFalse($plan->hasWriteOps);
     }
@@ -161,14 +161,14 @@ class AgentPlannerTest extends TestCase
     // Edge Case: instruksi kosong
     // =========================================================================
 
-    public function testEmptyInstructionReturnsFallbackSingleStepPlan(): void
+    public function test_empty_instruction_returns_fallback_single_step_plan(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         // Gemini tidak boleh dipanggil untuk instruksi kosong
         $geminiMock->expects($this->never())->method('generate');
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('', $this->context, $this->tools, 'id');
 
         $this->assertInstanceOf(AgentPlan::class, $plan);
         $this->assertCount(1, $plan->steps);
@@ -176,13 +176,13 @@ class AgentPlannerTest extends TestCase
         $this->assertFalse($plan->hasWriteOps);
     }
 
-    public function testEmptyInstructionEnglishFallback(): void
+    public function test_empty_instruction_english_fallback(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->expects($this->never())->method('generate');
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('', $this->context, $this->tools, 'en');
+        $plan = $planner->plan('', $this->context, $this->tools, 'en');
 
         $this->assertCount(1, $plan->steps);
         $this->assertSame('en', $plan->language);
@@ -193,20 +193,20 @@ class AgentPlannerTest extends TestCase
     // Edge Case: plan dengan 1 langkah
     // =========================================================================
 
-    public function testSingleStepPlanIsValid(): void
+    public function test_single_step_plan_is_valid(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Cek stok',
+                    'goal' => 'Cek stok',
                     'summary' => 'Satu langkah saja',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'     => 1,
-                            'name'      => 'Ambil laporan stok',
-                            'toolName'  => 'get_stock_report',
-                            'args'      => [],
+                            'order' => 1,
+                            'name' => 'Ambil laporan stok',
+                            'toolName' => 'get_stock_report',
+                            'args' => [],
                             'isWriteOp' => false,
                         ],
                     ],
@@ -215,7 +215,7 @@ class AgentPlannerTest extends TestCase
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Cek stok sekarang', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Cek stok sekarang', $this->context, $this->tools, 'id');
 
         $this->assertCount(1, $plan->steps);
         $this->assertSame(1, $plan->steps[0]->order);
@@ -227,15 +227,15 @@ class AgentPlannerTest extends TestCase
     // Edge Case: plan dengan tepat 10 langkah
     // =========================================================================
 
-    public function testPlanWithExactlyTenStepsIsValid(): void
+    public function test_plan_with_exactly_ten_steps_is_valid(): void
     {
         $steps = [];
         for ($i = 1; $i <= 10; $i++) {
             $steps[] = [
-                'order'     => $i,
-                'name'      => "Langkah {$i}",
-                'toolName'  => 'get_stock_report',
-                'args'      => ['step' => $i],
+                'order' => $i,
+                'name' => "Langkah {$i}",
+                'toolName' => 'get_stock_report',
+                'args' => ['step' => $i],
                 'isWriteOp' => false,
             ];
         }
@@ -243,27 +243,27 @@ class AgentPlannerTest extends TestCase
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
-                'text'  => json_encode(['goal' => 'Test 10 langkah', 'summary' => '10 langkah', 'steps' => $steps]),
+                'text' => json_encode(['goal' => 'Test 10 langkah', 'summary' => '10 langkah', 'steps' => $steps]),
                 'model' => 'gemini-pro',
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Instruksi dengan 10 langkah', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Instruksi dengan 10 langkah', $this->context, $this->tools, 'id');
 
         $this->assertCount(10, $plan->steps);
         $this->assertSame(1, $plan->steps[0]->order);
         $this->assertSame(10, $plan->steps[9]->order);
     }
 
-    public function testPlanTruncatesMoreThanTenSteps(): void
+    public function test_plan_truncates_more_than_ten_steps(): void
     {
         $steps = [];
         for ($i = 1; $i <= 15; $i++) {
             $steps[] = [
-                'order'     => $i,
-                'name'      => "Langkah {$i}",
-                'toolName'  => 'get_stock_report',
-                'args'      => [],
+                'order' => $i,
+                'name' => "Langkah {$i}",
+                'toolName' => 'get_stock_report',
+                'args' => [],
                 'isWriteOp' => false,
             ];
         }
@@ -271,12 +271,12 @@ class AgentPlannerTest extends TestCase
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
-                'text'  => json_encode(['goal' => 'Test truncate', 'summary' => '15 langkah', 'steps' => $steps]),
+                'text' => json_encode(['goal' => 'Test truncate', 'summary' => '15 langkah', 'steps' => $steps]),
                 'model' => 'gemini-pro',
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Instruksi sangat kompleks', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Instruksi sangat kompleks', $this->context, $this->tools, 'id');
 
         $this->assertLessThanOrEqual(10, count($plan->steps));
     }
@@ -285,7 +285,7 @@ class AgentPlannerTest extends TestCase
     // Fallback: Gemini gagal → retry → fallback single-turn
     // =========================================================================
 
-    public function testGeminiFailureRetryAndFallbackToSingleTurn(): void
+    public function test_gemini_failure_retry_and_fallback_to_single_turn(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         // Gemini selalu throw exception (kedua percobaan gagal)
@@ -294,7 +294,7 @@ class AgentPlannerTest extends TestCase
             ->willThrowException(new \RuntimeException('Gemini API error'));
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan(
+        $plan = $planner->plan(
             'Cek stok kemudian buat laporan',
             $this->context,
             $this->tools,
@@ -308,17 +308,17 @@ class AgentPlannerTest extends TestCase
         $this->assertFalse($plan->hasWriteOps);
     }
 
-    public function testGeminiFirstFailRetrySucceeds(): void
+    public function test_gemini_first_fail_retry_succeeds(): void
     {
         $validPlanJson = json_encode([
-            'goal'    => 'Cek stok',
+            'goal' => 'Cek stok',
             'summary' => 'Laporan stok',
-            'steps'   => [
+            'steps' => [
                 [
-                    'order'     => 1,
-                    'name'      => 'Cek stok',
-                    'toolName'  => 'get_stock_report',
-                    'args'      => [],
+                    'order' => 1,
+                    'name' => 'Cek stok',
+                    'toolName' => 'get_stock_report',
+                    'args' => [],
                     'isWriteOp' => false,
                 ],
             ],
@@ -334,7 +334,7 @@ class AgentPlannerTest extends TestCase
             );
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan(
+        $plan = $planner->plan(
             'Cek stok kemudian buat laporan',
             $this->context,
             $this->tools,
@@ -346,14 +346,14 @@ class AgentPlannerTest extends TestCase
         $this->assertSame('get_stock_report', $plan->steps[0]->toolName);
     }
 
-    public function testGeminiReturnsInvalidJsonFallsBackToSingleTurn(): void
+    public function test_gemini_returns_invalid_json_falls_back_to_single_turn(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn(['text' => 'ini bukan JSON valid', 'model' => 'gemini-pro']);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan(
+        $plan = $planner->plan(
             'Cek stok kemudian buat laporan',
             $this->context,
             $this->tools,
@@ -364,17 +364,17 @@ class AgentPlannerTest extends TestCase
         $this->assertSame('answer', $plan->steps[0]->toolName);
     }
 
-    public function testGeminiReturnsEmptyStepsFallsBackToSingleTurn(): void
+    public function test_gemini_returns_empty_steps_falls_back_to_single_turn(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
-                'text'  => json_encode(['goal' => 'test', 'summary' => 'test', 'steps' => []]),
+                'text' => json_encode(['goal' => 'test', 'summary' => 'test', 'steps' => []]),
                 'model' => 'gemini-pro',
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan(
+        $plan = $planner->plan(
             'Cek stok kemudian buat laporan',
             $this->context,
             $this->tools,
@@ -389,10 +389,10 @@ class AgentPlannerTest extends TestCase
     // requiresPlanning() tests
     // =========================================================================
 
-    public function testRequiresPlanningReturnsTrueForMultiStepKeywordsIndonesian(): void
+    public function test_requires_planning_returns_true_for_multi_step_keywords_indonesian(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
-        $planner    = new AgentPlanner($geminiMock);
+        $planner = new AgentPlanner($geminiMock);
 
         $multiStepInstructions = [
             'Cek stok kemudian buat laporan',
@@ -409,10 +409,10 @@ class AgentPlannerTest extends TestCase
         }
     }
 
-    public function testRequiresPlanningReturnsTrueForMultiStepKeywordsEnglish(): void
+    public function test_requires_planning_returns_true_for_multi_step_keywords_english(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
-        $planner    = new AgentPlanner($geminiMock);
+        $planner = new AgentPlanner($geminiMock);
 
         $multiStepInstructions = [
             'Check stock then create a report',
@@ -429,10 +429,10 @@ class AgentPlannerTest extends TestCase
         }
     }
 
-    public function testRequiresPlanningReturnsFalseForSimpleInstructions(): void
+    public function test_requires_planning_returns_false_for_simple_instructions(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
-        $planner    = new AgentPlanner($geminiMock);
+        $planner = new AgentPlanner($geminiMock);
 
         $simpleInstructions = [
             'Apa itu jurnal akuntansi?',
@@ -449,10 +449,10 @@ class AgentPlannerTest extends TestCase
         }
     }
 
-    public function testRequiresPlanningReturnsTrueForLongInstructions(): void
+    public function test_requires_planning_returns_true_for_long_instructions(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
-        $planner    = new AgentPlanner($geminiMock);
+        $planner = new AgentPlanner($geminiMock);
 
         // Instruksi panjang > 100 karakter tanpa keyword multi-step
         $longInstruction = 'Tolong berikan saya informasi lengkap mengenai kondisi keuangan perusahaan saat ini secara mendetail dan komprehensif';
@@ -460,10 +460,10 @@ class AgentPlannerTest extends TestCase
         $this->assertTrue($planner->requiresPlanning($longInstruction));
     }
 
-    public function testRequiresPlanningReturnsFalseForEmptyInstruction(): void
+    public function test_requires_planning_returns_false_for_empty_instruction(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
-        $planner    = new AgentPlanner($geminiMock);
+        $planner = new AgentPlanner($geminiMock);
 
         $this->assertFalse($planner->requiresPlanning(''));
         $this->assertFalse($planner->requiresPlanning('   '));
@@ -473,20 +473,20 @@ class AgentPlannerTest extends TestCase
     // Language support tests
     // =========================================================================
 
-    public function testPlanPreservesLanguageInResult(): void
+    public function test_plan_preserves_language_in_result(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Check stock',
+                    'goal' => 'Check stock',
                     'summary' => 'Stock report',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'     => 1,
-                            'name'      => 'Get stock report',
-                            'toolName'  => 'get_stock_report',
-                            'args'      => [],
+                            'order' => 1,
+                            'name' => 'Get stock report',
+                            'toolName' => 'get_stock_report',
+                            'args' => [],
                             'isWriteOp' => false,
                         ],
                     ],
@@ -503,44 +503,44 @@ class AgentPlannerTest extends TestCase
         $this->assertSame('en', $planEn->language);
     }
 
-    public function testPlanHandlesMarkdownWrappedJson(): void
+    public function test_plan_handles_markdown_wrapped_json(): void
     {
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
-                'text' => "```json\n" . json_encode([
-                    'goal'    => 'Cek stok',
+                'text' => "```json\n".json_encode([
+                    'goal' => 'Cek stok',
                     'summary' => 'Laporan stok',
-                    'steps'   => [
+                    'steps' => [
                         [
-                            'order'     => 1,
-                            'name'      => 'Cek stok',
-                            'toolName'  => 'get_stock_report',
-                            'args'      => [],
+                            'order' => 1,
+                            'name' => 'Cek stok',
+                            'toolName' => 'get_stock_report',
+                            'args' => [],
                             'isWriteOp' => false,
                         ],
                     ],
-                ]) . "\n```",
+                ])."\n```",
                 'model' => 'gemini-pro',
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Cek stok kemudian buat laporan', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Cek stok kemudian buat laporan', $this->context, $this->tools, 'id');
 
         $this->assertCount(1, $plan->steps);
         $this->assertSame('get_stock_report', $plan->steps[0]->toolName);
     }
 
-    public function testPlanStepsAreSortedByOrder(): void
+    public function test_plan_steps_are_sorted_by_order(): void
     {
         // Gemini mengembalikan steps dalam urutan terbalik
         $geminiMock = $this->createMock(GeminiService::class);
         $geminiMock->method('generate')
             ->willReturn([
                 'text' => json_encode([
-                    'goal'    => 'Test urutan',
+                    'goal' => 'Test urutan',
                     'summary' => 'Test',
-                    'steps'   => [
+                    'steps' => [
                         ['order' => 3, 'name' => 'Langkah 3', 'toolName' => 'get_ar_report', 'args' => [], 'isWriteOp' => false],
                         ['order' => 1, 'name' => 'Langkah 1', 'toolName' => 'get_stock_report', 'args' => [], 'isWriteOp' => false],
                         ['order' => 2, 'name' => 'Langkah 2', 'toolName' => 'get_sales_report', 'args' => [], 'isWriteOp' => false],
@@ -550,7 +550,7 @@ class AgentPlannerTest extends TestCase
             ]);
 
         $planner = new AgentPlanner($geminiMock);
-        $plan    = $planner->plan('Instruksi multi-step', $this->context, $this->tools, 'id');
+        $plan = $planner->plan('Instruksi multi-step', $this->context, $this->tools, 'id');
 
         $this->assertSame(1, $plan->steps[0]->order);
         $this->assertSame(2, $plan->steps[1]->order);

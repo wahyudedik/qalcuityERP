@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Add guest preferences table
-        if (!Schema::hasTable('guest_preferences')) {
+        if (! Schema::hasTable('guest_preferences')) {
             Schema::create('guest_preferences', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -21,14 +22,14 @@ return new class extends Migration {
                 $table->timestamp('last_used_at')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'guest_id']);
                 $table->index(['category', 'preference_key']);
             });
         }
 
         // Add group bookings table
-        if (!Schema::hasTable('group_bookings')) {
+        if (! Schema::hasTable('group_bookings')) {
             Schema::create('group_bookings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -49,14 +50,14 @@ return new class extends Migration {
                 $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['start_date', 'end_date']);
             });
         }
 
         // Add reservation upgrades/downgrades table
-        if (!Schema::hasTable('reservation_room_changes')) {
+        if (! Schema::hasTable('reservation_room_changes')) {
             Schema::create('reservation_room_changes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -72,13 +73,13 @@ return new class extends Migration {
                 $table->foreignId('processed_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['reservation_id', 'effective_date']);
             });
         }
 
         // Add early check-in / late check-out requests table
-        if (!Schema::hasTable('early_late_requests')) {
+        if (! Schema::hasTable('early_late_requests')) {
             Schema::create('early_late_requests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -96,14 +97,14 @@ return new class extends Migration {
                 $table->timestamp('reviewed_at')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['reservation_id', 'request_type']);
                 $table->index(['status', 'requested_time']);
             });
         }
 
         // Add walk-in reservations tracking
-        if (!Schema::hasTable('walk_in_reservations')) {
+        if (! Schema::hasTable('walk_in_reservations')) {
             Schema::create('walk_in_reservations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -117,7 +118,7 @@ return new class extends Migration {
                 $table->foreignId('handled_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'arrival_time']);
                 $table->index(['walk_in_number']);
             });
@@ -125,55 +126,58 @@ return new class extends Migration {
 
         // Extend guests table with additional fields
         Schema::table('guests', function (Blueprint $table) {
-            if (!Schema::hasColumn('guests', 'guest_code')) {
+            if (! Schema::hasColumn('guests', 'guest_code')) {
                 $table->string('guest_code')->unique()->after('id');
             }
-            if (!Schema::hasColumn('guests', 'preferences')) {
+            if (! Schema::hasColumn('guests', 'preferences')) {
                 $table->json('preferences')->nullable()->after('notes'); // Quick access JSON preferences
                 $table->integer('loyalty_points')->default(0)->after('total_stays');
             }
-            if (!Schema::hasColumn('guests', 'membership_since')) {
+            if (! Schema::hasColumn('guests', 'membership_since')) {
                 $table->date('membership_since')->nullable()->after('loyalty_points');
             }
-            if (!Schema::hasColumn('guests', 'preferred_language')) {
+            if (! Schema::hasColumn('guests', 'preferred_language')) {
                 $table->string('preferred_language')->nullable()->after('nationality');
             }
-            if (!Schema::hasColumn('guests', 'communication_preference')) {
+            if (! Schema::hasColumn('guests', 'communication_preference')) {
                 $table->string('communication_preference')->nullable()->after('preferred_language'); // email, sms, whatsapp
-            
-            }});
+
+            }
+        });
 
         // Extend reservations table with group and special request fields
         Schema::table('reservations', function (Blueprint $table) {
-            if (!Schema::hasColumn('reservations', 'group_booking_id')) {
+            if (! Schema::hasColumn('reservations', 'group_booking_id')) {
                 $table->foreignId('group_booking_id')->nullable()->constrained('group_bookings')->nullOnDelete()->after('guest_id');
             }
-            if (!Schema::hasColumn('reservations', 'is_walk_in')) {
+            if (! Schema::hasColumn('reservations', 'is_walk_in')) {
                 $table->boolean('is_walk_in')->default(false)->after('source');
             }
-            if (!Schema::hasColumn('reservations', 'is_vip')) {
+            if (! Schema::hasColumn('reservations', 'is_vip')) {
                 $table->boolean('is_vip')->default(false)->after('is_walk_in');
             }
-            if (!Schema::hasColumn('reservations', 'actual_check_in_at')) {
+            if (! Schema::hasColumn('reservations', 'actual_check_in_at')) {
                 $table->timestamp('actual_check_in_at')->nullable()->after('check_in_date');
             }
-            if (!Schema::hasColumn('reservations', 'actual_check_out_at')) {
+            if (! Schema::hasColumn('reservations', 'actual_check_out_at')) {
                 $table->timestamp('actual_check_out_at')->nullable()->after('check_out_date');
             }
-            if (!Schema::hasColumn('reservations', 'expected_arrival_time')) {
+            if (! Schema::hasColumn('reservations', 'expected_arrival_time')) {
                 $table->time('expected_arrival_time')->nullable()->after('adults');
             }
-            if (!Schema::hasColumn('reservations', 'purpose_of_stay')) {
+            if (! Schema::hasColumn('reservations', 'purpose_of_stay')) {
                 $table->string('purpose_of_stay')->nullable()->after('special_requests'); // business, leisure, honeymoon, etc.
-            
-            }});
+
+            }
+        });
 
         // Add room type features for better preference matching
         Schema::table('room_types', function (Blueprint $table) {
-            if (!Schema::hasColumn('room_types', 'features')) {
+            if (! Schema::hasColumn('room_types', 'features')) {
                 $table->json('features')->nullable()->after('amenities'); // e.g., ['city_view', 'balcony', 'bathtub']
-            
-            }});
+
+            }
+        });
     }
 
     public function down(): void
@@ -193,7 +197,7 @@ return new class extends Migration {
                 'actual_check_in_at',
                 'actual_check_out_at',
                 'expected_arrival_time',
-                'purpose_of_stay'
+                'purpose_of_stay',
             ]);
         });
 
@@ -205,7 +209,7 @@ return new class extends Migration {
                 'loyalty_points',
                 'membership_since',
                 'preferred_language',
-                'communication_preference'
+                'communication_preference',
             ]);
         });
 

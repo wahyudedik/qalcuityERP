@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FarmPlot extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'code', 'name', 'area_size', 'area_unit',
         'location', 'soil_type', 'irrigation_type', 'ownership', 'rent_cost',
@@ -21,44 +21,63 @@ class FarmPlot extends Model
     protected function casts(): array
     {
         return [
-            'area_size'        => 'decimal:3',
-            'rent_cost'        => 'decimal:2',
-            'planted_at'       => 'date',
+            'area_size' => 'decimal:3',
+            'rent_cost' => 'decimal:2',
+            'planted_at' => 'date',
             'expected_harvest' => 'date',
-            'is_active'        => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
     public const STATUS_LABELS = [
-        'idle'          => 'Kosong / Bera',
-        'preparing'     => 'Persiapan Lahan',
-        'planted'       => 'Sudah Ditanam',
-        'growing'       => 'Masa Pertumbuhan',
+        'idle' => 'Kosong / Bera',
+        'preparing' => 'Persiapan Lahan',
+        'planted' => 'Sudah Ditanam',
+        'growing' => 'Masa Pertumbuhan',
         'ready_harvest' => 'Siap Panen',
-        'harvesting'    => 'Sedang Dipanen',
-        'post_harvest'  => 'Pasca Panen',
+        'harvesting' => 'Sedang Dipanen',
+        'post_harvest' => 'Pasca Panen',
     ];
 
     public const STATUS_COLORS = [
-        'idle'          => 'gray',
-        'preparing'     => 'amber',
-        'planted'       => 'blue',
-        'growing'       => 'emerald',
+        'idle' => 'gray',
+        'preparing' => 'amber',
+        'planted' => 'blue',
+        'growing' => 'emerald',
         'ready_harvest' => 'green',
-        'harvesting'    => 'purple',
-        'post_harvest'  => 'slate',
+        'harvesting' => 'purple',
+        'post_harvest' => 'slate',
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function activities(): HasMany { return $this->hasMany(FarmPlotActivity::class)->orderByDesc('date'); }
-    public function cropCycles(): HasMany { return $this->hasMany(CropCycle::class)->orderByDesc('created_at'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(FarmPlotActivity::class)->orderByDesc('date');
+    }
+
+    public function cropCycles(): HasMany
+    {
+        return $this->hasMany(CropCycle::class)->orderByDesc('created_at');
+    }
+
     public function activeCycle(): ?CropCycle
     {
         return $this->cropCycles()->whereNotIn('phase', ['completed', 'cancelled'])->first();
     }
 
-    public function statusLabel(): string { return self::STATUS_LABELS[$this->status] ?? $this->status; }
-    public function statusColor(): string { return self::STATUS_COLORS[$this->status] ?? 'gray'; }
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
+    }
+
+    public function statusColor(): string
+    {
+        return self::STATUS_COLORS[$this->status] ?? 'gray';
+    }
 
     /** Days since planted */
     public function daysSincePlanted(): ?int
@@ -98,6 +117,7 @@ class FarmPlot extends Model
     public function costPerUnit(): ?float
     {
         $harvest = $this->totalHarvest();
+
         return $harvest > 0 ? round($this->totalCost() / $harvest, 2) : null;
     }
 }

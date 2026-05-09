@@ -17,7 +17,7 @@ class ProductQrService
      */
     public function buildPayload(string $certificateNumber): string
     {
-        return url('/verify/' . $certificateNumber);
+        return url('/verify/'.$certificateNumber);
     }
 
     /**
@@ -26,14 +26,13 @@ class ProductQrService
      * If $force=false and the product already has a QR code file, returns the existing path.
      * Otherwise generates a new 300x300 PNG, stores it, updates the product record, and returns the path.
      *
-     * @param Product $product
-     * @param bool    $force   Force regeneration even if QR already exists
-     * @return string          Relative path stored in products.qr_code_path
+     * @param  bool  $force  Force regeneration even if QR already exists
+     * @return string Relative path stored in products.qr_code_path
      */
     public function generate(Product $product, bool $force = false): string
     {
         // Return existing path if not forcing and file already exists
-        if (!$force && $product->qr_code_path !== null && Storage::disk('public')->exists($product->qr_code_path)) {
+        if (! $force && $product->qr_code_path !== null && Storage::disk('public')->exists($product->qr_code_path)) {
             return $product->qr_code_path;
         }
 
@@ -42,7 +41,7 @@ class ProductQrService
         if ($activeCert !== null) {
             $payload = $this->buildPayload($activeCert->certificate_number);
         } else {
-            $payload = url('/verify/product-' . $product->id);
+            $payload = url('/verify/product-'.$product->id);
         }
 
         // Generate QR Code PNG via BaconQrCode
@@ -56,23 +55,23 @@ class ProductQrService
         } catch (\Throwable $e) {
             Log::error('QR Code generation failed', [
                 'product_id' => $product->id,
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to generate QR Code: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to generate QR Code: '.$e->getMessage(), 0, $e);
         }
 
         // Store to storage/app/public/qr-codes/{tenant_id}/{product_id}.png
-        $relativePath = 'qr-codes/' . $product->tenant_id . '/' . $product->id . '.png';
+        $relativePath = 'qr-codes/'.$product->tenant_id.'/'.$product->id.'.png';
 
         try {
             Storage::disk('public')->put($relativePath, $pngData);
         } catch (\Throwable $e) {
             Log::error('QR Code file write failed', [
                 'product_id' => $product->id,
-                'path'       => $relativePath,
-                'error'      => $e->getMessage(),
+                'path' => $relativePath,
+                'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to write QR Code file: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to write QR Code file: '.$e->getMessage(), 0, $e);
         }
 
         // Update product record

@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Livestock;
 
 use App\Http\Controllers\Controller;
 use App\Models\LivestockHealthRecord;
-use App\Models\LivestockVaccination;
 use App\Models\LivestockHerd;
+use App\Models\LivestockVaccination;
 use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class HealthController extends Controller
 {
@@ -77,7 +78,7 @@ class HealthController extends Controller
         ]);
 
         try {
-            $record = new LivestockHealthRecord();
+            $record = new LivestockHealthRecord;
             $record->tenant_id = $this->tenantId();
             $record->fill($validated);
             $record->status = $validated['type'] === 'recovery' ? 'resolved' : 'active';
@@ -97,7 +98,7 @@ class HealthController extends Controller
                     $validated['date']
                 );
                 if ($result->isFailed()) {
-                    \Illuminate\Support\Facades\Log::warning("Livestock health journal failed: " . $result->reason);
+                    Log::warning('Livestock health journal failed: '.$result->reason);
                 }
             }
 
@@ -158,7 +159,7 @@ class HealthController extends Controller
         ]);
 
         try {
-            $vaccination = new LivestockVaccination();
+            $vaccination = new LivestockVaccination;
             $vaccination->tenant_id = $this->tenantId();
             $vaccination->fill($validated);
             $vaccination->status = $validated['status'] ?? 'scheduled';
@@ -178,7 +179,7 @@ class HealthController extends Controller
                     $validated['administered_date'] ?? $validated['scheduled_date']
                 );
                 if ($result->isFailed()) {
-                    \Illuminate\Support\Facades\Log::warning("Livestock vaccination journal failed: " . $result->reason);
+                    Log::warning('Livestock vaccination journal failed: '.$result->reason);
                 }
             }
 

@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FormulaIngredient extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'formula_id',
@@ -123,12 +123,13 @@ class FormulaIngredient extends Model
      */
     public function getCostAttribute(): float
     {
-        if (!$this->product) {
+        if (! $this->product) {
             return 0;
         }
 
         // Assuming product has avg_cost or latest purchase price
         $unitCost = $this->product->avg_cost ?? 0;
+
         return $unitCost * $this->quantity;
     }
 
@@ -137,11 +138,11 @@ class FormulaIngredient extends Model
      */
     public function getCasNumberLinkAttribute(): ?string
     {
-        if (!$this->cas_number) {
+        if (! $this->cas_number) {
             return null;
         }
 
-        return 'https://commonchemistry.cas.org/detail?cas_rn=' . $this->cas_number;
+        return 'https://commonchemistry.cas.org/detail?cas_rn='.$this->cas_number;
     }
 
     /**
@@ -181,6 +182,7 @@ class FormulaIngredient extends Model
         ];
 
         $limit = $safeLimits[$this->function] ?? 100.0;
+
         return $this->percentage <= $limit;
     }
 
@@ -189,7 +191,7 @@ class FormulaIngredient extends Model
      */
     public function getSafetyWarningAttribute(): ?string
     {
-        if (!$this->isConcentrationSafe()) {
+        if (! $this->isConcentrationSafe()) {
             return "Concentration {$this->percentage}% exceeds recommended limit";
         }
 

@@ -3,7 +3,8 @@
 namespace App\Services\MultiCompany;
 
 use App\Models\ConsolidatedReport;
-use App\Models\EliminationEntry;
+use App\Models\InterCompanyTransaction;
+use App\Models\Tenant;
 use App\Models\TenantGroupMember;
 
 class ConsolidationService
@@ -137,7 +138,7 @@ class ConsolidationService
     protected function calculateEliminations(int $groupId, string $periodStart, string $periodEnd): array
     {
         // Get all inter-company transactions in period
-        $transactions = \App\Models\InterCompanyTransaction::where('company_group_id', $groupId)
+        $transactions = InterCompanyTransaction::where('company_group_id', $groupId)
             ->whereBetween('transaction_date', [$periodStart, $periodEnd])
             ->where('status', 'completed')
             ->get();
@@ -223,7 +224,7 @@ class ConsolidationService
         $contributions = [];
 
         foreach ($subsidiaries as $tenantId) {
-            $tenant = \App\Models\Tenant::find($tenantId);
+            $tenant = Tenant::find($tenantId);
             $contributions[] = [
                 'tenant_id' => $tenantId,
                 'tenant_name' => $tenant ? $tenant->name : 'Unknown',

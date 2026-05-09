@@ -26,12 +26,6 @@ class RoomAvailabilityService
     /**
      * Get availability summary for date range, optionally filtered by room type.
      * Returns array of dates with available/total counts per room type.
-     *
-     * @param int $tenantId
-     * @param string $startDate
-     * @param string $endDate
-     * @param int|null $roomTypeId
-     * @return array
      */
     public function getAvailability(
         int $tenantId,
@@ -94,12 +88,6 @@ class RoomAvailabilityService
      * Check if a specific room is available for given dates.
      * Excludes a specific reservation (for edit scenarios).
      * Checks against reservations with status in ['pending','confirmed','checked_in'].
-     *
-     * @param int $roomId
-     * @param string $checkIn
-     * @param string $checkOut
-     * @param int|null $excludeReservationId
-     * @return bool
      */
     public function isRoomAvailable(
         int $roomId,
@@ -112,7 +100,7 @@ class RoomAvailabilityService
 
         // Check if room exists and is active
         $room = Room::find($roomId);
-        if (!$room || !$room->is_active) {
+        if (! $room || ! $room->is_active) {
             return false;
         }
 
@@ -121,7 +109,7 @@ class RoomAvailabilityService
             ->whereIn('status', self::BLOCKING_STATUSES)
             ->where('check_in_date', '<', $checkOutDate)
             ->where('check_out_date', '>', $checkInDate)
-            ->when($excludeReservationId, fn($q) => $q->where('id', '!=', $excludeReservationId))
+            ->when($excludeReservationId, fn ($q) => $q->where('id', '!=', $excludeReservationId))
             ->exists();
 
         if ($conflictingReservation) {
@@ -135,22 +123,16 @@ class RoomAvailabilityService
             ->where('room_id', $roomId)
             ->where('check_in_date', '<', $checkOutDate)
             ->where('check_out_date', '>', $checkInDate)
-            ->when($excludeReservationId, fn($q) => $q->where('reservation_id', '!=', $excludeReservationId))
+            ->when($excludeReservationId, fn ($q) => $q->where('reservation_id', '!=', $excludeReservationId))
             ->exists();
 
-        return !$conflictingReservationRoom;
+        return ! $conflictingReservationRoom;
     }
 
     /**
      * BUG-HOTEL-001 FIX: Check if room is available with pessimistic locking.
      * This must be called inside a DB::transaction to be effective.
      * Locks the room row to prevent concurrent bookings.
-     *
-     * @param int $roomId
-     * @param string $checkIn
-     * @param string $checkOut
-     * @param int|null $excludeReservationId
-     * @return bool
      */
     public function isRoomAvailableLocked(
         int $roomId,
@@ -167,7 +149,7 @@ class RoomAvailabilityService
             ->lockForUpdate()
             ->first();
 
-        if (!$room || !$room->is_active || $room->status !== 'available') {
+        if (! $room || ! $room->is_active || $room->status !== 'available') {
             return false;
         }
 
@@ -176,7 +158,7 @@ class RoomAvailabilityService
             ->whereIn('status', self::BLOCKING_STATUSES)
             ->where('check_in_date', '<', $checkOutDate)
             ->where('check_out_date', '>', $checkInDate)
-            ->when($excludeReservationId, fn($q) => $q->where('id', '!=', $excludeReservationId))
+            ->when($excludeReservationId, fn ($q) => $q->where('id', '!=', $excludeReservationId))
             ->exists();
 
         if ($conflictingReservation) {
@@ -190,21 +172,15 @@ class RoomAvailabilityService
             ->where('room_id', $roomId)
             ->where('check_in_date', '<', $checkOutDate)
             ->where('check_out_date', '>', $checkInDate)
-            ->when($excludeReservationId, fn($q) => $q->where('reservation_id', '!=', $excludeReservationId))
+            ->when($excludeReservationId, fn ($q) => $q->where('reservation_id', '!=', $excludeReservationId))
             ->exists();
 
-        return !$conflictingReservationRoom;
+        return ! $conflictingReservationRoom;
     }
 
     /**
      * Get list of available rooms for given dates and optional room type filter.
      * Only returns rooms with status 'available' and is_active=true that have no conflicting reservations.
-     *
-     * @param int $tenantId
-     * @param string $checkIn
-     * @param string $checkOut
-     * @param int|null $roomTypeId
-     * @return Collection
      */
     public function getAvailableRooms(
         int $tenantId,
@@ -237,12 +213,6 @@ class RoomAvailabilityService
      * BUG-HOTEL-001 FIX: Get available rooms with pessimistic locking.
      * This prevents race conditions by locking rooms during the check.
      * Must be called inside a DB::transaction.
-     *
-     * @param int $tenantId
-     * @param string $checkIn
-     * @param string $checkOut
-     * @param int|null $roomTypeId
-     * @return Collection
      */
     public function getAvailableRoomsLocked(
         int $tenantId,
@@ -276,10 +246,7 @@ class RoomAvailabilityService
      * Build occupancy calendar for a month.
      * Returns array keyed by date, each containing room type stats (total, occupied, available, occupancy_rate).
      *
-     * @param int $tenantId
-     * @param int $month 1-12
-     * @param int $year
-     * @return array
+     * @param  int  $month  1-12
      */
     public function getOccupancyCalendar(int $tenantId, int $month, int $year): array
     {
@@ -342,11 +309,6 @@ class RoomAvailabilityService
 
     /**
      * Get count of occupied rooms for a specific date and room type.
-     *
-     * @param int $tenantId
-     * @param string $date
-     * @param int|null $roomTypeId
-     * @return int
      */
     public function getOccupiedRoomsCount(int $tenantId, string $date, ?int $roomTypeId = null): int
     {
@@ -355,7 +317,7 @@ class RoomAvailabilityService
         // Count reservations with room_id directly assigned
         $directCount = Reservation::where('tenant_id', $tenantId)
             ->whereIn('status', self::BLOCKING_STATUSES)
-            ->when($roomTypeId, fn($q) => $q->where('room_type_id', $roomTypeId))
+            ->when($roomTypeId, fn ($q) => $q->where('room_type_id', $roomTypeId))
             ->where('check_in_date', '<=', $dateCarbon)
             ->where('check_out_date', '>', $dateCarbon)
             ->whereNotNull('room_id')
@@ -365,7 +327,7 @@ class RoomAvailabilityService
         $reservationRoomsCount = ReservationRoom::whereHas('reservation', function ($q) use ($tenantId, $roomTypeId, $dateCarbon) {
             $q->where('tenant_id', $tenantId)
                 ->whereIn('status', self::BLOCKING_STATUSES)
-                ->when($roomTypeId, fn($subQ) => $subQ->where('room_type_id', $roomTypeId))
+                ->when($roomTypeId, fn ($subQ) => $subQ->where('room_type_id', $roomTypeId))
                 ->where('check_in_date', '<=', $dateCarbon)
                 ->where('check_out_date', '>', $dateCarbon);
         })->count();
@@ -377,11 +339,6 @@ class RoomAvailabilityService
 
     /**
      * Get occupancy rate for a specific date.
-     *
-     * @param int $tenantId
-     * @param string $date
-     * @param int|null $roomTypeId
-     * @return float
      */
     public function getOccupancyRate(int $tenantId, string $date, ?int $roomTypeId = null): float
     {
@@ -406,9 +363,6 @@ class RoomAvailabilityService
 
     /**
      * Get rooms that need checkout today.
-     *
-     * @param int $tenantId
-     * @return Collection
      */
     public function getRoomsForCheckoutToday(int $tenantId): Collection
     {
@@ -421,9 +375,6 @@ class RoomAvailabilityService
 
     /**
      * Get rooms that need check-in today.
-     *
-     * @param int $tenantId
-     * @return Collection
      */
     public function getRoomsForCheckInToday(int $tenantId): Collection
     {
@@ -436,16 +387,12 @@ class RoomAvailabilityService
 
     /**
      * Get upcoming availability for a room type (next N days).
-     *
-     * @param int $roomTypeId
-     * @param int $days
-     * @return array
      */
     public function getUpcomingAvailability(int $roomTypeId, int $days = 30): array
     {
         $roomType = RoomType::withCount('rooms')->find($roomTypeId);
 
-        if (!$roomType) {
+        if (! $roomType) {
             return [];
         }
 
@@ -474,11 +421,6 @@ class RoomAvailabilityService
     /**
      * Find the best available room for a room type.
      * Prefers lowest floor number, then lowest room number.
-     *
-     * @param int $roomTypeId
-     * @param string $checkIn
-     * @param string $checkOut
-     * @return Room|null
      */
     public function findBestAvailableRoom(int $roomTypeId, string $checkIn, string $checkOut): ?Room
     {

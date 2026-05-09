@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api\Telecom;
 
 use App\Models\Customer;
 use App\Models\InternetPackage;
-use App\Models\VoucherCode;
 use App\Services\Telecom\VoucherGenerationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class VoucherController extends TelecomApiController
 {
@@ -15,12 +15,12 @@ class VoucherController extends TelecomApiController
 
     public function __construct()
     {
-        $this->voucherService = new VoucherGenerationService();
+        $this->voucherService = new VoucherGenerationService;
     }
 
     /**
      * Generate voucher codes.
-     * 
+     *
      * POST /api/telecom/vouchers/generate
      */
     public function generate(Request $request)
@@ -62,7 +62,7 @@ class VoucherController extends TelecomApiController
 
             $this->logApiRequest($request, 'POST /api/telecom/vouchers/generate', [
                 'package_id' => $package->id,
-                'quantity' => count($vouchers)
+                'quantity' => count($vouchers),
             ]);
 
             return $this->success([
@@ -79,20 +79,21 @@ class VoucherController extends TelecomApiController
                 'batch_number' => $vouchers[0]->batch_number,
             ], 'Vouchers generated successfully', 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
-            Log::error("Failed to generate vouchers", [
+            Log::error('Failed to generate vouchers', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Failed to generate vouchers: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to generate vouchers: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Redeem/use a voucher code.
-     * 
+     *
      * POST /api/telecom/vouchers/redeem
      */
     public function redeem(Request $request)
@@ -110,7 +111,7 @@ class VoucherController extends TelecomApiController
                     ->where('tenant_id', auth()->user()->tenant_id)
                     ->first();
 
-                if (!$customer) {
+                if (! $customer) {
                     return $this->error('Customer not found or unauthorized', 404);
                 }
             }
@@ -121,12 +122,12 @@ class VoucherController extends TelecomApiController
                 $validated['username'] ?? null
             );
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return $this->error($result['error'], 400);
             }
 
             $this->logApiRequest($request, 'POST /api/telecom/vouchers/redeem', [
-                'code' => $validated['code']
+                'code' => $validated['code'],
             ]);
 
             return $this->success([
@@ -135,20 +136,21 @@ class VoucherController extends TelecomApiController
                 'message' => $result['message'],
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
-            Log::error("Failed to redeem voucher", [
+            Log::error('Failed to redeem voucher', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Failed to redeem voucher: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to redeem voucher: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get voucher statistics.
-     * 
+     *
      * GET /api/telecom/vouchers/stats
      */
     public function stats(Request $request)
@@ -162,10 +164,11 @@ class VoucherController extends TelecomApiController
             return $this->success($stats);
 
         } catch (\Exception $e) {
-            Log::error("Failed to get voucher stats", [
-                'error' => $e->getMessage()
+            Log::error('Failed to get voucher stats', [
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to get voucher stats: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to get voucher stats: '.$e->getMessage(), 500);
         }
     }
 }

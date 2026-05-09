@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\SterilizationCycle;
 use App\Models\MedicalEquipment;
+use App\Models\SterilizationCycle;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 
@@ -52,6 +52,7 @@ class SterilizationController extends Controller
     public function create()
     {
         $equipment = MedicalEquipment::whereIn('status', ['available', 'in_use'])->get();
+
         return view('healthcare.sterilization.create', compact('equipment'));
     }
 
@@ -70,7 +71,7 @@ class SterilizationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['cycle_number'] = 'ST-' . now()->format('Ymd') . '-' . str_pad(SterilizationCycle::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['cycle_number'] = 'ST-'.now()->format('Ymd').'-'.str_pad(SterilizationCycle::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'in_progress';
         $validated['tenant_id'] = $tenantId;
 
@@ -86,6 +87,7 @@ class SterilizationController extends Controller
     public function show(SterilizationCycle $cycle)
     {
         $cycle->load(['equipment', 'operator', 'qualityChecks']);
+
         return view('healthcare.sterilization.show', compact('cycle'));
     }
 
@@ -137,6 +139,7 @@ class SterilizationController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Cycle deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/sterilization/{sterilization}/edit
@@ -144,9 +147,10 @@ class SterilizationController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.sterilization.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/sterilization/{sterilization}
@@ -154,16 +158,17 @@ class SterilizationController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.sterilization.update')
             ->with('success', 'Updated successfully.');
     }
+
     /**
      * QualityCheck.
      * Route: healthcare/sterilization/{cycle}/quality-check
@@ -171,13 +176,13 @@ class SterilizationController extends Controller
     public function qualityCheck(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement QualityCheck logic
-        
+
         return back()->with('success', 'QualityCheck completed successfully.');
     }
 }

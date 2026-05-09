@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuditLogEnhanced extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $table = 'audit_logs_enhanced';
 

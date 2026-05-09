@@ -44,7 +44,7 @@ class WorkflowController extends Controller
             ->withCount([
                 'logs as logs_today_count' => function ($query) {
                     $query->whereDate('started_at', today());
-                }
+                },
             ])
             ->orderBy('priority', 'desc')
             ->paginate(20);
@@ -137,7 +137,7 @@ class WorkflowController extends Controller
     {
         $this->authorize('update', $workflow);
 
-        $workflow->update(['is_active' => !$workflow->is_active]);
+        $workflow->update(['is_active' => ! $workflow->is_active]);
 
         return response()->json([
             'success' => true,

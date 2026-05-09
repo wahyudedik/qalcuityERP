@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserAchievement extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'user_id',
@@ -43,13 +43,16 @@ class UserAchievement extends Model
 
     public function isEarned(): bool
     {
-        return !is_null($this->earned_at);
+        return ! is_null($this->earned_at);
     }
 
     public function progressPercent(): int
     {
-        if ($this->isEarned()) return 100;
+        if ($this->isEarned()) {
+            return 100;
+        }
         $target = $this->achievement->requirement_value;
+
         return $target > 0 ? min(100, (int) round(($this->current_progress / $target) * 100)) : 0;
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -67,20 +66,20 @@ class IngredientRestriction extends Model
         if ($this->isBanned()) {
             return [
                 'valid' => false,
-                'message' => 'This ingredient is banned'
+                'message' => 'This ingredient is banned',
             ];
         }
 
         if ($this->hasLimit() && $percentage > $this->max_limit) {
             return [
                 'valid' => false,
-                'message' => "Exceeds maximum limit of {$this->max_limit}%"
+                'message' => "Exceeds maximum limit of {$this->max_limit}%",
             ];
         }
 
         return [
             'valid' => true,
-            'message' => 'Compliant'
+            'message' => 'Compliant',
         ];
     }
 }

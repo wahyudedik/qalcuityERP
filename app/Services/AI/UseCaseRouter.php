@@ -60,9 +60,9 @@ class UseCaseRouter
      *
      * Requirements: 2.1, 2.2, 9.4
      *
-     * @param  string  $useCase   Use case identifier (e.g., 'chatbot', 'financial_report')
+     * @param  string  $useCase  Use case identifier (e.g., 'chatbot', 'financial_report')
      * @param  int|null  $tenantId  Tenant ID untuk resolusi tenant-specific rule
-     * @return AiUseCaseRoute|null  Routing rule yang berlaku, atau null jika tidak ada
+     * @return AiUseCaseRoute|null Routing rule yang berlaku, atau null jika tidak ada
      */
     public function resolveRule(string $useCase, ?int $tenantId = null): ?AiUseCaseRoute
     {
@@ -71,7 +71,7 @@ class UseCaseRouter
             $tenantRules = Cache::remember(
                 "ai_routing_rules:{$tenantId}",
                 300, // 5 menit
-                fn() => AiUseCaseRoute::withoutTenantScope()
+                fn () => AiUseCaseRoute::withoutTenantScope()
                     ->where('tenant_id', $tenantId)
                     ->where('is_active', true)
                     ->get()
@@ -87,7 +87,7 @@ class UseCaseRouter
         $globalRules = Cache::remember(
             'ai_routing_rules:global',
             300, // 5 menit
-            fn() => AiUseCaseRoute::withoutTenantScope()
+            fn () => AiUseCaseRoute::withoutTenantScope()
                 ->whereNull('tenant_id')
                 ->where('is_active', true)
                 ->get()
@@ -114,11 +114,12 @@ class UseCaseRouter
      *
      * Requirements: 2.3, 2.4, 2.5, 2.6, 3.1–3.8, 7.1, 7.2
      *
-     * @param  string  $useCase   Use case identifier
+     * @param  string  $useCase  Use case identifier
      * @param  int|null  $tenantId  Tenant ID untuk tier gating dan resolusi rule
-     * @return AiProvider  Provider instance yang siap digunakan
-     * @throws InsufficientPlanException  Jika plan tenant tidak memenuhi min_plan
-     * @throws AllProvidersUnavailableException  Jika semua provider tidak tersedia
+     * @return AiProvider Provider instance yang siap digunakan
+     *
+     * @throws InsufficientPlanException Jika plan tenant tidak memenuhi min_plan
+     * @throws AllProvidersUnavailableException Jika semua provider tidak tersedia
      */
     public function route(string $useCase, ?int $tenantId = null): AiProvider
     {
@@ -196,10 +197,11 @@ class UseCaseRouter
      *
      * Requirements: 2.3, 6.3, 6.4, 6.5, 6.6
      *
-     * @param  string  $useCase   Use case identifier
-     * @param  callable  $fn   Callable yang menerima AiProvider dan mengembalikan array result
+     * @param  string  $useCase  Use case identifier
+     * @param  callable  $fn  Callable yang menerima AiProvider dan mengembalikan array result
      * @param  int|null  $tenantId  Tenant ID
-     * @return array  Result dari callable (format: ['text' => string, 'model' => string])
+     * @return array Result dari callable (format: ['text' => string, 'model' => string])
+     *
      * @throws InsufficientPlanException
      * @throws AllProvidersUnavailableException
      */
@@ -231,6 +233,7 @@ class UseCaseRouter
     public function withTenantContext(string $context): static
     {
         $this->tenantContext = $context;
+
         return $this;
     }
 
@@ -241,6 +244,7 @@ class UseCaseRouter
     public function withLanguage(string $language): static
     {
         $this->language = $language;
+
         return $this;
     }
 
@@ -251,7 +255,7 @@ class UseCaseRouter
      *
      * Requirements: 3.1, 3.2, 3.3, 3.4, 3.7, 3.8
      *
-     * @throws InsufficientPlanException  Jika plan tidak memenuhi syarat
+     * @throws InsufficientPlanException Jika plan tidak memenuhi syarat
      */
     private function checkTierGate(string $useCase, string $minPlan, int $tenantId): void
     {
@@ -322,7 +326,7 @@ class UseCaseRouter
      *
      * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
      *
-     * @throws AllProvidersUnavailableException  Jika semua provider tidak tersedia
+     * @throws AllProvidersUnavailableException Jika semua provider tidak tersedia
      */
     private function resolveProviderWithFallback(
         string $primaryProvider,
@@ -345,14 +349,16 @@ class UseCaseRouter
             $provider = $this->getProviderInstance($providerName);
 
             // Cek apakah provider dikonfigurasi (API key tidak kosong)
-            if (!$this->isProviderConfigured($providerName)) {
+            if (! $this->isProviderConfigured($providerName)) {
                 Log::debug("[UseCaseRouter] provider [{$providerName}] tidak dikonfigurasi, melewati.");
+
                 continue;
             }
 
             // Cek apakah provider tersedia (tidak dalam cooldown)
-            if (!$this->switcher->isProviderAvailable($providerName)) {
+            if (! $this->switcher->isProviderAvailable($providerName)) {
                 Log::debug("[UseCaseRouter] provider [{$providerName}] dalam cooldown, melewati.");
+
                 continue;
             }
 
@@ -377,7 +383,7 @@ class UseCaseRouter
     {
         $apiKey = config("ai.providers.{$providerName}.api_key");
 
-        return !empty($apiKey);
+        return ! empty($apiKey);
     }
 
     /**
@@ -387,7 +393,7 @@ class UseCaseRouter
     {
         return match ($providerName) {
             'anthropic' => $this->anthropicProvider,
-            default     => $this->geminiProvider,
+            default => $this->geminiProvider,
         };
     }
 
@@ -432,25 +438,25 @@ class UseCaseRouter
             $fallbackDegraded = $this->isFallbackDegraded($useCase, $providerName);
 
             AiUsageCostLog::record([
-                'tenant_id'          => $tenantId,
-                'user_id'            => $userId,
-                'use_case'           => $useCase,
-                'provider'           => $providerName,
-                'model'              => $modelName,
-                'input_tokens'       => $inputTokens,
-                'output_tokens'      => $outputTokens,
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'use_case' => $useCase,
+                'provider' => $providerName,
+                'model' => $modelName,
+                'input_tokens' => $inputTokens,
+                'output_tokens' => $outputTokens,
                 'estimated_cost_idr' => $estimatedCostIdr,
-                'response_time_ms'   => $responseTimeMs,
-                'fallback_degraded'  => $fallbackDegraded,
-                'created_at'         => now(),
+                'response_time_ms' => $responseTimeMs,
+                'fallback_degraded' => $fallbackDegraded,
+                'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
             // Logging tidak boleh mengganggu request utama
             Log::warning('[UseCaseRouter] gagal mencatat ai_usage_cost_logs', [
-                'use_case'  => $useCase,
-                'provider'  => $providerName,
+                'use_case' => $useCase,
+                'provider' => $providerName,
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -526,23 +532,23 @@ class UseCaseRouter
     ): void {
         try {
             AiProviderSwitchLog::withoutGlobalScope('tenant')->create([
-                'tenant_id'     => $tenantId,
+                'tenant_id' => $tenantId,
                 'from_provider' => $fromProvider,
-                'to_provider'   => $toProvider,
-                'reason'        => 'use_case_fallback',
-                'use_case'      => $useCase,
+                'to_provider' => $toProvider,
+                'reason' => 'use_case_fallback',
+                'use_case' => $useCase,
                 'error_message' => null,
-                'created_at'    => now(),
+                'created_at' => now(),
             ]);
 
-            Log::debug("[UseCaseRouter] FALLBACK use_case={$useCase} from={$fromProvider} to={$toProvider} reason=use_case_fallback fallback_degraded=" . ($this->isFallbackDegraded($useCase, $toProvider) ? 'true' : 'false'));
+            Log::debug("[UseCaseRouter] FALLBACK use_case={$useCase} from={$fromProvider} to={$toProvider} reason=use_case_fallback fallback_degraded=".($this->isFallbackDegraded($useCase, $toProvider) ? 'true' : 'false'));
         } catch (\Throwable $e) {
             // Logging tidak boleh mengganggu request utama
             Log::warning('[UseCaseRouter] gagal mencatat ai_provider_switch_logs', [
-                'use_case'      => $useCase,
+                'use_case' => $useCase,
                 'from_provider' => $fromProvider,
-                'to_provider'   => $toProvider,
-                'error'         => $e->getMessage(),
+                'to_provider' => $toProvider,
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -558,12 +564,12 @@ class UseCaseRouter
 
         if ($responseTimeMs > $threshold) {
             Log::warning('[UseCaseRouter] Response time melebihi threshold', [
-                'use_case'         => $useCase,
-                'provider'         => $providerName,
+                'use_case' => $useCase,
+                'provider' => $providerName,
                 'response_time_ms' => $responseTimeMs,
-                'threshold_ms'     => $threshold,
-                'response_time_s'  => round($responseTimeMs / 1000, 2),
-                'threshold_s'      => round($threshold / 1000, 2),
+                'threshold_ms' => $threshold,
+                'response_time_s' => round($responseTimeMs / 1000, 2),
+                'threshold_s' => round($threshold / 1000, 2),
             ]);
         }
     }

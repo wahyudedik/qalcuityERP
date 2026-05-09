@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * BOM Explosion Service
- * 
+ *
  * Provides advanced BOM explosion capabilities:
  * - Multi-level BOM explosion with optimization
  * - Material requirements calculation
@@ -22,11 +22,11 @@ class BomExplosionService
 {
     /**
      * Explode BOM and return flattened material requirements
-     * 
-     * @param Bom $bom Bill of Materials to explode
-     * @param float $quantity Production quantity
-     * @param int $tenantId Tenant ID for isolation
-     * @param bool $useCache Enable caching for repeated calls
+     *
+     * @param  Bom  $bom  Bill of Materials to explode
+     * @param  float  $quantity  Production quantity
+     * @param  int  $tenantId  Tenant ID for isolation
+     * @param  bool  $useCache  Enable caching for repeated calls
      * @return array Exploded materials with details
      */
     public function explodeBom(Bom $bom, float $quantity, int $tenantId, bool $useCache = true): array
@@ -84,17 +84,17 @@ class BomExplosionService
 
     /**
      * Explode BOM and check stock availability
-     * 
-     * @param Bom $bom Bill of Materials
-     * @param float $quantity Production quantity
-     * @param int $tenantId Tenant ID
+     *
+     * @param  Bom  $bom  Bill of Materials
+     * @param  float  $quantity  Production quantity
+     * @param  int  $tenantId  Tenant ID
      * @return array Stock check results
      */
     public function checkStockAvailability(Bom $bom, float $quantity, int $tenantId): array
     {
         $explosion = $this->explodeBom($bom, $quantity, $tenantId);
 
-        if (!$explosion['success']) {
+        if (! $explosion['success']) {
             return $explosion;
         }
 
@@ -111,7 +111,7 @@ class BomExplosionService
             $requiredQty = $material['quantity'];
             $isAvailable = $availableQty >= $requiredQty;
 
-            if (!$isAvailable) {
+            if (! $isAvailable) {
                 $allAvailable = false;
             }
 
@@ -150,17 +150,17 @@ class BomExplosionService
 
     /**
      * Calculate detailed production cost from BOM
-     * 
-     * @param Bom $bom Bill of Materials
-     * @param float $quantity Production quantity
-     * @param int $tenantId Tenant ID
+     *
+     * @param  Bom  $bom  Bill of Materials
+     * @param  float  $quantity  Production quantity
+     * @param  int  $tenantId  Tenant ID
      * @return array Cost breakdown
      */
     public function calculateProductionCost(Bom $bom, float $quantity, int $tenantId): array
     {
         $explosion = $this->explodeBom($bom, $quantity, $tenantId);
 
-        if (!$explosion['success']) {
+        if (! $explosion['success']) {
             return $explosion;
         }
 
@@ -171,7 +171,7 @@ class BomExplosionService
             $cost = $material['unit_cost'] * $material['quantity'];
             $materialCost += $cost;
 
-            if (!isset($costByLevel[$material['level']])) {
+            if (! isset($costByLevel[$material['level']])) {
                 $costByLevel[$material['level']] = 0;
             }
             $costByLevel[$material['level']] += $cost;
@@ -192,10 +192,10 @@ class BomExplosionService
 
     /**
      * Compare multiple BOMs for the same product
-     * 
-     * @param array $bomIds Array of BOM IDs to compare
-     * @param float $quantity Production quantity
-     * @param int $tenantId Tenant ID
+     *
+     * @param  array  $bomIds  Array of BOM IDs to compare
+     * @param  float  $quantity  Production quantity
+     * @param  int  $tenantId  Tenant ID
      * @return array Comparison results
      */
     public function compareBoms(array $bomIds, float $quantity, int $tenantId): array
@@ -205,7 +205,7 @@ class BomExplosionService
         foreach ($bomIds as $bomId) {
             $bom = Bom::with('product')->find($bomId);
 
-            if (!$bom || $bom->tenant_id !== $tenantId) {
+            if (! $bom || $bom->tenant_id !== $tenantId) {
                 continue;
             }
 
@@ -241,10 +241,10 @@ class BomExplosionService
 
     /**
      * Get BOM hierarchy/tree structure for visualization
-     * 
-     * @param Bom $bom Bill of Materials
-     * @param float $quantity Production quantity
-     * @param int $level Current recursion level
+     *
+     * @param  Bom  $bom  Bill of Materials
+     * @param  float  $quantity  Production quantity
+     * @param  int  $level  Current recursion level
      * @return array Tree structure
      */
     public function getBomTree(Bom $bom, float $quantity = 1, int $level = 0): array
@@ -288,8 +288,8 @@ class BomExplosionService
 
     /**
      * Clear BOM explosion cache
-     * 
-     * @param int|null $bomId Specific BOM ID or null for all
+     *
+     * @param  int|null  $bomId  Specific BOM ID or null for all
      */
     public function clearCache(?int $bomId = null): void
     {
@@ -317,14 +317,13 @@ class BomExplosionService
         foreach ($materials as $material) {
             $product = $products->get($material['product_id']);
 
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 
             // Get latest cost from product or average stock cost
             // ProductStock doesn't have unit_cost, so we use product's cost_price
             $unitCost = $product->cost_price ?? 0;
-
 
             $enriched[] = [
                 'product_id' => $material['product_id'],

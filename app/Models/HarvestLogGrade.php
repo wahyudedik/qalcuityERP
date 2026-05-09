@@ -14,7 +14,13 @@ class HarvestLogGrade extends Model
         return ['quantity' => 'decimal:3', 'price_per_unit' => 'decimal:2'];
     }
 
-    public function harvestLog(): BelongsTo { return $this->belongsTo(HarvestLog::class); }
+    public function harvestLog(): BelongsTo
+    {
+        return $this->belongsTo(HarvestLog::class);
+    }
 
-    public function subtotal(): float { return (float) $this->quantity * (float) $this->price_per_unit; }
+    public function subtotal(): float
+    {
+        return (float) $this->quantity * (float) $this->price_per_unit;
+    }
 }

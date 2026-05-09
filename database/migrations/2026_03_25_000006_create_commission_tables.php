@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Commission rules / tiers
-        if (!Schema::hasTable('commission_rules')) {
+        if (! Schema::hasTable('commission_rules')) {
             Schema::create('commission_rules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -21,13 +21,13 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Sales targets per salesperson per period
-        if (!Schema::hasTable('sales_targets')) {
+        if (! Schema::hasTable('sales_targets')) {
             Schema::create('sales_targets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -38,13 +38,13 @@ return new class extends Migration
                 $table->decimal('achieved_amount', 15, 2)->default(0);
                 $table->decimal('achievement_pct', 8, 2)->default(0);
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id', 'period']);
             });
         }
 
         // Commission calculations per salesperson per period
-        if (!Schema::hasTable('commission_calculations')) {
+        if (! Schema::hasTable('commission_calculations')) {
             Schema::create('commission_calculations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -61,7 +61,7 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id', 'period']);
             });
         }

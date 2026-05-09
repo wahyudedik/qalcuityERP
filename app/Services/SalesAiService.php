@@ -7,7 +7,6 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\SalesOrderItem;
-use Illuminate\Support\Facades\DB;
 
 /**
  * SalesAiService — AI contextual untuk fitur Invoice & Sales Order.
@@ -82,35 +81,36 @@ class SalesAiService
             if ($allHistory->isEmpty()) {
                 return [
                     'suggested_price' => $defaultPrice,
-                    'confidence'      => 'low',
-                    'basis'           => 'Harga default produk (belum ada histori transaksi)',
-                    'history_count'   => 0,
-                    'avg_price'       => $defaultPrice,
-                    'min_price'       => $defaultPrice,
-                    'max_price'       => $defaultPrice,
-                    'last_price'      => null,
-                    'default_price'   => $defaultPrice,
+                    'confidence' => 'low',
+                    'basis' => 'Harga default produk (belum ada histori transaksi)',
+                    'history_count' => 0,
+                    'avg_price' => $defaultPrice,
+                    'min_price' => $defaultPrice,
+                    'max_price' => $defaultPrice,
+                    'last_price' => null,
+                    'default_price' => $defaultPrice,
                 ];
             }
 
             $avg = round($allHistory->avg());
+
             return [
                 'suggested_price' => $avg,
-                'confidence'      => 'low',
-                'basis'           => 'Rata-rata harga ke semua customer (belum ada histori khusus customer ini)',
-                'history_count'   => $allHistory->count(),
-                'avg_price'       => $avg,
-                'min_price'       => round($allHistory->min()),
-                'max_price'       => round($allHistory->max()),
-                'last_price'      => null,
-                'default_price'   => $defaultPrice,
+                'confidence' => 'low',
+                'basis' => 'Rata-rata harga ke semua customer (belum ada histori khusus customer ini)',
+                'history_count' => $allHistory->count(),
+                'avg_price' => $avg,
+                'min_price' => round($allHistory->min()),
+                'max_price' => round($allHistory->max()),
+                'last_price' => null,
+                'default_price' => $defaultPrice,
             ];
         }
 
-        $prices     = $history->pluck('price')->map(fn($p) => (float) $p);
-        $avg        = round($prices->avg());
-        $lastPrice  = (float) $history->first()->price;
-        $count      = $history->count();
+        $prices = $history->pluck('price')->map(fn ($p) => (float) $p);
+        $avg = round($prices->avg());
+        $lastPrice = (float) $history->first()->price;
+        $count = $history->count();
 
         // Weighted average: transaksi terbaru lebih berpengaruh
         $weighted = $this->weightedAverage($history->toArray());
@@ -119,28 +119,28 @@ class SalesAiService
         $confidence = match (true) {
             $count >= 5 => 'high',
             $count >= 2 => 'medium',
-            default     => 'low',
+            default => 'low',
         };
 
         // Basis penjelasan
-        $customer   = Customer::find($customerId);
+        $customer = Customer::find($customerId);
         $customerName = $customer?->name ?? 'customer ini';
         $basis = match ($confidence) {
-            'high'   => "Berdasarkan {$count} transaksi terakhir dengan {$customerName}. Harga terakhir: Rp " . number_format($lastPrice, 0, ',', '.'),
+            'high' => "Berdasarkan {$count} transaksi terakhir dengan {$customerName}. Harga terakhir: Rp ".number_format($lastPrice, 0, ',', '.'),
             'medium' => "Berdasarkan {$count} transaksi dengan {$customerName}",
-            default  => "Berdasarkan 1 transaksi sebelumnya dengan {$customerName}",
+            default => "Berdasarkan 1 transaksi sebelumnya dengan {$customerName}",
         };
 
         return [
             'suggested_price' => $weighted,
-            'confidence'      => $confidence,
-            'basis'           => $basis,
-            'history_count'   => $count,
-            'avg_price'       => $avg,
-            'min_price'       => round($prices->min()),
-            'max_price'       => round($prices->max()),
-            'last_price'      => $lastPrice,
-            'default_price'   => $defaultPrice,
+            'confidence' => $confidence,
+            'basis' => $basis,
+            'history_count' => $count,
+            'avg_price' => $avg,
+            'min_price' => round($prices->min()),
+            'max_price' => round($prices->max()),
+            'last_price' => $lastPrice,
+            'default_price' => $defaultPrice,
         ];
     }
 
@@ -194,13 +194,13 @@ class SalesAiService
 
         if ($totalPaid === 0 && $outstanding === 0) {
             return [
-                'risk'           => 'low',
-                'probability'    => 10,
-                'reason'         => 'Belum ada histori invoice untuk customer ini',
-                'avg_days_late'  => 0,
-                'late_count'     => 0,
+                'risk' => 'low',
+                'probability' => 10,
+                'reason' => 'Belum ada histori invoice untuk customer ini',
+                'avg_days_late' => 0,
+                'late_count' => 0,
                 'total_invoices' => 0,
-                'tips'           => ['Pertimbangkan meminta DP untuk customer baru'],
+                'tips' => ['Pertimbangkan meminta DP untuk customer baru'],
             ];
         }
 
@@ -211,7 +211,9 @@ class SalesAiService
         foreach ($paidInvoices as $inv) {
             // Ambil tanggal pembayaran terakhir
             $lastPayment = $inv->payments()->orderByDesc('payment_date')->first();
-            if (!$lastPayment) continue;
+            if (! $lastPayment) {
+                continue;
+            }
 
             $daysLate = $inv->due_date->diffInDays($lastPayment->payment_date, false);
             if ($daysLate > 0) {
@@ -220,8 +222,8 @@ class SalesAiService
             }
         }
 
-        $lateRate    = $totalPaid > 0 ? ($lateCount / $totalPaid) * 100 : 0;
-        $avgDaysLate = !empty($lateDays) ? round(array_sum($lateDays) / count($lateDays), 1) : 0;
+        $lateRate = $totalPaid > 0 ? ($lateCount / $totalPaid) * 100 : 0;
+        $avgDaysLate = ! empty($lateDays) ? round(array_sum($lateDays) / count($lateDays), 1) : 0;
 
         // Faktor tambahan: ada invoice overdue sekarang
         $overdueBonus = $currentOverdue > 0 ? 20 : 0;
@@ -233,7 +235,7 @@ class SalesAiService
         $risk = match (true) {
             $probability >= 60 => 'high',
             $probability >= 30 => 'medium',
-            default            => 'low',
+            default => 'low',
         };
 
         // Reason
@@ -252,13 +254,13 @@ class SalesAiService
         $tips = $this->buildPaymentTips($risk, $avgDaysLate, $currentOverdue, $outstanding);
 
         return [
-            'risk'           => $risk,
-            'probability'    => $probability,
-            'reason'         => $reason,
-            'avg_days_late'  => $avgDaysLate,
-            'late_count'     => $lateCount,
+            'risk' => $risk,
+            'probability' => $probability,
+            'reason' => $reason,
+            'avg_days_late' => $avgDaysLate,
+            'late_count' => $lateCount,
             'total_invoices' => $totalPaid,
-            'tips'           => $tips,
+            'tips' => $tips,
         ];
     }
 
@@ -276,15 +278,15 @@ class SalesAiService
     public function draftItemDescription(int $tenantId, int $productId): array
     {
         $product = Product::find($productId);
-        if (!$product) {
+        if (! $product) {
             return ['description' => '', 'source' => 'none'];
         }
 
         // Jika produk sudah punya deskripsi, gunakan itu
-        if (!empty($product->description)) {
+        if (! empty($product->description)) {
             return [
                 'description' => $product->description,
-                'source'      => 'product',
+                'source' => 'product',
             ];
         }
 
@@ -293,11 +295,11 @@ class SalesAiService
 
         return [
             'description' => $desc,
-            'source'      => 'generated',
+            'source' => 'generated',
             'product_name' => $product->name,
-            'category'    => $product->category,
-            'unit'        => $product->unit,
-            'sku'         => $product->sku,
+            'category' => $product->category,
+            'unit' => $product->unit,
+            'sku' => $product->sku,
         ];
     }
 
@@ -305,7 +307,9 @@ class SalesAiService
 
     private function weightedAverage(array $history): float
     {
-        if (empty($history)) return 0;
+        if (empty($history)) {
+            return 0;
+        }
 
         $totalWeight = 0;
         $weightedSum = 0;
@@ -345,24 +349,24 @@ class SalesAiService
 
     private function generateDescription(Product $product): string
     {
-        $name     = $product->name;
-        $unit     = $product->unit ?? 'unit';
+        $name = $product->name;
+        $unit = $product->unit ?? 'unit';
         $category = strtolower($product->category ?? '');
-        $sku      = $product->sku ? " (SKU: {$product->sku})" : '';
+        $sku = $product->sku ? " (SKU: {$product->sku})" : '';
 
         // Template berdasarkan kategori
         $templates = [
-            'elektronik'  => "{$name} — perangkat elektronik berkualitas. Satuan: {$unit}{$sku}.",
-            'makanan'     => "{$name} — produk makanan/minuman. Satuan: {$unit}{$sku}.",
-            'minuman'     => "{$name} — produk minuman. Satuan: {$unit}{$sku}.",
-            'pakaian'     => "{$name} — produk fashion/pakaian. Satuan: {$unit}{$sku}.",
-            'kesehatan'   => "{$name} — produk kesehatan & kebersihan. Satuan: {$unit}{$sku}.",
-            'otomotif'    => "{$name} — suku cadang/aksesori otomotif. Satuan: {$unit}{$sku}.",
-            'furniture'   => "{$name} — produk furnitur & dekorasi. Satuan: {$unit}{$sku}.",
-            'alat'        => "{$name} — peralatan & perlengkapan. Satuan: {$unit}{$sku}.",
-            'bahan'       => "{$name} — bahan baku/material. Satuan: {$unit}{$sku}.",
-            'jasa'        => "Layanan {$name}. Satuan: {$unit}{$sku}.",
-            'service'     => "Layanan {$name}. Satuan: {$unit}{$sku}.",
+            'elektronik' => "{$name} — perangkat elektronik berkualitas. Satuan: {$unit}{$sku}.",
+            'makanan' => "{$name} — produk makanan/minuman. Satuan: {$unit}{$sku}.",
+            'minuman' => "{$name} — produk minuman. Satuan: {$unit}{$sku}.",
+            'pakaian' => "{$name} — produk fashion/pakaian. Satuan: {$unit}{$sku}.",
+            'kesehatan' => "{$name} — produk kesehatan & kebersihan. Satuan: {$unit}{$sku}.",
+            'otomotif' => "{$name} — suku cadang/aksesori otomotif. Satuan: {$unit}{$sku}.",
+            'furniture' => "{$name} — produk furnitur & dekorasi. Satuan: {$unit}{$sku}.",
+            'alat' => "{$name} — peralatan & perlengkapan. Satuan: {$unit}{$sku}.",
+            'bahan' => "{$name} — bahan baku/material. Satuan: {$unit}{$sku}.",
+            'jasa' => "Layanan {$name}. Satuan: {$unit}{$sku}.",
+            'service' => "Layanan {$name}. Satuan: {$unit}{$sku}.",
         ];
 
         foreach ($templates as $key => $template) {

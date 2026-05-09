@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('work_orders')) {
+        if (! Schema::hasTable('work_orders')) {
             Schema::create('work_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -30,7 +30,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('production_outputs')) {
+        if (! Schema::hasTable('production_outputs')) {
             Schema::create('production_outputs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('work_order_id')->constrained()->cascadeOnDelete();

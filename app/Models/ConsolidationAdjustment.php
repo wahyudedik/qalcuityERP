@@ -61,7 +61,7 @@ class ConsolidationAdjustment extends Model
 
     public function post(): void
     {
-        if (!$this->isBalanced()) {
+        if (! $this->isBalanced()) {
             throw new \RuntimeException('Adjustment tidak balance: debit ≠ credit.');
         }
 

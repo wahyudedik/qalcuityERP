@@ -25,15 +25,16 @@ class QueryAnalyzerPropertyTest extends TestCase
     use TestTrait;
 
     private string $tempDir;
+
     private string $basePath;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/query_analyzer_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Http/Controllers', 0777, true);
-        mkdir($this->tempDir . '/app/Services', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/query_analyzer_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Http/Controllers', 0777, true);
+        mkdir($this->tempDir.'/app/Services', 0777, true);
         $this->basePath = $this->tempDir;
     }
 
@@ -89,8 +90,8 @@ class QueryAnalyzerPropertyTest extends TestCase
                 'browse'
             ) // methodName — controller method name
         )->then(function (string $queryPattern, string $boundingPattern, string $methodName) {
-            $uniqueClass = 'TestController_Q' . uniqid();
-            $filePath = $this->tempDir . '/app/Http/Controllers/' . $uniqueClass . '.php';
+            $uniqueClass = 'TestController_Q'.uniqid();
+            $filePath = $this->tempDir.'/app/Http/Controllers/'.$uniqueClass.'.php';
 
             $source = $this->generateControllerStub(
                 $uniqueClass,
@@ -101,14 +102,14 @@ class QueryAnalyzerPropertyTest extends TestCase
             file_put_contents($filePath, $source);
 
             $analyzer = new QueryAnalyzer(
-                $this->tempDir . '/app/Http/Controllers',
-                $this->tempDir . '/app/Services',
+                $this->tempDir.'/app/Http/Controllers',
+                $this->tempDir.'/app/Services',
                 $this->basePath
             );
 
             $findings = $analyzer->detectUnboundedQueries(
                 $source,
-                'App\\Http\\Controllers\\' . $uniqueClass,
+                'App\\Http\\Controllers\\'.$uniqueClass,
                 $filePath
             );
 
@@ -117,7 +118,7 @@ class QueryAnalyzerPropertyTest extends TestCase
                 $this->assertNotEmpty(
                     $findings,
                     "Controller method with unbounded {$queryPattern}() and NO bounding pattern "
-                        . "MUST produce a finding. class={$uniqueClass}, method={$methodName}"
+                        ."MUST produce a finding. class={$uniqueClass}, method={$methodName}"
                 );
 
                 $finding = $findings[0];
@@ -133,7 +134,7 @@ class QueryAnalyzerPropertyTest extends TestCase
                 $this->assertEmpty(
                     $findings,
                     "Controller method with {$queryPattern}() bounded by {$boundingPattern}() "
-                        . "should NOT produce a finding. class={$uniqueClass}, method={$methodName}"
+                        ."should NOT produce a finding. class={$uniqueClass}, method={$methodName}"
                 );
             }
 
@@ -209,17 +210,17 @@ PHP;
             : '\\App\\Models\\Product::query()->where(\'status\', \'active\')';
 
         $boundedCall = match ($boundingPattern) {
-            'paginate'        => '->paginate(15)',
-            'simplePaginate'  => '->simplePaginate(15)',
-            'chunk'           => '->chunk(100, function ($products) { /* process */ })',
-            'cursor'          => '->cursor()',
-            'limit'           => '->limit(50)->get()',
-            'take'            => '->take(10)->get()',
-            'first'           => '->first()',
-            'count'           => '->count()',
-            'sum'             => '->sum(\'amount\')',
-            'pluck'           => '->pluck(\'name\')',
-            default           => '->paginate(15)',
+            'paginate' => '->paginate(15)',
+            'simplePaginate' => '->simplePaginate(15)',
+            'chunk' => '->chunk(100, function ($products) { /* process */ })',
+            'cursor' => '->cursor()',
+            'limit' => '->limit(50)->get()',
+            'take' => '->take(10)->get()',
+            'first' => '->first()',
+            'count' => '->count()',
+            'sum' => '->sum(\'amount\')',
+            'pluck' => '->pluck(\'name\')',
+            default => '->paginate(15)',
         };
 
         $lines[] = "        \$items = {$queryBase}{$boundedCall};";
@@ -235,7 +236,7 @@ PHP;
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

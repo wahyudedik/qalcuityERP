@@ -30,7 +30,7 @@ class SimpleOfflineSyncTest extends TestCase
     {
         $tenant = Tenant::create([
             'name' => 'Test Tenant',
-            'subdomain' => 'test-' . time(),
+            'subdomain' => 'test-'.time(),
         ]);
 
         $user = User::factory()->create([
@@ -49,7 +49,7 @@ class SimpleOfflineSyncTest extends TestCase
     {
         $tenant = Tenant::create([
             'name' => 'Test Tenant',
-            'subdomain' => 'test-' . time(),
+            'subdomain' => 'test-'.time(),
         ]);
 
         $conflict = OfflineSyncConflict::create([

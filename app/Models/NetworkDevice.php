@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class NetworkDevice extends Model
@@ -189,7 +188,7 @@ class NetworkDevice extends Model
      */
     public function getDecryptedPasswordAttribute(): ?string
     {
-        if (!$this->password_encrypted) {
+        if (! $this->password_encrypted) {
             return null;
         }
 
@@ -244,7 +243,7 @@ class NetworkDevice extends Model
      */
     public function getDistanceTo(float $lat, float $lng): float
     {
-        if (!$this->hasCoordinates()) {
+        if (! $this->hasCoordinates()) {
             return -1;
         }
 
@@ -275,6 +274,7 @@ class NetworkDevice extends Model
         if ($this->hasCoordinates()) {
             return "{$this->latitude}, {$this->longitude}";
         }
+
         return null;
     }
 
@@ -286,6 +286,7 @@ class NetworkDevice extends Model
         if ($this->hasCoordinates()) {
             return "https://www.google.com/maps?q={$this->latitude},{$this->longitude}";
         }
+
         return null;
     }
 

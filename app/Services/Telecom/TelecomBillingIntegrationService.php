@@ -2,17 +2,19 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\Invoice;
-use App\Models\TelecomSubscription;
 use App\Models\Customer;
-use App\Services\WebhookService;
+use App\Models\Invoice;
+use App\Models\NetworkDevice;
+use App\Models\TelecomSubscription;
 use App\Services\NotificationService;
+use App\Services\WebhookService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TelecomBillingIntegrationService
 {
     protected WebhookService $webhookService;
+
     protected NotificationService $notificationService;
 
     public function __construct()
@@ -74,9 +76,9 @@ class TelecomBillingIntegrationService
 
             // Add invoice line item
             $invoice->items()->create([
-                'description' => "Internet Package: {$package->name}\n" .
-                    "Speed: {$package->download_speed_mbps}/{$package->upload_speed_mbps} Mbps\n" .
-                    "Quota: " . ($package->quota_bytes ? round($package->quota_bytes / 1073741824, 2) . ' GB' : 'Unlimited') . "\n" .
+                'description' => "Internet Package: {$package->name}\n".
+                    "Speed: {$package->download_speed_mbps}/{$package->upload_speed_mbps} Mbps\n".
+                    'Quota: '.($package->quota_bytes ? round($package->quota_bytes / 1073741824, 2).' GB' : 'Unlimited')."\n".
                     "Period: {$periodStart->format('d M Y')} - {$periodEnd->format('d M Y')}",
                 'quantity' => 1,
                 'unit_price' => $baseAmount - $discount,
@@ -114,7 +116,7 @@ class TelecomBillingIntegrationService
                 'package_name' => $package->name,
             ]);
 
-            Log::info("Telecom subscription invoice generated", [
+            Log::info('Telecom subscription invoice generated', [
                 'invoice_id' => $invoice->id,
                 'subscription_id' => $subscription->id,
                 'amount' => $totalAmount,
@@ -153,7 +155,7 @@ class TelecomBillingIntegrationService
                     'error' => $e->getMessage(),
                 ];
 
-                Log::error("Failed to generate telecom invoice", [
+                Log::error('Failed to generate telecom invoice', [
                     'subscription_id' => $subscription->id,
                     'error' => $e->getMessage(),
                 ]);
@@ -174,13 +176,13 @@ class TelecomBillingIntegrationService
      */
     public function handlePaymentSuccess(Invoice $invoice): void
     {
-        if (!isset($invoice->metadata['subscription_id'])) {
+        if (! isset($invoice->metadata['subscription_id'])) {
             return;
         }
 
         $subscription = TelecomSubscription::find($invoice->metadata['subscription_id']);
 
-        if (!$subscription) {
+        if (! $subscription) {
             return;
         }
 
@@ -194,7 +196,7 @@ class TelecomBillingIntegrationService
                     $adapter = RouterAdapterFactory::create($subscription->device);
                     $adapter->reconnectUser($subscription->hotspot_username);
                 } catch (\Exception $e) {
-                    Log::warning("Failed to reconnect user after payment", [
+                    Log::warning('Failed to reconnect user after payment', [
                         'subscription_id' => $subscription->id,
                         'error' => $e->getMessage(),
                     ]);
@@ -220,7 +222,7 @@ class TelecomBillingIntegrationService
             'next_billing_date' => $subscription->next_billing_date?->format('d M Y'),
         ]);
 
-        Log::info("Telecom subscription payment confirmed", [
+        Log::info('Telecom subscription payment confirmed', [
             'invoice_id' => $invoice->id,
             'subscription_id' => $subscription->id,
         ]);
@@ -262,7 +264,7 @@ class TelecomBillingIntegrationService
             'usage_percentage' => round(($subscription->current_usage_bytes / $package->quota_bytes) * 100, 2),
         ]);
 
-        Log::info("Quota exceeded alert sent", [
+        Log::info('Quota exceeded alert sent', [
             'subscription_id' => $subscription->id,
             'customer_id' => $customer->id,
         ]);
@@ -271,7 +273,7 @@ class TelecomBillingIntegrationService
     /**
      * Handle device offline event.
      */
-    public function handleDeviceOffline(\App\Models\NetworkDevice $device): void
+    public function handleDeviceOffline(NetworkDevice $device): void
     {
         $tenantId = $device->tenant_id;
 
@@ -301,7 +303,7 @@ class TelecomBillingIntegrationService
             'severity' => $affectedSubscriptions > 10 ? 'critical' : 'high',
         ]);
 
-        Log::warning("Device offline alert sent", [
+        Log::warning('Device offline alert sent', [
             'device_id' => $device->id,
             'device_name' => $device->name,
             'affected_subscriptions' => $affectedSubscriptions,

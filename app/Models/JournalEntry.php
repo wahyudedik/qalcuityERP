@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
-use App\Models\AccountingPeriod;
+use App\Services\DocumentNumberService;
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JournalEntry extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
-    const STATUS_DRAFT    = 'draft';
-    const STATUS_POSTED   = 'posted';
+    const STATUS_DRAFT = 'draft';
+
+    const STATUS_POSTED = 'posted';
+
     const STATUS_REVERSED = 'reversed';
 
     const STATUSES = [
@@ -56,18 +57,22 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function period(): BelongsTo
     {
         return $this->belongsTo(AccountingPeriod::class, 'period_id');
     }
+
     public function lines(): HasMany
     {
         return $this->hasMany(JournalEntryLine::class);
     }
+
     public function postedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'posted_by');
@@ -78,10 +83,12 @@ class JournalEntry extends Model
     {
         return (float) $this->lines()->sum('debit');
     }
+
     public function totalCredit(): float
     {
         return (float) $this->lines()->sum('credit');
     }
+
     public function isBalanced(): bool
     {
         return abs($this->totalDebit() - $this->totalCredit()) < 0.01;
@@ -89,6 +96,7 @@ class JournalEntry extends Model
 
     /**
      * BUG-FIN-001 FIX: Validate journal balance with detailed error message
+     *
      * @throws \RuntimeException if journal is not balanced
      */
     public function validateBalance(): void
@@ -99,8 +107,8 @@ class JournalEntry extends Model
 
         if ($diff >= 0.01) {
             throw new \RuntimeException(
-                "Jurnal tidak balance: Debit = {$debit}, Credit = {$credit}, Selisih = {$diff}. " .
-                "Total debit harus sama dengan total credit."
+                "Jurnal tidak balance: Debit = {$debit}, Credit = {$credit}, Selisih = {$diff}. ".
+                'Total debit harus sama dengan total credit.'
             );
         }
 
@@ -108,9 +116,9 @@ class JournalEntry extends Model
         $hasDebit = $this->lines()->where('debit', '>', 0)->exists();
         $hasCredit = $this->lines()->where('credit', '>', 0)->exists();
 
-        if (!$hasDebit || !$hasCredit) {
+        if (! $hasDebit || ! $hasCredit) {
             throw new \RuntimeException(
-                "Jurnal harus memiliki minimal 1 baris debit dan 1 baris credit."
+                'Jurnal harus memiliki minimal 1 baris debit dan 1 baris credit.'
             );
         }
     }
@@ -137,7 +145,7 @@ class JournalEntry extends Model
             'user_id' => $userId,
             'number' => self::generateNumber($this->tenant_id, 'JRV'),
             'date' => $date,
-            'description' => 'Pembalik: ' . $this->description,
+            'description' => 'Pembalik: '.$this->description,
             'reference' => $this->number,
             'reference_type' => 'reversal',
             'reference_id' => $this->id,
@@ -169,6 +177,6 @@ class JournalEntry extends Model
             default => 'je',
         };
 
-        return app(\App\Services\DocumentNumberService::class)->generate($tenantId, $docType, $prefix);
+        return app(DocumentNumberService::class)->generate($tenantId, $docType, $prefix);
     }
 }

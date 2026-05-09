@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\DocumentTemplate;
+use App\Services\DocumentBulkGeneratorService;
 use App\Services\DocumentOcrService;
 use App\Services\DocumentSignatureService;
-use App\Services\DocumentBulkGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Storage;
 class DocumentController extends Controller
 {
     protected DocumentOcrService $ocrService;
+
     protected DocumentSignatureService $signatureService;
+
     protected DocumentBulkGeneratorService $bulkGeneratorService;
 
     public function __construct(
@@ -110,7 +112,7 @@ class DocumentController extends Controller
         ]);
 
         $file = $validated['file'];
-        $path = $file->store('documents/' . Auth::user()->tenant_id, 'public');
+        $path = $file->store('documents/'.Auth::user()->tenant_id, 'public');
 
         $document = Document::create([
             'tenant_id' => Auth::user()->tenant_id,
@@ -339,7 +341,7 @@ class DocumentController extends Controller
     {
         $this->authorize('view', $document);
 
-        if (!Storage::disk('public')->exists($document->file_path)) {
+        if (! Storage::disk('public')->exists($document->file_path)) {
             abort(404, 'File not found');
         }
 

@@ -2,20 +2,24 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
-use Illuminate\Support\Facades\Http;
+use App\Models\Product;
+use App\Models\ProductStock;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Lazada Connector
- * 
+ *
  * Handles integration with Lazada Open Platform API
  */
 class LazadaConnector extends BaseConnector
 {
     protected string $apiUrl = 'https://api.lazada.co.id/rest';
+
     protected ?string $appKey = null;
+
     protected ?string $appSecret = null;
 
     public function __construct(Integration $integration)
@@ -31,20 +35,23 @@ class LazadaConnector extends BaseConnector
         try {
             $response = $this->get($this->buildUrl('/category/tree'), ['category_id' => 0]);
 
-            if ($response->successful() && !($response->json()['code'] ?? false)) {
+            if ($response->successful() && ! ($response->json()['code'] ?? false)) {
                 $this->integration->markAsActive();
+
                 return true;
             }
+
             return false;
         } catch (Throwable $e) {
             Log::error('Lazada authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
 
     protected function buildUrl(string $endpoint): string
     {
-        return $this->apiUrl . $endpoint;
+        return $this->apiUrl.$endpoint;
     }
 
     public function syncProducts(): array
@@ -54,7 +61,7 @@ class LazadaConnector extends BaseConnector
         $failed = 0;
 
         try {
-            $products = \App\Models\Product::where('tenant_id', $this->integration->tenant_id)
+            $products = Product::where('tenant_id', $this->integration->tenant_id)
                 ->where('is_active', true)->get();
 
             foreach ($products as $product) {
@@ -65,8 +72,8 @@ class LazadaConnector extends BaseConnector
                         : $this->createProduct($product);
 
                     if ($result['success']) {
-                        if (!$lazadaProductId && isset($result['product_id'])) {
-                            \App\Models\EcommerceProductMapping::create([
+                        if (! $lazadaProductId && isset($result['product_id'])) {
+                            EcommerceProductMapping::create([
                                 'tenant_id' => $this->integration->tenant_id,
                                 'product_id' => $product->id,
                                 'channel_id' => $this->integration->id,
@@ -104,7 +111,7 @@ class LazadaConnector extends BaseConnector
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!($data['code'] ?? false)) {
+                if (! ($data['code'] ?? false)) {
                     return ['success' => true, 'product_id' => $data['data']['item_id'] ?? null];
                 }
             }
@@ -125,7 +132,7 @@ class LazadaConnector extends BaseConnector
                 'payload' => json_encode($productData),
             ]);
 
-            return ['success' => $response->successful() && !($response->json()['code'] ?? false)];
+            return ['success' => $response->successful() && ! ($response->json()['code'] ?? false)];
         } catch (Throwable $e) {
             return $this->handleError($e, 'updateProduct');
         }
@@ -133,7 +140,7 @@ class LazadaConnector extends BaseConnector
 
     protected function transformProductToLazada($product): array
     {
-        $stock = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+        $stock = ProductStock::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $product->id)->first();
 
         return [
@@ -143,7 +150,7 @@ class LazadaConnector extends BaseConnector
                     'SellerSku' => $product->sku,
                     'price' => $product->selling_price ?? 0,
                     'quantity' => $stock?->quantity ?? 0,
-                ]
+                ],
             ],
             'attributes' => [
                 'name' => $product->name,

@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierDocument extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -27,7 +26,7 @@ use HasFactory, BelongsToTenant;
         'is_verified',
         'verified_at',
         'verified_by',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
@@ -41,10 +40,12 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
+
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
@@ -52,8 +53,10 @@ use HasFactory, BelongsToTenant;
 
     public function isExpiringSoon(int $days = 30): bool
     {
-        if (!$this->expiry_date)
+        if (! $this->expiry_date) {
             return false;
+        }
+
         return $this->expiry_date->diffInDays(now()) <= $days && $this->expiry_date->isFuture();
     }
 

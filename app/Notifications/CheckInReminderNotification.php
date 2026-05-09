@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CheckInReminderNotification extends Notification implements ShouldQueue
@@ -18,17 +19,17 @@ class CheckInReminderNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'check_in_reminder', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 

@@ -60,6 +60,7 @@ class LabEquipmentController extends Controller
     public function show(LabEquipment $equipment)
     {
         $equipment->load(['connectionLogs']);
+
         return view('healthcare.lab-equipment.show', compact('equipment'));
     }
 
@@ -70,7 +71,7 @@ class LabEquipmentController extends Controller
 
     public function toggleAutoPoll(LabEquipment $equipment)
     {
-        $equipment->update(['auto_poll_enabled' => !$equipment->auto_poll_enabled]);
+        $equipment->update(['auto_poll_enabled' => ! $equipment->auto_poll_enabled]);
 
         return response()->json(['success' => true, 'message' => 'Auto-poll toggled']);
     }
@@ -78,8 +79,10 @@ class LabEquipmentController extends Controller
     public function destroy(LabEquipment $equipment)
     {
         $equipment->delete();
+
         return response()->json(['success' => true, 'message' => 'Equipment deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/lab-equipment/{lab_equipment}/edit
@@ -87,9 +90,10 @@ class LabEquipmentController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.lab-equipment.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/lab-equipment/{lab_equipment}
@@ -97,13 +101,13 @@ class LabEquipmentController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.lab-equipment.update')
             ->with('success', 'Updated successfully.');
     }

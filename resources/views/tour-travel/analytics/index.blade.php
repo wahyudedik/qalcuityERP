@@ -46,8 +46,7 @@
                     </div>
                 </div>
 
-                <div
-                    class="bg-white rounded-xl border border-purple-200 p-4">
+                <div class="bg-white rounded-xl border border-purple-200 p-4">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
                             <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,8 +63,7 @@
                     </div>
                 </div>
 
-                <div
-                    class="bg-white rounded-xl border border-yellow-200 p-4">
+                <div class="bg-white rounded-xl border border-yellow-200 p-4">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
                             <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,8 +102,7 @@
             </div>
 
             {{-- Top Packages Table --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-base font-semibold text-gray-900">🏆 Paket Tour Terpopuler</h3>
                 </div>
@@ -113,17 +110,13 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Nama Paket</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Bookings</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Revenue</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
                             </tr>
                         </thead>
@@ -131,8 +124,7 @@
                             @forelse($topPackages as $package)
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4">
-                                        <span
-                                            class="font-medium text-gray-900">{{ $package->name }}</span>
+                                        <span class="font-medium text-gray-900">{{ $package->name }}</span>
                                     </td>
                                     <td class="px-6 py-4 text-gray-700">
                                         {{ $package->bookings_count }}
@@ -145,7 +137,7 @@
                                             $statusColor = $package->is_active ? 'green' : 'gray';
                                         @endphp
                                         <span
-                                            class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor  }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
+                                            class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
                                             {{ $package->is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
@@ -164,8 +156,7 @@
 
             {{-- Popular Destinations --}}
             @if ($popularDestinations->count() > 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-200">
                         <h3 class="text-base font-semibold text-gray-900">🌍 Destinasi Populer</h3>
                     </div>
@@ -173,14 +164,11 @@
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Destinasi</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Bookings</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Revenue</th>
                                 </tr>
                             </thead>
@@ -208,6 +196,7 @@
     </div>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const isDark = document.documentElement.classList.contains('dark');

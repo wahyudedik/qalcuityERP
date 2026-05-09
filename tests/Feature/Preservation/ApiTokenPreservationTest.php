@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Preservation;
 
+use App\Http\Middleware\ApiTokenAuth;
 use App\Models\ApiToken;
 use App\Models\Tenant;
 use App\Models\User;
@@ -22,7 +23,9 @@ class ApiTokenPreservationTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
+
     private string $testRoute = '/api/test-token-auth';
 
     protected function setUp(): void
@@ -30,11 +33,11 @@ class ApiTokenPreservationTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
 
         // Daftarkan route test yang menggunakan ApiTokenAuth middleware
-        Route::middleware(\App\Http\Middleware\ApiTokenAuth::class . ':read')
-            ->get($this->testRoute, fn() => response()->json(['ok' => true]));
+        Route::middleware(ApiTokenAuth::class.':read')
+            ->get($this->testRoute, fn () => response()->json(['ok' => true]));
     }
 
     // ── Requirement 3.11: Valid token grants access ───────────────────────────
@@ -48,13 +51,13 @@ class ApiTokenPreservationTest extends TestCase
     public function test_valid_api_token_grants_access(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Test Token',
+            tenantId: $this->tenant->id,
+            name: 'Test Token',
             abilities: ['read'],
         );
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token->token,
+            'Authorization' => 'Bearer '.$token->token,
         ])->get($this->testRoute);
 
         $response->assertStatus(200);
@@ -70,13 +73,13 @@ class ApiTokenPreservationTest extends TestCase
     public function test_valid_token_with_wildcard_ability_grants_access(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Wildcard Token',
+            tenantId: $this->tenant->id,
+            name: 'Wildcard Token',
             abilities: ['*'],
         );
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token->token,
+            'Authorization' => 'Bearer '.$token->token,
         ])->get($this->testRoute);
 
         $response->assertStatus(200);
@@ -93,14 +96,14 @@ class ApiTokenPreservationTest extends TestCase
     public function test_expired_api_token_returns_401(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Expired Token',
+            tenantId: $this->tenant->id,
+            name: 'Expired Token',
             abilities: ['read'],
             expiresAt: now()->subDay(), // Sudah kadaluarsa kemarin
         );
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token->token,
+            'Authorization' => 'Bearer '.$token->token,
         ])->get($this->testRoute);
 
         $response->assertStatus(401);
@@ -117,8 +120,8 @@ class ApiTokenPreservationTest extends TestCase
     public function test_inactive_api_token_returns_401(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Inactive Token',
+            tenantId: $this->tenant->id,
+            name: 'Inactive Token',
             abilities: ['read'],
         );
 
@@ -126,7 +129,7 @@ class ApiTokenPreservationTest extends TestCase
         $token->update(['is_active' => false]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token->token,
+            'Authorization' => 'Bearer '.$token->token,
         ])->get($this->testRoute);
 
         $response->assertStatus(401);
@@ -157,13 +160,13 @@ class ApiTokenPreservationTest extends TestCase
     {
         // Token hanya punya ability 'write', tapi endpoint butuh 'read'
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Write-Only Token',
+            tenantId: $this->tenant->id,
+            name: 'Write-Only Token',
             abilities: ['write'],
         );
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token->token,
+            'Authorization' => 'Bearer '.$token->token,
         ])->get($this->testRoute); // Route butuh 'read'
 
         $response->assertStatus(403);
@@ -180,12 +183,12 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_is_valid_returns_true_for_active_non_expired_token(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Valid Token',
+            tenantId: $this->tenant->id,
+            name: 'Valid Token',
             abilities: ['read'],
         );
 
-        $this->assertTrue($token->isValid(), "Token aktif dan belum kadaluarsa harus valid");
+        $this->assertTrue($token->isValid(), 'Token aktif dan belum kadaluarsa harus valid');
     }
 
     /**
@@ -197,13 +200,13 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_is_valid_returns_false_for_expired_token(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Expired Token',
+            tenantId: $this->tenant->id,
+            name: 'Expired Token',
             abilities: ['read'],
             expiresAt: now()->subHour(),
         );
 
-        $this->assertFalse($token->isValid(), "Token kadaluarsa harus tidak valid");
+        $this->assertFalse($token->isValid(), 'Token kadaluarsa harus tidak valid');
     }
 
     /**
@@ -215,14 +218,14 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_is_valid_returns_false_for_inactive_token(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Inactive Token',
+            tenantId: $this->tenant->id,
+            name: 'Inactive Token',
             abilities: ['read'],
         );
         $token->update(['is_active' => false]);
         $token->refresh();
 
-        $this->assertFalse($token->isValid(), "Token tidak aktif harus tidak valid");
+        $this->assertFalse($token->isValid(), 'Token tidak aktif harus tidak valid');
     }
 
     /**
@@ -234,8 +237,8 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_can_returns_true_for_owned_ability(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Read Token',
+            tenantId: $this->tenant->id,
+            name: 'Read Token',
             abilities: ['read', 'export'],
         );
 
@@ -253,8 +256,8 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_can_returns_true_for_wildcard_ability(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Admin Token',
+            tenantId: $this->tenant->id,
+            name: 'Admin Token',
             abilities: ['*'],
         );
 
@@ -272,19 +275,19 @@ class ApiTokenPreservationTest extends TestCase
     public function test_api_token_default_expiry_is_90_days(): void
     {
         $token = ApiToken::generate(
-            tenantId:  $this->tenant->id,
-            name:      'Default Expiry Token',
+            tenantId: $this->tenant->id,
+            name: 'Default Expiry Token',
             abilities: ['read'],
         );
 
-        $this->assertNotNull($token->expires_at, "Token harus memiliki expiry date");
+        $this->assertNotNull($token->expires_at, 'Token harus memiliki expiry date');
 
         $expectedExpiry = now()->addDays(90);
         $this->assertEqualsWithDelta(
             $expectedExpiry->timestamp,
             $token->expires_at->timestamp,
             60, // toleransi 60 detik
-            "Token default harus kadaluarsa dalam 90 hari"
+            'Token default harus kadaluarsa dalam 90 hari'
         );
     }
 }

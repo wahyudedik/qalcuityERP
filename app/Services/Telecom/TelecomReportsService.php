@@ -2,13 +2,14 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\TelecomSubscription;
-use App\Models\InternetPackage;
-use App\Models\UsageTracking;
 use App\Models\Customer;
+use App\Models\TelecomSubscription;
+use App\Models\UsageTracking;
 use App\Models\VoucherCode;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Maatwebsite\Excel\BinaryFileResponse;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class TelecomReportsService
 {
@@ -51,7 +52,7 @@ class TelecomReportsService
                 'package_id' => $package->package_id,
                 'package_name' => $package->package_name,
                 'speed' => "{$package->download_speed_mbps}/{$package->upload_speed_mbps} Mbps",
-                'quota' => $package->quota_bytes ? round($package->quota_bytes / 1073741824, 2) . ' GB' : 'Unlimited',
+                'quota' => $package->quota_bytes ? round($package->quota_bytes / 1073741824, 2).' GB' : 'Unlimited',
                 'unit_price' => $package->unit_price,
                 'total_subscriptions' => $package->total_subscriptions,
                 'active_subscriptions' => $package->active_subscriptions,
@@ -66,6 +67,7 @@ class TelecomReportsService
         if ($totalRevenue > 0) {
             $packages = $packages->map(function ($package) use ($totalRevenue) {
                 $package['revenue_percentage'] = round(($package['total_revenue'] / $totalRevenue) * 100, 2);
+
                 return $package;
             });
         }
@@ -209,14 +211,14 @@ class TelecomReportsService
             ->withCount([
                 'telecomSubscriptions as subscription_count' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('started_at', [$startDate, $endDate]);
-                }
+                },
             ])
             ->withSum([
                 'telecomSubscriptions as total_revenue' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('started_at', [$startDate, $endDate])
                         ->join('internet_packages', 'telecom_subscriptions.package_id', '=', 'internet_packages.id')
                         ->selectRaw('SUM(internet_packages.price)');
-                }
+                },
             ], 'total_revenue')
             ->orderBy(match ($sortBy) {
                 'revenue' => 'total_revenue',
@@ -376,13 +378,13 @@ class TelecomReportsService
     /**
      * Export report to Excel.
      */
-    public function exportToExcel(string $reportType, array $data, string $filename): \Maatwebsite\Excel\BinaryFileResponse
+    public function exportToExcel(string $reportType, array $data, string $filename): BinaryFileResponse
     {
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set title
-        $sheet->setCellValue('A1', ucfirst(str_replace('_', ' ', $reportType)) . ' Report');
+        $sheet->setCellValue('A1', ucfirst(str_replace('_', ' ', $reportType)).' Report');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
         // Add data based on report type
@@ -409,11 +411,11 @@ class TelecomReportsService
         }
 
         // Create writer and download
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
         $writer->save($tempFile);
 
-        return response()->download($tempFile, $filename . '.xlsx')->deleteFileAfterSend(true);
+        return response()->download($tempFile, $filename.'.xlsx')->deleteFileAfterSend(true);
     }
 
     /**
@@ -425,8 +427,8 @@ class TelecomReportsService
         $headers = ['Package', 'Speed', 'Quota', 'Price', 'Total Subs', 'Active Subs', 'Revenue', '% of Total'];
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . $row, $header);
-            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($col.$row, $header);
+            $sheet->getStyle($col.$row)->getFont()->setBold(true);
             $col++;
         }
         $row++;
@@ -437,29 +439,29 @@ class TelecomReportsService
                 $package['package_name'],
                 $package['speed'],
                 $package['quota'],
-                'Rp ' . number_format($package['unit_price']),
+                'Rp '.number_format($package['unit_price']),
                 $package['total_subscriptions'],
                 $package['active_subscriptions'],
-                'Rp ' . number_format($package['total_revenue']),
-                $package['revenue_percentage'] . '%',
-            ], null, 'A' . $row);
+                'Rp '.number_format($package['total_revenue']),
+                $package['revenue_percentage'].'%',
+            ], null, 'A'.$row);
             $row++;
         }
 
         // Summary
         $row += 2;
-        $sheet->setCellValue('A' . $row, 'Summary:');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->setCellValue('A'.$row, 'Summary:');
+        $sheet->getStyle('A'.$row)->getFont()->setBold(true);
         $row++;
         $sheet->fromArray([
             'Total Revenue',
-            'Rp ' . number_format($data['summary']['total_revenue']),
-        ], null, 'A' . $row);
+            'Rp '.number_format($data['summary']['total_revenue']),
+        ], null, 'A'.$row);
         $row++;
         $sheet->fromArray([
             'Total Subscriptions',
             $data['summary']['total_subscriptions'],
-        ], null, 'A' . $row);
+        ], null, 'A'.$row);
     }
 
     /**
@@ -471,8 +473,8 @@ class TelecomReportsService
         $headers = ['Period', 'Download (GB)', 'Upload (GB)', 'Total (GB)', 'Active Subs', 'Avg Usage (GB)'];
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . $row, $header);
-            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($col.$row, $header);
+            $sheet->getStyle($col.$row)->getFont()->setBold(true);
             $col++;
         }
         $row++;
@@ -486,21 +488,21 @@ class TelecomReportsService
                 $trend['total_usage_gb'],
                 $trend['active_subscriptions'],
                 $trend['avg_usage_gb'],
-            ], null, 'A' . $row);
+            ], null, 'A'.$row);
             $row++;
         }
 
         // Device breakdown
         $row += 2;
-        $sheet->setCellValue('A' . $row, 'Device Breakdown (Top 10):');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->setCellValue('A'.$row, 'Device Breakdown (Top 10):');
+        $sheet->getStyle('A'.$row)->getFont()->setBold(true);
         $row++;
 
         $deviceHeaders = ['Device', 'IP Address', 'Download (GB)', 'Upload (GB)', 'Total (GB)', 'Subscriptions'];
         $col = 'A';
         foreach ($deviceHeaders as $header) {
-            $sheet->setCellValue($col . $row, $header);
-            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($col.$row, $header);
+            $sheet->getStyle($col.$row)->getFont()->setBold(true);
             $col++;
         }
         $row++;
@@ -513,7 +515,7 @@ class TelecomReportsService
                 $device['total_upload_gb'],
                 $device['total_usage_gb'],
                 $device['subscription_count'],
-            ], null, 'A' . $row);
+            ], null, 'A'.$row);
             $row++;
         }
     }
@@ -524,31 +526,31 @@ class TelecomReportsService
     protected function exportCustomerAnalyticsReport($sheet, $data, &$row)
     {
         // Summary
-        $sheet->setCellValue('A' . $row, 'Summary:');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->setCellValue('A'.$row, 'Summary:');
+        $sheet->getStyle('A'.$row)->getFont()->setBold(true);
         $row++;
         $sheet->fromArray([
             'Total Customers',
             $data['summary']['total_customers'],
-        ], null, 'A' . $row);
+        ], null, 'A'.$row);
         $row++;
         $sheet->fromArray([
             'Total Subscriptions',
             $data['summary']['total_subscriptions'],
-        ], null, 'A' . $row);
+        ], null, 'A'.$row);
         $row++;
         $sheet->fromArray([
             'Total Revenue',
-            'Rp ' . number_format($data['summary']['total_revenue']),
-        ], null, 'A' . $row);
+            'Rp '.number_format($data['summary']['total_revenue']),
+        ], null, 'A'.$row);
         $row += 2;
 
         // Customer list
         $headers = ['Customer', 'Email', 'Subscriptions', 'Revenue'];
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . $row, $header);
-            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($col.$row, $header);
+            $sheet->getStyle($col.$row)->getFont()->setBold(true);
             $col++;
         }
         $row++;
@@ -558,8 +560,8 @@ class TelecomReportsService
                 $customer->name,
                 $customer->email ?? '-',
                 $customer->subscription_count,
-                'Rp ' . number_format($customer->total_revenue ?? 0),
-            ], null, 'A' . $row);
+                'Rp '.number_format($customer->total_revenue ?? 0),
+            ], null, 'A'.$row);
             $row++;
         }
     }
@@ -573,8 +575,8 @@ class TelecomReportsService
         $headers = ['#', 'Customer', 'Email', 'Package', 'Speed', 'Download (GB)', 'Upload (GB)', 'Total (GB)', 'Last Activity'];
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . $row, $header);
-            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($col.$row, $header);
+            $sheet->getStyle($col.$row)->getFont()->setBold(true);
             $col++;
         }
         $row++;
@@ -592,18 +594,18 @@ class TelecomReportsService
                 $consumer['total_upload_gb'],
                 $consumer['total_usage_gb'],
                 $consumer['last_activity']?->format('d M Y H:i') ?? '-',
-            ], null, 'A' . $row);
+            ], null, 'A'.$row);
             $row++;
         }
 
         // Summary
         $row += 2;
-        $sheet->setCellValue('A' . $row, 'Summary:');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+        $sheet->setCellValue('A'.$row, 'Summary:');
+        $sheet->getStyle('A'.$row)->getFont()->setBold(true);
         $row++;
         $sheet->fromArray([
             'Total Usage (All Top Consumers)',
-            $data['summary']['total_usage_gb'] . ' GB',
-        ], null, 'A' . $row);
+            $data['summary']['total_usage_gb'].' GB',
+        ], null, 'A'.$row);
     }
 }

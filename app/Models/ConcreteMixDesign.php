@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ConcreteMixDesign extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'grade',
@@ -54,10 +54,12 @@ class ConcreteMixDesign extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function bom(): BelongsTo
     {
         return $this->belongsTo(Bom::class);
     }
+
     public function versions(): HasMany
     {
         return $this->hasMany(MixDesignVersion::class)->orderByDesc('version_number');
@@ -120,7 +122,7 @@ class ConcreteMixDesign extends Model
      */
     private function getMaterialPrices(int $tenantId): array
     {
-        $find = fn(array $keywords) => Product::where('tenant_id', $tenantId)
+        $find = fn (array $keywords) => Product::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->where(function ($q) use ($keywords) {
                 foreach ($keywords as $kw) {
@@ -162,8 +164,9 @@ class ConcreteMixDesign extends Model
     {
         $count = 0;
         foreach (self::STANDARD_GRADES as $grade => $spec) {
-            if (self::where('tenant_id', $tenantId)->where('grade', $grade)->exists())
+            if (self::where('tenant_id', $tenantId)->where('grade', $grade)->exists()) {
                 continue;
+            }
 
             self::create([
                 'tenant_id' => $tenantId,
@@ -186,6 +189,7 @@ class ConcreteMixDesign extends Model
             ]);
             $count++;
         }
+
         return $count;
     }
 
@@ -226,6 +230,7 @@ class ConcreteMixDesign extends Model
         if ($latestVersion) {
             $latestVersion->approve($userId);
         }
+
         return $latestVersion;
     }
 }

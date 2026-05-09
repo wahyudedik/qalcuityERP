@@ -25,9 +25,9 @@ class NavigationAndThemeIntegrationTest extends TestCase
     private function resolveActiveGroup(string $routeName): string
     {
         $groupMap = [
-            'superadmin'   => ['super-admin*'],
-            'home'         => ['dashboard', 'reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*'],
-            'ai'           => ['chat*'],
+            'superadmin' => ['super-admin*'],
+            'home' => ['dashboard', 'reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*'],
+            'ai' => ['chat*'],
             'transactions' => [
                 'quotations*', 'invoices*', 'delivery-orders*', 'down-payments*',
                 'sales-returns*', 'sales.*', 'sales.index', 'price-lists*',
@@ -35,20 +35,20 @@ class NavigationAndThemeIntegrationTest extends TestCase
                 'products*', 'warehouses*', 'categories*', 'crm*', 'commission*',
                 'helpdesk*', 'subscription-billing*', 'loyalty*',
             ],
-            'inventory'    => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
-            'operations'   => [
+            'inventory' => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
+            'operations' => [
                 'hrm*', 'payroll*', 'self-service*', 'reimbursement*', 'production*',
                 'manufacturing*', 'qc*', 'printing*', 'cosmetic*', 'tour-travel*',
                 'livestock-enhancement*', 'fisheries*', 'fleet*', 'contracts*',
                 'shipping*', 'approvals*', 'ecommerce*', 'documents*', 'projects*',
                 'timesheets*', 'project-billing*', 'farm*', 'pos*', 'telecom*',
             ],
-            'finance'      => [
+            'finance' => [
                 'accounting*', 'expenses*', 'bank.*', 'bank-accounts*', 'receivables*',
                 'payables*', 'bulk-payments*', 'assets*', 'budget*', 'journals*',
                 'deferred*', 'writeoffs*',
             ],
-            'settings'     => [
+            'settings' => [
                 'company-profile*', 'settings*', 'tenant.users*', 'reminders*',
                 'import*', 'audit*', 'notifications*', 'bot*', 'api-settings*',
                 'subscription.index', 'cost-centers*', 'ai-memory*', 'taxes*',
@@ -75,15 +75,16 @@ class NavigationAndThemeIntegrationTest extends TestCase
         if (str_ends_with($pattern, '*')) {
             return str_starts_with($routeName, rtrim($pattern, '*'));
         }
+
         return false;
     }
 
     private function countMatchingGroups(string $routeName): int
     {
         $groupMap = [
-            'superadmin'   => ['super-admin*'],
-            'home'         => ['dashboard', 'reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*'],
-            'ai'           => ['chat*'],
+            'superadmin' => ['super-admin*'],
+            'home' => ['dashboard', 'reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*'],
+            'ai' => ['chat*'],
             'transactions' => [
                 'quotations*', 'invoices*', 'delivery-orders*', 'down-payments*',
                 'sales-returns*', 'sales.*', 'sales.index', 'price-lists*',
@@ -91,20 +92,20 @@ class NavigationAndThemeIntegrationTest extends TestCase
                 'products*', 'warehouses*', 'categories*', 'crm*', 'commission*',
                 'helpdesk*', 'subscription-billing*', 'loyalty*',
             ],
-            'inventory'    => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
-            'operations'   => [
+            'inventory' => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
+            'operations' => [
                 'hrm*', 'payroll*', 'self-service*', 'reimbursement*', 'production*',
                 'manufacturing*', 'qc*', 'printing*', 'cosmetic*', 'tour-travel*',
                 'livestock-enhancement*', 'fisheries*', 'fleet*', 'contracts*',
                 'shipping*', 'approvals*', 'ecommerce*', 'documents*', 'projects*',
                 'timesheets*', 'project-billing*', 'farm*', 'pos*', 'telecom*',
             ],
-            'finance'      => [
+            'finance' => [
                 'accounting*', 'expenses*', 'bank.*', 'bank-accounts*', 'receivables*',
                 'payables*', 'bulk-payments*', 'assets*', 'budget*', 'journals*',
                 'deferred*', 'writeoffs*',
             ],
-            'settings'     => [
+            'settings' => [
                 'company-profile*', 'settings*', 'tenant.users*', 'reminders*',
                 'import*', 'audit*', 'notifications*', 'bot*', 'api-settings*',
                 'subscription.index', 'cost-centers*', 'ai-memory*', 'taxes*',
@@ -127,9 +128,10 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
     private function getAppBladeContent(): string
     {
-        if (!file_exists($this->appBladeFile)) {
+        if (! file_exists($this->appBladeFile)) {
             $this->fail("app.blade.php tidak ditemukan: {$this->appBladeFile}");
         }
+
         return file_get_contents($this->appBladeFile);
     }
 
@@ -146,11 +148,12 @@ class NavigationAndThemeIntegrationTest extends TestCase
                 }
             }
         }
+
         return $content;
     }
-    // 
+    //
     // 1. FULL NAVIGATION FLOW
-    // 
+    //
 
     /**
      * @test
@@ -160,58 +163,58 @@ class NavigationAndThemeIntegrationTest extends TestCase
     public function test_full_navigation_flow_each_route_activates_exactly_one_rail_button(): void
     {
         $routeToExpectedGroup = [
-            'dashboard'                       => 'home',
-            'reports.index'                   => 'home',
-            'kpi.index'                       => 'home',
-            'forecast.index'                  => 'home',
-            'anomalies.index'                 => 'home',
-            'zero-input.index'                => 'home',
-            'simulations.index'               => 'home',
-            'chat.index'                      => 'ai',
-            'invoices.index'                  => 'transactions',
-            'invoices.create'                 => 'transactions',
-            'quotations.index'                => 'transactions',
-            'sales.index'                     => 'transactions',
-            'customers.index'                 => 'transactions',
-            'suppliers.index'                 => 'transactions',
-            'products.index'                  => 'transactions',
-            'warehouses.index'                => 'transactions',
-            'crm.index'                       => 'transactions',
-            'helpdesk.index'                  => 'transactions',
-            'inventory.index'                 => 'inventory',
-            'wms.index'                       => 'inventory',
-            'purchasing.index'                => 'inventory',
-            'hrm.index'                       => 'operations',
-            'payroll.index'                   => 'operations',
-            'manufacturing.index'             => 'operations',
+            'dashboard' => 'home',
+            'reports.index' => 'home',
+            'kpi.index' => 'home',
+            'forecast.index' => 'home',
+            'anomalies.index' => 'home',
+            'zero-input.index' => 'home',
+            'simulations.index' => 'home',
+            'chat.index' => 'ai',
+            'invoices.index' => 'transactions',
+            'invoices.create' => 'transactions',
+            'quotations.index' => 'transactions',
+            'sales.index' => 'transactions',
+            'customers.index' => 'transactions',
+            'suppliers.index' => 'transactions',
+            'products.index' => 'transactions',
+            'warehouses.index' => 'transactions',
+            'crm.index' => 'transactions',
+            'helpdesk.index' => 'transactions',
+            'inventory.index' => 'inventory',
+            'wms.index' => 'inventory',
+            'purchasing.index' => 'inventory',
+            'hrm.index' => 'operations',
+            'payroll.index' => 'operations',
+            'manufacturing.index' => 'operations',
             'manufacturing.work-orders.index' => 'operations',
-            'projects.index'                  => 'operations',
-            'ecommerce.index'                 => 'operations',
-            'telecom.index'                   => 'operations',
-            'telecom.mikrotik.index'          => 'operations',
-            'telecom.bandwidth.index'         => 'operations',
-            'accounting.index'                => 'finance',
-            'journals.index'                  => 'finance',
-            'expenses.index'                  => 'finance',
-            'assets.index'                    => 'finance',
-            'budget.index'                    => 'finance',
-            'receivables.index'               => 'finance',
-            'payables.index'                  => 'finance',
-            'settings.index'                  => 'settings',
-            'company-profile.index'           => 'settings',
-            'hotel.index'                     => 'settings',
-            'hotel.night-audit'               => 'settings',
-            'hotel.reservations.index'        => 'settings',
-            'notifications.index'             => 'settings',
-            'super-admin.tenants.index'       => 'superadmin',
-            'super-admin.plans.index'         => 'superadmin',
+            'projects.index' => 'operations',
+            'ecommerce.index' => 'operations',
+            'telecom.index' => 'operations',
+            'telecom.mikrotik.index' => 'operations',
+            'telecom.bandwidth.index' => 'operations',
+            'accounting.index' => 'finance',
+            'journals.index' => 'finance',
+            'expenses.index' => 'finance',
+            'assets.index' => 'finance',
+            'budget.index' => 'finance',
+            'receivables.index' => 'finance',
+            'payables.index' => 'finance',
+            'settings.index' => 'settings',
+            'company-profile.index' => 'settings',
+            'hotel.index' => 'settings',
+            'hotel.night-audit' => 'settings',
+            'hotel.reservations.index' => 'settings',
+            'notifications.index' => 'settings',
+            'super-admin.tenants.index' => 'superadmin',
+            'super-admin.plans.index' => 'superadmin',
         ];
 
         $failures = [];
 
         foreach ($routeToExpectedGroup as $route => $expectedGroup) {
             $actualGroup = $this->resolveActiveGroup($route);
-            $matchCount  = $this->countMatchingGroups($route);
+            $matchCount = $this->countMatchingGroups($route);
 
             if ($actualGroup !== $expectedGroup) {
                 $failures[] = "Route '{$route}': expected '{$expectedGroup}', got '{$actualGroup}'";
@@ -223,7 +226,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertEmpty(
             $failures,
-            "Full Navigation Flow  tepat satu rail button harus aktif per route:\n" .
+            "Full Navigation Flow  tepat satu rail button harus aktif per route:\n".
             implode("\n", $failures)
         );
     }
@@ -251,7 +254,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertEmpty(
             $emptyGroupRoutes,
-            "Full Navigation Flow  route berikut tidak memiliki grup aktif (mengembalikan ''):\n" .
+            "Full Navigation Flow  route berikut tidak memiliki grup aktif (mengembalikan ''):\n".
             implode("\n", $emptyGroupRoutes)
         );
     }
@@ -266,11 +269,11 @@ class NavigationAndThemeIntegrationTest extends TestCase
         $content = $this->getAppBladeContent();
 
         $hasActiveFlag = str_contains($content, 'active:') &&
-            (str_contains($content, "request()->routeIs(") || str_contains($content, "routeIs("));
+            (str_contains($content, 'request()->routeIs(') || str_contains($content, 'routeIs('));
 
         $this->assertTrue(
             $hasActiveFlag,
-            "Full Navigation Flow  NAV_GROUPS tidak menyertakan flag 'active' yang di-render PHP. " .
+            "Full Navigation Flow  NAV_GROUPS tidak menyertakan flag 'active' yang di-render PHP. ".
             "Setiap item submenu harus memiliki 'active: {{ request()->routeIs(...) ? 'true' : 'false' }}'."
         );
     }
@@ -291,7 +294,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertTrue(
             $hasActiveFlagInRender,
-            "Full Navigation Flow  renderPanelItems() tidak menggunakan flag 'active' dari item data. " .
+            "Full Navigation Flow  renderPanelItems() tidak menggunakan flag 'active' dari item data. ".
             "Harus ada 'item.active' atau flag serupa untuk menandai item submenu yang aktif."
         );
     }
@@ -310,14 +313,14 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertTrue(
             $hasColorSync,
-            "Full Navigation Flow  tidak ditemukan setProperty('--group-color'). " .
+            "Full Navigation Flow  tidak ditemukan setProperty('--group-color'). ".
             "buildPanel() harus meng-update CSS custom property '--group-color' saat rail button diklik."
         );
     }
 
-    // 
+    //
     // 2. THEME PERSISTENCE FLOW
-    // 
+    //
 
     /**
      * @test
@@ -329,7 +332,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
     {
         $content = $this->getAppBladeContent();
 
-        $handlesDark   = str_contains($content, "theme === 'dark'") || str_contains($content, 'theme === "dark"');
+        $handlesDark = str_contains($content, "theme === 'dark'") || str_contains($content, 'theme === "dark"');
         $handlesSystem = str_contains($content, "theme === 'system'") || str_contains($content, 'theme === "system"') ||
             str_contains($content, 'matchMedia') || str_contains($content, 'prefers-color-scheme');
 
@@ -353,17 +356,17 @@ class NavigationAndThemeIntegrationTest extends TestCase
             preg_match('/\(\(\)\s*=>\s*\{/', $content));
 
         $this->assertTrue($hasIife,
-            "Theme Persistence Flow  script FOUC prevention tidak menggunakan IIFE pattern.");
+            'Theme Persistence Flow  script FOUC prevention tidak menggunakan IIFE pattern.');
 
         $scriptPos = strpos($content, "localStorage.getItem('theme')");
-        $vitePos   = false;
+        $vitePos = false;
         if (preg_match('/\n\s*@vite\s*\(/', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $vitePos = $matches[0][1];
         }
 
         if ($scriptPos !== false && $vitePos !== false) {
             $this->assertLessThan($vitePos, $scriptPos,
-                "Theme Persistence Flow  script FOUC prevention berada SETELAH @vite directive.");
+                'Theme Persistence Flow  script FOUC prevention berada SETELAH @vite directive.');
         }
     }
 
@@ -376,7 +379,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
     {
         $themeManagerFile = 'resources/js/theme-manager.js';
         $this->assertFileExists($themeManagerFile,
-            "Theme Persistence Flow  file theme-manager.js tidak ditemukan.");
+            'Theme Persistence Flow  file theme-manager.js tidak ditemukan.');
 
         $content = file_get_contents($themeManagerFile);
 
@@ -418,7 +421,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
         $this->assertTrue(
             str_contains($content, "localStorage.setItem('theme'") ||
             str_contains($content, 'localStorage.setItem("theme"'),
-            "Theme Persistence Flow  ThemeManager tidak menyimpan tema ke localStorage."
+            'Theme Persistence Flow  ThemeManager tidak menyimpan tema ke localStorage.'
         );
     }
 
@@ -437,7 +440,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
         $this->assertTrue(
             str_contains($content, "localStorage.getItem('theme')") ||
             str_contains($content, 'localStorage.getItem("theme")'),
-            "Theme Persistence Flow  ThemeManager tidak membaca tema dari localStorage saat init."
+            'Theme Persistence Flow  ThemeManager tidak membaca tema dari localStorage saat init.'
         );
     }
 
@@ -454,7 +457,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertTrue(
             str_contains($content, 'prefers-color-scheme') && str_contains($content, 'matchMedia'),
-            "Theme Persistence Flow  ThemeManager tidak mendeteksi prefers-color-scheme OS."
+            'Theme Persistence Flow  ThemeManager tidak mendeteksi prefers-color-scheme OS.'
         );
     }
 
@@ -466,25 +469,25 @@ class NavigationAndThemeIntegrationTest extends TestCase
     public function test_theme_persistence_flow_core_components_have_dark_mode_class(): void
     {
         $coreViewDirs = ['resources/views/components', 'resources/views/layouts'];
-        $violations   = [];
+        $violations = [];
 
         foreach ($coreViewDirs as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 continue;
             }
             $iterator = new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
             );
             foreach ($iterator as $file) {
-                if (!$file->isFile() || !str_ends_with($file->getFilename(), '.blade.php')) {
+                if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
                     continue;
                 }
                 $fileContent = file_get_contents($file->getPathname());
-                $lines       = explode("\n", $fileContent);
-                $relPath     = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $lines = explode("\n", $fileContent);
+                $relPath = str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file->getPathname());
 
                 foreach ($lines as $lineNum => $line) {
-                    if (!str_contains($line, 'bg-white') || str_contains($line, 'dark:bg-')) {
+                    if (! str_contains($line, 'bg-white') || str_contains($line, 'dark:bg-')) {
                         continue;
                     }
                     if (str_contains(trim($line), '{{--') || str_contains(trim($line), '//') ||
@@ -497,7 +500,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
                     if (str_contains($nextLine, 'dark:bg-')) {
                         continue;
                     }
-                    $violations[] = "{$relPath}:" . ($lineNum + 1);
+                    $violations[] = "{$relPath}:".($lineNum + 1);
                     if (count($violations) >= 15) {
                         break 2;
                     }
@@ -507,15 +510,15 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertEmpty(
             $violations,
-            "Theme Persistence Flow  komponen inti menggunakan 'bg-white' tanpa 'dark:bg-' equivalent:\n" .
-            implode("\n", array_slice($violations, 0, 10)) .
-            (count($violations) > 10 ? "\n... dan " . (count($violations) - 10) . " lainnya" : "")
+            "Theme Persistence Flow  komponen inti menggunakan 'bg-white' tanpa 'dark:bg-' equivalent:\n".
+            implode("\n", array_slice($violations, 0, 10)).
+            (count($violations) > 10 ? "\n... dan ".(count($violations) - 10).' lainnya' : '')
         );
     }
 
-    // 
+    //
     // 3. MOBILE NAVIGATION FLOW
-    // 
+    //
 
     /**
      * @test
@@ -531,8 +534,8 @@ class NavigationAndThemeIntegrationTest extends TestCase
             str_contains($content, 'toggleGroup');
 
         $this->assertTrue($hasMutualExclusion,
-            "Mobile Navigation Flow  tidak ditemukan mutual exclusion logic. " .
-            "toggleMobileSidebar() harus memanggil closePanel() sebelum membuka overlay.");
+            'Mobile Navigation Flow  tidak ditemukan mutual exclusion logic. '.
+            'toggleMobileSidebar() harus memanggil closePanel() sebelum membuka overlay.');
     }
 
     /**
@@ -545,21 +548,21 @@ class NavigationAndThemeIntegrationTest extends TestCase
         $content = $this->getAppBladeContent();
 
         $this->assertTrue(str_contains($content, 'toggleMobileSidebar'),
-            "Mobile Navigation Flow  fungsi toggleMobileSidebar tidak ditemukan.");
+            'Mobile Navigation Flow  fungsi toggleMobileSidebar tidak ditemukan.');
 
-        $togglePos      = strpos($content, 'function toggleMobileSidebar');
-        $closePanelPos  = $togglePos !== false ? strpos($content, 'closePanel()', $togglePos) : false;
+        $togglePos = strpos($content, 'function toggleMobileSidebar');
+        $closePanelPos = $togglePos !== false ? strpos($content, 'closePanel()', $togglePos) : false;
         $overlayOpenPos = $togglePos !== false
             ? strpos($content, "sidebar-overlay').classList.remove('hidden')", $togglePos)
             : false;
 
         if ($closePanelPos === false) {
-            $this->fail("Mobile Navigation Flow  closePanel() tidak dipanggil di dalam toggleMobileSidebar().");
+            $this->fail('Mobile Navigation Flow  closePanel() tidak dipanggil di dalam toggleMobileSidebar().');
         }
 
         if ($overlayOpenPos !== false) {
             $this->assertLessThan($overlayOpenPos, $closePanelPos,
-                "Mobile Navigation Flow  closePanel() dipanggil SETELAH overlay dibuka.");
+                'Mobile Navigation Flow  closePanel() dipanggil SETELAH overlay dibuka.');
         }
     }
 
@@ -579,10 +582,10 @@ class NavigationAndThemeIntegrationTest extends TestCase
             (str_contains($content, 'z-50') || str_contains($content, 'z-index: 50'));
 
         $this->assertTrue($hasOverlayZIndex,
-            "Mobile Navigation Flow  sidebar-overlay tidak menggunakan z-40.");
+            'Mobile Navigation Flow  sidebar-overlay tidak menggunakan z-40.');
 
         $this->assertTrue($hasPanelZIndex,
-            "Mobile Navigation Flow  sidebar-panel tidak menggunakan z-50.");
+            'Mobile Navigation Flow  sidebar-panel tidak menggunakan z-50.');
     }
 
     /**
@@ -601,10 +604,10 @@ class NavigationAndThemeIntegrationTest extends TestCase
             str_contains($content, 'transition');
 
         $this->assertTrue($hasPanelTransition,
-            "Mobile Navigation Flow  sidebar-panel tidak memiliki CSS transition.");
+            'Mobile Navigation Flow  sidebar-panel tidak memiliki CSS transition.');
 
         $this->assertTrue($hasRailTransition,
-            "Mobile Navigation Flow  sidebar-rail tidak memiliki CSS transition.");
+            'Mobile Navigation Flow  sidebar-rail tidak memiliki CSS transition.');
     }
 
     /**
@@ -618,7 +621,7 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertTrue(
             str_contains($content, 'closeMobileSidebar') || str_contains($content, 'closeAll'),
-            "Mobile Navigation Flow  fungsi closeMobileSidebar() atau closeAll() tidak ditemukan."
+            'Mobile Navigation Flow  fungsi closeMobileSidebar() atau closeAll() tidak ditemukan.'
         );
     }
 
@@ -633,14 +636,14 @@ class NavigationAndThemeIntegrationTest extends TestCase
 
         $this->assertTrue(
             str_contains($content, 'sidebar-overlay') && str_contains($content, 'lg:hidden'),
-            "Mobile Navigation Flow  sidebar-overlay tidak menggunakan 'lg:hidden'. " .
-            "Overlay harus tersembunyi di desktop dan hanya muncul di mobile."
+            "Mobile Navigation Flow  sidebar-overlay tidak menggunakan 'lg:hidden'. ".
+            'Overlay harus tersembunyi di desktop dan hanya muncul di mobile.'
         );
     }
 
-    // 
+    //
     // 4. COMBINED END-TO-END FLOW
-    // 
+    //
 
     /**
      * @test
@@ -652,19 +655,19 @@ class NavigationAndThemeIntegrationTest extends TestCase
         $content = $this->getAppBladeContent();
 
         $this->assertTrue(str_contains($content, 'resolveActiveGroup'),
-            "End-to-End  fungsi resolveActiveGroup() tidak ditemukan di app.blade.php.");
+            'End-to-End  fungsi resolveActiveGroup() tidak ditemukan di app.blade.php.');
 
         $requiredGroups = ['superadmin', 'home', 'ai', 'transactions', 'inventory', 'operations', 'finance', 'settings'];
-        $missingGroups  = [];
+        $missingGroups = [];
 
         foreach ($requiredGroups as $group) {
-            if (!str_contains($content, "'{$group}'") && !str_contains($content, "\"{$group}\"")) {
+            if (! str_contains($content, "'{$group}'") && ! str_contains($content, "\"{$group}\"")) {
                 $missingGroups[] = $group;
             }
         }
 
         $this->assertEmpty($missingGroups,
-            "End-to-End  grup berikut tidak ditemukan di resolveActiveGroup() app.blade.php:\n" .
+            "End-to-End  grup berikut tidak ditemukan di resolveActiveGroup() app.blade.php:\n".
             implode(', ', $missingGroups));
     }
 

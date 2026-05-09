@@ -3,16 +3,15 @@
 namespace Tests\Feature;
 
 use App\Models\OfflineSyncConflict;
-use App\Models\User;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\OfflineConflictResolutionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
  * Task 1.5: Offline Mode Conflict Resolution - Integration Tests
- * 
+ *
  * Tests for:
  * - Smart conflict detection algorithm
  * - Auto-resolve strategies (last-write-wins, role-priority)
@@ -24,7 +23,9 @@ class OfflineSyncConflictResolutionTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
+
     protected OfflineConflictResolutionService $conflictService;
 
     protected function setUp(): void
@@ -75,7 +76,7 @@ class OfflineSyncConflictResolutionTest extends TestCase
      */
     public function test_pos_duplicate_prevention()
     {
-        $localTransactionId = 'local-pos-' . uniqid();
+        $localTransactionId = 'local-pos-'.uniqid();
 
         $mutation = [
             'module' => 'pos',

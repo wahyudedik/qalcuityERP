@@ -31,13 +31,13 @@ class DarkModeFoucTest extends TestCase
         $hasSystemThemeHandling = (
             str_contains($content, "theme === 'system'") ||
             str_contains($content, 'theme === "system"') ||
-            str_contains($content, "prefers-color-scheme") ||
+            str_contains($content, 'prefers-color-scheme') ||
             str_contains($content, 'matchMedia')
         );
 
         $this->assertFalse(
             $hasSystemThemeHandling,
-            "Layout should NOT contain system theme handling after dark mode removal"
+            'Layout should NOT contain system theme handling after dark mode removal'
         );
     }
 
@@ -58,7 +58,7 @@ class DarkModeFoucTest extends TestCase
 
         $this->assertTrue(
             $hasIife,
-            "localStorage cleanup script should use IIFE pattern"
+            'localStorage cleanup script should use IIFE pattern'
         );
     }
 
@@ -80,7 +80,7 @@ class DarkModeFoucTest extends TestCase
         }
 
         if ($scriptPos === false) {
-            $this->markTestSkipped("localStorage cleanup script not found in layout");
+            $this->markTestSkipped('localStorage cleanup script not found in layout');
         }
 
         // Cari posisi @vite directive
@@ -90,14 +90,14 @@ class DarkModeFoucTest extends TestCase
         }
 
         if ($vitePos === false) {
-            $this->markTestSkipped("Directive @vite tidak ditemukan di blade file.");
+            $this->markTestSkipped('Directive @vite tidak ditemukan di blade file.');
         }
 
         // Cleanup script harus berada SEBELUM @vite
         $this->assertLessThan(
             $vitePos,
             $scriptPos,
-            "localStorage cleanup script should be before @vite directive in <head>"
+            'localStorage cleanup script should be before @vite directive in <head>'
         );
     }
 }

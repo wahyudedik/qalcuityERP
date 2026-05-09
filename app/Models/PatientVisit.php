@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PatientVisit extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'patient_id',
@@ -80,9 +80,9 @@ class PatientVisit extends Model
     public static function generateVisitNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'VIS-' . $date;
+        $prefix = 'VIS-'.$date;
 
-        $lastVisit = static::where('visit_number', 'like', $prefix . '%')
+        $lastVisit = static::where('visit_number', 'like', $prefix.'%')
             ->orderBy('visit_number', 'desc')
             ->first();
 
@@ -93,7 +93,7 @@ class PatientVisit extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -101,7 +101,7 @@ class PatientVisit extends Model
      */
     public function getConsultationDurationAttribute()
     {
-        if (!$this->consultation_started_at || !$this->consultation_ended_at) {
+        if (! $this->consultation_started_at || ! $this->consultation_ended_at) {
             return null;
         }
 
@@ -113,7 +113,7 @@ class PatientVisit extends Model
      */
     public function getWaitingTimeAttribute()
     {
-        if (!$this->created_at || !$this->queue_called_at) {
+        if (! $this->created_at || ! $this->queue_called_at) {
             return null;
         }
 
@@ -275,11 +275,11 @@ class PatientVisit extends Model
         $this->update(['visit_status' => $status]);
 
         // Track timestamps
-        if ($status === 'in_consultation' && !$this->consultation_started_at) {
+        if ($status === 'in_consultation' && ! $this->consultation_started_at) {
             $this->update(['consultation_started_at' => now()]);
         }
 
-        if ($status === 'completed' && !$this->consultation_ended_at) {
+        if ($status === 'completed' && ! $this->consultation_ended_at) {
             $this->update(['consultation_ended_at' => now()]);
         }
     }

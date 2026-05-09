@@ -17,11 +17,11 @@ class AiCostThresholdExceededNotification extends Notification implements Should
     use Queueable;
 
     /**
-     * @param string $tenantName Nama tenant yang melebihi threshold
-     * @param int $tenantId ID tenant
-     * @param float $totalCost Total biaya AI bulan ini (IDR)
-     * @param float $threshold Threshold yang dikonfigurasi (IDR)
-     * @param string $period Periode (format: Y-m)
+     * @param  string  $tenantName  Nama tenant yang melebihi threshold
+     * @param  int  $tenantId  ID tenant
+     * @param  float  $totalCost  Total biaya AI bulan ini (IDR)
+     * @param  float  $threshold  Threshold yang dikonfigurasi (IDR)
+     * @param  string  $period  Periode (format: Y-m)
      */
     public function __construct(
         public readonly string $tenantName,
@@ -44,12 +44,12 @@ class AiCostThresholdExceededNotification extends Notification implements Should
         return (new MailMessage)
             ->subject("🚨 Alert Biaya AI — {$this->tenantName}")
             ->greeting("Halo, {$notifiable->name}!")
-            ->line("**Biaya AI tenant melebihi threshold yang dikonfigurasi.**")
+            ->line('**Biaya AI tenant melebihi threshold yang dikonfigurasi.**')
             ->line("**Tenant:** {$this->tenantName} (ID: {$this->tenantId})")
             ->line("**Periode:** {$this->period}")
-            ->line("**Total Biaya:** Rp " . number_format($this->totalCost, 2, ',', '.'))
-            ->line("**Threshold:** Rp " . number_format($this->threshold, 2, ',', '.'))
-            ->line("**Kelebihan:** Rp " . number_format($overAmount, 2, ',', '.') . " (+{$overPercent}%)")
+            ->line('**Total Biaya:** Rp '.number_format($this->totalCost, 2, ',', '.'))
+            ->line('**Threshold:** Rp '.number_format($this->threshold, 2, ',', '.'))
+            ->line('**Kelebihan:** Rp '.number_format($overAmount, 2, ',', '.')." (+{$overPercent}%)")
             ->action('Lihat Detail Biaya AI', url("/super-admin/ai/cost-report?tenant_id={$this->tenantId}"))
             ->line('Tinjau penggunaan AI tenant ini untuk memastikan tidak ada anomali atau penyalahgunaan.')
             ->salutation('Salam, Qalcuity ERP');
@@ -64,7 +64,7 @@ class AiCostThresholdExceededNotification extends Notification implements Should
             'total_cost' => $this->totalCost,
             'threshold' => $this->threshold,
             'period' => $this->period,
-            'message' => "Biaya AI tenant {$this->tenantName} melebihi threshold: Rp " .
+            'message' => "Biaya AI tenant {$this->tenantName} melebihi threshold: Rp ".
                 number_format($this->totalCost, 2, ',', '.'),
         ];
     }

@@ -41,17 +41,17 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $attrs['tenant_id'] ?? $this->newTenantId();
 
         $defaults = [
-            'tenant_id'          => $tenantId,
-            'user_id'            => null,
-            'use_case'           => 'chatbot',
-            'provider'           => 'gemini',
-            'model'              => 'gemini-2.5-flash',
-            'input_tokens'       => 100,
-            'output_tokens'      => 50,
+            'tenant_id' => $tenantId,
+            'user_id' => null,
+            'use_case' => 'chatbot',
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'input_tokens' => 100,
+            'output_tokens' => 50,
             'estimated_cost_idr' => 0.0225,
-            'response_time_ms'   => null,
-            'fallback_degraded'  => false,
-            'created_at'         => now(),
+            'response_time_ms' => null,
+            'fallback_degraded' => false,
+            'created_at' => now(),
         ];
 
         $data = array_merge($defaults, $attrs);
@@ -75,12 +75,12 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $log = AiUsageCostLog::record([
-            'tenant_id'          => $tenantId,
-            'use_case'           => 'chatbot',
-            'provider'           => 'gemini',
-            'model'              => 'gemini-2.5-flash',
-            'input_tokens'       => 100,
-            'output_tokens'      => 50,
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'input_tokens' => 100,
+            'output_tokens' => 50,
             'estimated_cost_idr' => 0.0225,
         ]);
 
@@ -100,16 +100,16 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $log = AiUsageCostLog::record([
-            'tenant_id'          => $tenantId,
-            'user_id'            => null,
-            'use_case'           => 'financial_report',
-            'provider'           => 'anthropic',
-            'model'              => 'claude-3-5-sonnet-20241022',
-            'input_tokens'       => 500,
-            'output_tokens'      => 300,
+            'tenant_id' => $tenantId,
+            'user_id' => null,
+            'use_case' => 'financial_report',
+            'provider' => 'anthropic',
+            'model' => 'claude-3-5-sonnet-20241022',
+            'input_tokens' => 500,
+            'output_tokens' => 300,
             'estimated_cost_idr' => 2.0000,
-            'response_time_ms'   => 1500,
-            'fallback_degraded'  => false,
+            'response_time_ms' => 1500,
+            'fallback_degraded' => false,
         ]);
 
         $fresh = AiUsageCostLog::withoutGlobalScopes()->find($log->id);
@@ -132,14 +132,14 @@ class AiUsageCostLogTest extends TestCase
         // Requirements: 6.2
         // Model menggunakan $timestamps = false — created_at harus diberikan secara eksplisit.
         // Ini adalah pola yang sama dengan AiProviderSwitchLog.
-        $tenantId  = $this->newTenantId();
+        $tenantId = $this->newTenantId();
         $timestamp = now()->startOfSecond();
 
         $log = AiUsageCostLog::record([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
-            'provider'   => 'gemini',
-            'model'      => 'gemini-2.5-flash',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
             'created_at' => $timestamp,
         ]);
 
@@ -158,8 +158,8 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $inside = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
             'created_at' => '2025-06-15 12:00:00',
         ]);
 
@@ -177,14 +177,14 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $before = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
             'created_at' => '2025-05-31 23:59:59',
         ]);
 
         $after = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'crud_ai',
+            'tenant_id' => $tenantId,
+            'use_case' => 'crud_ai',
             'created_at' => '2025-07-01 00:00:00',
         ]);
 
@@ -204,14 +204,14 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $onStart = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
             'created_at' => '2025-06-01 00:00:00',
         ]);
 
         $onEnd = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'crud_ai',
+            'tenant_id' => $tenantId,
+            'use_case' => 'crud_ai',
             'created_at' => '2025-06-30 23:59:59',
         ]);
 
@@ -231,8 +231,8 @@ class AiUsageCostLogTest extends TestCase
         // Requirements: 6.3
         $tenantId = $this->newTenantId();
 
-        $chatbot  = $this->createLog(['tenant_id' => $tenantId, 'use_case' => 'chatbot']);
-        $report   = $this->createLog(['tenant_id' => $tenantId, 'use_case' => 'financial_report']);
+        $chatbot = $this->createLog(['tenant_id' => $tenantId, 'use_case' => 'chatbot']);
+        $report = $this->createLog(['tenant_id' => $tenantId, 'use_case' => 'financial_report']);
         $forecast = $this->createLog(['tenant_id' => $tenantId, 'use_case' => 'forecasting']);
 
         $results = AiUsageCostLog::withoutGlobalScopes()
@@ -306,9 +306,9 @@ class AiUsageCostLogTest extends TestCase
 
         $log = AiUsageCostLog::record([
             'tenant_id' => $tenantId,
-            'use_case'  => 'chatbot',
-            'provider'  => 'gemini',
-            'model'     => 'gemini-2.5-flash',
+            'use_case' => 'chatbot',
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
         ]);
 
         $fresh = AiUsageCostLog::withoutGlobalScopes()->find($log->id);
@@ -327,20 +327,20 @@ class AiUsageCostLogTest extends TestCase
         $tenantId = $this->newTenantId();
 
         $match = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
             'created_at' => '2025-06-15 10:00:00',
         ]);
 
         $wrongUseCase = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'financial_report',
+            'tenant_id' => $tenantId,
+            'use_case' => 'financial_report',
             'created_at' => '2025-06-15 10:00:00',
         ]);
 
         $outOfRange = $this->createLog([
-            'tenant_id'  => $tenantId,
-            'use_case'   => 'chatbot',
+            'tenant_id' => $tenantId,
+            'use_case' => 'chatbot',
             'created_at' => '2025-07-01 10:00:00',
         ]);
 

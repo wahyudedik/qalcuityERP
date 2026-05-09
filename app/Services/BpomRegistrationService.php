@@ -2,19 +2,19 @@
 
 namespace App\Services;
 
+use App\Models\CosmeticFormula;
+use App\Models\IngredientRestriction;
 use App\Models\ProductRegistration;
 use App\Models\RegistrationDocument;
-use App\Models\IngredientRestriction;
 use App\Models\SafetyDataSheet;
-use App\Models\CosmeticFormula;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\UploadedFile;
 
 /**
  * BPOM Registration Service
- * 
+ *
  * @note Linter may show false positives for auth()->id() - this is standard Laravel
  */
 class BpomRegistrationService
@@ -30,14 +30,14 @@ class BpomRegistrationService
         // Validate ingredients against restrictions
         $validationResult = $this->validateIngredientsForBpom($formula);
 
-        if (!$validationResult['compliant']) {
+        if (! $validationResult['compliant']) {
             throw new \InvalidArgumentException(
-                'Formula contains restricted ingredients: ' . implode(', ', $validationResult['violations'])
+                'Formula contains restricted ingredients: '.implode(', ', $validationResult['violations'])
             );
         }
 
         return DB::transaction(function () use ($tenantId, $formulaId, $formula, $data) {
-            $registration = new ProductRegistration();
+            $registration = new ProductRegistration;
             $registration->tenant_id = $tenantId;
             $registration->formula_id = $formulaId;
             $registration->registration_number = $data['registration_number'] ?? $this->generateRegistrationNumber();
@@ -75,9 +75,9 @@ class BpomRegistrationService
         $existingDocs = $registration->documents->pluck('document_type')->toArray();
         $missingDocs = array_diff($requiredDocs, $existingDocs);
 
-        if (!empty($missingDocs)) {
+        if (! empty($missingDocs)) {
             throw new \InvalidArgumentException(
-                'Missing required documents: ' . implode(', ', $missingDocs)
+                'Missing required documents: '.implode(', ', $missingDocs)
             );
         }
 
@@ -116,8 +116,8 @@ class BpomRegistrationService
     public function rejectRegistration(ProductRegistration $registration, string $reason): ProductRegistration
     {
         $registration->status = 'rejected';
-        $registration->notes = ($registration->notes ? $registration->notes . "\n\n" : '') .
-            'Rejected: ' . $reason;
+        $registration->notes = ($registration->notes ? $registration->notes."\n\n" : '').
+            'Rejected: '.$reason;
         $registration->save();
 
         Log::warning('BPOM registration rejected', [
@@ -229,7 +229,7 @@ class BpomRegistrationService
     {
         $path = $file->store('bpom-documents', 'public');
 
-        $document = new RegistrationDocument();
+        $document = new RegistrationDocument;
         $document->tenant_id = $registration->tenant_id;
         $document->registration_id = $registration->id;
         $document->document_name = $data['document_name'] ?? $file->getClientOriginalName();
@@ -255,6 +255,7 @@ class BpomRegistrationService
     {
         // This integrates with BatchPdfExportService
         $pdfService = app(BatchPdfExportService::class);
+
         return $pdfService->generateCertificateOfAnalysis($batch);
     }
 
@@ -296,7 +297,7 @@ class BpomRegistrationService
             'stability_tested' => [
                 'label' => 'Stability Tested',
                 'passed' => $formula->stabilityTests->where('overall_result', 'Pass')->count() > 0,
-                'details' => $formula->stabilityTests->count() . ' tests conducted',
+                'details' => $formula->stabilityTests->count().' tests conducted',
             ],
         ];
 
@@ -319,7 +320,8 @@ class BpomRegistrationService
     {
         $year = now()->format('Y');
         $count = ProductRegistration::whereYear('created_at', $year)->count() + 1;
-        return 'BPOM-' . $year . '-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+
+        return 'BPOM-'.$year.'-'.str_pad($count, 5, '0', STR_PAD_LEFT);
     }
 
     /**

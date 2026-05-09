@@ -2,16 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\MenuItem;
+use App\Models\FbOrder;
 use App\Models\FbSupply;
-use App\Models\RecipeIngredient;
+use App\Models\FbSupplyTransaction;
+use App\Models\MenuItem;
 use Illuminate\Support\Facades\Log;
 
 /**
  * FbRecipeStockService - Validate recipe ingredient stock before allowing orders
- * 
+ *
  * BUG-FB-001 FIX: Prevent selling menu items when ingredients are insufficient
- * 
+ *
  * This service ensures that:
  * 1. Menu items cannot be ordered if ingredients are out of stock
  * 2. Real-time stock validation before order creation
@@ -22,18 +23,17 @@ class FbRecipeStockService
 {
     /**
      * BUG-FB-001 FIX: Check if menu item can be made with current stock
-     * 
-     * @param MenuItem $menuItem
-     * @param int $quantity Number of servings requested
+     *
+     * @param  int  $quantity  Number of servings requested
      * @return array Validation result with details
      */
     public function canMakeMenuItem(MenuItem $menuItem, int $quantity = 1): array
     {
         // If no recipe defined, assume it can be made
-        if (!$menuItem->hasCompleteRecipe()) {
+        if (! $menuItem->hasCompleteRecipe()) {
             return [
                 'can_make' => true,
-                'message' => "Menu item ini tidak memiliki recipe (stock check skipped).",
+                'message' => 'Menu item ini tidak memiliki recipe (stock check skipped).',
                 'limiting_quantity' => 999, // Unlimited
             ];
         }
@@ -44,7 +44,7 @@ class FbRecipeStockService
         if ($ingredients->isEmpty()) {
             return [
                 'can_make' => true,
-                'message' => "Tidak ada ingredients yang perlu dicek.",
+                'message' => 'Tidak ada ingredients yang perlu dicek.',
                 'limiting_quantity' => 999,
             ];
         }
@@ -98,8 +98,8 @@ class FbRecipeStockService
 
     /**
      * BUG-FB-001 FIX: Validate all items in order before creation
-     * 
-     * @param array $items Array of ['menu_item_id' => X, 'quantity' => Y]
+     *
+     * @param  array  $items  Array of ['menu_item_id' => X, 'quantity' => Y]
      * @return array Validation result
      */
     public function validateOrderItems(array $items): array
@@ -111,16 +111,18 @@ class FbRecipeStockService
         foreach ($items as $item) {
             $menuItem = MenuItem::find($item['menu_item_id']);
 
-            if (!$menuItem) {
+            if (! $menuItem) {
                 $allValid = false;
                 $errors[] = "Menu item ID {$item['menu_item_id']} tidak ditemukan.";
+
                 continue;
             }
 
             // Check if menu item is available
-            if (!$menuItem->is_available) {
+            if (! $menuItem->is_available) {
                 $allValid = false;
                 $errors[] = "{$menuItem->name} tidak tersedia saat ini.";
+
                 continue;
             }
 
@@ -134,7 +136,7 @@ class FbRecipeStockService
                 'validation' => $stockCheck,
             ];
 
-            if (!$stockCheck['can_make']) {
+            if (! $stockCheck['can_make']) {
                 $allValid = false;
                 $errors[] = $stockCheck['message'];
             }
@@ -145,15 +147,15 @@ class FbRecipeStockService
             'items' => $validationResults,
             'errors' => $errors,
             'message' => $allValid
-                ? "Semua item tersedia dan stock mencukupi."
-                : "Beberapa item tidak tersedia: " . implode(', ', $errors),
+                ? 'Semua item tersedia dan stock mencukupi.'
+                : 'Beberapa item tidak tersedia: '.implode(', ', $errors),
         ];
     }
 
     /**
      * BUG-FB-001 FIX: Deduct ingredient stock when order is completed
-     * 
-     * @param \App\Models\FbOrder $order
+     *
+     * @param  FbOrder  $order
      * @return array Result with details
      */
     public function deductIngredientStock($order): array
@@ -164,7 +166,7 @@ class FbRecipeStockService
         foreach ($order->items as $orderItem) {
             $menuItem = $orderItem->menuItem;
 
-            if (!$menuItem || !$menuItem->hasCompleteRecipe()) {
+            if (! $menuItem || ! $menuItem->hasCompleteRecipe()) {
                 continue; // Skip if no recipe
             }
 
@@ -177,6 +179,7 @@ class FbRecipeStockService
                 // Double-check stock before deduction
                 if ($supply->current_stock < $requiredQty) {
                     $errors[] = "Stock {$supply->name} tidak mencukupi. Required: {$requiredQty}, Available: {$supply->current_stock}";
+
                     continue;
                 }
 
@@ -185,7 +188,7 @@ class FbRecipeStockService
                 $supply->decrement('current_stock', $requiredQty);
 
                 // Log transaction
-                \App\Models\FbSupplyTransaction::create([
+                FbSupplyTransaction::create([
                     'tenant_id' => $supply->tenant_id,
                     'supply_id' => $supply->id,
                     'type' => 'out',
@@ -223,17 +226,16 @@ class FbRecipeStockService
             'deductions' => $deductions,
             'errors' => $errors,
             'message' => empty($errors)
-                ? "Stock berhasil dikurangi untuk " . count($deductions) . " ingredients."
-                : "Beberapa error: " . implode(', ', $errors),
+                ? 'Stock berhasil dikurangi untuk '.count($deductions).' ingredients.'
+                : 'Beberapa error: '.implode(', ', $errors),
         ];
     }
 
     /**
      * BUG-FB-001 FIX: Update menu item availability based on stock
-     * 
+     *
      * Should be run periodically or after stock changes
-     * 
-     * @param int $tenantId
+     *
      * @return array Summary of changes
      */
     public function updateMenuAvailability(int $tenantId): array
@@ -247,13 +249,13 @@ class FbRecipeStockService
         $nowUnavailable = 0;
 
         foreach ($menuItems as $menuItem) {
-            if (!$menuItem->hasCompleteRecipe()) {
+            if (! $menuItem->hasCompleteRecipe()) {
                 continue; // Skip items without recipes
             }
 
             $stockCheck = $this->canMakeMenuItem($menuItem, 1);
 
-            if (!$stockCheck['can_make'] && $menuItem->is_available) {
+            if (! $stockCheck['can_make'] && $menuItem->is_available) {
                 // Mark as unavailable
                 $menuItem->update(['is_available' => false]);
                 $nowUnavailable++;
@@ -269,7 +271,7 @@ class FbRecipeStockService
                     'menu_item_name' => $menuItem->name,
                     'reason' => $stockCheck['message'],
                 ]);
-            } elseif ($stockCheck['can_make'] && !$menuItem->is_available) {
+            } elseif ($stockCheck['can_make'] && ! $menuItem->is_available) {
                 // Mark as available again
                 $menuItem->update(['is_available' => true]);
                 $updated[] = [
@@ -298,9 +300,6 @@ class FbRecipeStockService
 
     /**
      * Get stock availability report for all menu items
-     * 
-     * @param int $tenantId
-     * @return array
      */
     public function getStockAvailabilityReport(int $tenantId): array
     {
@@ -330,9 +329,6 @@ class FbRecipeStockService
 
     /**
      * Get low stock ingredients that will affect menu items
-     * 
-     * @param int $tenantId
-     * @return array
      */
     public function getLowStockImpact(int $tenantId): array
     {
@@ -356,7 +352,7 @@ class FbRecipeStockService
                     'current_stock' => $supply->current_stock,
                     'minimum_stock' => $supply->minimum_stock,
                     'unit' => $supply->unit,
-                    'affected_menu_items' => $affectedMenuItems->map(fn($item) => [
+                    'affected_menu_items' => $affectedMenuItems->map(fn ($item) => [
                         'id' => $item->id,
                         'name' => $item->name,
                         'is_available' => $item->is_available,

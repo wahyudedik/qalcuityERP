@@ -17,7 +17,7 @@ class InventoryReportExport implements FromQuery, WithHeadings, WithMapping, Wit
     public function query()
     {
         return ProductStock::with(['product', 'warehouse'])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $this->tenantId)->where('is_active', true))
+            ->whereHas('product', fn ($q) => $q->where('tenant_id', $this->tenantId)->where('is_active', true))
             ->join('products', 'product_stocks.product_id', '=', 'products.id')
             ->join('warehouses', 'product_stocks.warehouse_id', '=', 'warehouses.id')
             ->select('product_stocks.*')
@@ -32,6 +32,7 @@ class InventoryReportExport implements FromQuery, WithHeadings, WithMapping, Wit
     public function map($row): array
     {
         $status = $row->quantity <= $row->product->stock_min ? 'MENIPIS' : 'AMAN';
+
         return [
             $row->product->name,
             $row->product->sku ?? '-',
@@ -53,5 +54,8 @@ class InventoryReportExport implements FromQuery, WithHeadings, WithMapping, Wit
         ];
     }
 
-    public function title(): string { return 'Laporan Inventori'; }
+    public function title(): string
+    {
+        return 'Laporan Inventori';
+    }
 }

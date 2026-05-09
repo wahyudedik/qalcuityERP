@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChatSession;
+use App\Models\User;
+use App\Services\AI\IntentDetector;
+use App\Services\AiBatchProcessor;
 use App\Services\AiMemoryService;
 use App\Services\AiQuotaService;
 use App\Services\AiResponseCacheService;
 use App\Services\AiStreamingService;
-use App\Services\AI\IntentDetector;
 use App\Services\ChatSessionManager;
 use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
@@ -16,6 +18,7 @@ use App\Services\RuleBasedResponseHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChatController extends Controller
@@ -30,8 +33,7 @@ class ChatController extends Controller
         protected RuleBasedResponseHandler $ruleHandler,
         protected AiStreamingService $streamingService,
         protected IntentDetector $intentDetector,
-    ) {
-    }
+    ) {}
 
     /**
      * Tampilkan halaman chat.
@@ -39,6 +41,7 @@ class ChatController extends Controller
     public function index(Request $request)
     {
         $sessions = $this->sessionManager->getUserSessions($request->user());
+
         return view('chat.index', compact('sessions'));
     }
 
@@ -112,11 +115,12 @@ class ChatController extends Controller
         }
 
         // Jika tidak ada tenant, fallback ke chat biasa tanpa tools
-        if (!$tenantId) {
+        if (! $tenantId) {
             try {
                 $response = $this->gemini->chat($request->message, $history);
                 $text = $response['text'] ?: 'Maaf, tidak ada respons.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
+
                 return response()->json([
                     'session_id' => $session->id,
                     'session_title' => $session->fresh()->title,
@@ -125,12 +129,13 @@ class ChatController extends Controller
                     'actions' => [],
                 ]);
             } catch (\Throwable $e) {
-                Log::error('ChatController (no-tenant) error: ' . $e->getMessage());
+                Log::error('ChatController (no-tenant) error: '.$e->getMessage());
                 $httpCode = $this->resolveHttpCode($e);
+
                 return response()->json([
                     'session_id' => $session->id,
-                    'message'    => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI.',
-                    'error'      => app()->isLocal() ? $e->getMessage() : null,
+                    'message' => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI.',
+                    'error' => app()->isLocal() ? $e->getMessage() : null,
                 ], $httpCode);
             }
         }
@@ -183,7 +188,7 @@ class ChatController extends Controller
                 if (empty(trim($text))) {
                     Log::warning('ChatController: empty response from Gemini, retrying with explicit instruction');
                     $retryMessage = $this->buildSystemPrompt($request->message, $user)
-                        . "\n\n[INSTRUKSI: Jika tidak ada tool yang relevan, jawab langsung dengan teks. Jangan kembalikan respons kosong.]";
+                        ."\n\n[INSTRUKSI: Jika tidak ada tool yang relevan, jawab langsung dengan teks. Jangan kembalikan respons kosong.]";
                     $retryResponse = $this->gemini->chatWithTools(
                         message: $retryMessage,
                         history: $history,
@@ -193,8 +198,9 @@ class ChatController extends Controller
                     $functionCalls = $retryResponse['function_calls'] ?? [];
 
                     // Jika retry menghasilkan function calls, lanjutkan ke Step 3
-                    if (!empty($functionCalls)) {
+                    if (! empty($functionCalls)) {
                         $response = $retryResponse;
+
                         return $this->executeFunctionCalls(
                             $functionCalls,
                             $registry,
@@ -219,8 +225,9 @@ class ChatController extends Controller
                     'actions' => [],
                 ]);
 
-                if ($tenantId)
+                if ($tenantId) {
                     $this->quota->track($tenantId, $user->id, strlen($text));
+                }
 
                 return response()->json([
                     'session_id' => $session->id,
@@ -246,13 +253,13 @@ class ChatController extends Controller
             );
 
         } catch (\Throwable $e) {
-            Log::error('ChatController error: ' . $e->getMessage());
+            Log::error('ChatController error: '.$e->getMessage());
             $httpCode = $this->resolveHttpCode($e);
 
             return response()->json([
                 'session_id' => $session->id,
-                'message'    => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
-                'error'      => app()->isLocal() ? $e->getMessage() : null,
+                'message' => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
+                'error' => app()->isLocal() ? $e->getMessage() : null,
             ], $httpCode);
         }
     }
@@ -285,11 +292,12 @@ class ChatController extends Controller
 
             // Return sebagai SSE untuk konsistensi
             return response()->stream(function () use ($response) {
-                echo "event: start\ndata: " . json_encode(['message' => 'Processing...']) . "\n\n";
-                echo "event: chunk\ndata: " . json_encode(['text' => $response['text'], 'progress' => 100, 'is_final' => true]) . "\n\n";
-                echo "event: complete\ndata: " . json_encode(['full_text' => $response['text'], 'model' => $response['model']]) . "\n\n";
-                if (ob_get_level() > 0)
+                echo "event: start\ndata: ".json_encode(['message' => 'Processing...'])."\n\n";
+                echo "event: chunk\ndata: ".json_encode(['text' => $response['text'], 'progress' => 100, 'is_final' => true])."\n\n";
+                echo "event: complete\ndata: ".json_encode(['full_text' => $response['text'], 'model' => $response['model']])."\n\n";
+                if (ob_get_level() > 0) {
                     ob_flush();
+                }
                 flush();
             }, 200, [
                 'Content-Type' => 'text/event-stream',
@@ -364,26 +372,26 @@ class ChatController extends Controller
             $mimeType = $file->getMimeType();
             $data = base64_encode(file_get_contents($file->getRealPath()));
             $files[] = ['mime_type' => $mimeType, 'data' => $data];
-            $fileLabels[] = $file->getClientOriginalName() . ' (' . $this->humanFileSize($file->getSize()) . ')';
+            $fileLabels[] = $file->getClientOriginalName().' ('.$this->humanFileSize($file->getSize()).')';
 
             // Simpan gambar ke storage agar bisa dipakai oleh update_product_image tool
             if (str_starts_with($mimeType, 'image/')) {
                 $ext = $file->getClientOriginalExtension() ?: 'jpg';
-                $path = $file->storeAs('products', uniqid('chat_') . '.' . $ext, 'public');
-                $uploadedImageUrls[] = \Illuminate\Support\Facades\Storage::url($path);
+                $path = $file->storeAs('products', uniqid('chat_').'.'.$ext, 'public');
+                $uploadedImageUrls[] = Storage::url($path);
             }
         }
 
         // Inject URL gambar ke context message agar AI bisa pakai di tool call
         $contextMessage = $message;
-        if (!empty($uploadedImageUrls)) {
+        if (! empty($uploadedImageUrls)) {
             $urlList = implode(', ', $uploadedImageUrls);
             $contextMessage .= "\n\n[SISTEM: Gambar telah diupload ke server. URL gambar: {$urlList}. "
-                . "Gunakan URL ini sebagai image_url saat memanggil update_product_image.]";
+                .'Gunakan URL ini sebagai image_url saat memanggil update_product_image.]';
         }
 
         // Save user message with file info
-        $userMsgText = $message . "\n\n📎 File: " . implode(', ', $fileLabels);
+        $userMsgText = $message."\n\n📎 File: ".implode(', ', $fileLabels);
         $this->sessionManager->saveUserMessage($session, $userMsgText);
 
         // Inject tenant context
@@ -423,7 +431,7 @@ class ChatController extends Controller
             $text = $response['text'] ?? '';
 
             // If AI called functions, execute them
-            if (!empty($functionCalls) && $registry) {
+            if (! empty($functionCalls) && $registry) {
                 $functionResults = [];
                 foreach ($functionCalls as $call) {
                     $result = $registry->execute($call['name'], $call['args']);
@@ -456,7 +464,8 @@ class ChatController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('ChatController sendMedia error: ' . $e->getMessage());
+            Log::error('ChatController sendMedia error: '.$e->getMessage());
+
             return response()->json([
                 'session_id' => $session->id,
                 'message' => $e->getMessage() ?: 'Gagal memproses file. Pastikan format file didukung (JPG, PNG, PDF, TXT).',
@@ -464,6 +473,7 @@ class ChatController extends Controller
             ], $this->resolveHttpCode($e));
         }
     }
+
     public function messages(Request $request, ChatSession $session): JsonResponse
     {
         abort_if($session->user_id !== $request->user()->id, 403);
@@ -484,6 +494,7 @@ class ChatController extends Controller
         abort_if($session->user_id !== $request->user()->id, 403);
         $request->validate(['title' => 'required|string|max:100']);
         $session->update(['title' => $request->title]);
+
         return response()->json(['success' => true, 'title' => $session->title]);
     }
 
@@ -495,6 +506,7 @@ class ChatController extends Controller
     {
         abort_if($session->user_id !== $request->user()->id, 403);
         $this->sessionManager->deleteSession($session);
+
         return response()->json(['success' => true]);
     }
 
@@ -507,13 +519,13 @@ class ChatController extends Controller
     protected function executeFunctionCalls(
         array $functionCalls,
         ToolRegistry $registry,
-        \App\Models\ChatSession $session,
+        ChatSession $session,
         array $response,
         array $history,
         array $toolDeclarations,
         string $originalMessage,
         ?int $tenantId,
-        \App\Models\User $user
+        User $user
     ): JsonResponse {
         // Step 3: Validasi dan eksekusi setiap function call
         $functionResults = [];
@@ -537,7 +549,7 @@ class ChatController extends Controller
         }
 
         // TASK-021: Execute read operations in parallel
-        if (!empty($readOperations)) {
+        if (! empty($readOperations)) {
             $readResults = $this->executeToolsInParallel($readOperations, $registry);
 
             foreach ($readResults as $result) {
@@ -552,11 +564,12 @@ class ChatController extends Controller
             $args = $op['args'];
 
             // Validasi write operations sebelum eksekusi
-            if (!$this->validator->validate($toolName, $args)) {
+            if (! $this->validator->validate($toolName, $args)) {
                 $validationErrors[] = [
                     'tool' => $toolName,
                     'errors' => $this->validator->getErrors(),
                 ];
+
                 continue;
             }
 
@@ -565,9 +578,9 @@ class ChatController extends Controller
             Log::info("ChatController: executed tool [{$toolName}]", ['result' => $result]);
 
             // Jika tool result punya field 'actions', inject ke message agar Gemini render actions block
-            if (!empty($result['actions']) && is_array($result['actions'])) {
+            if (! empty($result['actions']) && is_array($result['actions'])) {
                 $actionsJson = json_encode($result['actions'], JSON_UNESCAPED_UNICODE);
-                $result['message'] = ($result['message'] ?? '') . "\n\n```actions\n{$actionsJson}\n```";
+                $result['message'] = ($result['message'] ?? '')."\n\n```actions\n{$actionsJson}\n```";
                 unset($result['actions']); // hindari duplikasi
             }
 
@@ -578,11 +591,12 @@ class ChatController extends Controller
         }
 
         // Jika ada validation error, kembalikan pesan error tanpa eksekusi
-        if (!empty($validationErrors)) {
+        if (! empty($validationErrors)) {
             $errorMsg = $this->buildValidationErrorMessage($validationErrors);
             $this->sessionManager->saveModelMessage($session, $errorMsg, $response['model']);
-            if ($tenantId)
+            if ($tenantId) {
                 $this->quota->track($tenantId, $user->id, strlen($errorMsg));
+            }
 
             return response()->json([
                 'session_id' => $session->id,
@@ -609,8 +623,9 @@ class ChatController extends Controller
             $finalResponse['model'],
             $executedActions
         );
-        if ($tenantId)
+        if ($tenantId) {
             $this->quota->track($tenantId, $user->id, strlen($finalText));
+        }
 
         return response()->json([
             'session_id' => $session->id,
@@ -659,11 +674,12 @@ class ChatController extends Controller
      * Data ini tidak bocor ke tenant lain karena setiap request baru ToolRegistry
      * dibuat dengan tenantId spesifik, dan history diambil dari session milik user tsb.
      */
-    protected function buildSystemPrompt(string $message, \App\Models\User $user): string
+    protected function buildSystemPrompt(string $message, User $user): string
     {
         $tenant = $user->tenant;
-        if (!$tenant)
+        if (! $tenant) {
             return $this->sanitizeUserInput($message);
+        }
 
         // Sanitasi input user sebelum digunakan (Bug 1.25 fix)
         $sanitizedMessage = $this->sanitizeUserInput($message);
@@ -672,17 +688,17 @@ class ChatController extends Controller
         $this->gemini->withLanguage($lang);
 
         $context = "[SYSTEM CONTEXT: You are serving user \"{$user->name}\" "
-            . "(role: {$user->role}) from company \"{$tenant->name}\". "
-            . "All data accessed via tools belongs exclusively to this company. "
-            . "Never reference or assume data from other companies.]\n\n";
+            ."(role: {$user->role}) from company \"{$tenant->name}\". "
+            .'All data accessed via tools belongs exclusively to this company. '
+            ."Never reference or assume data from other companies.]\n\n";
 
         // Inject AI memory context (Task 52)
         $memoryContext = $this->memoryService->buildMemoryContext($tenant->id, $user->id);
         if ($memoryContext) {
-            $context .= $memoryContext . "\n\n";
+            $context .= $memoryContext."\n\n";
         }
 
-        return $context . $sanitizedMessage;
+        return $context.$sanitizedMessage;
     }
 
     /**
@@ -693,24 +709,32 @@ class ChatController extends Controller
     {
         $text = mb_strtolower(trim($text));
 
-        if (empty($text))
+        if (empty($text)) {
             return 'id';
+        }
 
         // Script-based detection (fast, no external dependency)
-        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text))
-            return 'zh'; // Chinese
-        if (preg_match('/[\x{3040}-\x{30ff}]/u', $text))
-            return 'ja'; // Japanese
-        if (preg_match('/[\x{ac00}-\x{d7af}]/u', $text))
-            return 'ko'; // Korean
-        if (preg_match('/[\x{0600}-\x{06ff}]/u', $text))
-            return 'ar'; // Arabic
-        if (preg_match('/[\x{0900}-\x{097f}]/u', $text))
-            return 'hi'; // Hindi/Devanagari
-        if (preg_match('/[\x{0e00}-\x{0e7f}]/u', $text))
-            return 'th'; // Thai
-        if (preg_match('/[\x{1e00}-\x{1eff}]/u', $text))
-            return 'vi'; // Vietnamese extended
+        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text)) {
+            return 'zh';
+        } // Chinese
+        if (preg_match('/[\x{3040}-\x{30ff}]/u', $text)) {
+            return 'ja';
+        } // Japanese
+        if (preg_match('/[\x{ac00}-\x{d7af}]/u', $text)) {
+            return 'ko';
+        } // Korean
+        if (preg_match('/[\x{0600}-\x{06ff}]/u', $text)) {
+            return 'ar';
+        } // Arabic
+        if (preg_match('/[\x{0900}-\x{097f}]/u', $text)) {
+            return 'hi';
+        } // Hindi/Devanagari
+        if (preg_match('/[\x{0e00}-\x{0e7f}]/u', $text)) {
+            return 'th';
+        } // Thai
+        if (preg_match('/[\x{1e00}-\x{1eff}]/u', $text)) {
+            return 'vi';
+        } // Vietnamese extended
 
         // Latin-script languages — keyword-based
         $words = preg_split('/\s+/', $text);
@@ -829,7 +853,7 @@ class ChatController extends Controller
             'banyak',
             'sedikit',
             'total',
-            'jumlah'
+            'jumlah',
         ];
         $msWords = [
             'saya',
@@ -845,7 +869,7 @@ class ChatController extends Controller
             'belum',
             'juga',
             'pula',
-            'sahaja'
+            'sahaja',
         ];
 
         // English markers
@@ -873,7 +897,7 @@ class ChatController extends Controller
             'delete',
             'please',
             'help',
-            'report'
+            'report',
         ];
 
         // French markers
@@ -894,7 +918,7 @@ class ChatController extends Controller
             'que',
             'qui',
             'une',
-            'un'
+            'un',
         ];
 
         // Spanish markers
@@ -915,7 +939,7 @@ class ChatController extends Controller
             'una',
             'un',
             'como',
-            'pero'
+            'pero',
         ];
 
         // Portuguese markers
@@ -937,7 +961,7 @@ class ChatController extends Controller
             'por',
             'que',
             'uma',
-            'um'
+            'um',
         ];
 
         // German markers
@@ -959,7 +983,7 @@ class ChatController extends Controller
             'und',
             'oder',
             'nicht',
-            'auch'
+            'auch',
         ];
 
         $scores = [
@@ -974,22 +998,30 @@ class ChatController extends Controller
 
         foreach ($words as $word) {
             $word = preg_replace('/[^a-z]/', '', $word);
-            if (!$word)
+            if (! $word) {
                 continue;
-            if (in_array($word, $idWords))
+            }
+            if (in_array($word, $idWords)) {
                 $scores['id']++;
-            if (in_array($word, $msWords))
+            }
+            if (in_array($word, $msWords)) {
                 $scores['ms']++;
-            if (in_array($word, $enWords))
+            }
+            if (in_array($word, $enWords)) {
                 $scores['en']++;
-            if (in_array($word, $frWords))
+            }
+            if (in_array($word, $frWords)) {
                 $scores['fr']++;
-            if (in_array($word, $esWords))
+            }
+            if (in_array($word, $esWords)) {
                 $scores['es']++;
-            if (in_array($word, $ptWords))
+            }
+            if (in_array($word, $ptWords)) {
                 $scores['pt']++;
-            if (in_array($word, $deWords))
+            }
+            if (in_array($word, $deWords)) {
                 $scores['de']++;
+            }
         }
 
         // Normalize by word count to avoid bias on long messages
@@ -1000,12 +1032,14 @@ class ChatController extends Controller
         $topScore = $scores[$topLang];
 
         // If no clear winner, default to Indonesian (primary app language)
-        if ($topScore < 1)
+        if ($topScore < 1) {
             return 'id';
+        }
 
         // Disambiguate ID vs MS (very similar) — prefer ID as app default
-        if ($topLang === 'ms' && $scores['id'] >= $scores['ms'] * 0.8)
+        if ($topLang === 'ms' && $scores['id'] >= $scores['ms'] * 0.8) {
             return 'id';
+        }
 
         return $topLang;
     }
@@ -1018,6 +1052,7 @@ class ChatController extends Controller
                 $lines[] = "• {$msg}";
             }
         }
+
         return implode("\n", $lines);
     }
 
@@ -1032,22 +1067,26 @@ class ChatController extends Controller
                 $lines[] = 'Berhasil diproses.';
             }
         }
+
         return implode("\n", $lines) ?: 'Permintaan telah diproses.';
     }
 
     protected function humanFileSize(int $bytes): string
     {
-        if ($bytes < 1024)
-            return $bytes . ' B';
-        if ($bytes < 1048576)
-            return round($bytes / 1024, 1) . ' KB';
-        return round($bytes / 1048576, 1) . ' MB';
+        if ($bytes < 1024) {
+            return $bytes.' B';
+        }
+        if ($bytes < 1048576) {
+            return round($bytes / 1024, 1).' KB';
+        }
+
+        return round($bytes / 1048576, 1).' MB';
     }
 
     /**
      * OPTIMIZATION 3: Batch processing untuk multiple messages.
      * POST /chat/batch
-     * 
+     *
      * Berguna untuk:
      * - Processing multiple queries sekaligus
      * - Bulk analysis dari CSV/Excel
@@ -1065,13 +1104,14 @@ class ChatController extends Controller
         $tenantId = $user->tenant_id;
 
         // Jika Redis tidak tersedia, fallback ke sequential processing
-        if (!config('cache.default') === 'redis' && !extension_loaded('redis')) {
+        if (! config('cache.default') === 'redis' && ! extension_loaded('redis')) {
             Log::warning('Batch processing without Redis - using sequential mode');
+
             return $this->processBatchSequentially($request, $user, $tenantId);
         }
 
         // Gunakan AiBatchProcessor untuk optimized batch processing
-        $batchProcessor = new \App\Services\AiBatchProcessor(
+        $batchProcessor = new AiBatchProcessor(
             $this->gemini,
             $this->cacheService
         );
@@ -1123,8 +1163,8 @@ class ChatController extends Controller
                     'cache_hit_rate' => round(
                         (collect($results)->where('cached', true)->count() / count($results)) * 100,
                         2
-                    ) . '%',
-                    'estimated_savings' => '$' . number_format(
+                    ).'%',
+                    'estimated_savings' => '$'.number_format(
                         collect($results)->where('cached', true)->count() * 0.0001,
                         4
                     ),
@@ -1132,7 +1172,7 @@ class ChatController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('ChatController batch processing failed: ' . $e->getMessage());
+            Log::error('ChatController batch processing failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -1168,6 +1208,7 @@ class ChatController extends Controller
 
                 if ($cached !== null) {
                     $results[] = array_merge($cached, ['cached' => true]);
+
                     continue;
                 }
 
@@ -1183,7 +1224,7 @@ class ChatController extends Controller
                 $results[] = array_merge($response, ['cached' => false]);
 
             } catch (\Throwable $e) {
-                Log::error('Batch message processing failed: ' . $e->getMessage());
+                Log::error('Batch message processing failed: '.$e->getMessage());
                 $results[] = [
                     'text' => 'Error processing this message.',
                     'model' => 'error',
@@ -1212,7 +1253,7 @@ class ChatController extends Controller
         return response()->json([
             'cache' => $this->cacheService->getStats(),
             'rule_based_patterns' => $this->ruleHandler->getSupportedPatterns(),
-            'streaming_supported' => \App\Services\AiStreamingService::clientSupportsStreaming(),
+            'streaming_supported' => AiStreamingService::clientSupportsStreaming(),
             'queue_driver' => config('queue.default'),
             'cache_driver' => config('cache.default'),
             'redis_available' => extension_loaded('redis'),
@@ -1228,22 +1269,20 @@ class ChatController extends Controller
 
     /**
      * TASK-021: Execute multiple read-only tools in parallel.
-     * 
+     *
      * Uses Laravel's Promise-based parallel processing for non-blocking execution.
      * This can achieve 40-60% speedup when multiple independent tools are called.
-     * 
-     * @param array $operations Array of ['index', 'name', 'args']
-     * @param ToolRegistry $registry
+     *
+     * @param  array  $operations  Array of ['index', 'name', 'args']
      * @return array Array of execution results
      */
     /**
      * TASK-021: Execute multiple tools in parallel for better performance.
-     * 
+     *
      * Uses Laravel's concurrent process execution to run independent
      * read operations simultaneously, reducing total execution time.
-     * 
-     * @param array $operations Array of ['index', 'name', 'args']
-     * @param ToolRegistry $registry
+     *
+     * @param  array  $operations  Array of ['index', 'name', 'args']
      * @return array Array of results with 'name', 'args', 'data'
      */
     protected function executeToolsInParallel(array $operations, ToolRegistry $registry): array
@@ -1258,6 +1297,7 @@ class ChatController extends Controller
             Log::info("ChatController: executed tool [{$op['name']}] (single)", [
                 'duration_ms' => (microtime(true) - $startTime) * 1000,
             ]);
+
             return [['name' => $op['name'], 'args' => $op['args'], 'data' => $result]];
         }
 
@@ -1323,7 +1363,7 @@ class ChatController extends Controller
         $results = array_values($toolResults);
 
         $duration = (microtime(true) - $startTime) * 1000;
-        $successfulTools = count(array_filter($results, fn($r) => $r['success']));
+        $successfulTools = count(array_filter($results, fn ($r) => $r['success']));
         $failedTools = count($results) - $successfulTools;
 
         Log::info('ChatController: parallel tool execution completed', [
@@ -1345,10 +1385,11 @@ class ChatController extends Controller
     protected function resolveHttpCode(\Throwable $e): int
     {
         $code = (int) $e->getCode();
+
         return match (true) {
             in_array($code, [400, 401, 403, 404, 422, 429, 503]) => $code,
-            $code >= 400 && $code < 600                          => $code,
-            default                                              => 503,
+            $code >= 400 && $code < 600 => $code,
+            default => 503,
         };
     }
 }

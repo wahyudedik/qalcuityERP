@@ -26,8 +26,8 @@ class ProactiveInsight extends Model
     protected function casts(): array
     {
         return [
-            'recommendations'  => 'array',
-            'condition_data'   => 'array',
+            'recommendations' => 'array',
+            'condition_data' => 'array',
             'suppressed_until' => 'datetime',
         ];
     }

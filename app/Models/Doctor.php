@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Doctor extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -89,7 +90,8 @@ class Doctor extends Model
     {
         $lastDoctor = static::orderBy('id', 'desc')->first();
         $number = $lastDoctor ? (int) substr($lastDoctor->doctor_number, 3) + 1 : 1;
-        return 'DR-' . str_pad($number, 5, '0', STR_PAD_LEFT);
+
+        return 'DR-'.str_pad($number, 5, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -129,7 +131,7 @@ class Doctor extends Model
      */
     public function isCurrentlyAvailable()
     {
-        if ($this->status !== 'active' || !$this->accepting_patients) {
+        if ($this->status !== 'active' || ! $this->accepting_patients) {
             return false;
         }
 
@@ -137,13 +139,14 @@ class Doctor extends Model
         $dayOfWeek = strtolower($now->format('l'));
 
         // Check if today is a practice day
-        if ($this->practice_days && !in_array($dayOfWeek, $this->practice_days)) {
+        if ($this->practice_days && ! in_array($dayOfWeek, $this->practice_days)) {
             return false;
         }
 
         // Check if within practice hours
         if ($this->practice_start_time && $this->practice_end_time) {
             $currentTime = $now->format('H:i:s');
+
             return $currentTime >= $this->practice_start_time &&
                 $currentTime <= $this->practice_end_time;
         }
@@ -156,7 +159,7 @@ class Doctor extends Model
      */
     public function getPracticeScheduleAttribute()
     {
-        if (!$this->practice_days) {
+        if (! $this->practice_days) {
             return 'Not set';
         }
 
@@ -166,12 +169,12 @@ class Doctor extends Model
 
         $time = '';
         if ($this->practice_start_time && $this->practice_end_time) {
-            $startTime = \Carbon\Carbon::parse($this->practice_start_time)->format('H:i');
-            $endTime = \Carbon\Carbon::parse($this->practice_end_time)->format('H:i');
+            $startTime = Carbon::parse($this->practice_start_time)->format('H:i');
+            $endTime = Carbon::parse($this->practice_end_time)->format('H:i');
             $time = " ($startTime - $endTime)";
         }
 
-        return $days . $time;
+        return $days.$time;
     }
 
     /**
@@ -193,7 +196,8 @@ class Doctor extends Model
         ];
 
         $icon = $icons[$this->specialization] ?? '⚕️';
-        return $icon . ' ' . $this->specialization;
+
+        return $icon.' '.$this->specialization;
     }
 
     /**

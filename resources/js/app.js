@@ -8,6 +8,7 @@ import moduleLoader from './module-loader';
 import helpSystem from './help-system';
 import './chart-theme'; // BUG-1.9 FIX: theme-changed listener for Chart.js instances
 import numberFormat from './utils/number-format'; // TASK 6.9: Indonesian number formatting
+import { registerLayoutStore } from './stores/layout-store'; // TASK 3.3: Layout state management
 
 // Register Alpine plugins
 Alpine.plugin(collapse);
@@ -23,8 +24,10 @@ try {
 window.NumberFormat = numberFormat;
 
 // TASK 6.9: Register Alpine magic helpers for number formatting
+// TASK 3.3: Register layout store for responsive state management
 document.addEventListener('alpine:init', () => {
     numberFormat.registerAlpineMagics();
+    registerLayoutStore(Alpine);
 });
 
 // FIX JS-001: Set window.Alpine SETELAH semua plugin terdaftar, sebelum Alpine.start()

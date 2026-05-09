@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ActionLog;
-use Illuminate\Support\Facades\DB;
 
 class UndoRollbackService
 {
@@ -41,7 +40,7 @@ class UndoRollbackService
             ->latest()
             ->first();
 
-        if (!$lastAction) {
+        if (! $lastAction) {
             return ['success' => false, 'error' => 'No actions to undo'];
         }
 
@@ -54,7 +53,7 @@ class UndoRollbackService
         return [
             'success' => $success,
             'action' => $lastAction,
-            'message' => $success ? 'Action undone successfully' : 'Failed to undo action'
+            'message' => $success ? 'Action undone successfully' : 'Failed to undo action',
         ];
     }
 
@@ -69,7 +68,7 @@ class UndoRollbackService
             ->where('id', $actionLogId)
             ->first();
 
-        if (!$action) {
+        if (! $action) {
             return ['success' => false, 'error' => 'Action not found'];
         }
 
@@ -85,7 +84,7 @@ class UndoRollbackService
 
         return [
             'success' => $success,
-            'message' => $success ? 'Action undone successfully' : 'Failed to undo action'
+            'message' => $success ? 'Action undone successfully' : 'Failed to undo action',
         ];
     }
 
@@ -136,7 +135,7 @@ class UndoRollbackService
             'total' => count($actionIds),
             'succeeded' => $successCount,
             'failed' => $failCount,
-            'results' => $results
+            'results' => $results,
         ];
     }
 

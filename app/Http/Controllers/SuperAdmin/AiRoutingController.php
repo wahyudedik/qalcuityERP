@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Enums\AiUseCase;
 use App\Http\Controllers\Controller;
 use App\Models\AiUsageCostLog;
 use App\Models\AiUseCaseRoute;
@@ -99,30 +98,30 @@ class AiRoutingController extends Controller
     public function update(Request $request, AiUseCaseRoute $route): RedirectResponse
     {
         $validated = $request->validate([
-            'provider'       => 'required|in:gemini,anthropic',
-            'model'          => 'nullable|string|max:100',
-            'min_plan'       => 'nullable|in:trial,starter,business,professional,enterprise',
+            'provider' => 'required|in:gemini,anthropic',
+            'model' => 'nullable|string|max:100',
+            'min_plan' => 'nullable|in:trial,starter,business,professional,enterprise',
             'fallback_chain' => 'nullable|string|max:500',
-            'is_active'      => 'boolean',
-            'description'    => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         // Validasi provider terdaftar
-        if (!in_array($validated['provider'], ['gemini', 'anthropic'])) {
+        if (! in_array($validated['provider'], ['gemini', 'anthropic'])) {
             return back()->withErrors(['provider' => 'Provider tidak valid. Pilih gemini atau anthropic.']);
         }
 
         // Warning jika model tidak dikenal (bukan error — model baru dapat ditambahkan)
-        if (!empty($validated['model'])) {
+        if (! empty($validated['model'])) {
             $knownModels = $this->getKnownModels($validated['provider']);
-            if (!in_array($validated['model'], $knownModels)) {
+            if (! in_array($validated['model'], $knownModels)) {
                 session()->flash('warning', "Model '{$validated['model']}' tidak dikenal untuk provider {$validated['provider']}. Pastikan model ini valid.");
             }
         }
 
         // Parse fallback_chain dari JSON atau comma-separated
         $fallbackChain = null;
-        if (!empty($validated['fallback_chain'])) {
+        if (! empty($validated['fallback_chain'])) {
             $decoded = json_decode($validated['fallback_chain'], true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $fallbackChain = array_values(array_filter(array_map('trim', $decoded)));
@@ -133,12 +132,12 @@ class AiRoutingController extends Controller
 
         // Update routing rule
         $route->update([
-            'provider'       => $validated['provider'],
-            'model'          => $validated['model'] ?? null,
-            'min_plan'       => $validated['min_plan'] ?? null,
+            'provider' => $validated['provider'],
+            'model' => $validated['model'] ?? null,
+            'min_plan' => $validated['min_plan'] ?? null,
             'fallback_chain' => $fallbackChain,
-            'is_active'      => $validated['is_active'] ?? true,
-            'description'    => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+            'description' => $validated['description'] ?? null,
         ]);
 
         // Invalidate cache
@@ -156,31 +155,31 @@ class AiRoutingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'use_case'       => 'required|string|max:100|unique:ai_use_case_routes,use_case,NULL,id,tenant_id,NULL',
-            'provider'       => 'required|in:gemini,anthropic',
-            'model'          => 'nullable|string|max:100',
-            'min_plan'       => 'nullable|in:trial,starter,business,professional,enterprise',
+            'use_case' => 'required|string|max:100|unique:ai_use_case_routes,use_case,NULL,id,tenant_id,NULL',
+            'provider' => 'required|in:gemini,anthropic',
+            'model' => 'nullable|string|max:100',
+            'min_plan' => 'nullable|in:trial,starter,business,professional,enterprise',
             'fallback_chain' => 'nullable|string|max:500',
-            'is_active'      => 'boolean',
-            'description'    => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         // Validasi provider terdaftar
-        if (!in_array($validated['provider'], ['gemini', 'anthropic'])) {
+        if (! in_array($validated['provider'], ['gemini', 'anthropic'])) {
             return back()->withErrors(['provider' => 'Provider tidak valid. Pilih gemini atau anthropic.']);
         }
 
         // Warning jika model tidak dikenal
-        if (!empty($validated['model'])) {
+        if (! empty($validated['model'])) {
             $knownModels = $this->getKnownModels($validated['provider']);
-            if (!in_array($validated['model'], $knownModels)) {
+            if (! in_array($validated['model'], $knownModels)) {
                 session()->flash('warning', "Model '{$validated['model']}' tidak dikenal untuk provider {$validated['provider']}. Pastikan model ini valid.");
             }
         }
 
         // Parse fallback_chain
         $fallbackChain = null;
-        if (!empty($validated['fallback_chain'])) {
+        if (! empty($validated['fallback_chain'])) {
             $decoded = json_decode($validated['fallback_chain'], true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $fallbackChain = array_values(array_filter(array_map('trim', $decoded)));
@@ -191,14 +190,14 @@ class AiRoutingController extends Controller
 
         // Buat routing rule baru (global — tenant_id = NULL)
         AiUseCaseRoute::withoutTenantScope()->create([
-            'tenant_id'      => null,
-            'use_case'       => $validated['use_case'],
-            'provider'       => $validated['provider'],
-            'model'          => $validated['model'] ?? null,
-            'min_plan'       => $validated['min_plan'] ?? null,
+            'tenant_id' => null,
+            'use_case' => $validated['use_case'],
+            'provider' => $validated['provider'],
+            'model' => $validated['model'] ?? null,
+            'min_plan' => $validated['min_plan'] ?? null,
             'fallback_chain' => $fallbackChain,
-            'is_active'      => $validated['is_active'] ?? true,
-            'description'    => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+            'description' => $validated['description'] ?? null,
         ]);
 
         // Invalidate cache
@@ -240,7 +239,7 @@ class AiRoutingController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Gagal reset routing rules: ' . $e->getMessage());
+            return back()->with('error', 'Gagal reset routing rules: '.$e->getMessage());
         }
     }
 
@@ -263,7 +262,7 @@ class AiRoutingController extends Controller
                 $providerName = $item['provider'];
                 $isConfigured = $this->isProviderConfigured($providerName);
 
-                if (!$isConfigured) {
+                if (! $isConfigured) {
                     $statusLabel = 'Tidak Dikonfigurasi';
                     $statusColor = 'gray';
                 } elseif ($item['available']) {
@@ -275,14 +274,14 @@ class AiRoutingController extends Controller
                 }
 
                 $status[$providerName] = [
-                    'provider'      => $providerName,
-                    'label'         => ucfirst($providerName),
-                    'configured'    => $isConfigured,
-                    'available'     => $item['available'],
-                    'status_label'  => $statusLabel,
-                    'status_color'  => $statusColor,
-                    'reason'        => $item['reason'],
-                    'recovers_at'   => $item['recovers_at'] ? $item['recovers_at']->toDateTimeString() : null,
+                    'provider' => $providerName,
+                    'label' => ucfirst($providerName),
+                    'configured' => $isConfigured,
+                    'available' => $item['available'],
+                    'status_label' => $statusLabel,
+                    'status_color' => $statusColor,
+                    'reason' => $item['reason'],
+                    'recovers_at' => $item['recovers_at'] ? $item['recovers_at']->toDateTimeString() : null,
                 ];
             }
         } catch (\Throwable $e) {
@@ -291,14 +290,14 @@ class AiRoutingController extends Controller
             foreach ($providers as $providerName) {
                 $isConfigured = $this->isProviderConfigured($providerName);
                 $status[$providerName] = [
-                    'provider'      => $providerName,
-                    'label'         => ucfirst($providerName),
-                    'configured'    => $isConfigured,
-                    'available'     => $isConfigured,
-                    'status_label'  => $isConfigured ? 'Aktif' : 'Tidak Dikonfigurasi',
-                    'status_color'  => $isConfigured ? 'green' : 'gray',
-                    'reason'        => null,
-                    'recovers_at'   => null,
+                    'provider' => $providerName,
+                    'label' => ucfirst($providerName),
+                    'configured' => $isConfigured,
+                    'available' => $isConfigured,
+                    'status_label' => $isConfigured ? 'Aktif' : 'Tidak Dikonfigurasi',
+                    'status_color' => $isConfigured ? 'green' : 'gray',
+                    'reason' => null,
+                    'recovers_at' => null,
                 ];
             }
         }
@@ -312,7 +311,8 @@ class AiRoutingController extends Controller
     private function isProviderConfigured(string $provider): bool
     {
         $apiKey = config("ai.providers.{$provider}.api_key");
-        return !empty($apiKey);
+
+        return ! empty($apiKey);
     }
 
     /**
@@ -336,6 +336,7 @@ class AiRoutingController extends Controller
             return $stats->toArray();
         } catch (\Throwable $e) {
             Log::debug('AiRoutingController: could not load usage stats.', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -414,15 +415,15 @@ class AiRoutingController extends Controller
             AiUseCaseRoute::withoutTenantScope()->updateOrCreate(
                 [
                     'tenant_id' => null,
-                    'use_case'  => $route['use_case'],
+                    'use_case' => $route['use_case'],
                 ],
                 [
-                    'provider'       => $route['provider'],
-                    'model'          => $route['model'],
-                    'min_plan'       => $route['min_plan'],
+                    'provider' => $route['provider'],
+                    'model' => $route['model'],
+                    'min_plan' => $route['min_plan'],
                     'fallback_chain' => null,
-                    'is_active'      => true,
-                    'description'    => null,
+                    'is_active' => true,
+                    'description' => null,
                 ]
             );
         }

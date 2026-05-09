@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 class WalkInReservationController extends Controller
 {
     private ReservationService $reservationService;
+
     private GuestPreferenceService $preferenceService;
 
     public function __construct(
@@ -107,12 +108,12 @@ class WalkInReservationController extends Controller
                     ->first();
             }
 
-            $isNewGuest = !$guest;
+            $isNewGuest = ! $guest;
 
-            if (!$guest) {
+            if (! $guest) {
                 // Create new guest
                 $count = Guest::where('tenant_id', $tid)->count() + 1;
-                $guestCode = 'GST-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+                $guestCode = 'GST-'.str_pad($count, 5, '0', STR_PAD_LEFT);
 
                 $guest = Guest::create([
                     'tenant_id' => $tid,
@@ -132,7 +133,7 @@ class WalkInReservationController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$roomType) {
+            if (! $roomType) {
                 throw new \Exception('Invalid room type selected.');
             }
 
@@ -153,7 +154,7 @@ class WalkInReservationController extends Controller
             ];
 
             // Apply guest preferences if returning guest
-            if (!$isNewGuest) {
+            if (! $isNewGuest) {
                 $this->preferenceService->applyPreferencesToReservation($guest, $reservationData);
             }
 
@@ -215,11 +216,11 @@ class WalkInReservationController extends Controller
                 ->where('tenant_id', $tid)
                 ->first();
 
-            $isNewGuest = !$guest;
+            $isNewGuest = ! $guest;
 
-            if (!$guest) {
+            if (! $guest) {
                 $count = Guest::where('tenant_id', $tid)->count() + 1;
-                $guestCode = 'GST-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+                $guestCode = 'GST-'.str_pad($count, 5, '0', STR_PAD_LEFT);
 
                 $guest = Guest::create([
                     'tenant_id' => $tid,
@@ -236,7 +237,7 @@ class WalkInReservationController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$roomType) {
+            if (! $roomType) {
                 throw new \Exception('Invalid room type.');
             }
 
@@ -249,7 +250,7 @@ class WalkInReservationController extends Controller
             $taxAmount = round($totalAmount * ($taxRate / 100), 2);
             $grandTotal = round($totalAmount + $taxAmount, 2);
 
-            $reservationNumber = 'WI-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $reservationNumber = 'WI-'.date('Ymd').'-'.str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
             $reservation = Reservation::create([
                 'tenant_id' => $tid,
@@ -341,6 +342,7 @@ class WalkInReservationController extends Controller
             ],
         ]);
     }
+
     /**
      * Display the specified resource.
      * Route: hotel/walk-ins/{walk_in}
@@ -348,9 +350,10 @@ class WalkInReservationController extends Controller
     public function show($model)
     {
         $this->authorize('view', $model);
-        
+
         return view('hotel.walk-in-reservation.show', compact('model'));
     }
+
     /**
      * Show the form for editing.
      * Route: hotel/walk-ins/{walk_in}/edit
@@ -358,9 +361,10 @@ class WalkInReservationController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('hotel.walk-in-reservation.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: hotel/walk-ins/{walk_in}
@@ -368,16 +372,17 @@ class WalkInReservationController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('hotel.walk-ins.update')
             ->with('success', 'Updated successfully.');
     }
+
     /**
      * Remove the specified resource.
      * Route: hotel/walk-ins/{walk_in}
@@ -385,9 +390,9 @@ class WalkInReservationController extends Controller
     public function destroy($model)
     {
         $this->authorize('delete', $model);
-        
+
         $model->delete();
-        
+
         return back()->with('success', 'Deleted successfully.');
     }
 }

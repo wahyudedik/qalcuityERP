@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\ExpiryAlert;
 use App\Models\BatchRecall;
-use App\Models\ExpiryReport;
 use App\Models\CosmeticBatchRecord;
-use Illuminate\Http\Request;
+use App\Models\ExpiryAlert;
+use App\Models\ExpiryReport;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ExpiryController extends Controller
 {
@@ -54,6 +54,7 @@ class ExpiryController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $alert = ExpiryAlert::where('tenant_id', $tenantId)->findOrFail($id);
         $alert->markAsRead();
+
         return back()->with('success', 'Alert marked as read!');
     }
 
@@ -65,6 +66,7 @@ class ExpiryController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $alert = ExpiryAlert::where('tenant_id', $tenantId)->findOrFail($id);
         $alert->markAsActioned($validated['action']);
+
         return back()->with('success', 'Alert action recorded!');
     }
 
@@ -80,8 +82,8 @@ class ExpiryController extends Controller
         ];
 
         $recalls = BatchRecall::where('tenant_id', $tenantId)
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->severity, fn($q) => $q->where('severity', $request->severity))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->severity, fn ($q) => $q->where('severity', $request->severity))
             ->with('batch')
             ->latest()
             ->paginate(15);
@@ -139,6 +141,7 @@ class ExpiryController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $recall = BatchRecall::where('tenant_id', $tenantId)->findOrFail($id);
         $recall->complete($validated['notes'] ?? '');
+
         return back()->with('success', 'Recall completed!');
     }
 
@@ -148,6 +151,7 @@ class ExpiryController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $recall = BatchRecall::where('tenant_id', $tenantId)->findOrFail($id);
         $recall->cancel($validated['notes'] ?? '');
+
         return back()->with('success', 'Recall cancelled!');
     }
 
@@ -156,7 +160,7 @@ class ExpiryController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $reports = ExpiryReport::where('tenant_id', $tenantId)
-            ->when($request->type, fn($q) => $q->where('report_type', $request->type))
+            ->when($request->type, fn ($q) => $q->where('report_type', $request->type))
             ->latest()
             ->paginate(15);
 
@@ -199,7 +203,7 @@ class ExpiryController extends Controller
             'generated_by' => auth()->id(),
             'summary_data' => [
                 'generated_at' => now()->toDateTimeString(),
-                'period' => Carbon::parse($validated['start_date'])->format('d M Y') . ' - ' . Carbon::parse($validated['end_date'])->format('d M Y'),
+                'period' => Carbon::parse($validated['start_date'])->format('d M Y').' - '.Carbon::parse($validated['end_date'])->format('d M Y'),
             ],
         ]);
 

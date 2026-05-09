@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bed;
-use App\Models\Ward;
 use App\Models\PatientVisit;
+use App\Models\Ward;
 use Illuminate\Http\Request;
 
 class BedController extends Controller
@@ -31,14 +31,14 @@ class BedController extends Controller
 
         $beds = $query->orderBy('bed_number')->paginate(50);
 
-        $wards = Ward::where('is_active', true)->orderBy('ward_name')->get();
+        $wards = Ward::where('status', 'active')->orderBy('ward_name')->get();
 
         $statistics = [
             'total_beds' => Bed::count(),
-            'available' => Bed::where('status', 'available')->count(),
-            'occupied' => Bed::where('status', 'occupied')->count(),
+            'available_beds' => Bed::where('status', 'available')->count(),
+            'occupied_beds' => Bed::where('status', 'occupied')->count(),
             'reserved' => Bed::where('status', 'reserved')->count(),
-            'maintenance' => Bed::where('status', 'maintenance')->count(),
+            'maintenance_beds' => Bed::where('status', 'maintenance')->count(),
             'occupancy_rate' => Bed::count() > 0
                 ? round((Bed::where('status', 'occupied')->count() / Bed::count()) * 100, 2)
                 : 0,
@@ -52,7 +52,8 @@ class BedController extends Controller
      */
     public function create()
     {
-        $wards = Ward::where('is_active', true)->orderBy('ward_name')->get();
+        $wards = Ward::where('status', 'active')->orderBy('ward_name')->get();
+
         return view('healthcare.beds.create', compact('wards'));
     }
 
@@ -71,14 +72,12 @@ class BedController extends Controller
             'has_window' => 'boolean',
             'has_tv' => 'boolean',
             'has_ac' => 'boolean',
-            'is_active' => 'boolean',
         ]);
 
         $validated['status'] = 'available';
         $validated['has_window'] = $request->has('has_window');
         $validated['has_tv'] = $request->has('has_tv');
         $validated['has_ac'] = $request->has('has_ac');
-        $validated['is_active'] = $request->has('is_active');
 
         $bed = Bed::create($validated);
 
@@ -107,7 +106,8 @@ class BedController extends Controller
      */
     public function edit(Bed $bed)
     {
-        $wards = Ward::where('is_active', true)->orderBy('ward_name')->get();
+        $wards = Ward::where('status', 'active')->orderBy('ward_name')->get();
+
         return view('healthcare.beds.edit', compact('bed', 'wards'));
     }
 
@@ -126,13 +126,11 @@ class BedController extends Controller
             'has_window' => 'boolean',
             'has_tv' => 'boolean',
             'has_ac' => 'boolean',
-            'is_active' => 'boolean',
         ]);
 
         $validated['has_window'] = $request->has('has_window');
         $validated['has_tv'] = $request->has('has_tv');
         $validated['has_ac'] = $request->has('has_ac');
-        $validated['is_active'] = $request->has('is_active');
 
         $bed->update($validated);
 
@@ -182,7 +180,7 @@ class BedController extends Controller
      */
     public function availableBeds(Request $request)
     {
-        $query = Bed::where('status', 'available')->where('is_active', true);
+        $query = Bed::where('status', 'available');
 
         if ($request->filled('ward_id')) {
             $query->where('ward_id', $request->ward_id);
@@ -229,6 +227,7 @@ class BedController extends Controller
             'message' => 'Patient assigned to bed successfully',
         ]);
     }
+
     /**
      * ReleasePatient.
      * Route: healthcare/beds/{bed}/release
@@ -236,15 +235,16 @@ class BedController extends Controller
     public function releasePatient(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement ReleasePatient logic
-        
+
         return back()->with('success', 'ReleasePatient completed successfully.');
     }
+
     /**
      * CheckAvailability.
      * Route: healthcare/beds/availability
@@ -252,13 +252,13 @@ class BedController extends Controller
     public function checkAvailability(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement CheckAvailability logic
-        
+
         return back()->with('success', 'CheckAvailability completed successfully.');
     }
 }

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Bom;
 use App\Models\Product;
 use App\Models\ProductStock;
-use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WorkOrder;
@@ -26,10 +25,11 @@ class MrpService
      */
     private function explodeCached(Bom $bom, float $quantity): array
     {
-        $key = $bom->id . ':' . $quantity;
-        if (!isset($this->bomCache[$key])) {
+        $key = $bom->id.':'.$quantity;
+        if (! isset($this->bomCache[$key])) {
             $this->bomCache[$key] = $bom->explode($quantity);
         }
+
         return $this->bomCache[$key];
     }
 
@@ -55,7 +55,7 @@ class MrpService
         // Get current stock for all products
         $productIds = array_keys($aggregated);
         $stocks = ProductStock::whereIn('product_id', $productIds)
-            ->whereHas('warehouse', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
+            ->whereHas('warehouse', fn ($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
             ->selectRaw('product_id, SUM(quantity) as total_stock')
             ->groupBy('product_id')
             ->pluck('total_stock', 'product_id');
@@ -106,7 +106,7 @@ class MrpService
      */
     public function runFullMrp(int $tenantId): array
     {
-        $workOrders = WorkOrder::with(['bom' => fn($q) => $q->with(Bom::buildNestedWith())])
+        $workOrders = WorkOrder::with(['bom' => fn ($q) => $q->with(Bom::buildNestedWith())])
             ->where('tenant_id', $tenantId)
             ->whereIn('status', ['pending', 'in_progress'])
             ->where('materials_consumed', false)
@@ -116,8 +116,9 @@ class MrpService
         $allRequirements = [];
 
         foreach ($workOrders as $wo) {
-            if (!$wo->bom)
+            if (! $wo->bom) {
                 continue;
+            }
             $exploded = $this->explodeCached($wo->bom, $wo->target_quantity);
             foreach ($exploded as $item) {
                 $pid = $item['product_id'];
@@ -133,11 +134,12 @@ class MrpService
 
         // Same stock/PO check as single calculate
         $productIds = array_keys($allRequirements);
-        if (empty($productIds))
+        if (empty($productIds)) {
             return [];
+        }
 
         $stocks = ProductStock::whereIn('product_id', $productIds)
-            ->whereHas('warehouse', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
+            ->whereHas('warehouse', fn ($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
             ->selectRaw('product_id, SUM(quantity) as total_stock')
             ->groupBy('product_id')
             ->pluck('total_stock', 'product_id');
@@ -174,7 +176,7 @@ class MrpService
         }
 
         // Sort shortages first
-        usort($results, fn($a, $b) => $b['shortage'] <=> $a['shortage']);
+        usort($results, fn ($a, $b) => $b['shortage'] <=> $a['shortage']);
 
         return $results;
     }
@@ -190,7 +192,7 @@ class MrpService
         }
 
         $bom = $wo->bom;
-        if (!$bom) {
+        if (! $bom) {
             return ['success' => false, 'message' => 'Work Order tidak memiliki BOM.'];
         }
 
@@ -209,7 +211,7 @@ class MrpService
         }
 
         $warehouse = Warehouse::where('tenant_id', $tenantId)->where('is_active', true)->first();
-        if (!$warehouse) {
+        if (! $warehouse) {
             return ['success' => false, 'message' => 'Tidak ada gudang aktif.'];
         }
 
@@ -239,13 +241,14 @@ class MrpService
                 $product = $productMap[$pid] ?? null;
 
                 if ($currentQty < $item['quantity']) {
-                    $shortages[] = ($product->name ?? "#{$pid}") . " (butuh {$item['quantity']}, stok {$currentQty})";
+                    $shortages[] = ($product->name ?? "#{$pid}")." (butuh {$item['quantity']}, stok {$currentQty})";
                     // Still consume what's available
                 }
 
                 $consumeQty = min($item['quantity'], $currentQty);
-                if ($consumeQty <= 0)
+                if ($consumeQty <= 0) {
                     continue;
+                }
 
                 $before = $currentQty;
 
@@ -255,7 +258,7 @@ class MrpService
                         ->where('quantity', '>=', $consumeQty)
                         ->decrement('quantity', $consumeQty);
 
-                    if (!$updated) {
+                    if (! $updated) {
                         throw new \Exception("Failed to consume material for product {$pid}");
                     }
                 }
@@ -313,12 +316,13 @@ class MrpService
             ->whereIn('status', ['pending', 'in_progress'])
             ->where('materials_consumed', false)
             ->whereNotNull('bom_id')
-            ->with(['bom' => fn($q) => $q->with(Bom::buildNestedWith())])
+            ->with(['bom' => fn ($q) => $q->with(Bom::buildNestedWith())])
             ->get();
 
         foreach ($wos as $wo) {
-            if (!$wo->bom)
+            if (! $wo->bom) {
                 continue;
+            }
             foreach ($this->explodeCached($wo->bom, $wo->target_quantity) as $item) {
                 if (isset($productSet[$item['product_id']])) {
                     $demand[$item['product_id']] = ($demand[$item['product_id']] ?? 0) + $item['quantity'];

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 
 class EcommerceWebhookLog extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'channel_id',
@@ -22,8 +22,8 @@ class EcommerceWebhookLog extends Model
     ];
 
     protected $casts = [
-        'payload'      => 'array',
-        'is_valid'     => 'boolean',
+        'payload' => 'array',
+        'is_valid' => 'boolean',
         'processed_at' => 'datetime',
     ];
 

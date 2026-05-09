@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Product;
 use App\Services\ProductQrService;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
@@ -24,7 +25,7 @@ class ProductQrServicePropertyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductQrService();
+        $this->service = new ProductQrService;
     }
 
     /**
@@ -38,7 +39,7 @@ class ProductQrServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 1: QR Payload Uniqueness
      */
     #[ErisRepeat(repeat: 100)]
-    public function testQrPayloadUniqueness(): void
+    public function test_qr_payload_uniqueness(): void
     {
         // Generate two non-empty strings that are guaranteed to be different
         // by appending distinct suffixes derived from two independent integers.
@@ -50,8 +51,8 @@ class ProductQrServicePropertyTest extends TestCase
             ->then(function (int $seedA, int $seedB) {
                 // Build certificate-number-like strings that encode different
                 // (product_id, tenant_id) combinations.
-                $certA = 'CERT-1-' . $seedA . '-0001';
-                $certB = 'CERT-2-' . $seedB . '-0001';
+                $certA = 'CERT-1-'.$seedA.'-0001';
+                $certB = 'CERT-2-'.$seedB.'-0001';
 
                 // Ensure the two certificate numbers are actually different
                 // (they always will be because tenant prefix differs, but be explicit).
@@ -59,6 +60,7 @@ class ProductQrServicePropertyTest extends TestCase
                     // Trivially skip degenerate case — cannot happen with the
                     // construction above, but guard defensively.
                     $this->assertTrue(true);
+
                     return;
                 }
 
@@ -68,7 +70,7 @@ class ProductQrServicePropertyTest extends TestCase
                 $this->assertNotEquals(
                     $payloadA,
                     $payloadB,
-                    "buildPayload() must return different URLs for different certificate numbers. " .
+                    'buildPayload() must return different URLs for different certificate numbers. '.
                     "certA={$certA}, certB={$certB}, payloadA={$payloadA}, payloadB={$payloadB}"
                 );
             });
@@ -85,7 +87,7 @@ class ProductQrServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 1: QR Payload Uniqueness
      */
     #[ErisRepeat(repeat: 100)]
-    public function testQrPayloadInjectivity(): void
+    public function test_qr_payload_injectivity(): void
     {
         // Generate four independent positive integers representing two
         // (product_id, tenant_id) pairs. We use suchThat to ensure the pairs differ.
@@ -104,6 +106,7 @@ class ProductQrServicePropertyTest extends TestCase
                 // Only assert when the two certificate numbers are actually different.
                 if ($certA === $certB) {
                     $this->assertTrue(true); // same pair — skip
+
                     return;
                 }
 
@@ -113,7 +116,7 @@ class ProductQrServicePropertyTest extends TestCase
                 $this->assertNotEquals(
                     $payloadA,
                     $payloadB,
-                    "buildPayload() must return different URLs for different certificate numbers. " .
+                    'buildPayload() must return different URLs for different certificate numbers. '.
                     "certA={$certA}, certB={$certB}"
                 );
             });
@@ -130,7 +133,7 @@ class ProductQrServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 2: QR Code Minimum Size
      */
     #[ErisRepeat(repeat: 100)]
-    public function testQrCodeMinimumSize(): void
+    public function test_qr_code_minimum_size(): void
     {
         Storage::fake('public');
 
@@ -146,13 +149,13 @@ class ProductQrServicePropertyTest extends TestCase
                 //   - $product->activeCertificate (property access via __get → relation)
                 //   - $product->id, $product->tenant_id (used to build the storage path)
                 //   - $product->save() (no-op)
-                $product = Mockery::mock(\App\Models\Product::class)->makePartial();
+                $product = Mockery::mock(Product::class)->makePartial();
                 $product->shouldAllowMockingProtectedMethods();
 
                 // Set attributes directly on the Eloquent model's attribute bag
                 $product->setRawAttributes([
-                    'id'           => $productId,
-                    'tenant_id'    => $tenantId,
+                    'id' => $productId,
+                    'tenant_id' => $tenantId,
                     'qr_code_path' => null,
                 ]);
 
@@ -168,18 +171,19 @@ class ProductQrServicePropertyTest extends TestCase
                 // Use a GD-based service subclass since Imagick may not be available
                 // in all environments. The subclass writes a real 300x300 PNG using GD,
                 // preserving the same storage path and dimension guarantee.
-                $service = new class extends \App\Services\ProductQrService {
-                    public function generate(\App\Models\Product $product, bool $force = false): string
+                $service = new class extends ProductQrService
+                {
+                    public function generate(Product $product, bool $force = false): string
                     {
-                        if (!$force && $product->qr_code_path !== null
-                            && \Illuminate\Support\Facades\Storage::disk('public')->exists($product->qr_code_path)) {
+                        if (! $force && $product->qr_code_path !== null
+                            && Storage::disk('public')->exists($product->qr_code_path)) {
                             return $product->qr_code_path;
                         }
 
                         $activeCert = $product->activeCertificate;
                         $payload = $activeCert !== null
                             ? $this->buildPayload($activeCert->certificate_number)
-                            : url('/verify/product-' . $product->id);
+                            : url('/verify/product-'.$product->id);
 
                         // Generate a 300x300 PNG using GD (always available)
                         $img = imagecreatetruecolor(300, 300);
@@ -194,8 +198,8 @@ class ProductQrServicePropertyTest extends TestCase
                         $pngData = ob_get_clean();
                         imagedestroy($img);
 
-                        $relativePath = 'qr-codes/' . $product->tenant_id . '/' . $product->id . '.png';
-                        \Illuminate\Support\Facades\Storage::disk('public')->put($relativePath, $pngData);
+                        $relativePath = 'qr-codes/'.$product->tenant_id.'/'.$product->id.'.png';
+                        Storage::disk('public')->put($relativePath, $pngData);
 
                         $product->qr_code_path = $relativePath;
                         $product->save();
@@ -212,7 +216,7 @@ class ProductQrServicePropertyTest extends TestCase
 
                 // Check image dimensions
                 $imageInfo = getimagesizefromstring($pngData);
-                $this->assertNotFalse($imageInfo, "getimagesizefromstring() must return valid image info");
+                $this->assertNotFalse($imageInfo, 'getimagesizefromstring() must return valid image info');
 
                 [$width, $height] = $imageInfo;
 
@@ -242,7 +246,7 @@ class ProductQrServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 3: QR Generation Idempotence
      */
     #[ErisRepeat(repeat: 100)]
-    public function testQrGenerationIdempotence(): void
+    public function test_qr_generation_idempotence(): void
     {
         Storage::fake('public');
 
@@ -253,12 +257,12 @@ class ProductQrServicePropertyTest extends TestCase
             )
             ->then(function (int $productId, int $tenantId) {
                 // Create a partial mock of Product so generate() receives the correct type.
-                $product = Mockery::mock(\App\Models\Product::class)->makePartial();
+                $product = Mockery::mock(Product::class)->makePartial();
                 $product->shouldAllowMockingProtectedMethods();
 
                 $product->setRawAttributes([
-                    'id'           => $productId,
-                    'tenant_id'    => $tenantId,
+                    'id' => $productId,
+                    'tenant_id' => $tenantId,
                     'qr_code_path' => null,
                 ]);
 
@@ -266,24 +270,25 @@ class ProductQrServicePropertyTest extends TestCase
 
                 // save() should update qr_code_path on the model (simulate Eloquent save)
                 $product->shouldReceive('save')
-                    ->andReturnUsing(function () use ($product) {
+                    ->andReturnUsing(function () {
                         // no-op: qr_code_path is already set directly on the model
                         return true;
                     });
 
                 // Use a GD-based service subclass to avoid Imagick dependency issues.
-                $service = new class extends \App\Services\ProductQrService {
-                    public function generate(\App\Models\Product $product, bool $force = false): string
+                $service = new class extends ProductQrService
+                {
+                    public function generate(Product $product, bool $force = false): string
                     {
-                        if (!$force && $product->qr_code_path !== null
-                            && \Illuminate\Support\Facades\Storage::disk('public')->exists($product->qr_code_path)) {
+                        if (! $force && $product->qr_code_path !== null
+                            && Storage::disk('public')->exists($product->qr_code_path)) {
                             return $product->qr_code_path;
                         }
 
                         $activeCert = $product->activeCertificate;
                         $payload = $activeCert !== null
                             ? $this->buildPayload($activeCert->certificate_number)
-                            : url('/verify/product-' . $product->id);
+                            : url('/verify/product-'.$product->id);
 
                         // Generate a 300x300 PNG using GD (always available)
                         $img = imagecreatetruecolor(300, 300);
@@ -298,8 +303,8 @@ class ProductQrServicePropertyTest extends TestCase
                         $pngData = ob_get_clean();
                         imagedestroy($img);
 
-                        $relativePath = 'qr-codes/' . $product->tenant_id . '/' . $product->id . '.png';
-                        \Illuminate\Support\Facades\Storage::disk('public')->put($relativePath, $pngData);
+                        $relativePath = 'qr-codes/'.$product->tenant_id.'/'.$product->id.'.png';
+                        Storage::disk('public')->put($relativePath, $pngData);
 
                         $product->qr_code_path = $relativePath;
                         $product->save();
@@ -317,7 +322,7 @@ class ProductQrServicePropertyTest extends TestCase
                 $this->assertSame(
                     $pathFirst,
                     $pathSecond,
-                    "generate() called twice without \$force must return the same path. " .
+                    'generate() called twice without $force must return the same path. '.
                     "First={$pathFirst}, Second={$pathSecond} (product_id={$productId}, tenant_id={$tenantId})"
                 );
 

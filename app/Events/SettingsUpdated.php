@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * SettingsUpdated Event
- * 
+ *
  * Dispatched when any settings are updated (tenant, module, system, API).
  * Triggers cache invalidation via listeners.
  */
@@ -38,11 +38,11 @@ class SettingsUpdated
 
     /**
      * Create a new event instance.
-     * 
-     * @param string $type Settings type (tenant, module, system, api)
-     * @param int|null $tenantId Tenant ID
-     * @param string|null $module Module name
-     * @param array $metadata Additional metadata
+     *
+     * @param  string  $type  Settings type (tenant, module, system, api)
+     * @param  int|null  $tenantId  Tenant ID
+     * @param  string|null  $module  Module name
+     * @param  array  $metadata  Additional metadata
      */
     public function __construct(
         string $type,

@@ -14,7 +14,7 @@ class SubscriptionPaymentFailedNotification extends Notification implements Shou
     public function __construct(
         public readonly string $tenantName,
         public readonly string $plan,
-        public readonly float  $amount,
+        public readonly float $amount,
         public readonly string $reason = '',
         public readonly string $orderId = '',
     ) {}
@@ -29,8 +29,8 @@ class SubscriptionPaymentFailedNotification extends Notification implements Shou
         $mail = (new MailMessage)
             ->subject("❌ Pembayaran Langganan Gagal — {$this->tenantName}")
             ->greeting("Halo, {$notifiable->name}!")
-            ->line("Pembayaran langganan **{$this->plan}** Anda sebesar **Rp " .
-                number_format($this->amount, 0, ',', '.') . "** gagal diproses.");
+            ->line("Pembayaran langganan **{$this->plan}** Anda sebesar **Rp ".
+                number_format($this->amount, 0, ',', '.').'** gagal diproses.');
 
         if ($this->orderId) {
             $mail->line("**Order ID:** {$this->orderId}");

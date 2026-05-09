@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('loyalty_programs')) {
+        if (! Schema::hasTable('loyalty_programs')) {
             Schema::create('loyalty_programs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -22,7 +23,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('loyalty_tiers')) {
+        if (! Schema::hasTable('loyalty_tiers')) {
             Schema::create('loyalty_tiers', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -36,7 +37,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('loyalty_points')) {
+        if (! Schema::hasTable('loyalty_points')) {
             Schema::create('loyalty_points', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -51,7 +52,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('loyalty_transactions')) {
+        if (! Schema::hasTable('loyalty_transactions')) {
             Schema::create('loyalty_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');

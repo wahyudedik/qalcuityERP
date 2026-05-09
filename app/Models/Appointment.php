@@ -3,30 +3,38 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property \Carbon\Carbon $appointment_date
- * @property \Carbon\Carbon|null $checked_in_at
- * @property \Carbon\Carbon|null $consultation_started_at
- * @property \Carbon\Carbon|null $consultation_ended_at
- * @property \Carbon\Carbon|null $cancelled_at
- * @property \Carbon\Carbon|null $last_reminder_sent_at
+ * @property Carbon $appointment_date
+ * @property Carbon|null $checked_in_at
+ * @property Carbon|null $consultation_started_at
+ * @property Carbon|null $consultation_ended_at
+ * @property Carbon|null $cancelled_at
+ * @property Carbon|null $last_reminder_sent_at
  */
 class Appointment extends Model
 {
-use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     // Status constants
-    const STATUS_SCHEDULED   = 'scheduled';
-    const STATUS_CONFIRMED   = 'confirmed';
-    const STATUS_CHECKED_IN  = 'checked_in';
+    const STATUS_SCHEDULED = 'scheduled';
+
+    const STATUS_CONFIRMED = 'confirmed';
+
+    const STATUS_CHECKED_IN = 'checked_in';
+
     const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED   = 'completed';
-    const STATUS_CANCELLED   = 'cancelled';
-    const STATUS_NO_SHOW     = 'no_show';
+
+    const STATUS_COMPLETED = 'completed';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_NO_SHOW = 'no_show';
+
     const STATUS_RESCHEDULED = 'rescheduled';
 
     const STATUSES = [
@@ -104,9 +112,9 @@ use HasFactory, SoftDeletes, BelongsToTenant;
     public static function generateAppointmentNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'APT-' . $date;
+        $prefix = 'APT-'.$date;
 
-        $lastAppointment = static::where('appointment_number', 'like', $prefix . '%')
+        $lastAppointment = static::where('appointment_number', 'like', $prefix.'%')
             ->orderBy('appointment_number', 'desc')
             ->first();
 
@@ -117,7 +125,7 @@ use HasFactory, SoftDeletes, BelongsToTenant;
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -134,6 +142,7 @@ use HasFactory, SoftDeletes, BelongsToTenant;
     public function getEstimatedEndTimeAttribute()
     {
         $startTime = $this->appointment_date->setTimeFromTimeString($this->appointment_time);
+
         return $startTime->copy()->addMinutes($this->estimated_duration);
     }
 

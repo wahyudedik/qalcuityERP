@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('achievements')) {
+        if (! Schema::hasTable('achievements')) {
             Schema::create('achievements', function (Blueprint $table) {
                 $table->id();
                 $table->string('key', 50)->unique();
@@ -26,7 +27,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('user_achievements')) {
+        if (! Schema::hasTable('user_achievements')) {
             Schema::create('user_achievements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -40,7 +41,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('user_points_log')) {
+        if (! Schema::hasTable('user_points_log')) {
             Schema::create('user_points_log', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -53,10 +54,10 @@ return new class extends Migration {
         }
 
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'gamification_points')) {
+            if (! Schema::hasColumn('users', 'gamification_points')) {
                 $table->integer('gamification_points')->default(0)->after('digest_time');
             }
-            if (!Schema::hasColumn('users', 'gamification_level')) {
+            if (! Schema::hasColumn('users', 'gamification_level')) {
                 $table->integer('gamification_level')->default(1)->after('gamification_points');
             }
         });

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('coa_certificates')) {
+        if (! Schema::hasTable('coa_certificates')) {
             Schema::create('coa_certificates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -29,7 +29,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('oos_investigations')) {
+        if (! Schema::hasTable('oos_investigations')) {
             Schema::create('oos_investigations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

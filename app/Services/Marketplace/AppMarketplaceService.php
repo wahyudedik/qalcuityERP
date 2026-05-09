@@ -2,9 +2,12 @@
 
 namespace App\Services\Marketplace;
 
-use App\Models\MarketplaceApp;
 use App\Models\AppInstallation;
 use App\Models\AppReview;
+use App\Models\DeveloperAccount;
+use App\Models\DeveloperEarning;
+use App\Models\MarketplaceApp;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class AppMarketplaceService
@@ -18,22 +21,22 @@ class AppMarketplaceService
             ->with(['developer', 'reviews']);
 
         // Apply filters
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->where('category', $filters['category']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+                $q->where('name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('description', 'like', '%'.$filters['search'].'%');
             });
         }
 
-        if (!empty($filters['min_rating'])) {
+        if (! empty($filters['min_rating'])) {
             $query->where('rating', '>=', $filters['min_rating']);
         }
 
-        if (!empty($filters['price_type'])) {
+        if (! empty($filters['price_type'])) {
             if ($filters['price_type'] === 'free') {
                 $query->where('price', 0);
             } elseif ($filters['price_type'] === 'paid') {
@@ -244,7 +247,7 @@ class AppMarketplaceService
     /**
      * Calculate subscription expiry
      */
-    protected function calculateExpiry(MarketplaceApp $app): ?\Carbon\Carbon
+    protected function calculateExpiry(MarketplaceApp $app): ?Carbon
     {
         if ($app->pricing_model === 'subscription' && $app->subscription_period) {
             if ($app->subscription_period === 'monthly') {
@@ -266,7 +269,7 @@ class AppMarketplaceService
         $platformFee = $amount * $platformFeePercentage;
         $netEarning = $amount - $platformFee;
 
-        \App\Models\DeveloperEarning::create([
+        DeveloperEarning::create([
             'developer_account_id' => $app->developer_id,
             'marketplace_app_id' => $app->id,
             'installation_id' => $installation->id,
@@ -280,7 +283,7 @@ class AppMarketplaceService
         ]);
 
         // Update developer balance
-        $developerAccount = \App\Models\DeveloperAccount::where('user_id', $app->developer_id)->first();
+        $developerAccount = DeveloperAccount::where('user_id', $app->developer_id)->first();
         if ($developerAccount) {
             $developerAccount->increment('total_earnings', $amount);
             $developerAccount->increment('available_balance', $netEarning);

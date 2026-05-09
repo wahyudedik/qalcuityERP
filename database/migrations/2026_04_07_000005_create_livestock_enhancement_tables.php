@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Dairy Module - Milk Production Records
-        if (!Schema::hasTable('dairy_milk_records')) {
+        if (! Schema::hasTable('dairy_milk_records')) {
             Schema::create('dairy_milk_records', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -35,7 +36,7 @@ return new class extends Migration {
         }
 
         // Dairy Module - Milking Parlor Sessions
-        if (!Schema::hasTable('dairy_milking_sessions')) {
+        if (! Schema::hasTable('dairy_milking_sessions')) {
             Schema::create('dairy_milking_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -58,7 +59,7 @@ return new class extends Migration {
         }
 
         // Poultry Module - Egg Production Records
-        if (!Schema::hasTable('poultry_egg_production')) {
+        if (! Schema::hasTable('poultry_egg_production')) {
             Schema::create('poultry_egg_production', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -86,7 +87,7 @@ return new class extends Migration {
         }
 
         // Poultry Module - Daily Flock Performance
-        if (!Schema::hasTable('poultry_flock_performance')) {
+        if (! Schema::hasTable('poultry_flock_performance')) {
             Schema::create('poultry_flock_performance', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -111,7 +112,7 @@ return new class extends Migration {
         }
 
         // Breeding & Genetics - Breeding Records
-        if (!Schema::hasTable('breeding_records')) {
+        if (! Schema::hasTable('breeding_records')) {
             Schema::create('breeding_records', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -139,7 +140,7 @@ return new class extends Migration {
         }
 
         // Breeding & Genetics - Animal Pedigree
-        if (!Schema::hasTable('animal_pedigrees')) {
+        if (! Schema::hasTable('animal_pedigrees')) {
             Schema::create('animal_pedigrees', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -165,7 +166,7 @@ return new class extends Migration {
         }
 
         // Manure & Waste Management
-        if (!Schema::hasTable('waste_management_logs')) {
+        if (! Schema::hasTable('waste_management_logs')) {
             Schema::create('waste_management_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -191,7 +192,7 @@ return new class extends Migration {
         }
 
         // Composting Management
-        if (!Schema::hasTable('composting_batches')) {
+        if (! Schema::hasTable('composting_batches')) {
             Schema::create('composting_batches', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

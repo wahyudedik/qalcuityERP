@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\SupplierScorecard;
-use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Models\SupplierIncident;
+use App\Models\SupplierScorecard;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class SupplierScorecardService
 {
@@ -312,7 +311,7 @@ class SupplierScorecardService
                 $this->generateScorecard($supplier->id, $period, $periodStart, $periodEnd);
                 $generated++;
             } catch (\Exception $e) {
-                \Log::error("Failed to generate scorecard for supplier {$supplier->id}: " . $e->getMessage());
+                \Log::error("Failed to generate scorecard for supplier {$supplier->id}: ".$e->getMessage());
             }
         }
 

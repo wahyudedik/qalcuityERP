@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\CrmLead;
 use App\Services\CrmAiService;
-use Illuminate\Http\Request;
 
 class CrmAiController extends Controller
 {
@@ -16,6 +15,7 @@ class CrmAiController extends Controller
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
         $lead->load('activities');
+
         return response()->json($this->ai->scoreLead($lead));
     }
 
@@ -23,6 +23,7 @@ class CrmAiController extends Controller
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
         $lead->load('activities');
+
         return response()->json($this->ai->suggestFollowUp($lead));
     }
 

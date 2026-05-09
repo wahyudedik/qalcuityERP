@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\TransactionException;
+use App\Models\ChartOfAccount;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\SalesOrder;
-use App\Services\TransactionSagaService;
+use App\Services\GlPostingService;
 use App\Services\InvoicePaymentService;
-use App\Exceptions\TransactionException;
+use App\Services\TransactionSagaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -17,9 +19,13 @@ class TransactionConsistencyTest extends TestCase
     use RefreshDatabase;
 
     private $tenant;
+
     private $user;
+
     private $customer;
+
     private $warehouse;
+
     private $product;
 
     protected function setUp(): void
@@ -41,7 +47,7 @@ class TransactionConsistencyTest extends TestCase
     public function test_payment_succeeds_even_if_gl_posting_fails(): void
     {
         // Remove COA to force GL posting failure
-        \App\Models\ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
+        ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
 
         $invoice = $this->createInvoice(500000);
 
@@ -84,7 +90,7 @@ class TransactionConsistencyTest extends TestCase
                 data: [
                     'amount' => 2000000, // Exceeds remaining amount
                     'method' => 'transfer',
-                    'notes' => 'Test overpayment'
+                    'notes' => 'Test overpayment',
                 ],
                 userId: $this->user->id
             );
@@ -122,6 +128,7 @@ class TransactionConsistencyTest extends TestCase
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
                 return ['step_one_done' => true];
             },
             'step_two' => function ($context) {
@@ -134,12 +141,13 @@ class TransactionConsistencyTest extends TestCase
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
                 return ['step_two_done' => true];
             },
             'step_three_fail' => function ($context) {
                 // This step fails - should trigger rollback of all previous steps
                 throw new \RuntimeException('Intentional failure in step 3');
-            }
+            },
         ];
 
         $compensations = [
@@ -152,7 +160,7 @@ class TransactionConsistencyTest extends TestCase
                 DB::table('activity_logs')
                     ->where('action', 'test_step_two')
                     ->delete();
-            }
+            },
         ];
 
         try {
@@ -196,7 +204,7 @@ class TransactionConsistencyTest extends TestCase
             data: [
                 'amount' => 600000,
                 'method' => 'transfer',
-                'notes' => 'First payment'
+                'notes' => 'First payment',
             ],
             userId: $this->user->id
         );
@@ -209,7 +217,7 @@ class TransactionConsistencyTest extends TestCase
             data: [
                 'amount' => 400000,
                 'method' => 'cash',
-                'notes' => 'Second payment'
+                'notes' => 'Second payment',
             ],
             userId: $this->user->id
         );
@@ -223,7 +231,7 @@ class TransactionConsistencyTest extends TestCase
                 data: [
                     'amount' => 100000, // Only 0 remaining
                     'method' => 'transfer',
-                    'notes' => 'Should fail'
+                    'notes' => 'Should fail',
                 ],
                 userId: $this->user->id
             );
@@ -248,15 +256,15 @@ class TransactionConsistencyTest extends TestCase
         $invoice = $this->createInvoice(500000);
 
         // Delete one required COA account to force failure
-        \App\Models\ChartOfAccount::where('code', '1103')
+        ChartOfAccount::where('code', '1103')
             ->where('tenant_id', $this->tenant->id)
             ->delete();
 
-        $glService = app(\App\Services\GlPostingService::class);
+        $glService = app(GlPostingService::class);
         $result = $glService->postInvoicePayment(
             tenantId: $this->tenant->id,
             userId: $this->user->id,
-            invoiceNumber: $invoice->number . '-TEST',
+            invoiceNumber: $invoice->number.'-TEST',
             invoiceId: $invoice->id,
             amount: 500000,
             method: 'transfer',
@@ -288,7 +296,7 @@ class TransactionConsistencyTest extends TestCase
             data: [
                 'amount' => 1000000,
                 'method' => 'transfer',
-                'notes' => 'Full payment'
+                'notes' => 'Full payment',
             ],
             userId: $this->user->id
         );
@@ -305,7 +313,7 @@ class TransactionConsistencyTest extends TestCase
                 data: [
                     'amount' => 1, // Even 1 should fail
                     'method' => 'cash',
-                    'notes' => 'Attempt after full payment'
+                    'notes' => 'Attempt after full payment',
                 ],
                 userId: $this->user->id
             );
@@ -324,7 +332,7 @@ class TransactionConsistencyTest extends TestCase
             'tenant_id' => $this->tenant->id,
             'customer_id' => $this->customer->id,
             'user_id' => $this->user->id,
-            'number' => 'SO-TEST-' . uniqid(),
+            'number' => 'SO-TEST-'.uniqid(),
             'status' => 'confirmed',
             'date' => today(),
             'subtotal' => $total,
@@ -338,7 +346,7 @@ class TransactionConsistencyTest extends TestCase
             'tenant_id' => $this->tenant->id,
             'sales_order_id' => $so->id,
             'customer_id' => $this->customer->id,
-            'number' => 'INV-TEST-' . uniqid(),
+            'number' => 'INV-TEST-'.uniqid(),
             'subtotal_amount' => $total,
             'tax_amount' => 0,
             'total_amount' => $total,

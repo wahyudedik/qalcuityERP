@@ -2,9 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Appointment;
+use App\Models\Emr;
+use App\Models\LabResult;
+use App\Models\MedicalBill;
+use App\Models\Patient;
+use App\Models\Prescription;
+use App\Models\Tenant;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CreateMedicalBackup extends Command
 {
@@ -34,14 +41,14 @@ class CreateMedicalBackup extends Command
         $tenantId = $this->option('tenant');
         $full = $this->option('full');
         $incremental = $this->option('incremental');
-        $compress = $this->option('compress') || !$incremental;
+        $compress = $this->option('compress') || ! $incremental;
 
-        $this->info("💾 Creating medical records backup...");
-        $this->info("Mode: " . ($full ? 'FULL' : ($incremental ? 'INCREMENTAL' : 'STANDARD')));
+        $this->info('💾 Creating medical records backup...');
+        $this->info('Mode: '.($full ? 'FULL' : ($incremental ? 'INCREMENTAL' : 'STANDARD')));
 
         $tenants = $tenantId
-            ? [\App\Models\Tenant::find($tenantId)]
-            : \App\Models\Tenant::where('is_active', true)->get();
+            ? [Tenant::find($tenantId)]
+            : Tenant::where('is_active', true)->get();
 
         $backupCount = 0;
 
@@ -110,8 +117,8 @@ class CreateMedicalBackup extends Command
         }
 
         $fileSize = Storage::disk('local')->size("{$backupDir}/{$fileName}");
-        $this->line("  Records: " . array_sum(array_map('count', array_filter($backupData, 'is_array'))));
-        $this->line("  Size: " . number_format($fileSize / 1024, 2) . " KB");
+        $this->line('  Records: '.array_sum(array_map('count', array_filter($backupData, 'is_array'))));
+        $this->line('  Size: '.number_format($fileSize / 1024, 2).' KB');
 
         return "{$backupDir}/{$fileName}";
     }
@@ -121,7 +128,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupPatients(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\Patient::where('tenant_id', $tenantId);
+        $query = Patient::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -135,7 +142,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupEMR(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\Emr::where('tenant_id', $tenantId);
+        $query = Emr::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -149,7 +156,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupAppointments(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\Appointment::where('tenant_id', $tenantId);
+        $query = Appointment::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -163,7 +170,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupPrescriptions(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\Prescription::where('tenant_id', $tenantId);
+        $query = Prescription::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -177,7 +184,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupLabResults(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\LabResult::where('tenant_id', $tenantId);
+        $query = LabResult::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -191,7 +198,7 @@ class CreateMedicalBackup extends Command
      */
     protected function backupBilling(int $tenantId, bool $incremental): array
     {
-        $query = \App\Models\MedicalBill::where('tenant_id', $tenantId);
+        $query = MedicalBill::where('tenant_id', $tenantId);
 
         if ($incremental) {
             $query->where('updated_at', '>=', now()->subDay());
@@ -226,4 +233,3 @@ class CreateMedicalBackup extends Command
         $this->line("   Deleted: {$deletedCount} old backup(s)");
     }
 }
-

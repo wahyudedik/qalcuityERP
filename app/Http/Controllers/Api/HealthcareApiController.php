@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Admission;
+use App\Models\Appointment;
 use App\Models\Bed;
 use App\Models\Doctor;
 use App\Models\Emr;
@@ -12,12 +13,13 @@ use App\Models\LabResult;
 use App\Models\LabSample;
 use App\Models\Medicine;
 use App\Models\OperatingRoom;
+use App\Models\PacsStudy;
 use App\Models\Patient;
-use App\Models\Appointment;
 use App\Models\PharmacyInventory;
 use App\Models\Prescription;
 use App\Models\RadiologyExam;
 use App\Models\RadiologyResult;
+use App\Models\StockOpnameSession;
 use App\Models\SurgerySchedule;
 use App\Models\SurgeryTeam;
 use Illuminate\Http\Request;
@@ -663,7 +665,7 @@ class HealthcareApiController extends ApiBaseController
      */
     public function getPacsStudies(Request $request)
     {
-        $query = \App\Models\PacsStudy::where('tenant_id', $this->getTenantId())
+        $query = PacsStudy::where('tenant_id', $this->getTenantId())
             ->with(['patient', 'radiologyExam', 'radiologist']);
 
         if ($request->filled('patient_id')) {
@@ -792,7 +794,7 @@ class HealthcareApiController extends ApiBaseController
             ->with(['patient', 'surgeon', 'operatingRoom'])
             ->findOrFail($id);
 
-        if (!in_array($schedule->status, ['in_progress', 'scheduled'])) {
+        if (! in_array($schedule->status, ['in_progress', 'scheduled'])) {
             throw ValidationException::withMessages([
                 'message' => 'Can only complete in-progress or scheduled surgeries',
             ]);
@@ -873,7 +875,7 @@ class HealthcareApiController extends ApiBaseController
             $prescription->update($updateData);
 
             // Update prescription items and inventory
-            if (!empty($validated['items_dispensed'])) {
+            if (! empty($validated['items_dispensed'])) {
                 foreach ($validated['items_dispensed'] as $itemData) {
                     $item = $prescription->items()->findOrFail($itemData['item_id']);
 
@@ -957,7 +959,7 @@ class HealthcareApiController extends ApiBaseController
                     ->where('tenant_id', $this->getTenantId())
                     ->first();
 
-                if (!$inventory) {
+                if (! $inventory) {
                     continue;
                 }
 
@@ -974,7 +976,7 @@ class HealthcareApiController extends ApiBaseController
 
                 // Log discrepancy if any
                 if ($difference !== 0) {
-                    \App\Models\StockOpnameSession::create([
+                    StockOpnameSession::create([
                         'medicine_id' => $itemData['medicine_id'],
                         'warehouse_id' => $itemData['warehouse_id'] ?? null,
                         'system_quantity' => $systemQuantity,
@@ -1034,7 +1036,7 @@ class HealthcareApiController extends ApiBaseController
             ->where('status', 'available')
             ->first();
 
-        if (!$newBed) {
+        if (! $newBed) {
             throw ValidationException::withMessages([
                 'message' => 'Requested bed is not available',
             ]);
@@ -1048,7 +1050,7 @@ class HealthcareApiController extends ApiBaseController
                 'ward_id' => $validated['new_ward_id'],
                 'bed_id' => $validated['new_bed_id'],
                 'transfer_reason' => $validated['transfer_reason'],
-                'admission_notes' => ($admission->admission_notes . "\n[Transfer] " . $validated['notes']) ?? null,
+                'admission_notes' => ($admission->admission_notes."\n[Transfer] ".$validated['notes']) ?? null,
             ]);
 
             // Free old bed

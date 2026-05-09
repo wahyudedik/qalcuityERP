@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tenants', function (Blueprint $table) {
-            if (!Schema::hasColumn('tenants', 'onboarding_completed')) {
+            if (! Schema::hasColumn('tenants', 'onboarding_completed')) {
                 $table->boolean('onboarding_completed')->default(false)->after('business_description');
             }
         });

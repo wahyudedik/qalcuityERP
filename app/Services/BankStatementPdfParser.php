@@ -2,20 +2,20 @@
 
 namespace App\Services;
 
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Gemini\Client;
 use Gemini\Data\Blob;
 use Gemini\Data\Content;
 use Gemini\Data\Part;
 use Gemini\Enums\MimeType;
 use Gemini\Enums\Role;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 /**
  * BankStatementPdfParser
- * 
+ *
  * Parse bank statements dari PDF menggunakan Gemini AI Vision OCR
- * 
+ *
  * Features:
  * - PDF text extraction
  * - Image-based PDF OCR via Gemini AI
@@ -42,9 +42,9 @@ class BankStatementPdfParser
 
     /**
      * Parse PDF file and extract bank statements
-     * 
-     * @param UploadedFile $file
+     *
      * @return array Extracted statements
+     *
      * @throws \Exception
      */
     public function parse(UploadedFile $file): array
@@ -55,9 +55,11 @@ class BankStatementPdfParser
             // Check if PDF is text-based or image-based
             if ($this->isTextBasedPdf($file)) {
                 $this->logInfo('PDF is text-based, using text extraction');
+
                 return $this->parseTextBasedPdf($file);
             } else {
                 $this->logInfo('PDF is image-based, using OCR');
+
                 return $this->parseImageBasedPdf($file);
             }
         } catch (\Exception $e) {
@@ -71,7 +73,7 @@ class BankStatementPdfParser
      */
     private function validateFile(UploadedFile $file): void
     {
-        if (!in_array($file->getMimeType(), $this->allowedMimes)) {
+        if (! in_array($file->getMimeType(), $this->allowedMimes)) {
             throw new \Exception('File type tidak didukung. Hanya PDF, JPG, PNG yang diperbolehkan.');
         }
 
@@ -109,7 +111,7 @@ class BankStatementPdfParser
         // Extract text using pdftotext
         $output = shell_exec("pdftotext -layout {$tempPath} - 2>&1");
 
-        if (!$output || strlen(trim($output)) < 100) {
+        if (! $output || strlen(trim($output)) < 100) {
             throw new \Exception('Tidak dapat extract text dari PDF');
         }
 
@@ -129,7 +131,7 @@ class BankStatementPdfParser
             $allStatements = [];
 
             foreach ($images as $index => $imagePath) {
-                $this->logInfo("Processing page " . ($index + 1) . " with Gemini OCR");
+                $this->logInfo('Processing page '.($index + 1).' with Gemini OCR');
 
                 // Use Gemini AI Vision to extract text
                 $extractedText = $this->extractTextWithGemini($imagePath);
@@ -146,7 +148,7 @@ class BankStatementPdfParser
 
         } catch (\Exception $e) {
             $this->logError('Gemini OCR failed', ['error' => $e->getMessage()]);
-            throw new \Exception('OCR processing failed: ' . $e->getMessage());
+            throw new \Exception('OCR processing failed: '.$e->getMessage());
         }
     }
 
@@ -156,29 +158,30 @@ class BankStatementPdfParser
     private function convertPdfToImages(UploadedFile $file): array
     {
         $tempDir = storage_path('app/temp/pdf_pages');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
 
         $tempPath = $file->getPathname();
-        $outputPattern = $tempDir . '/page_%d.jpg';
+        $outputPattern = $tempDir.'/page_%d.jpg';
 
         // Use ImageMagick convert
         $command = "convert -density 300 {$tempPath} -quality 100 {$outputPattern} 2>&1";
         $output = shell_exec($command);
 
         if ($output && strpos($output, 'Error') !== false) {
-            throw new \Exception('Failed to convert PDF to images: ' . $output);
+            throw new \Exception('Failed to convert PDF to images: '.$output);
         }
 
         // Get generated images
-        $images = glob($tempDir . '/page_*.jpg');
+        $images = glob($tempDir.'/page_*.jpg');
 
         if (empty($images)) {
             throw new \Exception('No images generated from PDF');
         }
 
         sort($images);
+
         return $images;
     }
 
@@ -233,21 +236,21 @@ PROMPT;
 
             $extractedText = $result->text();
 
-            if (!$extractedText) {
+            if (! $extractedText) {
                 throw new \Exception('Gemini returned empty response');
             }
 
             $this->logInfo('Gemini OCR successful', [
-                'text_length' => strlen($extractedText)
+                'text_length' => strlen($extractedText),
             ]);
 
             return $extractedText;
 
         } catch (\Exception $e) {
             $this->logError('Gemini API call failed', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            throw new \Exception('Gemini OCR failed: ' . $e->getMessage());
+            throw new \Exception('Gemini OCR failed: '.$e->getMessage());
         }
     }
 
@@ -291,7 +294,7 @@ PROMPT;
 
         $this->logInfo('Parsed statements from text', [
             'total_lines' => count($lines),
-            'parsed_statements' => count($statements)
+            'parsed_statements' => count($statements),
         ]);
 
         return $statements;
@@ -316,7 +319,7 @@ PROMPT;
             'saldo',
             'balance',
             'mutasi',
-            'rekening'
+            'rekening',
         ];
 
         $lowerLine = strtolower($line);
@@ -385,7 +388,7 @@ PROMPT;
             $amount = abs($amount);
         }
 
-        if (!$date || !$description || $amount <= 0) {
+        if (! $date || ! $description || $amount <= 0) {
             return null;
         }
 
@@ -508,7 +511,7 @@ PROMPT;
         try {
             Log::info($message, $context);
         } catch (\Throwable $e) {
-            error_log("INFO: {$message} - " . json_encode($context));
+            error_log("INFO: {$message} - ".json_encode($context));
         }
     }
 
@@ -520,7 +523,7 @@ PROMPT;
         try {
             Log::error($message, $context);
         } catch (\Throwable $e) {
-            error_log("ERROR: {$message} - " . json_encode($context));
+            error_log("ERROR: {$message} - ".json_encode($context));
         }
     }
 }

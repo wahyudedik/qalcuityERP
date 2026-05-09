@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Telecom;
 use App\Models\Customer;
 use App\Models\TelecomSubscription;
 use App\Services\Telecom\UsageTrackingService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class UsageController extends TelecomApiController
 {
@@ -14,12 +16,12 @@ class UsageController extends TelecomApiController
 
     public function __construct()
     {
-        $this->usageService = new UsageTrackingService();
+        $this->usageService = new UsageTrackingService;
     }
 
     /**
      * Get usage data for a customer.
-     * 
+     *
      * GET /api/telecom/usage/{customerId}
      */
     public function index(Request $request, int $customerId)
@@ -38,14 +40,14 @@ class UsageController extends TelecomApiController
                 ->latest()
                 ->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 return $this->error('No active subscription found for this customer', 404);
             }
 
             $usageSummary = $this->usageService->getUsageSummary($subscription, $period);
 
             $this->logApiRequest($request, "GET /api/telecom/usage/{$customerId}", [
-                'period' => $period
+                'period' => $period,
             ]);
 
             return $this->success([
@@ -64,20 +66,21 @@ class UsageController extends TelecomApiController
                 'usage' => $usageSummary,
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->error('Customer not found', 404);
         } catch (\Exception $e) {
-            Log::error("Failed to get usage data", [
+            Log::error('Failed to get usage data', [
                 'customer_id' => $customerId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to get usage data: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to get usage data: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Record usage data (called by router webhook or polling job).
-     * 
+     *
      * POST /api/telecom/usage/record
      */
     public function record(Request $request)
@@ -126,7 +129,7 @@ class UsageController extends TelecomApiController
 
             $this->logApiRequest($request, 'POST /api/telecom/usage/record', [
                 'subscription_id' => $subscription->id,
-                'bytes_total' => $usageRecord->bytes_total
+                'bytes_total' => $usageRecord->bytes_total,
             ]);
 
             return $this->success([
@@ -135,14 +138,15 @@ class UsageController extends TelecomApiController
                 'quota_exceeded' => $subscription->fresh()->quota_exceeded,
             ], 'Usage recorded successfully', 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
-            Log::error("Failed to record usage", [
+            Log::error('Failed to record usage', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Failed to record usage: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to record usage: '.$e->getMessage(), 500);
         }
     }
 }

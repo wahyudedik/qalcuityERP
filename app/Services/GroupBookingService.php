@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
+use App\Models\CheckInOut;
 use App\Models\GroupBooking;
-use App\Models\Reservation;
 use App\Models\Guest;
-use Carbon\Carbon;
+use App\Models\Reservation;
+use App\Models\ReservationRoom;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +44,7 @@ class GroupBookingService
                 'created_by' => $data['created_by'] ?? Auth::id(),
             ]);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'group_booking_created',
                 "Group booking created: {$groupBooking->group_code} - {$groupBooking->group_name}",
                 $groupBooking,
@@ -70,7 +72,7 @@ class GroupBookingService
             // Update group totals
             $this->recalculateGroupTotals($groupBooking);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'reservation_added_to_group',
                 "Reservation {$reservation->reservation_number} added to group {$groupBooking->group_code}",
                 $reservation,
@@ -90,7 +92,7 @@ class GroupBookingService
             $reservation = Reservation::findOrFail($reservationId);
             $groupBookingId = $reservation->group_booking_id;
 
-            if (!$groupBookingId) {
+            if (! $groupBookingId) {
                 throw new \Exception('Reservation is not part of a group booking');
             }
 
@@ -100,7 +102,7 @@ class GroupBookingService
             $groupBooking = GroupBooking::findOrFail($groupBookingId);
             $this->recalculateGroupTotals($groupBooking);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'reservation_removed_from_group',
                 "Reservation {$reservation->reservation_number} removed from group",
                 $reservation,
@@ -168,7 +170,7 @@ class GroupBookingService
                 app(ReservationService::class)->confirmReservation($reservation->id);
             });
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'group_booking_confirmed',
             "Group booking confirmed: {$groupBooking->group_code}",
             $groupBooking
@@ -187,17 +189,17 @@ class GroupBookingService
 
             $groupBooking->update([
                 'status' => 'cancelled',
-                'notes' => trim(($groupBooking->notes ?? '') . "\n\nCancellation Reason: $reason"),
+                'notes' => trim(($groupBooking->notes ?? '')."\n\nCancellation Reason: $reason"),
             ]);
 
             // Cancel all reservations in the group
             $groupBooking->reservations()->each(function ($reservation) use ($reason) {
-                if (!in_array($reservation->status, ['cancelled', 'checked_out'])) {
+                if (! in_array($reservation->status, ['cancelled', 'checked_out'])) {
                     app(ReservationService::class)->cancelReservation($reservation->id, $reason);
                 }
             });
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'group_booking_cancelled',
                 "Group booking cancelled: {$groupBooking->group_code}. Reason: $reason",
                 $groupBooking
@@ -220,7 +222,7 @@ class GroupBookingService
 
         $groupBooking->update(['status' => 'active']);
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'group_booking_activated',
             "Group booking activated: {$groupBooking->group_code}",
             $groupBooking
@@ -259,7 +261,7 @@ class GroupBookingService
             );
         }
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'group_booking_completed',
             "Group booking completed: {$groupBooking->group_code}",
             $groupBooking
@@ -276,7 +278,7 @@ class GroupBookingService
         $groupBooking = GroupBooking::findOrFail($groupBookingId);
         $groupBooking->addBenefit($benefit);
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'group_benefit_added',
             "Benefit added to group {$groupBooking->group_code}: $benefit",
             $groupBooking,
@@ -308,7 +310,7 @@ class GroupBookingService
 
             $groupBooking->update(['payment_status' => $paymentStatus]);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'group_payment_processed',
                 "Payment processed for group {$groupBooking->group_code}: $amount using $method",
                 $groupBooking,
@@ -371,7 +373,7 @@ class GroupBookingService
 
                 // Create reservation_room if room assigned
                 if ($reservation->room_id) {
-                    \App\Models\ReservationRoom::create([
+                    ReservationRoom::create([
                         'reservation_id' => $reservation->id,
                         'room_id' => $reservation->room_id,
                         'check_in_date' => $reservation->check_in_date,
@@ -387,7 +389,7 @@ class GroupBookingService
             // Update group totals
             $this->recalculateGroupTotals($groupBooking);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'group_room_block_created',
                 "Created {$createdReservations->count()} individual reservations for group {$groupBooking->group_code}",
                 $groupBooking
@@ -420,11 +422,11 @@ class GroupBookingService
      * Check in individual guest from group
      * Each reservation can be checked in independently
      */
-    public function checkInGroupMember(int $reservationId, array $data = []): \App\Models\CheckInOut
+    public function checkInGroupMember(int $reservationId, array $data = []): CheckInOut
     {
         $reservation = Reservation::with('groupBooking')->findOrFail($reservationId);
 
-        if (!$reservation->group_booking_id) {
+        if (! $reservation->group_booking_id) {
             throw new \Exception('Reservation is not part of a group booking');
         }
 
@@ -436,11 +438,11 @@ class GroupBookingService
      * Check out individual guest from group
      * Each reservation can be checked out independently
      */
-    public function checkOutGroupMember(int $reservationId, array $data = []): \App\Models\CheckInOut
+    public function checkOutGroupMember(int $reservationId, array $data = []): CheckInOut
     {
         $reservation = Reservation::with('groupBooking')->findOrFail($reservationId);
 
-        if (!$reservation->group_booking_id) {
+        if (! $reservation->group_booking_id) {
             throw new \Exception('Reservation is not part of a group booking');
         }
 
@@ -574,7 +576,7 @@ class GroupBookingService
 
             $groupBooking->update(['payment_status' => $paymentStatus]);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'group_payment_processed',
                 "Payment processed for group {$groupBooking->group_code}: $amount using $method",
                 $groupBooking,

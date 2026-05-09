@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Warehouse;
-use App\Models\StockMovement;
 use App\Models\ProductStock;
+use App\Models\StockMovement;
+use App\Models\Warehouse;
 use App\Services\BarcodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +14,7 @@ class StockMovementController extends Controller
 {
     public function __construct(
         private BarcodeService $barcodeService
-    ) {
-    }
+    ) {}
 
     /**
      * Show stock movement form with barcode scanning
@@ -96,7 +95,8 @@ class StockMovementController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
+
+            return back()->withErrors(['error' => 'Terjadi kesalahan: '.$e->getMessage()])->withInput();
         }
     }
 
@@ -111,7 +111,7 @@ class StockMovementController extends Controller
             ->orWhere('sku', $barcode)
             ->first();
 
-        if (!$product) {
+        if (! $product) {
             return response()->json([
                 'success' => false,
                 'message' => 'Produk tidak ditemukan',

@@ -10,7 +10,7 @@ class ApiCustomerController extends ApiBaseController
     public function index(Request $request)
     {
         $customers = Customer::where('tenant_id', $this->tenantId())
-            ->when($request->search, fn($q) => $q->where('name', 'like', '%' . $request->search . '%'))
+            ->when($request->search, fn ($q) => $q->where('name', 'like', '%'.$request->search.'%'))
             ->paginate(50);
 
         return $this->ok($customers);
@@ -19,15 +19,16 @@ class ApiCustomerController extends ApiBaseController
     public function show(int $id)
     {
         $customer = Customer::where('tenant_id', $this->tenantId())->findOrFail($id);
+
         return $this->ok($customer);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'email'   => 'nullable|email|max:255',
-            'phone'   => 'nullable|string|max:50',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
         ]);
 
@@ -44,13 +45,14 @@ class ApiCustomerController extends ApiBaseController
         $customer = Customer::where('tenant_id', $this->tenantId())->findOrFail($id);
 
         $validated = $request->validate([
-            'name'    => 'sometimes|string|max:255',
-            'email'   => 'nullable|email|max:255',
-            'phone'   => 'nullable|string|max:50',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
         ]);
 
         $customer->update($validated);
+
         return $this->ok($customer);
     }
 }

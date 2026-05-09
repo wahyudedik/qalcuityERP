@@ -12,52 +12,52 @@ class PackagingComplianceService
         $checks = [
             'product_name' => [
                 'label' => 'Product Name',
-                'passed' => !empty($labelData['product_name']),
+                'passed' => ! empty($labelData['product_name']),
                 'required' => true,
             ],
             'bpom_number' => [
                 'label' => 'BPOM Registration Number',
-                'passed' => !empty($labelData['bpom_number']),
+                'passed' => ! empty($labelData['bpom_number']),
                 'required' => true,
             ],
             'net_content' => [
                 'label' => 'Net Content',
-                'passed' => !empty($labelData['net_content']),
+                'passed' => ! empty($labelData['net_content']),
                 'required' => true,
             ],
             'ingredients_list' => [
                 'label' => 'Ingredients List (INCI)',
-                'passed' => !empty($labelData['ingredients_list']),
+                'passed' => ! empty($labelData['ingredients_list']),
                 'required' => true,
             ],
             'manufacturer_info' => [
                 'label' => 'Manufacturer Information',
-                'passed' => !empty($labelData['manufacturer_name']) && !empty($labelData['manufacturer_address']),
+                'passed' => ! empty($labelData['manufacturer_name']) && ! empty($labelData['manufacturer_address']),
                 'required' => true,
             ],
             'manufacturing_date' => [
                 'label' => 'Manufacturing Date',
-                'passed' => !empty($labelData['manufacturing_date']),
+                'passed' => ! empty($labelData['manufacturing_date']),
                 'required' => true,
             ],
             'expiry_date' => [
                 'label' => 'Expiry Date / Batch Code',
-                'passed' => !empty($labelData['expiry_date']) || !empty($labelData['batch_code']),
+                'passed' => ! empty($labelData['expiry_date']) || ! empty($labelData['batch_code']),
                 'required' => true,
             ],
             'warnings' => [
                 'label' => 'Warnings/Cautions',
-                'passed' => !empty($labelData['warnings']),
+                'passed' => ! empty($labelData['warnings']),
                 'required' => false,
             ],
             'usage_instructions' => [
                 'label' => 'Usage Instructions',
-                'passed' => !empty($labelData['usage_instructions']),
+                'passed' => ! empty($labelData['usage_instructions']),
                 'required' => false,
             ],
             'barcode' => [
                 'label' => 'Barcode/GTIN',
-                'passed' => !empty($labelData['barcode']),
+                'passed' => ! empty($labelData['barcode']),
                 'required' => false,
             ],
         ];

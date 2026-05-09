@@ -30,8 +30,9 @@ trait HasTenantScope
     {
         $tenantId = auth()->user()?->tenant_id;
         if ($tenantId) {
-            $query->where($this->getTable() . '.tenant_id', $tenantId);
+            $query->where($this->getTable().'.tenant_id', $tenantId);
         }
+
         return $query;
     }
 
@@ -41,7 +42,7 @@ trait HasTenantScope
      */
     public function scopeForTenant(Builder $query, int $tenantId): Builder
     {
-        return $query->where($this->getTable() . '.tenant_id', $tenantId);
+        return $query->where($this->getTable().'.tenant_id', $tenantId);
     }
 
     /**

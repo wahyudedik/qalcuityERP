@@ -2,24 +2,33 @@
 
 namespace App\View\Composers;
 
+use App\Models\AffiliateAuditLog;
+use App\Models\AffiliateCommission;
+use App\Models\ApprovalRequest;
+use App\Models\DisciplinaryLetter;
+use App\Models\EmployeeCertification;
+use App\Models\ErpNotification;
+use App\Models\ErrorLog;
+use App\Models\OvertimeRequest;
 use App\Models\User;
-use Illuminate\View\View;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class SidebarBadgeComposer
 {
     /**
      * Compose the view with sidebar badge counts
-     * 
+     *
      * This replaces 7+ individual database queries with 1 cached query
      */
     public function compose(View $view): void
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             $view->with('sidebarBadges', []);
+
             return;
         }
 
@@ -31,13 +40,13 @@ class SidebarBadgeComposer
             // Super Admin badges
             if ($user->isSuperAdmin()) {
                 // Error logs (unresolved)
-                $badges['error_logs'] = \App\Models\ErrorLog::where('is_resolved', false)->count();
+                $badges['error_logs'] = ErrorLog::where('is_resolved', false)->count();
 
                 // Affiliate commissions (pending)
-                $badges['affiliate_commissions'] = \App\Models\AffiliateCommission::where('status', 'pending')->count();
+                $badges['affiliate_commissions'] = AffiliateCommission::where('status', 'pending')->count();
 
                 // Affiliate fraud alerts (last 7 days)
-                $badges['affiliate_fraud'] = \App\Models\AffiliateAuditLog::where('severity', 'fraud')
+                $badges['affiliate_fraud'] = AffiliateAuditLog::where('severity', 'fraud')
                     ->where('created_at', '>=', now()->subDays(7))
                     ->count();
             }
@@ -45,29 +54,29 @@ class SidebarBadgeComposer
             // Tenant badges
             if ($user->tenant_id) {
                 // Approval requests (pending)
-                $badges['approvals'] = \App\Models\ApprovalRequest::where('tenant_id', $user->tenant_id)
+                $badges['approvals'] = ApprovalRequest::where('tenant_id', $user->tenant_id)
                     ->where('status', 'pending')
                     ->count();
 
                 // Overtime requests (pending)
-                $badges['overtime'] = \App\Models\OvertimeRequest::where('tenant_id', $user->tenant_id)
+                $badges['overtime'] = OvertimeRequest::where('tenant_id', $user->tenant_id)
                     ->where('status', 'pending')
                     ->count();
 
                 // Certifications expiring (next 90 days)
-                $badges['certifications'] = \App\Models\EmployeeCertification::where('tenant_id', $user->tenant_id)
+                $badges['certifications'] = EmployeeCertification::where('tenant_id', $user->tenant_id)
                     ->where('status', 'active')
                     ->whereNotNull('expiry_date')
                     ->where('expiry_date', '<=', now()->addDays(90))
                     ->count();
 
                 // Disciplinary letters (active)
-                $badges['disciplinary'] = \App\Models\DisciplinaryLetter::where('tenant_id', $user->tenant_id)
+                $badges['disciplinary'] = DisciplinaryLetter::where('tenant_id', $user->tenant_id)
                     ->whereIn('status', ['issued', 'acknowledged'])
                     ->count();
 
                 // Notifications (unread)
-                $badges['notifications'] = \App\Models\ErpNotification::where('tenant_id', $user->tenant_id)
+                $badges['notifications'] = ErpNotification::where('tenant_id', $user->tenant_id)
                     ->whereNull('read_at')
                     ->count();
             }

@@ -2,8 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
+use App\Notifications\RedisHealthAlertNotification;
 use App\Services\RedisHealthService;
-use App\Services\NotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,8 +12,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\RedisHealthAlertNotification;
-use App\Models\User;
 
 /**
  * Redis Health Monitoring Job
@@ -68,14 +67,14 @@ class RedisHealthMonitoringJob implements ShouldQueue
             // Check if any connections are unhealthy
             $unhealthyConnections = $this->getUnhealthyConnections($healthResults['connections']);
 
-            if (!empty($unhealthyConnections)) {
+            if (! empty($unhealthyConnections)) {
                 $this->handleUnhealthyConnections($unhealthyConnections, $healthResults);
             }
 
             // Check for authentication-specific issues
             $authIssues = $this->getAuthenticationIssues($healthResults['connections']);
 
-            if (!empty($authIssues)) {
+            if (! empty($authIssues)) {
                 $this->handleAuthenticationIssues($authIssues, $healthResults);
             }
 
@@ -97,22 +96,16 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Get unhealthy connections from health results
-     *
-     * @param array $connections
-     * @return array
      */
     private function getUnhealthyConnections(array $connections): array
     {
         return array_filter($connections, function ($connection) {
-            return !$connection['healthy'];
+            return ! $connection['healthy'];
         });
     }
 
     /**
      * Get connections with authentication issues
-     *
-     * @param array $connections
-     * @return array
      */
     private function getAuthenticationIssues(array $connections): array
     {
@@ -123,10 +116,6 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Handle unhealthy Redis connections
-     *
-     * @param array $unhealthyConnections
-     * @param array $fullResults
-     * @return void
      */
     private function handleUnhealthyConnections(array $unhealthyConnections, array $fullResults): void
     {
@@ -148,10 +137,6 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Handle Redis authentication issues
-     *
-     * @param array $authIssues
-     * @param array $fullResults
-     * @return void
      */
     private function handleAuthenticationIssues(array $authIssues, array $fullResults): void
     {
@@ -174,10 +159,6 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Send health alert notification
-     *
-     * @param string $title
-     * @param array $details
-     * @return void
      */
     private function sendHealthAlert(string $title, array $details): void
     {
@@ -206,10 +187,6 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Send critical alert notification
-     *
-     * @param string $title
-     * @param array $details
-     * @return void
      */
     private function sendCriticalAlert(string $title, array $details): void
     {
@@ -225,9 +202,6 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Store health metrics for trending analysis
-     *
-     * @param array $healthResults
-     * @return void
      */
     private function storeHealthMetrics(array $healthResults): void
     {
@@ -237,8 +211,8 @@ class RedisHealthMonitoringJob implements ShouldQueue
                 'overall_healthy' => $healthResults['overall_healthy'],
                 'timestamp' => $healthResults['timestamp'],
                 'connection_count' => count($healthResults['connections']),
-                'healthy_connections' => count(array_filter($healthResults['connections'], fn($c) => $c['healthy'])),
-                'response_times' => array_map(fn($c) => $c['response_time'], $healthResults['connections']),
+                'healthy_connections' => count(array_filter($healthResults['connections'], fn ($c) => $c['healthy'])),
+                'response_times' => array_map(fn ($c) => $c['response_time'], $healthResults['connections']),
                 'average_response_time' => $this->calculateAverageResponseTime($healthResults['connections']),
             ];
 
@@ -255,23 +229,17 @@ class RedisHealthMonitoringJob implements ShouldQueue
 
     /**
      * Calculate average response time from connections
-     *
-     * @param array $connections
-     * @return float
      */
     private function calculateAverageResponseTime(array $connections): float
     {
-        $responseTimes = array_map(fn($c) => $c['response_time'], $connections);
-        $validTimes = array_filter($responseTimes, fn($time) => is_numeric($time) && $time > 0);
+        $responseTimes = array_map(fn ($c) => $c['response_time'], $connections);
+        $validTimes = array_filter($responseTimes, fn ($time) => is_numeric($time) && $time > 0);
 
-        return !empty($validTimes) ? round(array_sum($validTimes) / count($validTimes), 2) : 0.0;
+        return ! empty($validTimes) ? round(array_sum($validTimes) / count($validTimes), 2) : 0.0;
     }
 
     /**
      * Handle job failure
-     *
-     * @param \Throwable $exception
-     * @return void
      */
     public function failed(\Throwable $exception): void
     {

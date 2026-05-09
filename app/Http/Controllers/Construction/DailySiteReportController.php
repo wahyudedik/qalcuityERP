@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Construction;
 
 use App\Http\Controllers\Controller;
-use App\Services\DailySiteReportService;
-use App\Services\ConstructionPdfService;
 use App\Models\DailySiteReport;
 use App\Models\Project;
-use App\Notifications\Construction\DailyReportSubmittedNotification;
+use App\Models\User;
 use App\Notifications\Construction\DailyReportApprovedNotification;
+use App\Notifications\Construction\DailyReportSubmittedNotification;
+use App\Services\ConstructionPdfService;
+use App\Services\DailySiteReportService;
 use Illuminate\Http\Request;
 
 class DailySiteReportController extends Controller
 {
     protected $reportService;
+
     protected $pdfService;
 
     public function __construct(DailySiteReportService $reportService, ConstructionPdfService $pdfService)
@@ -124,7 +126,7 @@ class DailySiteReportController extends Controller
             $this->reportService->submitReport($report->id, auth()->user()->tenant_id);
 
             // Send notification to approvers (project managers, admins)
-            $approvers = \App\Models\User::where('tenant_id', auth()->user()->tenant_id)
+            $approvers = User::where('tenant_id', auth()->user()->tenant_id)
                 ->whereIn('role', ['admin', 'manager'])
                 ->get();
 

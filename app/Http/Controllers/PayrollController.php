@@ -15,12 +15,12 @@ use App\Notifications\PayrollProcessedNotification;
 use App\Notifications\PayslipAvailableNotification;
 use App\Services\PayrollGlService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PayrollController extends Controller
 {
-    public function __construct(private PayrollGlService $glService)
-    {
-    }
+    public function __construct(private PayrollGlService $glService) {}
 
     // tenantId() inherited from parent Controller
 
@@ -63,15 +63,15 @@ class PayrollController extends Controller
             // Prevent re-processing if already processed or paid
             if (in_array($existing->status, ['processed', 'paid'])) {
                 return back()->withErrors([
-                    'period' => "Penggajian periode {$period} sudah diproses (status: {$existing->status}). " .
-                        "Tidak dapat memproses ulang untuk menghindari double payment."
+                    'period' => "Penggajian periode {$period} sudah diproses (status: {$existing->status}). ".
+                        'Tidak dapat memproses ulang untuk menghindari double payment.',
                 ]);
             }
 
             // Allow continuing draft payroll
             if ($existing->status !== 'draft') {
                 return back()->withErrors([
-                    'period' => "Penggajian periode {$period} memiliki status tidak valid: {$existing->status}."
+                    'period' => "Penggajian periode {$period} memiliki status tidak valid: {$existing->status}.",
                 ]);
             }
         }
@@ -87,7 +87,7 @@ class PayrollController extends Controller
 
         // BUG-HRM-001 FIX: Wrap entire payroll processing in transaction
         // This prevents partial processing and overtime double-counting
-        \Illuminate\Support\Facades\DB::transaction(function () use ($run, $employees, $period, $workingDays, $includeBpjs, $tid) {
+        DB::transaction(function () use ($run, $employees, $period, $workingDays, $includeBpjs, $tid) {
             [$year, $month] = explode('-', $period);
             $totalGross = $totalDeductions = $totalNet = 0;
 
@@ -118,8 +118,8 @@ class PayrollController extends Controller
                 // Salary components (tunjangan & potongan fleksibel)
                 $empComponents = EmployeeSalaryComponent::where('employee_id', $emp->id)
                     ->where('is_active', true)
-                    ->where(fn($q) => $q->whereNull('effective_from')->orWhere('effective_from', '<=', now()))
-                    ->where(fn($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', now()))
+                    ->where(fn ($q) => $q->whereNull('effective_from')->orWhere('effective_from', '<=', now()))
+                    ->where(fn ($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', now()))
                     ->with('component')
                     ->get();
 
@@ -129,8 +129,9 @@ class PayrollController extends Controller
 
                 foreach ($empComponents as $ec) {
                     $comp = $ec->component;
-                    if (!$comp || !$comp->is_active)
+                    if (! $comp || ! $comp->is_active) {
                         continue;
+                    }
 
                     $amount = $comp->calc_type === 'percent_base'
                         ? round($baseSalary * $ec->amount / 100)
@@ -217,9 +218,9 @@ class PayrollController extends Controller
         try {
             $this->glService->createJournal($run->fresh(), auth()->id());
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('PayrollGL failed: ' . $e->getMessage());
+            Log::error('PayrollGL failed: '.$e->getMessage());
             $glWarning = "⚠️ Jurnal GL tidak terbuat otomatis: {$e->getMessage()}. "
-                . "Gunakan tombol \"Buat Jurnal GL\" di halaman detail payroll.";
+                .'Gunakan tombol "Buat Jurnal GL" di halaman detail payroll.';
         }
 
         // Notifikasi email + in-app ke semua admin & manager
@@ -232,7 +233,7 @@ class PayrollController extends Controller
                 'user_id' => $admin->id,
                 'type' => 'payroll_processed',
                 'title' => '💰 Penggajian Diproses',
-                'body' => "Penggajian periode {$period} untuk {$employees->count()} karyawan berhasil diproses. Total: Rp " . number_format($run->total_net, 0, ',', '.'),
+                'body' => "Penggajian periode {$period} untuk {$employees->count()} karyawan berhasil diproses. Total: Rp ".number_format($run->total_net, 0, ',', '.'),
                 'data' => ['payroll_run_id' => $run->id, 'period' => $period],
             ]);
         }
@@ -248,7 +249,7 @@ class PayrollController extends Controller
                 try {
                     $empUser->notify(new PayslipAvailableNotification($payrollItem));
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("Gagal kirim notifikasi slip gaji ke user {$empUser->id}: " . $e->getMessage());
+                    Log::warning("Gagal kirim notifikasi slip gaji ke user {$empUser->id}: ".$e->getMessage());
                 }
             }
         }
@@ -272,7 +273,7 @@ class PayrollController extends Controller
         if ($run->payment_journal_entry_id) {
             $paymentJournal = $run->paymentJournalEntry;
             if ($paymentJournal && $paymentJournal->status === 'posted') {
-                \Illuminate\Support\Facades\Log::warning('Potential duplicate payroll payment attempt', [
+                Log::warning('Potential duplicate payroll payment attempt', [
                     'payroll_run_id' => $run->id,
                     'period' => $run->period,
                     'existing_journal' => $paymentJournal->number,
@@ -280,8 +281,8 @@ class PayrollController extends Controller
                 ]);
 
                 return back()->withErrors([
-                    'error' => "Jurnal pembayaran sudah ada ({$paymentJournal->number}). " .
-                        "Jika ini kesalahan, silakan reverse jurnal terlebih dahulu."
+                    'error' => "Jurnal pembayaran sudah ada ({$paymentJournal->number}). ".
+                        'Jika ini kesalahan, silakan reverse jurnal terlebih dahulu.',
                 ]);
             }
         }
@@ -294,7 +295,7 @@ class PayrollController extends Controller
         try {
             $this->glService->createPaymentJournal($run->fresh(), auth()->id());
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('PayrollGL payment failed: ' . $e->getMessage());
+            Log::error('PayrollGL payment failed: '.$e->getMessage());
             $glWarning = "⚠️ Jurnal pembayaran gaji tidak terbuat: {$e->getMessage()}. Buat jurnal manual di menu Jurnal.";
         }
 
@@ -321,11 +322,13 @@ class PayrollController extends Controller
             }
 
             $journal = $this->glService->createPaymentJournal($run->fresh(), auth()->id());
+
             return back()->with('success', "Jurnal pembayaran {$journal->number} berhasil dibuat.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal membuat jurnal pembayaran: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membuat jurnal pembayaran: '.$e->getMessage());
         }
     }
+
     public function createGlJournal(PayrollRun $run)
     {
         abort_unless($run->tenant_id === $this->tenantId(), 403);
@@ -342,9 +345,10 @@ class PayrollController extends Controller
             }
 
             $journal = $this->glService->createJournal($run->fresh(), auth()->id());
+
             return back()->with('success', "Jurnal GL {$journal->number} berhasil dibuat dan diposting.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal membuat jurnal GL: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membuat jurnal GL: '.$e->getMessage());
         }
     }
 }

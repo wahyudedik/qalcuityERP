@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * AccountingIntegrationService — Manajemen integrasi akuntansi eksternal
- * 
+ *
  * Requirement 16: Integrasi akuntansi (Jurnal.id, Accurate Online) berfungsi:
  * sinkronisasi data jurnal dan laporan keuangan berjalan dengan benar
- * 
+ *
  * IF sebuah layanan eksternal tidak tersedia atau mengembalikan error,
  * THEN THE System SHALL mencatat error ke log, menampilkan pesan yang informatif
  * kepada pengguna, dan tidak mengakibatkan crash aplikasi
@@ -39,6 +39,7 @@ class AccountingIntegrationService
     {
         try {
             $connector = $this->getConnector($integration);
+
             return $connector->testConnection();
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: test connection failed', [
@@ -49,7 +50,7 @@ class AccountingIntegrationService
 
             return [
                 'success' => false,
-                'error' => 'Gagal menguji koneksi: ' . $e->getMessage(),
+                'error' => 'Gagal menguji koneksi: '.$e->getMessage(),
             ];
         }
     }
@@ -60,11 +61,12 @@ class AccountingIntegrationService
     public function syncJournals(AccountingIntegration $integration, array $journalIds): AccountingSyncLog
     {
         try {
-            if (!$integration->is_active) {
+            if (! $integration->is_active) {
                 throw new \RuntimeException('Integrasi tidak aktif');
             }
 
             $connector = $this->getConnector($integration);
+
             return $connector->syncJournals($journalIds);
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: sync journals failed', [
@@ -94,12 +96,12 @@ class AccountingIntegrationService
     public function syncInvoices(AccountingIntegration $integration, array $invoiceIds): AccountingSyncLog
     {
         try {
-            if (!$integration->is_active) {
+            if (! $integration->is_active) {
                 throw new \RuntimeException('Integrasi tidak aktif');
             }
 
             $connector = $this->getConnector($integration);
-            
+
             if ($integration->provider === 'jurnal_id') {
                 return $connector->syncInvoices($invoiceIds);
             } else {
@@ -132,11 +134,12 @@ class AccountingIntegrationService
     public function syncPayments(AccountingIntegration $integration, array $paymentIds): AccountingSyncLog
     {
         try {
-            if (!$integration->is_active) {
+            if (! $integration->is_active) {
                 throw new \RuntimeException('Integrasi tidak aktif');
             }
 
             $connector = $this->getConnector($integration);
+
             return $connector->syncAccountingData('payment', $paymentIds);
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: sync payments failed', [
@@ -165,11 +168,12 @@ class AccountingIntegrationService
     public function syncExpenses(AccountingIntegration $integration, array $expenseIds): AccountingSyncLog
     {
         try {
-            if (!$integration->is_active) {
+            if (! $integration->is_active) {
                 throw new \RuntimeException('Integrasi tidak aktif');
             }
 
             $connector = $this->getConnector($integration);
+
             return $connector->syncAccountingData('expense', $expenseIds);
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: sync expenses failed', [
@@ -198,19 +202,19 @@ class AccountingIntegrationService
     public function fetchFinancialReports(AccountingIntegration $integration, string $reportType, string $period): array
     {
         try {
-            if (!$integration->is_active) {
+            if (! $integration->is_active) {
                 throw new \RuntimeException('Integrasi tidak aktif');
             }
 
             $connector = $this->getConnector($integration);
-            
+
             if ($integration->provider === 'jurnal_id') {
                 return $connector->fetchFinancialReports($reportType, $period);
             }
 
             return [
                 'success' => false,
-                'error' => 'Provider ' . $integration->provider . ' tidak mendukung fetch laporan',
+                'error' => 'Provider '.$integration->provider.' tidak mendukung fetch laporan',
             ];
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: fetch reports failed', [
@@ -222,7 +226,7 @@ class AccountingIntegrationService
 
             return [
                 'success' => false,
-                'error' => 'Gagal mengambil laporan: ' . $e->getMessage(),
+                'error' => 'Gagal mengambil laporan: '.$e->getMessage(),
             ];
         }
     }
@@ -234,7 +238,7 @@ class AccountingIntegrationService
     {
         try {
             $secret = $integration->api_secret;
-            
+
             return match ($integration->provider) {
                 'jurnal_id' => JurnalIdConnector::verifyWebhookSignature($payload, $signature, $secret),
                 'accurate_online' => AccurateOnlineConnector::verifyWebhookSignature($payload, $signature, $secret),
@@ -258,13 +262,14 @@ class AccountingIntegrationService
     {
         try {
             $result = $this->testConnection($integration);
-            
+
             if ($result['success']) {
                 $integration->update(['is_active' => true]);
                 Log::info('AccountingIntegrationService: integration activated', [
                     'integration_id' => $integration->id,
                     'provider' => $integration->provider,
                 ]);
+
                 return true;
             }
 
@@ -297,6 +302,7 @@ class AccountingIntegrationService
                 'integration_id' => $integration->id,
                 'provider' => $integration->provider,
             ]);
+
             return true;
         } catch (\Throwable $e) {
             Log::error('AccountingIntegrationService: deactivation error', [

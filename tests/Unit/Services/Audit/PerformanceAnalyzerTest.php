@@ -13,11 +13,11 @@ class PerformanceAnalyzerTest extends TestCase
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/performance_analyzer_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Http/Controllers', 0777, true);
-        mkdir($this->tempDir . '/app/Exports', 0777, true);
-        mkdir($this->tempDir . '/app/Jobs', 0777, true);
-        mkdir($this->tempDir . '/app/Services', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/performance_analyzer_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Http/Controllers', 0777, true);
+        mkdir($this->tempDir.'/app/Exports', 0777, true);
+        mkdir($this->tempDir.'/app/Jobs', 0777, true);
+        mkdir($this->tempDir.'/app/Services', 0777, true);
     }
 
     protected function tearDown(): void
@@ -40,7 +40,7 @@ class ProductController
     }
 }
 PHP;
-        file_put_contents($this->tempDir . '/app/Http/Controllers/ProductController.php', $controller);
+        file_put_contents($this->tempDir.'/app/Http/Controllers/ProductController.php', $controller);
 
         $analyzer = new PerformanceAnalyzer(basePath: $this->tempDir);
         $findings = $analyzer->checkPagination();
@@ -58,7 +58,7 @@ class SalesExport
 {
 }
 PHP;
-        file_put_contents($this->tempDir . '/app/Exports/SalesExport.php', $export);
+        file_put_contents($this->tempDir.'/app/Exports/SalesExport.php', $export);
 
         $analyzer = new PerformanceAnalyzer(basePath: $this->tempDir);
         $findings = $analyzer->checkExportChunking();
@@ -80,7 +80,7 @@ class SyncUsersJob implements ShouldQueue
     }
 }
 PHP;
-        file_put_contents($this->tempDir . '/app/Jobs/SyncUsersJob.php', $job);
+        file_put_contents($this->tempDir.'/app/Jobs/SyncUsersJob.php', $job);
 
         $analyzer = new PerformanceAnalyzer(basePath: $this->tempDir);
         $findings = $analyzer->checkJobConfiguration();
@@ -95,7 +95,7 @@ PHP;
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

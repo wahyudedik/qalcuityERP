@@ -3,14 +3,15 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsolidationOwnership extends Model
 {
     use BelongsToTenant;
-protected $table = 'consolidation_ownership';
+
+    protected $table = 'consolidation_ownership';
 
     protected $fillable = [
         'company_group_id',
@@ -46,7 +47,7 @@ protected $table = 'consolidation_ownership';
 
     public function isActive(?string $date = null): bool
     {
-        $checkDate = $date ? \Carbon\Carbon::parse($date) : now();
+        $checkDate = $date ? Carbon::parse($date) : now();
 
         if ($checkDate->lt($this->effective_from)) {
             return false;

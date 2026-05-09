@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class InventoryTransfer extends Model
 {
     use BelongsToTenant;
-use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'company_group_id',
@@ -40,22 +39,27 @@ use HasFactory;
     {
         return $this->belongsTo(CompanyGroup::class);
     }
+
     public function fromTenant()
     {
         return $this->belongsTo(Tenant::class, 'from_tenant_id');
     }
+
     public function toTenant()
     {
         return $this->belongsTo(Tenant::class, 'to_tenant_id');
     }
+
     public function items()
     {
         return $this->hasMany(InventoryTransferItem::class);
     }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
+
     public function receivedBy()
     {
         return $this->belongsTo(User::class, 'received_by_user_id');

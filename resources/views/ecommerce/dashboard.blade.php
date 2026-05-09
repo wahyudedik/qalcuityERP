@@ -60,12 +60,14 @@
                             <div class="flex items-center gap-3">
                                 <div
                                     class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0
-                            {{ $channel->platform === 'shopee' ? 'bg-orange-500' : ($channel->platform === 'tokopedia' ? 'bg-green-600' : 'bg-red-600') }}">
+                            {{ $channel->platform === 'shopee' ? 'bg-orange-500' : ($channel->platform === 'tokopedia' ? 'bg-green-600' : ($channel->platform === 'tiktok_shop' ? 'bg-gray-900' : 'bg-red-600')) }}">
                                     {{ strtoupper(substr($channel->platform, 0, 2)) }}
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="font-semibold text-white text-sm truncate">{{ $channel->shop_name }}</p>
-                                    <p class="text-xs text-gray-400 capitalize">{{ $channel->platform }}</p>
+                                    <p class="text-xs text-gray-400 capitalize">
+                                        {{ $channel->platform === 'tiktok_shop' ? 'TikTok Shop' : $channel->platform }}
+                                    </p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1">
                                     <span

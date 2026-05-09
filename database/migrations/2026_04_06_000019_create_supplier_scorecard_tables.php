@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Supplier Performance Scorecards
-        if (!Schema::hasTable('supplier_scorecards')) {
+        if (! Schema::hasTable('supplier_scorecards')) {
             Schema::create('supplier_scorecards', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -19,43 +20,43 @@ return new class extends Migration {
                 $table->string('period'); // monthly, quarterly, yearly
                 $table->date('period_start');
                 $table->date('period_end');
-    
+
                 // Quality Metrics
                 $table->decimal('quality_score', 5, 2)->default(0); // 0-100
                 $table->integer('total_deliveries')->default(0);
                 $table->integer('defective_items')->default(0);
                 $table->decimal('defect_rate', 5, 2)->default(0); // percentage
-    
+
                 // Delivery Performance
                 $table->decimal('delivery_score', 5, 2)->default(0); // 0-100
                 $table->integer('on_time_deliveries')->default(0);
                 $table->integer('late_deliveries')->default(0);
                 $table->decimal('on_time_percentage', 5, 2)->default(0);
                 $table->decimal('avg_lead_time_days', 6, 2)->default(0);
-    
+
                 // Cost Performance
                 $table->decimal('cost_score', 5, 2)->default(0); // 0-100
                 $table->decimal('price_competitiveness', 5, 2)->default(0); // market comparison
                 $table->integer('cost_savings_identified')->default(0);
                 $table->decimal('total_spend', 15, 2)->default(0);
-    
+
                 // Service & Communication
                 $table->decimal('service_score', 5, 2)->default(0); // 0-100
                 $table->integer('response_time_hours_avg')->default(0);
                 $table->integer('issues_resolved')->default(0);
                 $table->integer('total_issues')->default(0);
                 $table->decimal('issue_resolution_rate', 5, 2)->default(0);
-    
+
                 // Overall Score
                 $table->decimal('overall_score', 5, 2)->default(0); // weighted average
                 $table->string('rating')->default('C'); // A, B, C, D, F
                 $table->string('status')->default('active'); // active, warning, critical
-    
+
                 // Notes
                 $table->text('strengths')->nullable();
                 $table->text('areas_for_improvement')->nullable();
                 $table->text('action_items')->nullable();
-    
+
                 $table->timestamps();
                 $table->index(['tenant_id', 'supplier_id', 'period'], 'sup_score_idx');
                 $table->index(['overall_score', 'period_end'], 'sup_score_overall_idx');
@@ -63,7 +64,7 @@ return new class extends Migration {
         }
 
         // Supplier Collaboration Portal Access
-        if (!Schema::hasTable('supplier_portal_users')) {
+        if (! Schema::hasTable('supplier_portal_users')) {
             Schema::create('supplier_portal_users', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -79,13 +80,13 @@ return new class extends Migration {
                 $table->timestamp('last_login_at')->nullable();
                 $table->rememberToken();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'supplier_id'], 'sup_portal_idx');
             });
         }
 
         // Supplier Documents & Certifications
-        if (!Schema::hasTable('supplier_documents')) {
+        if (! Schema::hasTable('supplier_documents')) {
             Schema::create('supplier_documents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -104,14 +105,14 @@ return new class extends Migration {
                 $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'supplier_id', 'document_type'], 'sup_doc_idx');
                 $table->index(['expiry_date', 'is_verified'], 'sup_doc_expiry_idx');
             });
         }
 
         // Supplier RFQ Responses
-        if (!Schema::hasTable('supplier_rfq_responses')) {
+        if (! Schema::hasTable('supplier_rfq_responses')) {
             Schema::create('supplier_rfq_responses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -129,14 +130,14 @@ return new class extends Migration {
                 $table->timestamp('accepted_at')->nullable();
                 $table->foreignId('accepted_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'rfq_id', 'supplier_id'], 'sup_rfq_idx');
                 $table->index(['status', 'submitted_at'], 'sup_rfq_status_idx');
             });
         }
 
         // Supplier Performance Issues/Incidents
-        if (!Schema::hasTable('supplier_incidents')) {
+        if (! Schema::hasTable('supplier_incidents')) {
             Schema::create('supplier_incidents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -155,14 +156,14 @@ return new class extends Migration {
                 $table->text('resolution_notes')->nullable();
                 $table->text('preventive_actions')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'supplier_id', 'status'], 'sup_incident_idx');
                 $table->index(['severity', 'reported_at'], 'sup_incident_sev_idx');
             });
         }
 
         // Strategic Sourcing Opportunities
-        if (!Schema::hasTable('sourcing_opportunities')) {
+        if (! Schema::hasTable('sourcing_opportunities')) {
             Schema::create('sourcing_opportunities', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -181,14 +182,14 @@ return new class extends Migration {
                 $table->text('strategy_notes')->nullable();
                 $table->text('risks')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status', 'priority'], 'sup_source_idx');
                 $table->index(['estimated_annual_spend'], 'sup_source_spend_idx');
             });
         }
 
         // Supplier Market Intelligence
-        if (!Schema::hasTable('supplier_market_intelligence')) {
+        if (! Schema::hasTable('supplier_market_intelligence')) {
             Schema::create('supplier_market_intelligence', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -202,7 +203,7 @@ return new class extends Migration {
                 $table->string('impact')->default('neutral'); // positive, negative, neutral
                 $table->text('recommendations')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'supplier_id', 'report_date'], 'sup_market_idx');
                 $table->index(['intelligence_type', 'report_date'], 'sup_market_type_idx');
             });

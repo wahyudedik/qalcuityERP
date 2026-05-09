@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AccessViolation extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -52,9 +52,9 @@ class AccessViolation extends Model
     public static function generateViolationNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'VIOLATION-' . $date;
+        $prefix = 'VIOLATION-'.$date;
 
-        $lastViolation = static::where('violation_number', 'like', $prefix . '%')
+        $lastViolation = static::where('violation_number', 'like', $prefix.'%')
             ->orderBy('violation_number', 'desc')
             ->first();
 
@@ -65,7 +65,7 @@ class AccessViolation extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     public function getSeverityLabelAttribute()

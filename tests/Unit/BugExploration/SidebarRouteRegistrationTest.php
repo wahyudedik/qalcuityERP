@@ -77,7 +77,7 @@ class SidebarRouteRegistrationTest extends TestCase
 
         $this->assertEmpty(
             $failures,
-            "Bug 1.4 FIX: Route hotel.* seharusnya terdaftar di suatu grup (settings):\n" .
+            "Bug 1.4 FIX: Route hotel.* seharusnya terdaftar di suatu grup (settings):\n".
             implode("\n", $failures)
         );
     }
@@ -111,7 +111,7 @@ class SidebarRouteRegistrationTest extends TestCase
 
         $this->assertEmpty(
             $failures,
-            "Bug 1.4 FIX: Route telecom.* seharusnya terdaftar di grup 'operations':\n" .
+            "Bug 1.4 FIX: Route telecom.* seharusnya terdaftar di grup 'operations':\n".
             implode("\n", $failures)
         );
     }
@@ -134,8 +134,8 @@ class SidebarRouteRegistrationTest extends TestCase
 
         $this->assertTrue(
             $hasTelecomInActiveGroup,
-            "Bug 1.4 FIX: Kata 'telecom' tidak ditemukan dalam konteks resolveActiveGroup di blade file. " .
-            "Route telecom.* tidak akan memiliki rail button aktif."
+            "Bug 1.4 FIX: Kata 'telecom' tidak ditemukan dalam konteks resolveActiveGroup di blade file. ".
+            'Route telecom.* tidak akan memiliki rail button aktif.'
         );
     }
 }

@@ -13,7 +13,9 @@ class DocumentExpiryNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected Document $document;
+
     protected int $daysUntilExpiry;
+
     protected bool $isExpired;
 
     /**
@@ -57,7 +59,7 @@ class DocumentExpiryNotification extends Notification implements ShouldQueue
             ->subject("⚠️ Document Expired: {$this->document->title}")
             ->error()
             ->greeting('Document Expired!')
-            ->line("The following document has expired:")
+            ->line('The following document has expired:')
             ->line("**Document:** {$this->document->title}")
             ->line("**Category:** {$category}")
             ->line("**Expired on:** {$this->document->expires_at->format('d M Y H:i')}")

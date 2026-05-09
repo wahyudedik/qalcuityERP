@@ -101,7 +101,7 @@
                                         <h4 class="text-base font-bold text-gray-900">
                                             {{ $permit->permit_number }}</h4>
                                         <span
-                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                             {{ ucfirst($permit->status) }}
                                         </span>
                                     </div>
@@ -325,7 +325,7 @@
                                         <h4 class="text-base font-bold text-gray-900">
                                             {{ $shipment->shipment_number }}</h4>
                                         <span
-                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                             {{ str_replace('_', ' ', ucfirst($shipment->status)) }}
                                         </span>
                                     </div>
@@ -388,7 +388,7 @@
                 <button onclick="document.getElementById('addPermitModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.export.store-permit') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.export.permits.apply') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 

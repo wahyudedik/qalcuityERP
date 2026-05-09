@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 
 class TenantApiSetting extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = ['tenant_id', 'key', 'value', 'is_encrypted', 'group', 'label'];
 
     protected $casts = [
@@ -33,7 +33,7 @@ class TenantApiSetting extends Model
     {
         $settings = static::getCached($tenantId);
 
-        if (!isset($settings[$key])) {
+        if (! isset($settings[$key])) {
             return $default;
         }
 
@@ -61,7 +61,7 @@ class TenantApiSetting extends Model
     {
         $storedValue = $value;
 
-        if ($encrypt && !empty($value)) {
+        if ($encrypt && ! empty($value)) {
             $storedValue = Crypt::encryptString((string) $value);
         }
 
@@ -102,7 +102,8 @@ class TenantApiSetting extends Model
     public static function has(int $tenantId, string $key): bool
     {
         $settings = static::getCached($tenantId);
-        return isset($settings[$key]) && !empty($settings[$key]['value']);
+
+        return isset($settings[$key]) && ! empty($settings[$key]['value']);
     }
 
     /**
@@ -117,7 +118,7 @@ class TenantApiSetting extends Model
                 return static::where('tenant_id', $tenantId)
                     ->get()
                     ->keyBy('key')
-                    ->map(fn($s) => ['value' => $s->value, 'is_encrypted' => $s->is_encrypted, 'group' => $s->group])
+                    ->map(fn ($s) => ['value' => $s->value, 'is_encrypted' => $s->is_encrypted, 'group' => $s->group])
                     ->toArray();
             } catch (\Throwable) {
                 return [];
@@ -134,7 +135,7 @@ class TenantApiSetting extends Model
             return static::where('tenant_id', $tenantId)
                 ->get()
                 ->groupBy('group')
-                ->map(fn($items) => $items->keyBy('key'))
+                ->map(fn ($items) => $items->keyBy('key'))
                 ->toArray();
         } catch (\Throwable) {
             return [];

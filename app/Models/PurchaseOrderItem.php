@@ -14,6 +14,13 @@ class PurchaseOrderItem extends Model
         return ['price' => 'decimal:2', 'total' => 'decimal:2'];
     }
 
-    public function purchaseOrder(): BelongsTo { return $this->belongsTo(PurchaseOrder::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

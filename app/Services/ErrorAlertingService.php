@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\ErrorLog;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Error Alerting Service.
- * 
+ *
  * Sends real-time alerts for critical errors via:
  * - Slack webhooks
  * - Email notifications
@@ -41,7 +42,7 @@ class ErrorAlertingService
      */
     public function sendAlert(ErrorLog $errorLog): void
     {
-        if (!$this->shouldAlert($errorLog)) {
+        if (! $this->shouldAlert($errorLog)) {
             return;
         }
 
@@ -77,7 +78,7 @@ class ErrorAlertingService
     protected function shouldAlert(ErrorLog $errorLog): bool
     {
         // Check if alerting is enabled for this level
-        if (!isset($this->alertConfig[$errorLog->level])) {
+        if (! isset($this->alertConfig[$errorLog->level])) {
             return false;
         }
 
@@ -100,8 +101,9 @@ class ErrorAlertingService
     {
         $webhookUrl = config('services.slack.error_webhook');
 
-        if (!$webhookUrl) {
+        if (! $webhookUrl) {
             Log::warning('Slack error webhook not configured');
+
             return;
         }
 
@@ -162,7 +164,7 @@ class ErrorAlertingService
             ];
         }
 
-        $client = new \GuzzleHttp\Client();
+        $client = new Client;
         $client->post($webhookUrl, [
             'json' => $payload,
             'timeout' => 5,
@@ -180,13 +182,14 @@ class ErrorAlertingService
 
         if (empty($recipients)) {
             Log::warning('No email recipients configured for error alerts');
+
             return;
         }
 
         // Use Laravel's notification system or mail directly
-        \Illuminate\Support\Facades\Mail::raw($this->getEmailContent($errorLog), function ($message) use ($recipients, $errorLog) {
+        Mail::raw($this->getEmailContent($errorLog), function ($message) use ($recipients, $errorLog) {
             $message->to($recipients)
-                ->subject("[CRITICAL ERROR] {$errorLog->exception_class} - " . config('app.name'));
+                ->subject("[CRITICAL ERROR] {$errorLog->exception_class} - ".config('app.name'));
             $message->priority(1); // High priority
         });
 
@@ -229,7 +232,7 @@ class ErrorAlertingService
             return $text;
         }
 
-        return substr($text, 0, $length - 3) . '...';
+        return substr($text, 0, $length - 3).'...';
     }
 
     /**
@@ -240,10 +243,10 @@ class ErrorAlertingService
         $context = $errorLog->context ?? [];
 
         $content = "CRITICAL ERROR DETECTED\n";
-        $content .= str_repeat('=', 50) . "\n\n";
+        $content .= str_repeat('=', 50)."\n\n";
 
         $content .= "Exception Class: {$errorLog->exception_class}\n";
-        $content .= "Level: " . strtoupper($errorLog->level) . "\n";
+        $content .= 'Level: '.strtoupper($errorLog->level)."\n";
         $content .= "Message: {$errorLog->message}\n\n";
 
         $content .= "Location:\n";
@@ -263,17 +266,17 @@ class ErrorAlertingService
         $content .= "Last Occurrence: {$errorLog->updated_at->format('Y-m-d H:i:s')}\n\n";
 
         $content .= "Stack Trace:\n";
-        $content .= str_repeat('-', 50) . "\n";
-        $content .= $errorLog->stack_trace . "\n\n";
+        $content .= str_repeat('-', 50)."\n";
+        $content .= $errorLog->stack_trace."\n\n";
 
-        if (!empty($context)) {
+        if (! empty($context)) {
             $content .= "Context:\n";
-            $content .= str_repeat('-', 50) . "\n";
-            $content .= json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+            $content .= str_repeat('-', 50)."\n";
+            $content .= json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
         }
 
-        $content .= "\n" . str_repeat('=', 50) . "\n";
-        $content .= "View full details: " . route('admin.error-logs.show', $errorLog->uuid) . "\n";
+        $content .= "\n".str_repeat('=', 50)."\n";
+        $content .= 'View full details: '.route('admin.error-logs.show', $errorLog->uuid)."\n";
 
         return $content;
     }

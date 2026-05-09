@@ -2,8 +2,8 @@
 
 namespace App\Services\AI;
 
-use App\Models\ChatbotTrainingData;
 use App\Models\ChatbotConversation;
+use App\Models\ChatbotTrainingData;
 use Illuminate\Support\Facades\Log;
 
 class ChatbotTrainingService
@@ -47,11 +47,11 @@ class ChatbotTrainingService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Chatbot training failed: ' . $e->getMessage());
+            Log::error('Chatbot training failed: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -76,7 +76,8 @@ class ChatbotTrainingService
 
             return true;
         } catch (\Throwable $e) {
-            Log::error('Failed to add training data: ' . $e->getMessage());
+            Log::error('Failed to add training data: '.$e->getMessage());
+
             return false;
         }
     }
@@ -142,6 +143,7 @@ class ChatbotTrainingService
     {
         $text = strtolower($text);
         $text = preg_replace('/[^\w\s]/', '', $text);
+
         return explode(' ', $text);
     }
 
@@ -154,7 +156,7 @@ class ChatbotTrainingService
         $words = $this->tokenize($text);
 
         return array_values(array_filter($words, function ($word) use ($stopWords) {
-            return !in_array($word, $stopWords) && strlen($word) > 2;
+            return ! in_array($word, $stopWords) && strlen($word) > 2;
         }));
     }
 
@@ -229,7 +231,7 @@ class ChatbotTrainingService
         // For now, return generic response
         return [
             'success' => true,
-            'response' => "Maaf, saya belum memiliki informasi spesifik tentang pertanyaan Anda. Silakan hubungi customer service kami untuk bantuan lebih lanjut.",
+            'response' => 'Maaf, saya belum memiliki informasi spesifik tentang pertanyaan Anda. Silakan hubungi customer service kami untuk bantuan lebih lanjut.',
             'confidence' => 0.3,
             'category' => 'general',
             'source' => 'ai_fallback',
@@ -259,7 +261,7 @@ class ChatbotTrainingService
     {
         $conversation = ChatbotConversation::find($conversationId);
 
-        if (!$conversation) {
+        if (! $conversation) {
             return false;
         }
 
@@ -269,7 +271,7 @@ class ChatbotTrainingService
         ]);
 
         // If not helpful and has notes, flag for review
-        if (!$wasHelpful && $notes) {
+        if (! $wasHelpful && $notes) {
             // Could trigger notification to admin
         }
 
@@ -351,7 +353,7 @@ class ChatbotTrainingService
                 $imported++;
             } catch (\Throwable $e) {
                 $failed++;
-                Log::warning('Failed to import training data: ' . $e->getMessage());
+                Log::warning('Failed to import training data: '.$e->getMessage());
             }
         }
 

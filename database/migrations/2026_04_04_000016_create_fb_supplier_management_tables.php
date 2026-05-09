@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // F&B Suppliers
-        if (!Schema::hasTable('fb_suppliers')) {
+        if (! Schema::hasTable('fb_suppliers')) {
             Schema::create('fb_suppliers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -34,14 +35,14 @@ return new class extends Migration {
                 $table->boolean('is_preferred')->default(false);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'is_preferred']);
             });
         }
 
         // Supplier Products (Link suppliers to supplies they provide)
-        if (!Schema::hasTable('supplier_products')) {
+        if (! Schema::hasTable('supplier_products')) {
             Schema::create('supplier_products', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -53,14 +54,14 @@ return new class extends Migration {
                 $table->boolean('is_primary')->default(false); // Primary supplier for this item
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->unique(['supplier_id', 'supply_id']);
                 $table->index(['tenant_id', 'supply_id']);
             });
         }
 
         // Purchase Orders
-        if (!Schema::hasTable('fb_purchase_orders')) {
+        if (! Schema::hasTable('fb_purchase_orders')) {
             Schema::create('fb_purchase_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -80,14 +81,14 @@ return new class extends Migration {
                 $table->timestamp('received_at')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'order_date']);
             });
         }
 
         // Purchase Order Items
-        if (!Schema::hasTable('fb_purchase_order_items')) {
+        if (! Schema::hasTable('fb_purchase_order_items')) {
             Schema::create('fb_purchase_order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -99,13 +100,13 @@ return new class extends Migration {
                 $table->decimal('line_total', 15, 2)->storedAs('(`quantity_ordered` * `unit_price`)');
                 $table->date('expected_delivery_date')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['purchase_order_id', 'supply_id']);
             });
         }
 
         // Goods Receipts
-        if (!Schema::hasTable('fb_goods_receipts')) {
+        if (! Schema::hasTable('fb_goods_receipts')) {
             Schema::create('fb_goods_receipts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -115,13 +116,13 @@ return new class extends Migration {
                 $table->foreignId('received_by')->constrained('users')->cascadeOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'receipt_date']);
             });
         }
 
         // Goods Receipt Items
-        if (!Schema::hasTable('fb_goods_receipt_items')) {
+        if (! Schema::hasTable('fb_goods_receipt_items')) {
             Schema::create('fb_goods_receipt_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -135,7 +136,7 @@ return new class extends Migration {
                 $table->date('expiry_date')->nullable();
                 $table->text('quality_notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['goods_receipt_id', 'supply_id']);
             });
         }

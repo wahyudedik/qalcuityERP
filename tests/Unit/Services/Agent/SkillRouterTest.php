@@ -16,20 +16,21 @@ use Tests\TestCase;
 class SkillRouterTest extends TestCase
 {
     private SkillRouter $router;
+
     private ErpContext $baseContext;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->router = new SkillRouter();
+        $this->router = new SkillRouter;
 
         $this->baseContext = new ErpContext(
             tenantId: 1,
             kpiSummary: [
-                'revenue'          => 50_000_000.0,
-                'critical_stock'   => 3,
-                'overdue_ar'       => 5_000_000.0,
+                'revenue' => 50_000_000.0,
+                'critical_stock' => 3,
+                'overdue_ar' => 5_000_000.0,
                 'active_employees' => 20,
             ],
             activeModules: ['accounting', 'inventory', 'hrm', 'sales'],
@@ -43,7 +44,7 @@ class SkillRouterTest extends TestCase
     // detectSkills() — Bahasa Indonesia
     // =========================================================================
 
-    public function testDetectsAccountingSkillFromIndonesianKeywords(): void
+    public function test_detects_accounting_skill_from_indonesian_keywords(): void
     {
         $messages = [
             'Buatkan jurnal penyesuaian untuk bulan ini',
@@ -64,7 +65,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsInventorySkillFromIndonesianKeywords(): void
+    public function test_detects_inventory_skill_from_indonesian_keywords(): void
     {
         $messages = [
             'Berapa stok produk A saat ini?',
@@ -85,7 +86,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsHrmSkillFromIndonesianKeywords(): void
+    public function test_detects_hrm_skill_from_indonesian_keywords(): void
     {
         $messages = [
             'Proses penggajian karyawan bulan ini',
@@ -106,7 +107,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsSalesSkillFromIndonesianKeywords(): void
+    public function test_detects_sales_skill_from_indonesian_keywords(): void
     {
         $messages = [
             'Tampilkan laporan penjualan bulan ini',
@@ -127,7 +128,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsProjectSkillFromIndonesianKeywords(): void
+    public function test_detects_project_skill_from_indonesian_keywords(): void
     {
         $messages = [
             'Tampilkan progress proyek bulan ini',
@@ -151,7 +152,7 @@ class SkillRouterTest extends TestCase
     // detectSkills() — Bahasa Inggris
     // =========================================================================
 
-    public function testDetectsAccountingSkillFromEnglishKeywords(): void
+    public function test_detects_accounting_skill_from_english_keywords(): void
     {
         $messages = [
             'Create a journal entry for this month',
@@ -171,7 +172,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsInventorySkillFromEnglishKeywords(): void
+    public function test_detects_inventory_skill_from_english_keywords(): void
     {
         $messages = [
             'What is the current stock level for product A?',
@@ -191,7 +192,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsHrmSkillFromEnglishKeywords(): void
+    public function test_detects_hrm_skill_from_english_keywords(): void
     {
         $messages = [
             'Process payroll for this month',
@@ -211,7 +212,7 @@ class SkillRouterTest extends TestCase
         }
     }
 
-    public function testDetectsSalesSkillFromEnglishKeywords(): void
+    public function test_detects_sales_skill_from_english_keywords(): void
     {
         $messages = [
             'Show me the sales report for this month',
@@ -235,19 +236,19 @@ class SkillRouterTest extends TestCase
     // detectSkills() — Multiple skills dari satu pesan
     // =========================================================================
 
-    public function testDetectsMultipleSkillsFromSingleMessage(): void
+    public function test_detects_multiple_skills_from_single_message(): void
     {
         $message = 'Analisis laporan keuangan dan stok kritis bulan ini';
-        $skills  = $this->router->detectSkills($message, []);
+        $skills = $this->router->detectSkills($message, []);
 
         $this->assertContains(SkillRouter::SKILL_ACCOUNTING, $skills);
         $this->assertContains(SkillRouter::SKILL_INVENTORY, $skills);
     }
 
-    public function testDetectsMultipleSkillsCrossModuleEnglish(): void
+    public function test_detects_multiple_skills_cross_module_english(): void
     {
         $message = 'Compare sales revenue with payroll expenses this month';
-        $skills  = $this->router->detectSkills($message, []);
+        $skills = $this->router->detectSkills($message, []);
 
         $this->assertContains(SkillRouter::SKILL_SALES, $skills);
         $this->assertContains(SkillRouter::SKILL_HRM, $skills);
@@ -257,25 +258,25 @@ class SkillRouterTest extends TestCase
     // detectSkills() — Skill industri khusus dari activeModules
     // =========================================================================
 
-    public function testDetectsHealthcareSkillWhenModuleActive(): void
+    public function test_detects_healthcare_skill_when_module_active(): void
     {
         $skills = $this->router->detectSkills('Tampilkan data pasien hari ini', ['healthcare']);
         $this->assertContains(SkillRouter::SKILL_HEALTHCARE, $skills);
     }
 
-    public function testDetectsManufactureSkillWhenModuleActive(): void
+    public function test_detects_manufacture_skill_when_module_active(): void
     {
         $skills = $this->router->detectSkills('Buat work order produksi', ['manufacturing']);
         $this->assertContains(SkillRouter::SKILL_MANUFACTURE, $skills);
     }
 
-    public function testDetectsTelecomSkillWhenModuleActive(): void
+    public function test_detects_telecom_skill_when_module_active(): void
     {
         $skills = $this->router->detectSkills('Tampilkan daftar pelanggan internet', ['telecom']);
         $this->assertContains(SkillRouter::SKILL_TELECOM, $skills);
     }
 
-    public function testIndustrySkillNotActivatedWhenModuleInactive(): void
+    public function test_industry_skill_not_activated_when_module_inactive(): void
     {
         // Pesan tidak mengandung keyword healthcare, dan modul tidak aktif
         $skills = $this->router->detectSkills('Tampilkan laporan keuangan', []);
@@ -284,7 +285,7 @@ class SkillRouterTest extends TestCase
         $this->assertNotContains(SkillRouter::SKILL_TELECOM, $skills);
     }
 
-    public function testIndustrySkillActivatedEvenWithUnrelatedMessage(): void
+    public function test_industry_skill_activated_even_with_unrelated_message(): void
     {
         // Modul healthcare aktif → skill healthcare selalu aktif meski pesan tidak terkait
         $skills = $this->router->detectSkills('Tampilkan laporan keuangan', ['healthcare']);
@@ -295,29 +296,29 @@ class SkillRouterTest extends TestCase
     // detectSkills() — Edge cases
     // =========================================================================
 
-    public function testEmptyMessageReturnsNoSkillsFromKeywords(): void
+    public function test_empty_message_returns_no_skills_from_keywords(): void
     {
         $skills = $this->router->detectSkills('', []);
         $this->assertEmpty($skills);
     }
 
-    public function testEmptyMessageWithActiveIndustryModuleReturnsIndustrySkill(): void
+    public function test_empty_message_with_active_industry_module_returns_industry_skill(): void
     {
         $skills = $this->router->detectSkills('', ['healthcare']);
         $this->assertContains(SkillRouter::SKILL_HEALTHCARE, $skills);
     }
 
-    public function testNoDuplicateSkillsReturned(): void
+    public function test_no_duplicate_skills_returned(): void
     {
         // Pesan mengandung banyak keyword accounting
         $message = 'Buat jurnal debit kredit untuk piutang dan hutang di buku besar neraca';
-        $skills  = $this->router->detectSkills($message, []);
+        $skills = $this->router->detectSkills($message, []);
 
         $uniqueSkills = array_unique($skills);
         $this->assertCount(count($uniqueSkills), $skills, 'Tidak boleh ada skill duplikat');
     }
 
-    public function testCaseInsensitiveDetection(): void
+    public function test_case_insensitive_detection(): void
     {
         $skills1 = $this->router->detectSkills('JURNAL AKUNTANSI', []);
         $skills2 = $this->router->detectSkills('jurnal akuntansi', []);
@@ -332,7 +333,7 @@ class SkillRouterTest extends TestCase
     // buildSkillPrompt() — Terminologi per domain
     // =========================================================================
 
-    public function testAccountingPromptContainsRequiredTerminology(): void
+    public function test_accounting_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_ACCOUNTING], $this->baseContext);
 
@@ -348,13 +349,13 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('pph', $prompt);
     }
 
-    public function testAccountingPromptIncludesActivePeriod(): void
+    public function test_accounting_prompt_includes_active_period(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_ACCOUNTING], $this->baseContext);
         $this->assertStringContainsString('Januari 2025', $prompt);
     }
 
-    public function testHrmPromptContainsIndonesianLaborRegulations(): void
+    public function test_hrm_prompt_contains_indonesian_labor_regulations(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_HRM], $this->baseContext);
 
@@ -366,7 +367,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('lembur', $prompt);
     }
 
-    public function testInventoryPromptContainsFifoByDefault(): void
+    public function test_inventory_prompt_contains_fifo_by_default(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_INVENTORY], $this->baseContext);
 
@@ -374,7 +375,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('fifo', $prompt);
     }
 
-    public function testInventoryPromptUsesAverageCostingWhenSpecified(): void
+    public function test_inventory_prompt_uses_average_costing_when_specified(): void
     {
         $contextWithAverage = new ErpContext(
             tenantId: 1,
@@ -389,7 +390,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('average', $prompt);
     }
 
-    public function testInventoryPromptContainsRequiredTerminology(): void
+    public function test_inventory_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_INVENTORY], $this->baseContext);
 
@@ -398,7 +399,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('gudang', $prompt);
     }
 
-    public function testSalesPromptContainsRequiredTerminology(): void
+    public function test_sales_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_SALES], $this->baseContext);
 
@@ -408,7 +409,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('komisi', $prompt);
     }
 
-    public function testProjectPromptContainsRequiredTerminology(): void
+    public function test_project_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_PROJECT], $this->baseContext);
 
@@ -417,7 +418,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('wbs', $prompt);
     }
 
-    public function testHealthcarePromptContainsRequiredTerminology(): void
+    public function test_healthcare_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_HEALTHCARE], $this->baseContext);
 
@@ -428,7 +429,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('icd', $prompt);
     }
 
-    public function testManufacturePromptContainsRequiredTerminology(): void
+    public function test_manufacture_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_MANUFACTURE], $this->baseContext);
 
@@ -439,7 +440,7 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('oee', $prompt);
     }
 
-    public function testTelecomPromptContainsRequiredTerminology(): void
+    public function test_telecom_prompt_contains_required_terminology(): void
     {
         $prompt = $this->router->buildSkillPrompt([SkillRouter::SKILL_TELECOM], $this->baseContext);
 
@@ -454,7 +455,7 @@ class SkillRouterTest extends TestCase
     // buildSkillPrompt() — Multiple skills
     // =========================================================================
 
-    public function testMultipleSkillsProduceCombinedPrompt(): void
+    public function test_multiple_skills_produce_combined_prompt(): void
     {
         $prompt = $this->router->buildSkillPrompt(
             [SkillRouter::SKILL_ACCOUNTING, SkillRouter::SKILL_INVENTORY],
@@ -466,13 +467,13 @@ class SkillRouterTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('stok', $prompt);
     }
 
-    public function testEmptySkillsReturnsEmptyString(): void
+    public function test_empty_skills_returns_empty_string(): void
     {
         $prompt = $this->router->buildSkillPrompt([], $this->baseContext);
         $this->assertSame('', $prompt);
     }
 
-    public function testUnknownSkillIsIgnoredGracefully(): void
+    public function test_unknown_skill_is_ignored_gracefully(): void
     {
         $prompt = $this->router->buildSkillPrompt(['unknown_skill_xyz'], $this->baseContext);
         $this->assertSame('', $prompt);
@@ -482,33 +483,33 @@ class SkillRouterTest extends TestCase
     // Integration: detectSkills() → buildSkillPrompt()
     // =========================================================================
 
-    public function testDetectAndBuildFlowForAccountingMessage(): void
+    public function test_detect_and_build_flow_for_accounting_message(): void
     {
         $message = 'Buatkan jurnal penyesuaian untuk piutang yang jatuh tempo';
-        $skills  = $this->router->detectSkills($message, []);
-        $prompt  = $this->router->buildSkillPrompt($skills, $this->baseContext);
+        $skills = $this->router->detectSkills($message, []);
+        $prompt = $this->router->buildSkillPrompt($skills, $this->baseContext);
 
         $this->assertNotEmpty($skills);
         $this->assertNotEmpty($prompt);
         $this->assertStringContainsStringIgnoringCase('debit', $prompt);
     }
 
-    public function testDetectAndBuildFlowForHrmMessage(): void
+    public function test_detect_and_build_flow_for_hrm_message(): void
     {
         $message = 'Hitung gaji karyawan dengan potongan BPJS dan PPh 21';
-        $skills  = $this->router->detectSkills($message, []);
-        $prompt  = $this->router->buildSkillPrompt($skills, $this->baseContext);
+        $skills = $this->router->detectSkills($message, []);
+        $prompt = $this->router->buildSkillPrompt($skills, $this->baseContext);
 
         $this->assertContains(SkillRouter::SKILL_HRM, $skills);
         $this->assertStringContainsStringIgnoringCase('bpjs', $prompt);
         $this->assertStringContainsStringIgnoringCase('pph 21', $prompt);
     }
 
-    public function testDetectAndBuildFlowWithIndustryModule(): void
+    public function test_detect_and_build_flow_with_industry_module(): void
     {
         $message = 'Tampilkan laporan keuangan';
-        $skills  = $this->router->detectSkills($message, ['healthcare', 'accounting']);
-        $prompt  = $this->router->buildSkillPrompt($skills, $this->baseContext);
+        $skills = $this->router->detectSkills($message, ['healthcare', 'accounting']);
+        $prompt = $this->router->buildSkillPrompt($skills, $this->baseContext);
 
         $this->assertContains(SkillRouter::SKILL_HEALTHCARE, $skills);
         $this->assertStringContainsStringIgnoringCase('rekam medis', $prompt);

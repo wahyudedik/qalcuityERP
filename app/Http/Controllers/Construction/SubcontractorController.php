@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Construction;
 
 use App\Http\Controllers\Controller;
-use App\Services\SubcontractorService;
 use App\Models\Subcontractor;
 use App\Models\SubcontractorContract;
 use App\Notifications\Construction\ContractActivatedNotification;
+use App\Services\SubcontractorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SubcontractorController extends Controller
 {
@@ -127,7 +128,7 @@ class SubcontractorController extends Controller
 
         // Send notification to subcontractor contact person
         if ($contract->subcontractor->email) {
-            \Illuminate\Support\Facades\Mail::to($contract->subcontractor->email)
+            Mail::to($contract->subcontractor->email)
                 ->send(new ContractActivatedNotification($contract));
         }
 

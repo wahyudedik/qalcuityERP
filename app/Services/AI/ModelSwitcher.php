@@ -19,8 +19,11 @@ class ModelSwitcher
 {
     // Cache key constants — application-level, not scoped per tenant
     const CACHE_PREFIX = 'gemini_switcher:';
+
     const ACTIVE_MODEL_KEY = 'gemini_switcher:active_model';
+
     const UNAVAILABLE_PREFIX = 'gemini_switcher:unavailable:';
+
     const SWITCH_COUNT_KEY = 'gemini_switcher:switch_count:';
 
     /**
@@ -45,7 +48,7 @@ class ModelSwitcher
     {
         $fromSetting = SystemSetting::get('gemini_fallback_models');
 
-        if (!empty($fromSetting)) {
+        if (! empty($fromSetting)) {
             $decoded = is_array($fromSetting) ? $fromSetting : json_decode($fromSetting, true);
             if (is_array($decoded) && count($decoded) > 0) {
                 return $decoded;
@@ -79,7 +82,7 @@ class ModelSwitcher
         }
 
         // If we're on a fallback, check if primary's cooldown has expired
-        if ($active !== $primary && !$this->isUnavailable($primary)) {
+        if ($active !== $primary && ! $this->isUnavailable($primary)) {
             return $primary;
         }
 
@@ -99,13 +102,13 @@ class ModelSwitcher
         $now = Carbon::now();
 
         $entry = [
-            'reason'     => $reason,
-            'marked_at'  => $now->toIso8601String(),
+            'reason' => $reason,
+            'marked_at' => $now->toIso8601String(),
             'expires_at' => $now->copy()->addSeconds($cooldown)->toIso8601String(),
         ];
 
         try {
-            $this->cache->put(self::UNAVAILABLE_PREFIX . $model, $entry, $cooldown);
+            $this->cache->put(self::UNAVAILABLE_PREFIX.$model, $entry, $cooldown);
             $this->incrementSwitchCount();
         } catch (\Throwable $e) {
             Log::warning('ModelSwitcher: cache unavailable in markUnavailable, using in-memory fallback.', [
@@ -133,17 +136,17 @@ class ModelSwitcher
                 continue;
             }
 
-            if (!$this->isUnavailable($model)) {
+            if (! $this->isUnavailable($model)) {
                 return $model;
             }
         }
 
         // All models exhausted — dispatch event and throw
-        $unavailableModels = array_values(array_filter($chain, fn($m) => $this->isUnavailable($m)));
+        $unavailableModels = array_values(array_filter($chain, fn ($m) => $this->isUnavailable($m)));
 
         AllModelsUnavailable::dispatch($unavailableModels);
 
-        throw new AllModelsUnavailableException();
+        throw new AllModelsUnavailableException;
     }
 
     /**
@@ -181,16 +184,16 @@ class ModelSwitcher
 
             if ($entry === null) {
                 $result[] = [
-                    'model'       => $model,
-                    'available'   => true,
-                    'reason'      => null,
+                    'model' => $model,
+                    'available' => true,
+                    'reason' => null,
                     'recovers_at' => null,
                 ];
             } else {
                 $result[] = [
-                    'model'       => $model,
-                    'available'   => false,
-                    'reason'      => $entry['reason'],
+                    'model' => $model,
+                    'available' => false,
+                    'reason' => $entry['reason'],
                     'recovers_at' => Carbon::parse($entry['expires_at']),
                 ];
             }
@@ -213,7 +216,7 @@ class ModelSwitcher
             $this->cache->forget(self::ACTIVE_MODEL_KEY);
 
             foreach ($chain as $model) {
-                $this->cache->forget(self::UNAVAILABLE_PREFIX . $model);
+                $this->cache->forget(self::UNAVAILABLE_PREFIX.$model);
             }
         } catch (\Throwable $e) {
             Log::warning('ModelSwitcher: cache unavailable in resetAll.', ['error' => $e->getMessage()]);
@@ -242,12 +245,12 @@ class ModelSwitcher
     private function getUnavailableEntry(string $model): ?array
     {
         try {
-            $entry = $this->cache->get(self::UNAVAILABLE_PREFIX . $model);
+            $entry = $this->cache->get(self::UNAVAILABLE_PREFIX.$model);
         } catch (\Throwable) {
             $entry = $this->inMemoryState['unavailable'][$model] ?? null;
         }
 
-        if (!is_array($entry)) {
+        if (! is_array($entry)) {
             return null;
         }
 
@@ -269,7 +272,7 @@ class ModelSwitcher
     {
         return match ($reason) {
             'quota_exceeded' => (int) (SystemSetting::get('gemini_quota_cooldown') ?? config('gemini.quota_cooldown', 3600)),
-            default          => (int) (SystemSetting::get('gemini_rate_limit_cooldown') ?? config('gemini.rate_limit_cooldown', 60)),
+            default => (int) (SystemSetting::get('gemini_rate_limit_cooldown') ?? config('gemini.rate_limit_cooldown', 60)),
         };
     }
 
@@ -291,7 +294,7 @@ class ModelSwitcher
      */
     private function incrementSwitchCount(): void
     {
-        $hourKey = self::SWITCH_COUNT_KEY . now()->format('YmdH');
+        $hourKey = self::SWITCH_COUNT_KEY.now()->format('YmdH');
 
         try {
             $count = (int) $this->cache->get($hourKey, 0) + 1;

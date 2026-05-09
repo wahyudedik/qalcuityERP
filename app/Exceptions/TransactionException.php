@@ -11,6 +11,7 @@ use Exception;
 class TransactionException extends Exception
 {
     protected string $transactionType;
+
     protected array $context;
 
     public function __construct(
@@ -58,7 +59,7 @@ class TransactionException extends Exception
             transactionType: $type,
             context: [
                 'completed_steps' => $completedSteps,
-                'requires_compensation' => true
+                'requires_compensation' => true,
             ]
         );
     }

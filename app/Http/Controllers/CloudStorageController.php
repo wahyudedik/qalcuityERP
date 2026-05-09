@@ -6,7 +6,6 @@ use App\Models\TenantStorageConfig;
 use App\Services\CloudStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class CloudStorageController extends Controller
 {
@@ -101,7 +100,7 @@ class CloudStorageController extends Controller
         ]);
 
         // If setting as default, unset other defaults
-        if ($request->boolean('is_default') && !$config->is_default) {
+        if ($request->boolean('is_default') && ! $config->is_default) {
             TenantStorageConfig::where('tenant_id', Auth::user()->tenant_id)
                 ->where('id', '!=', $config->id)
                 ->update(['is_default' => false]);

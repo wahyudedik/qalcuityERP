@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\ProjectTask;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class TaskAssignedNotification extends Notification implements ShouldQueue
@@ -18,17 +19,17 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'task_assigned', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
@@ -39,8 +40,8 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Anda telah ditugaskan untuk tugas baru: **{$this->task->name}**")
             ->line("**Proyek:** {$this->task->project->name}")
-            ->line("**Prioritas:** " . ucfirst($this->task->priority))
-            ->line("**Deadline:** " . $this->task->due_date->format('d/m/Y'))
+            ->line('**Prioritas:** '.ucfirst($this->task->priority))
+            ->line('**Deadline:** '.$this->task->due_date->format('d/m/Y'))
             ->line("**Deskripsi:** {$this->task->description}")
             ->action('Lihat Tugas', url("/projects/tasks/{$this->task->id}"))
             ->line('Segera kerjakan tugas ini sesuai deadline yang ditentukan.')

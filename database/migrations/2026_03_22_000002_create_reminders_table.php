@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('reminders')) {
+        if (! Schema::hasTable('reminders')) {
             Schema::create('reminders', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->string('related_type')->nullable(); // e.g. 'payable', 'lead', 'customer'
                 $table->unsignedBigInteger('related_id')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status', 'remind_at']);
                 $table->index(['user_id', 'status']);
             });

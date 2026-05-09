@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Scheduled job to poll router usage data.
- * 
+ *
  * Run every 5-15 minutes via scheduler.
  */
 class PollRouterUsageJob implements ShouldQueue
@@ -21,6 +21,7 @@ class PollRouterUsageJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 120; // 2 minutes timeout
+
     public int $tries = 3;
 
     public function __construct(
@@ -55,11 +56,11 @@ class PollRouterUsageJob implements ShouldQueue
                 Log::error("Failed to poll device: {$device->name}", [
                     'device_id' => $device->id,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
 
-        Log::info("Router usage polling completed");
+        Log::info('Router usage polling completed');
     }
 }

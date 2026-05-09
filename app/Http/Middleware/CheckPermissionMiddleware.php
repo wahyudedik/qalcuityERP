@@ -21,11 +21,11 @@ class CheckPermissionMiddleware
      */
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
 
-        if (!$this->permissionService->hasPermission(auth()->user(), $permission)) {
+        if (! $this->permissionService->hasPermission(auth()->user(), $permission)) {
             // Log unauthorized permission attempt
             \Log::warning('Unauthorized permission attempt', [
                 'user_id' => auth()->id(),

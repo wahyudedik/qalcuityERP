@@ -14,11 +14,18 @@ class RfqResponse extends Model
 
     protected $casts = [
         'response_date' => 'date',
-        'total_price'   => 'decimal:2',
-        'is_selected'   => 'boolean',
-        'item_prices'   => 'array',
+        'total_price' => 'decimal:2',
+        'is_selected' => 'boolean',
+        'item_prices' => 'array',
     ];
 
-    public function rfq(): BelongsTo      { return $this->belongsTo(Rfq::class); }
-    public function supplier(): BelongsTo { return $this->belongsTo(Supplier::class); }
+    public function rfq(): BelongsTo
+    {
+        return $this->belongsTo(Rfq::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
 }

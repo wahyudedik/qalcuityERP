@@ -3,12 +3,10 @@
 namespace App\Services;
 
 use App\Models\WorkOrder;
-use App\Models\WorkCenter;
-use Illuminate\Support\Facades\DB;
 
 /**
  * BUG-MFG-003 FIX: Production Costing Service with Overhead Calculation
- * 
+ *
  * Provides accurate production cost calculation including:
  * - Material costs (from BOM consumption)
  * - Labor costs (manual or calculated)
@@ -136,7 +134,7 @@ class ProductionCostingService
         $totalHours = 0;
 
         foreach ($operations as $operation) {
-            if (!$operation->workCenter) {
+            if (! $operation->workCenter) {
                 continue;
             }
 
@@ -182,7 +180,7 @@ class ProductionCostingService
         $totalOperationCost = 0;
 
         foreach ($operations as $operation) {
-            if (!$operation->workCenter) {
+            if (! $operation->workCenter) {
                 continue;
             }
 
@@ -250,7 +248,7 @@ class ProductionCostingService
 
             // By product
             $productName = $wo->product->name ?? 'Unknown';
-            if (!isset($costsByProduct[$productName])) {
+            if (! isset($costsByProduct[$productName])) {
                 $costsByProduct[$productName] = [
                     'product_name' => $productName,
                     'total_cost' => 0,
@@ -264,7 +262,7 @@ class ProductionCostingService
 
             // By date
             $dateKey = $wo->completed_at->format('Y-m-d');
-            if (!isset($costsByDate[$dateKey])) {
+            if (! isset($costsByDate[$dateKey])) {
                 $costsByDate[$dateKey] = [
                     'date' => $dateKey,
                     'total_cost' => 0,

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
 use App\Models\FbOrder;
-use App\Models\FbSupply;
 use App\Models\FbSupplyTransaction;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
@@ -47,12 +46,12 @@ class FbReportsController extends Controller
                         $oq->whereBetween('order_date', [$startDate, $endDate])
                             ->where('status', 'completed');
                     });
-                }
+                },
             ], 'quantity')
             ->orderByDesc('total_quantity')
             ->limit(10)
             ->get()
-            ->filter(fn($item) => $item->total_quantity > 0);
+            ->filter(fn ($item) => $item->total_quantity > 0);
 
         // Popular categories
         $categoryStats = FbOrder::where('tenant_id', $this->tenantId())
@@ -138,11 +137,11 @@ class FbReportsController extends Controller
             ->orderBy('order_date', 'desc')
             ->get();
 
-        $filename = 'fb_report_' . $startDate . '_to_' . $endDate . '.csv';
+        $filename = 'fb_report_'.$startDate.'_to_'.$endDate.'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
         $callback = function () use ($orders) {
@@ -165,8 +164,7 @@ class FbReportsController extends Controller
             // Data
             foreach ($orders as $order) {
                 $itemNames = $order->items->map(
-                    fn($item) =>
-                    "{$item->menuItem->name} (x{$item->quantity})"
+                    fn ($item) => "{$item->menuItem->name} (x{$item->quantity})"
                 )->implode('; ');
 
                 fputcsv($file, [

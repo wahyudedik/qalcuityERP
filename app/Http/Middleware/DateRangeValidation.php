@@ -2,14 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Carbon\Carbon;
 
 /**
  * DateRangeValidation - Ensure start_date <= end_date for all report requests
- * 
+ *
  * BUG-REP-001 FIX: Centralized date range validation
  */
 class DateRangeValidation
@@ -17,7 +17,7 @@ class DateRangeValidation
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -27,13 +27,13 @@ class DateRangeValidation
             $endDate = $request->input('end_date');
 
             // Validate date format
-            if (!$this->isValidDate($startDate) || !$this->isValidDate($endDate)) {
+            if (! $this->isValidDate($startDate) || ! $this->isValidDate($endDate)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Format tanggal tidak valid. Gunakan format: YYYY-MM-DD',
                     'errors' => [
-                        'start_date' => !$this->isValidDate($startDate) ? ['Format tanggal tidak valid'] : [],
-                        'end_date' => !$this->isValidDate($endDate) ? ['Format tanggal tidak valid'] : [],
+                        'start_date' => ! $this->isValidDate($startDate) ? ['Format tanggal tidak valid'] : [],
+                        'end_date' => ! $this->isValidDate($endDate) ? ['Format tanggal tidak valid'] : [],
                     ],
                 ], 422);
             }
@@ -45,7 +45,7 @@ class DateRangeValidation
                     'message' => 'Tanggal akhir harus sama dengan atau setelah tanggal awal',
                     'errors' => [
                         'end_date' => [
-                            'Tanggal akhir (' . Carbon::parse($endDate)->format('d M Y') . ') tidak boleh lebih kecil dari tanggal awal (' . Carbon::parse($startDate)->format('d M Y') . ')'
+                            'Tanggal akhir ('.Carbon::parse($endDate)->format('d M Y').') tidak boleh lebih kecil dari tanggal awal ('.Carbon::parse($startDate)->format('d M Y').')',
                         ],
                     ],
                 ], 422);
@@ -62,7 +62,7 @@ class DateRangeValidation
                     'message' => 'Rentang tanggal terlalu besar. Maksimal 5 tahun (60 bulan).',
                     'errors' => [
                         'date_range' => [
-                            'Rentang tanggal: ' . $monthsDiff . ' bulan. Maksimal: 60 bulan.'
+                            'Rentang tanggal: '.$monthsDiff.' bulan. Maksimal: 60 bulan.',
                         ],
                     ],
                 ], 422);
@@ -91,6 +91,7 @@ class DateRangeValidation
     protected function isValidDate(string $date): bool
     {
         $d = Carbon::parse($date);
+
         return $d && $d->format('Y-m-d') === $date || $d->format('Y-m-d') === date('Y-m-d', strtotime($date));
     }
 }

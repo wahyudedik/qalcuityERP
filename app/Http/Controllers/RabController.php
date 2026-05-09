@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 
 class RabController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     /**
      * RAB page for a project.
@@ -21,10 +24,10 @@ class RabController extends Controller
         $tree = RabItem::tree($project->id);
 
         $summary = [
-            'total_rab'    => RabItem::where('project_id', $project->id)->whereNull('parent_id')->sum('subtotal'),
+            'total_rab' => RabItem::where('project_id', $project->id)->whereNull('parent_id')->sum('subtotal'),
             'total_actual' => RabItem::where('project_id', $project->id)->where('type', 'item')->sum('actual_cost'),
-            'item_count'   => RabItem::where('project_id', $project->id)->where('type', 'item')->count(),
-            'group_count'  => RabItem::where('project_id', $project->id)->where('type', 'group')->count(),
+            'item_count' => RabItem::where('project_id', $project->id)->where('type', 'item')->count(),
+            'group_count' => RabItem::where('project_id', $project->id)->where('type', 'group')->count(),
         ];
 
         // Category breakdown
@@ -45,16 +48,16 @@ class RabController extends Controller
         abort_unless($project->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'parent_id'   => 'nullable|exists:rab_items,id',
-            'code'        => 'nullable|string|max:30',
-            'name'        => 'required|string|max:255',
-            'type'        => 'required|in:group,item',
-            'category'    => 'nullable|string|max:100',
-            'volume'      => 'nullable|numeric|min:0',
-            'unit'        => 'nullable|string|max:30',
-            'unit_price'  => 'nullable|numeric|min:0',
+            'parent_id' => 'nullable|exists:rab_items,id',
+            'code' => 'nullable|string|max:30',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:group,item',
+            'category' => 'nullable|string|max:100',
+            'volume' => 'nullable|numeric|min:0',
+            'unit' => 'nullable|string|max:30',
+            'unit_price' => 'nullable|numeric|min:0',
             'coefficient' => 'nullable|numeric|min:0',
-            'notes'       => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $maxSort = RabItem::where('project_id', $project->id)
@@ -62,19 +65,19 @@ class RabController extends Controller
             ->max('sort_order') ?? 0;
 
         RabItem::create([
-            'project_id'  => $project->id,
-            'tenant_id'   => $this->tid(),
-            'parent_id'   => $data['parent_id'] ?? null,
-            'code'        => $data['code'] ?? null,
-            'name'        => $data['name'],
-            'type'        => $data['type'],
-            'category'    => $data['category'] ?? null,
-            'volume'      => (float) ($data['volume'] ?? 0),
-            'unit'        => $data['unit'] ?? null,
-            'unit_price'  => (float) ($data['unit_price'] ?? 0),
+            'project_id' => $project->id,
+            'tenant_id' => $this->tid(),
+            'parent_id' => $data['parent_id'] ?? null,
+            'code' => $data['code'] ?? null,
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'category' => $data['category'] ?? null,
+            'volume' => (float) ($data['volume'] ?? 0),
+            'unit' => $data['unit'] ?? null,
+            'unit_price' => (float) ($data['unit_price'] ?? 0),
             'coefficient' => (float) ($data['coefficient'] ?? 1),
-            'sort_order'  => $maxSort + 1,
-            'notes'       => $data['notes'] ?? null,
+            'sort_order' => $maxSort + 1,
+            'notes' => $data['notes'] ?? null,
         ]);
 
         RabItem::recalculateProject($project->id);
@@ -92,25 +95,25 @@ class RabController extends Controller
         abort_unless($rabItem->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'code'        => 'nullable|string|max:30',
-            'name'        => 'required|string|max:255',
-            'category'    => 'nullable|string|max:100',
-            'volume'      => 'nullable|numeric|min:0',
-            'unit'        => 'nullable|string|max:30',
-            'unit_price'  => 'nullable|numeric|min:0',
+            'code' => 'nullable|string|max:30',
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:100',
+            'volume' => 'nullable|numeric|min:0',
+            'unit' => 'nullable|string|max:30',
+            'unit_price' => 'nullable|numeric|min:0',
             'coefficient' => 'nullable|numeric|min:0',
-            'notes'       => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $rabItem->update([
-            'code'        => $data['code'] ?? $rabItem->code,
-            'name'        => $data['name'],
-            'category'    => $data['category'] ?? $rabItem->category,
-            'volume'      => (float) ($data['volume'] ?? $rabItem->volume),
-            'unit'        => $data['unit'] ?? $rabItem->unit,
-            'unit_price'  => (float) ($data['unit_price'] ?? $rabItem->unit_price),
+            'code' => $data['code'] ?? $rabItem->code,
+            'name' => $data['name'],
+            'category' => $data['category'] ?? $rabItem->category,
+            'volume' => (float) ($data['volume'] ?? $rabItem->volume),
+            'unit' => $data['unit'] ?? $rabItem->unit,
+            'unit_price' => (float) ($data['unit_price'] ?? $rabItem->unit_price),
             'coefficient' => (float) ($data['coefficient'] ?? $rabItem->coefficient),
-            'notes'       => $data['notes'] ?? $rabItem->notes,
+            'notes' => $data['notes'] ?? $rabItem->notes,
         ]);
 
         RabItem::recalculateProject($rabItem->project_id);
@@ -127,12 +130,12 @@ class RabController extends Controller
         abort_if($rabItem->type !== 'item', 422, 'Hanya item yang bisa dicatat realisasinya.');
 
         $data = $request->validate([
-            'actual_cost'   => 'nullable|numeric|min:0',
+            'actual_cost' => 'nullable|numeric|min:0',
             'actual_volume' => 'nullable|numeric|min:0',
         ]);
 
         $rabItem->update([
-            'actual_cost'   => (float) ($data['actual_cost'] ?? $rabItem->actual_cost),
+            'actual_cost' => (float) ($data['actual_cost'] ?? $rabItem->actual_cost),
             'actual_volume' => (float) ($data['actual_volume'] ?? $rabItem->actual_volume),
         ]);
 
@@ -184,7 +187,7 @@ class RabController extends Controller
             $indent = $item->type === 'group' ? '' : '  ';
             $csv .= implode(',', [
                 $item->code ?? '',
-                '"' . $indent . str_replace('"', '""', $item->name) . '"',
+                '"'.$indent.str_replace('"', '""', $item->name).'"',
                 $item->type,
                 $item->category ?? '',
                 $item->type === 'item' ? $item->volume : '',
@@ -194,14 +197,14 @@ class RabController extends Controller
                 $item->subtotal,
                 $item->actual_cost,
                 $item->type === 'item' ? $item->actual_volume : '',
-                '"' . str_replace('"', '""', $item->notes ?? '') . '"',
-            ]) . "\n";
+                '"'.str_replace('"', '""', $item->notes ?? '').'"',
+            ])."\n";
         }
 
-        $filename = "RAB-{$project->number}-" . date('Ymd') . ".csv";
+        $filename = "RAB-{$project->number}-".date('Ymd').'.csv';
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
@@ -219,8 +222,12 @@ class RabController extends Controller
         $rows = [];
         if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
             $bom = fread($handle, 3);
-            if ($bom !== "\xEF\xBB\xBF") rewind($handle);
-            while (($row = fgetcsv($handle)) !== false) $rows[] = $row;
+            if ($bom !== "\xEF\xBB\xBF") {
+                rewind($handle);
+            }
+            while (($row = fgetcsv($handle)) !== false) {
+                $rows[] = $row;
+            }
             fclose($handle);
         }
 
@@ -233,44 +240,48 @@ class RabController extends Controller
         $parentStack = []; // track hierarchy by code depth
 
         foreach (array_slice($rows, 1) as $row) {
-            if (count($row) < 2 || empty(trim($row[1] ?? ''))) continue;
+            if (count($row) < 2 || empty(trim($row[1] ?? ''))) {
+                continue;
+            }
 
             $data = array_combine($headers, array_pad(array_map('trim', $row), count($headers), ''));
 
-            $code      = $data['kode'] ?? $data['code'] ?? '';
-            $name      = $data['uraian pekerjaan'] ?? $data['name'] ?? $data['uraian'] ?? '';
-            $type      = strtolower($data['tipe'] ?? $data['type'] ?? 'item');
-            $category  = $data['kategori'] ?? $data['category'] ?? null;
-            $volume    = (float) ($data['volume'] ?? 0);
-            $unit      = $data['satuan'] ?? $data['unit'] ?? null;
+            $code = $data['kode'] ?? $data['code'] ?? '';
+            $name = $data['uraian pekerjaan'] ?? $data['name'] ?? $data['uraian'] ?? '';
+            $type = strtolower($data['tipe'] ?? $data['type'] ?? 'item');
+            $category = $data['kategori'] ?? $data['category'] ?? null;
+            $volume = (float) ($data['volume'] ?? 0);
+            $unit = $data['satuan'] ?? $data['unit'] ?? null;
             $unitPrice = (float) ($data['harga satuan'] ?? $data['unit_price'] ?? 0);
-            $coeff     = (float) ($data['koefisien'] ?? $data['coefficient'] ?? 1);
-            $notes     = $data['catatan'] ?? $data['notes'] ?? null;
+            $coeff = (float) ($data['koefisien'] ?? $data['coefficient'] ?? 1);
+            $notes = $data['catatan'] ?? $data['notes'] ?? null;
 
-            if (!$name) continue;
+            if (! $name) {
+                continue;
+            }
             $type = in_array($type, ['group', 'grup', 'header']) ? 'group' : 'item';
 
             // Determine parent from code hierarchy
             $parentId = null;
             $depth = substr_count($code, '.');
-            if ($depth > 0 && !empty($parentStack)) {
+            if ($depth > 0 && ! empty($parentStack)) {
                 $parentId = $parentStack[$depth - 1] ?? end($parentStack);
             }
 
             $item = RabItem::create([
-                'project_id'  => $project->id,
-                'tenant_id'   => $this->tid(),
-                'parent_id'   => $parentId,
-                'code'        => $code ?: null,
-                'name'        => $name,
-                'type'        => $type,
-                'category'    => $category ?: null,
-                'volume'      => $volume,
-                'unit'        => $unit ?: null,
-                'unit_price'  => $unitPrice,
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'parent_id' => $parentId,
+                'code' => $code ?: null,
+                'name' => $name,
+                'type' => $type,
+                'category' => $category ?: null,
+                'volume' => $volume,
+                'unit' => $unit ?: null,
+                'unit_price' => $unitPrice,
                 'coefficient' => $coeff ?: 1,
-                'sort_order'  => $created,
-                'notes'       => $notes ?: null,
+                'sort_order' => $created,
+                'notes' => $notes ?: null,
             ]);
 
             if ($type === 'group') {
@@ -298,6 +309,7 @@ class RabController extends Controller
                 $this->flattenTree($item->children, $result);
             }
         }
+
         return $result;
     }
 }

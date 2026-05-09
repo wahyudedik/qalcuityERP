@@ -2,19 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Tenant;
-use App\Models\JournalEntryLine;
 
 class ChartOfAccount extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -39,14 +36,17 @@ class ChartOfAccount extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(ChartOfAccount::class, 'parent_id');
     }
+
     public function children(): HasMany
     {
         return $this->hasMany(ChartOfAccount::class, 'parent_id');
     }
+
     public function journalLines(): HasMany
     {
         return $this->hasMany(JournalEntryLine::class, 'account_id');
@@ -58,11 +58,11 @@ class ChartOfAccount extends Model
         $query = $this->journalLines()
             ->whereHas(
                 'journalEntry',
-                fn($q) => $q
+                fn ($q) => $q
                     ->where('tenant_id', $tenantId)
                     ->where('status', 'posted')
-                    ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-                    ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+                    ->when($from, fn ($q) => $q->whereDate('date', '>=', $from))
+                    ->when($to, fn ($q) => $q->whereDate('date', '<=', $to))
             );
 
         $debit = (float) $query->sum('debit');

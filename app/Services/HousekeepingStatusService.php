@@ -2,33 +2,31 @@
 
 namespace App\Services;
 
-use App\Models\Room;
 use App\Models\HousekeepingTask;
+use App\Models\Room;
 use Illuminate\Support\Facades\Log;
 
 /**
  * HousekeepingStatusService - Manage room status transitions for housekeeping
- * 
+ *
  * BUG-HOTEL-003 FIX: Ensure room status is properly updated through the cleaning workflow
- * 
+ *
  * Status Flow:
  * occupied → dirty (after check-out)
  * dirty → cleaning (when task starts)
  * cleaning → clean (when task completed)
  * clean → available (after inspection, ready for guest)
- * 
+ *
  * This prevents the bug where room stays "available" but hasn't been cleaned.
  */
 class HousekeepingStatusService
 {
     /**
      * BUG-HOTEL-003 FIX: Mark room as dirty after check-out
-     * 
+     *
      * This is the critical step that was missing!
-     * 
-     * @param Room $room
-     * @param string $reason Reason for marking dirty (checkout, guest_request, etc.)
-     * @return array
+     *
+     * @param  string  $reason  Reason for marking dirty (checkout, guest_request, etc.)
      */
     public function markRoomDirty(Room $room, string $reason = 'checkout'): array
     {
@@ -77,10 +75,6 @@ class HousekeepingStatusService
 
     /**
      * BUG-HOTEL-003 FIX: Start cleaning task and update room status
-     * 
-     * @param Room $room
-     * @param HousekeepingTask $task
-     * @return array
      */
     public function startCleaning(Room $room, HousekeepingTask $task): array
     {
@@ -118,12 +112,6 @@ class HousekeepingStatusService
 
     /**
      * BUG-HOTEL-003 FIX: Complete cleaning and mark room as clean
-     * 
-     * @param Room $room
-     * @param HousekeepingTask $task
-     * @param array $checklist
-     * @param string|null $notes
-     * @return array
      */
     public function completeCleaning(Room $room, HousekeepingTask $task, array $checklist = [], ?string $notes = null): array
     {
@@ -173,14 +161,8 @@ class HousekeepingStatusService
 
     /**
      * BUG-HOTEL-003 FIX: Inspect room and mark as available
-     * 
+     *
      * Room can only be available AFTER inspection!
-     * 
-     * @param Room $room
-     * @param int $inspectorId
-     * @param array $checklist
-     * @param string|null $notes
-     * @return array
      */
     public function inspectRoom(Room $room, int $inspectorId, array $checklist = [], ?string $notes = null): array
     {
@@ -222,10 +204,6 @@ class HousekeepingStatusService
 
     /**
      * BUG-HOTEL-003 FIX: Reject room after inspection (failed inspection)
-     * 
-     * @param Room $room
-     * @param string $reason
-     * @return array
      */
     public function rejectAfterInspection(Room $room, string $reason): array
     {
@@ -267,12 +245,6 @@ class HousekeepingStatusService
 
     /**
      * Create cleaning task for room
-     * 
-     * @param Room $room
-     * @param string $type
-     * @param string $priority
-     * @param string|null $notes
-     * @return HousekeepingTask
      */
     protected function createCleaningTask(Room $room, string $type = 'checkout_clean', string $priority = 'normal', ?string $notes = null): HousekeepingTask
     {
@@ -299,9 +271,6 @@ class HousekeepingStatusService
 
     /**
      * Get room status workflow info
-     * 
-     * @param Room $room
-     * @return array
      */
     public function getStatusWorkflow(Room $room): array
     {
@@ -329,10 +298,6 @@ class HousekeepingStatusService
 
     /**
      * Validate status transition is allowed
-     * 
-     * @param string $fromStatus
-     * @param string $toStatus
-     * @return bool
      */
     public function isValidTransition(string $fromStatus, string $toStatus): bool
     {

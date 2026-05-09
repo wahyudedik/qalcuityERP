@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\WorkflowEngine;
+use Illuminate\Console\Command;
 
 class ProcessScheduledWorkflows extends Command
 {
@@ -40,10 +40,12 @@ class ProcessScheduledWorkflows extends Command
             $this->workflowEngine->executeScheduled();
 
             $this->info('Scheduled workflows processed successfully!');
+
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
-            $this->error('Error processing scheduled workflows: ' . $e->getMessage());
+            $this->error('Error processing scheduled workflows: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

@@ -11,6 +11,8 @@
         </button>
     </x-slot>
 
+    <x-slot name="pageTitle">Daftar Tamu</x-slot>
+
     {{-- Search Bar --}}
     <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
@@ -46,8 +48,7 @@
                     @forelse($guests as $guest)
                         @php
                             $vipColor = match ($guest->vip_level) {
-                                'platinum'
-                                    => 'bg-purple-100 text-purple-700',
+                                'platinum' => 'bg-purple-100 text-purple-700',
                                 'gold' => 'bg-yellow-100 text-yellow-700',
                                 'silver' => 'bg-slate-100 text-slate-600',
                                 default => 'bg-gray-100 text-gray-500',
@@ -85,8 +86,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center hidden md:table-cell">
-                                <span
-                                    class="font-medium text-gray-900">{{ $guest->total_stays ?? 0 }}</span>
+                                <span class="font-medium text-gray-900">{{ $guest->total_stays ?? 0 }}</span>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell text-gray-600">
                                 {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : '—' }}
@@ -94,8 +94,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="{{ route('hotel.guests.show', $guest) }}"
-                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50"
-                                        title="View">
+                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50" title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -105,8 +104,7 @@
                                     </a>
                                     <button
                                         onclick="openEditGuest({{ $guest->id }}, @json($guest->name), @json($guest->email ?? ''), @json($guest->phone ?? ''), @json($guest->id_type ?? ''), @json($guest->id_number ?? ''), @json($guest->address ?? ''), @json($guest->city ?? ''), @json($guest->country ?? ''), @json($guest->nationality ?? ''), @json($guest->date_of_birth ?? ''), @json($guest->vip_level ?? 'regular'), @json($guest->notes ?? ''))"
-                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
-                                        title="Edit">
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100" title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -115,8 +113,7 @@
                                     <form method="POST" action="{{ route('hotel.guests.destroy', $guest) }}"
                                         onsubmit="return confirm('Delete this guest?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
+                                        <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Delete">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -148,8 +145,7 @@
     {{-- Add Guest Modal --}}
     <div id="modal-add-guest" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Add New Guest</h3>
                 <button onclick="document.getElementById('modal-add-guest').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
@@ -198,8 +194,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
                         <input type="text" name="nationality" placeholder="e.g. Indonesian"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -239,8 +234,7 @@
     {{-- Edit Guest Modal --}}
     <div id="modal-edit-guest" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Edit Guest</h3>
                 <button onclick="document.getElementById('modal-edit-guest').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
@@ -289,8 +283,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
                         <input type="text" id="edit-nationality" name="nationality"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>

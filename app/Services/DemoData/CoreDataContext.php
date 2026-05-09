@@ -5,13 +5,21 @@ namespace App\Services\DemoData;
 class CoreDataContext
 {
     public int $tenantId;
+
     public int $warehouseId;
+
     public int $periodId;
+
     public array $coaMap;       // ['1101' => id, ...]
+
     public array $productIds;
+
     public array $customerIds;
+
     public array $supplierIds;
+
     public array $employeeIds;
+
     public int $recordsCreated;
 
     public function __construct(

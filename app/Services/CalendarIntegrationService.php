@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
+use App\Models\Appointment;
+use App\Models\Booking;
 use Google\Client;
 use Google\Service\Calendar;
 use Google\Service\Calendar\Event;
-use App\Models\Booking;
-use App\Models\Appointment;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class CalendarIntegrationService
 {
     protected $client;
+
     protected $calendarService;
 
     public function __construct()
@@ -25,7 +25,7 @@ class CalendarIntegrationService
      */
     protected function initializeClient(): void
     {
-        $this->client = new Client();
+        $this->client = new Client;
         $this->client->setApplicationName(config('app.name'));
         $this->client->setScopes([
             Calendar::CALENDAR,
@@ -69,8 +69,9 @@ class CalendarIntegrationService
     public function syncBookingToCalendar(Booking $booking): ?Event
     {
         try {
-            if (!$this->client->getAccessToken()) {
+            if (! $this->client->getAccessToken()) {
                 Log::warning('Google Calendar: No access token available');
+
                 return null;
             }
 
@@ -116,6 +117,7 @@ class CalendarIntegrationService
             return $createdEvent;
         } catch (\Exception $e) {
             Log::error("Failed to sync booking to Google Calendar: {$e->getMessage()}");
+
             return null;
         }
     }
@@ -126,7 +128,7 @@ class CalendarIntegrationService
     public function updateBookingInCalendar(Booking $booking): ?Event
     {
         try {
-            if (!$booking->google_calendar_event_id) {
+            if (! $booking->google_calendar_event_id) {
                 return $this->syncBookingToCalendar($booking);
             }
 
@@ -149,6 +151,7 @@ class CalendarIntegrationService
             return $updatedEvent;
         } catch (\Exception $e) {
             Log::error("Failed to update booking in Google Calendar: {$e->getMessage()}");
+
             return null;
         }
     }
@@ -159,7 +162,7 @@ class CalendarIntegrationService
     public function deleteBookingFromCalendar(Booking $booking): bool
     {
         try {
-            if (!$booking->google_calendar_event_id) {
+            if (! $booking->google_calendar_event_id) {
                 return true;
             }
 
@@ -173,6 +176,7 @@ class CalendarIntegrationService
             return true;
         } catch (\Exception $e) {
             Log::error("Failed to delete booking from Google Calendar: {$e->getMessage()}");
+
             return false;
         }
     }
@@ -183,7 +187,7 @@ class CalendarIntegrationService
     public function syncAppointmentToCalendar(Appointment $appointment): ?Event
     {
         try {
-            if (!$this->client->getAccessToken()) {
+            if (! $this->client->getAccessToken()) {
                 return null;
             }
 
@@ -225,6 +229,7 @@ class CalendarIntegrationService
             return $createdEvent;
         } catch (\Exception $e) {
             Log::error("Failed to sync appointment to Google Calendar: {$e->getMessage()}");
+
             return null;
         }
     }
@@ -235,7 +240,7 @@ class CalendarIntegrationService
     public function getUpcomingEvents(int $days = 7): array
     {
         try {
-            if (!$this->client->getAccessToken()) {
+            if (! $this->client->getAccessToken()) {
                 return [];
             }
 
@@ -265,6 +270,7 @@ class CalendarIntegrationService
             })->toArray();
         } catch (\Exception $e) {
             Log::error("Failed to get upcoming events: {$e->getMessage()}");
+
             return [];
         }
     }
@@ -282,7 +288,7 @@ class CalendarIntegrationService
         $description .= "Check-out: {$booking->check_out->format('d M Y, H:i')}\n";
 
         if ($booking->total_amount) {
-            $description .= "Total: Rp " . number_format($booking->total_amount, 0, ',', '.');
+            $description .= 'Total: Rp '.number_format($booking->total_amount, 0, ',', '.');
         }
 
         if ($booking->notes) {
@@ -326,6 +332,7 @@ class CalendarIntegrationService
     public function refreshToken(string $refreshToken): array
     {
         $this->client->refreshToken($refreshToken);
+
         return $this->client->getAccessToken();
     }
 
@@ -336,9 +343,11 @@ class CalendarIntegrationService
     {
         try {
             $this->client->revokeToken();
+
             return true;
         } catch (\Exception $e) {
             Log::error("Failed to revoke Google Calendar access: {$e->getMessage()}");
+
             return false;
         }
     }

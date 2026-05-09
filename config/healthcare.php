@@ -2,7 +2,7 @@
 
 /**
  * Healthcare Module Configuration
- * 
+ *
  * Configuration settings for healthcare module security,
  * business hours, compliance, and access control.
  */

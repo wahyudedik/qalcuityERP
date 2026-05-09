@@ -11,6 +11,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Config;
@@ -51,7 +52,7 @@ class AnthropicErrorMappingTest extends TestCase
         Config::set('ai.providers.anthropic.max_tokens', 8192);
         Config::set('ai.providers.anthropic.timeout', 60);
 
-        return new AnthropicProvider();
+        return new AnthropicProvider;
     }
 
     /**
@@ -72,7 +73,7 @@ class AnthropicErrorMappingTest extends TestCase
      */
     private function makeClientThatThrowsClientException(int $statusCode): Client
     {
-        $mockRequest  = new Request('POST', 'https://api.anthropic.com/v1/messages');
+        $mockRequest = new Request('POST', 'https://api.anthropic.com/v1/messages');
         $mockResponse = new Response(
             $statusCode,
             ['Content-Type' => 'application/json'],
@@ -85,10 +86,11 @@ class AnthropicErrorMappingTest extends TestCase
         );
 
         $handler = function ($request, $options) use ($exception) {
-            return new \GuzzleHttp\Promise\RejectedPromise($exception);
+            return new RejectedPromise($exception);
         };
 
         $handlerStack = HandlerStack::create($handler);
+
         return new Client(['handler' => $handlerStack]);
     }
 
@@ -99,7 +101,7 @@ class AnthropicErrorMappingTest extends TestCase
      */
     private function makeClientThatThrowsServerException(int $statusCode): Client
     {
-        $mockRequest  = new Request('POST', 'https://api.anthropic.com/v1/messages');
+        $mockRequest = new Request('POST', 'https://api.anthropic.com/v1/messages');
         $mockResponse = new Response(
             $statusCode,
             ['Content-Type' => 'application/json'],
@@ -112,10 +114,11 @@ class AnthropicErrorMappingTest extends TestCase
         );
 
         $handler = function ($request, $options) use ($exception) {
-            return new \GuzzleHttp\Promise\RejectedPromise($exception);
+            return new RejectedPromise($exception);
         };
 
         $handlerStack = HandlerStack::create($handler);
+
         return new Client(['handler' => $handlerStack]);
     }
 
@@ -139,8 +142,8 @@ class AnthropicErrorMappingTest extends TestCase
                 $thrown = $e;
             } catch (\Throwable $e) {
                 $this->fail(
-                    "HTTP {$statusCode} (ClientException) harus melempar RateLimitException, " .
-                        "bukan " . get_class($e) . ": " . $e->getMessage()
+                    "HTTP {$statusCode} (ClientException) harus melempar RateLimitException, ".
+                        'bukan '.get_class($e).': '.$e->getMessage()
                 );
             }
 
@@ -168,15 +171,15 @@ class AnthropicErrorMappingTest extends TestCase
                 $provider->generate('test prompt');
             } catch (RateLimitException $e) {
                 $this->fail(
-                    "HTTP {$statusCode} (ServerException) tidak boleh melempar RateLimitException. " .
-                        "Harus melempar RuntimeException."
+                    "HTTP {$statusCode} (ServerException) tidak boleh melempar RateLimitException. ".
+                        'Harus melempar RuntimeException.'
                 );
             } catch (\RuntimeException $e) {
                 $thrown = $e;
             } catch (\Throwable $e) {
                 $this->fail(
-                    "HTTP {$statusCode} (ServerException) harus melempar RuntimeException, " .
-                        "bukan " . get_class($e) . ": " . $e->getMessage()
+                    "HTTP {$statusCode} (ServerException) harus melempar RuntimeException, ".
+                        'bukan '.get_class($e).': '.$e->getMessage()
                 );
             }
 
@@ -214,16 +217,16 @@ class AnthropicErrorMappingTest extends TestCase
                     $thrown = $e;
                 } catch (\Throwable $e) {
                     $this->fail(
-                        "HTTP {$statusCode} (ClientException) harus melempar RateLimitException, " .
-                            "bukan " . get_class($e) . ": " . $e->getMessage()
+                        "HTTP {$statusCode} (ClientException) harus melempar RateLimitException, ".
+                            'bukan '.get_class($e).': '.$e->getMessage()
                     );
                 }
 
                 $this->assertInstanceOf(
                     RateLimitException::class,
                     $thrown,
-                    "HTTP {$statusCode} (ClientException) harus selalu melempar RateLimitException. " .
-                        "Property 7 dilanggar."
+                    "HTTP {$statusCode} (ClientException) harus selalu melempar RateLimitException. ".
+                        'Property 7 dilanggar.'
                 );
             });
     }
@@ -251,23 +254,23 @@ class AnthropicErrorMappingTest extends TestCase
                     $provider->generate('test prompt untuk property test');
                 } catch (RateLimitException $e) {
                     $this->fail(
-                        "HTTP {$statusCode} (ServerException) tidak boleh melempar RateLimitException. " .
-                            "Harus melempar RuntimeException. Property 7 dilanggar."
+                        "HTTP {$statusCode} (ServerException) tidak boleh melempar RateLimitException. ".
+                            'Harus melempar RuntimeException. Property 7 dilanggar.'
                     );
                 } catch (\RuntimeException $e) {
                     $thrown = $e;
                 } catch (\Throwable $e) {
                     $this->fail(
-                        "HTTP {$statusCode} (ServerException) harus melempar RuntimeException, " .
-                            "bukan " . get_class($e) . ": " . $e->getMessage()
+                        "HTTP {$statusCode} (ServerException) harus melempar RuntimeException, ".
+                            'bukan '.get_class($e).': '.$e->getMessage()
                     );
                 }
 
                 $this->assertInstanceOf(
                     \RuntimeException::class,
                     $thrown,
-                    "HTTP {$statusCode} (ServerException) harus selalu melempar RuntimeException. " .
-                        "Property 7 dilanggar."
+                    "HTTP {$statusCode} (ServerException) harus selalu melempar RuntimeException. ".
+                        'Property 7 dilanggar.'
                 );
             });
     }
@@ -294,8 +297,8 @@ class AnthropicErrorMappingTest extends TestCase
             $thrown = $e;
         } catch (\Throwable $e) {
             $this->fail(
-                "HTTP 529 (ServerException) harus melempar RateLimitException, " .
-                    "bukan " . get_class($e) . ": " . $e->getMessage()
+                'HTTP 529 (ServerException) harus melempar RateLimitException, '.
+                    'bukan '.get_class($e).': '.$e->getMessage()
             );
         }
 
@@ -334,8 +337,8 @@ class AnthropicErrorMappingTest extends TestCase
                     $thrown = $e;
                 } catch (\Throwable $e) {
                     $this->fail(
-                        "HTTP {$statusCode} harus melempar RateLimitException, " .
-                            "bukan " . get_class($e)
+                        "HTTP {$statusCode} harus melempar RateLimitException, ".
+                            'bukan '.get_class($e)
                     );
                 }
 
@@ -348,8 +351,8 @@ class AnthropicErrorMappingTest extends TestCase
                 $this->assertInstanceOf(
                     RateLimitException::class,
                     $thrown,
-                    "Exception untuk HTTP {$statusCode} harus berupa RateLimitException. " .
-                        "Property 7 dilanggar."
+                    "Exception untuk HTTP {$statusCode} harus berupa RateLimitException. ".
+                        'Property 7 dilanggar.'
                 );
             });
     }

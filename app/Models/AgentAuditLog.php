@@ -28,9 +28,9 @@ class AgentAuditLog extends Model
     protected function casts(): array
     {
         return [
-            'parameters'    => 'array',
-            'result'        => 'array',
-            'is_undoable'   => 'boolean',
+            'parameters' => 'array',
+            'result' => 'array',
+            'is_undoable' => 'boolean',
             'undoable_until' => 'datetime',
         ];
     }

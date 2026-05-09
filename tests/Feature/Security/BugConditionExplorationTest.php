@@ -2,8 +2,16 @@
 
 namespace Tests\Feature\Security;
 
+use App\Http\Middleware\EnforceTenantIsolation;
+use App\Models\AiTourSession;
+use App\Models\CustomField;
+use App\Models\DocumentTemplate;
+use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\UserPermission;
+use App\Models\WebhookSubscription;
+use App\Models\Workflow;
 use App\Services\Security\PermissionService as SecurityPermissionService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
@@ -35,6 +43,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug1
      *
      * Bug Condition: user.role IN ['admin','super_admin']
@@ -45,7 +54,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.1, 2.2
      */
-    public function test_bug1_isAdmin_returns_true_for_admin_role(): void
+    public function test_bug1_is_admin_returns_true_for_admin_role(): void
     {
         $admin = $this->createUserWithRole('admin');
 
@@ -60,13 +69,14 @@ class BugConditionExplorationTest extends TestCase
 
         $this->assertTrue(
             $result,
-            "Bug 1: isAdmin() harus mengembalikan true untuk user dengan role='admin'. " .
-            "Bug: menggunakan \$user->role_name yang tidak ada di model User."
+            "Bug 1: isAdmin() harus mengembalikan true untuk user dengan role='admin'. ".
+            'Bug: menggunakan $user->role_name yang tidak ada di model User.'
         );
     }
 
     /**
      * @test
+     *
      * @group bug1
      *
      * Bug Condition: user.role = 'super_admin'
@@ -76,7 +86,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.1, 2.2
      */
-    public function test_bug1_isAdmin_returns_true_for_super_admin_role(): void
+    public function test_bug1_is_admin_returns_true_for_super_admin_role(): void
     {
         $superAdmin = $this->createUserWithRole('super_admin');
 
@@ -90,13 +100,14 @@ class BugConditionExplorationTest extends TestCase
 
         $this->assertTrue(
             $result,
-            "Bug 1: isAdmin() harus mengembalikan true untuk user dengan role='super_admin'. " .
+            "Bug 1: isAdmin() harus mengembalikan true untuk user dengan role='super_admin'. ".
             "Bug: menggunakan 'superadmin' (tanpa underscore) dalam array check."
         );
     }
 
     /**
      * @test
+     *
      * @group bug1
      *
      * Property: untuk semua user dengan role IN ['admin', 'super_admin'],
@@ -104,7 +115,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.1, 2.2
      */
-    public function test_bug1_isAdmin_consistent_for_all_admin_roles(): void
+    public function test_bug1_is_admin_consistent_for_all_admin_roles(): void
     {
         $adminRoles = ['admin', 'super_admin'];
         $service = app(SecurityPermissionService::class);
@@ -126,6 +137,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug1
      *
      * Property: untuk user dengan role non-admin,
@@ -133,7 +145,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.1, 2.2
      */
-    public function test_bug1_isAdmin_returns_false_for_non_admin_roles(): void
+    public function test_bug1_is_admin_returns_false_for_non_admin_roles(): void
     {
         $nonAdminRoles = ['staff', 'kasir', 'gudang', 'manager'];
         $service = app(SecurityPermissionService::class);
@@ -160,6 +172,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug2
      *
      * Bug Condition: user.role = 'super_admin'
@@ -171,7 +184,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.3, 2.4
      */
-    public function test_bug2_isSuperAdmin_returns_true_for_super_admin_role(): void
+    public function test_bug2_is_super_admin_returns_true_for_super_admin_role(): void
     {
         $superAdmin = $this->createUserWithRole('super_admin');
 
@@ -184,6 +197,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug2
      *
      * Bug Condition: hasRole('superadmin') mengembalikan false untuk user dengan role='super_admin'
@@ -193,7 +207,7 @@ class BugConditionExplorationTest extends TestCase
      *
      * Validates: Requirements 2.3, 2.4
      */
-    public function test_bug2_hasRole_superadmin_without_underscore_returns_false(): void
+    public function test_bug2_has_role_superadmin_without_underscore_returns_false(): void
     {
         $superAdmin = $this->createUserWithRole('super_admin');
 
@@ -212,6 +226,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug2
      *
      * Property: untuk semua user dengan role = 'super_admin',
@@ -226,7 +241,7 @@ class BugConditionExplorationTest extends TestCase
         // Verifikasi isSuperAdmin() bekerja dengan benar
         $this->assertTrue(
             $superAdmin->isSuperAdmin(),
-            "Bug 2: isSuperAdmin() harus true untuk super_admin — bypass check harus aktif di semua middleware dan policy"
+            'Bug 2: isSuperAdmin() harus true untuk super_admin — bypass check harus aktif di semua middleware dan policy'
         );
 
         // Verifikasi hasRole('super_admin') juga bekerja (dengan underscore)
@@ -243,6 +258,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Bug Condition: request.path MATCHES '/barcode/*'
@@ -269,14 +285,15 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 3: barcode routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 3: barcode routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Bug Condition: request.path MATCHES '/inventory/movements/*'
@@ -302,14 +319,15 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 3: inventory/movements routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 3: inventory/movements routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Bug Condition: request.path IN ['/bulk-actions/execute', '/bulk-actions/export-download']
@@ -335,14 +353,15 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 3: bulk-actions routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 3: bulk-actions routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Bug Condition: request.path IN ['/api/quick-search', '/api/saved-searches/*']
@@ -362,21 +381,22 @@ class BugConditionExplorationTest extends TestCase
                    str_starts_with($route->uri(), 'api/saved-searches');
         });
 
-        $this->assertNotEmpty($searchRoutes, "Harus ada route quick-search dan saved-searches");
+        $this->assertNotEmpty($searchRoutes, 'Harus ada route quick-search dan saved-searches');
 
         foreach ($searchRoutes as $route) {
             $middleware = $route->gatherMiddleware();
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 3: search routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 3: search routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Bug Condition: request.path MATCHES '/transaction-chain/*'
@@ -402,14 +422,15 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 3: transaction-chain routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 3: transaction-chain routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug3
      *
      * Property: untuk semua route sensitif, tenant.isolation HARUS ada di middleware stack.
@@ -446,8 +467,8 @@ class BugConditionExplorationTest extends TestCase
                 $this->assertContains(
                     'tenant.isolation',
                     $middleware,
-                    "Route '{$route->uri()}' (prefix: '{$prefix}') harus memiliki 'tenant.isolation'. " .
-                    "Bug 3: route sensitif tanpa tenant isolation."
+                    "Route '{$route->uri()}' (prefix: '{$prefix}') harus memiliki 'tenant.isolation'. ".
+                    'Bug 3: route sensitif tanpa tenant isolation.'
                 );
             }
         }
@@ -460,6 +481,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug4
      *
      * Bug Condition: request.path STARTS_WITH '/portal/'
@@ -486,14 +508,15 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. " .
-                "Bug 4: portal routes tidak memiliki tenant isolation."
+                "Route '{$route->uri()}' harus memiliki middleware 'tenant.isolation'. ".
+                'Bug 4: portal routes tidak memiliki tenant isolation.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug4
      *
      * Property: untuk semua route /portal/*, tenant.isolation HARUS ada di middleware stack.
@@ -520,8 +543,8 @@ class BugConditionExplorationTest extends TestCase
             $this->assertContains(
                 'tenant.isolation',
                 $middleware,
-                "Route '{$route->uri()}' harus memiliki 'tenant.isolation'. " .
-                "Bug 4: customer portal routes tanpa tenant isolation."
+                "Route '{$route->uri()}' harus memiliki 'tenant.isolation'. ".
+                'Bug 4: customer portal routes tanpa tenant isolation.'
             );
         }
     }
@@ -533,6 +556,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug5
      *
      * Bug Condition: user.role IN ['staff','kasir','gudang','housekeeping','maintenance','affiliate']
@@ -561,14 +585,15 @@ class BugConditionExplorationTest extends TestCase
             });
             $this->assertTrue(
                 $hasPermissionCheck,
-                "Route '{$route->uri()}' harus memiliki middleware 'permission:suppliers,view'. " .
-                "Bug 5: supplier scorecard/performance routes tidak memiliki role check."
+                "Route '{$route->uri()}' harus memiliki middleware 'permission:suppliers,view'. ".
+                'Bug 5: supplier scorecard/performance routes tidak memiliki role check.'
             );
         }
     }
 
     /**
      * @test
+     *
      * @group bug5
      *
      * Bug Condition: user.role = 'kasir' mengakses /supplier-scorecards/
@@ -591,6 +616,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug5
      *
      * Bug Condition: user.role = 'gudang' mengakses /supplier-scorecards/
@@ -613,6 +639,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug5
      *
      * Property: untuk semua role yang tidak memiliki suppliers.view,
@@ -652,6 +679,7 @@ class BugConditionExplorationTest extends TestCase
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: model.class IN [ErpNotification, UserPermission, CustomField,
@@ -671,35 +699,36 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat CustomField milik tenant A
-        $customField = \App\Models\CustomField::create([
-            'tenant_id'  => $tenantA->id,
-            'module'     => 'invoice',
-            'key'        => 'cf_bug6_' . uniqid(),
-            'label'      => 'Test Field',
-            'type'       => 'text',
-            'required'   => false,
-            'is_active'  => true,
+        $customField = CustomField::create([
+            'tenant_id' => $tenantA->id,
+            'module' => 'invoice',
+            'key' => 'cf_bug6_'.uniqid(),
+            'label' => 'Test Field',
+            'type' => 'text',
+            'required' => false,
+            'is_active' => true,
             'sort_order' => 1,
         ]);
 
         // Simulasikan EnforceTenantIsolation logic untuk CustomField
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\CustomField::class,
+            CustomField::class,
             $tenantModels,
-            "Bug 6 fix: CustomField harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: CustomField harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         // Verifikasi bahwa akses lintas tenant akan diblokir
         $blocked = $this->simulateTenantIsolationCheck($customField, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: CustomField dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: CustomField dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: UserPermission dengan tenant_id berbeda tidak diblokir
@@ -715,30 +744,31 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat UserPermission milik tenant A
-        $userPermission = \App\Models\UserPermission::create([
+        $userPermission = UserPermission::create([
             'tenant_id' => $tenantA->id,
-            'user_id'   => $userA->id,
-            'module'    => 'sales',
-            'action'    => 'view',
-            'granted'   => true,
+            'user_id' => $userA->id,
+            'module' => 'sales',
+            'action' => 'view',
+            'granted' => true,
         ]);
 
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\UserPermission::class,
+            UserPermission::class,
             $tenantModels,
-            "Bug 6 fix: UserPermission harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: UserPermission harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         $blocked = $this->simulateTenantIsolationCheck($userPermission, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: UserPermission dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: UserPermission dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: ErpNotification dengan tenant_id berbeda tidak diblokir
@@ -754,31 +784,32 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat ErpNotification milik tenant A
-        $notification = \App\Models\ErpNotification::create([
+        $notification = ErpNotification::create([
             'tenant_id' => $tenantA->id,
-            'user_id'   => $userA->id,
-            'type'      => 'low_stock',
-            'module'    => 'inventory',
-            'title'     => 'Test Notification',
-            'body'      => 'Test body',
+            'user_id' => $userA->id,
+            'type' => 'low_stock',
+            'module' => 'inventory',
+            'title' => 'Test Notification',
+            'body' => 'Test body',
         ]);
 
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\ErpNotification::class,
+            ErpNotification::class,
             $tenantModels,
-            "Bug 6 fix: ErpNotification harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: ErpNotification harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         $blocked = $this->simulateTenantIsolationCheck($notification, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: ErpNotification dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: ErpNotification dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: DocumentTemplate dengan tenant_id berbeda tidak diblokir
@@ -793,30 +824,31 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat DocumentTemplate milik tenant A
-        $template = \App\Models\DocumentTemplate::create([
-            'tenant_id'    => $tenantA->id,
-            'name'         => 'Test Template',
-            'doc_type'     => 'invoice',
+        $template = DocumentTemplate::create([
+            'tenant_id' => $tenantA->id,
+            'name' => 'Test Template',
+            'doc_type' => 'invoice',
             'html_content' => '<p>Test</p>',
-            'is_default'   => false,
+            'is_default' => false,
         ]);
 
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\DocumentTemplate::class,
+            DocumentTemplate::class,
             $tenantModels,
-            "Bug 6 fix: DocumentTemplate harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: DocumentTemplate harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         $blocked = $this->simulateTenantIsolationCheck($template, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: DocumentTemplate dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: DocumentTemplate dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: Workflow dengan tenant_id berbeda tidak diblokir
@@ -831,30 +863,31 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat Workflow milik tenant A
-        $workflow = \App\Models\Workflow::create([
-            'tenant_id'      => $tenantA->id,
-            'name'           => 'Test Workflow',
-            'trigger_type'   => 'event',
+        $workflow = Workflow::create([
+            'tenant_id' => $tenantA->id,
+            'name' => 'Test Workflow',
+            'trigger_type' => 'event',
             'trigger_config' => ['event' => 'invoice.created'],
-            'is_active'      => true,
+            'is_active' => true,
         ]);
 
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\Workflow::class,
+            Workflow::class,
             $tenantModels,
-            "Bug 6 fix: Workflow harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: Workflow harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         $blocked = $this->simulateTenantIsolationCheck($workflow, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: Workflow dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: Workflow dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Bug Condition: AiTourSession dengan tenant_id berbeda tidak diblokir
@@ -870,30 +903,31 @@ class BugConditionExplorationTest extends TestCase
         $userB = $this->createUserWithRole('admin', $tenantB);
 
         // Buat AiTourSession milik tenant A
-        $tourSession = \App\Models\AiTourSession::create([
-            'tenant_id'  => $tenantA->id,
-            'user_id'    => $userA->id,
-            'tour_type'  => 'general',
-            'is_active'  => true,
+        $tourSession = AiTourSession::create([
+            'tenant_id' => $tenantA->id,
+            'user_id' => $userA->id,
+            'tour_type' => 'general',
+            'is_active' => true,
             'started_at' => now(),
         ]);
 
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $this->assertContains(
-            \App\Models\AiTourSession::class,
+            AiTourSession::class,
             $tenantModels,
-            "Bug 6 fix: AiTourSession harus ada di \$tenantModels EnforceTenantIsolation"
+            'Bug 6 fix: AiTourSession harus ada di $tenantModels EnforceTenantIsolation'
         );
 
         $blocked = $this->simulateTenantIsolationCheck($tourSession, $userB);
         $this->assertTrue(
             $blocked,
-            "Bug 6: AiTourSession dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation"
+            'Bug 6: AiTourSession dengan tenant_id berbeda harus diblokir oleh EnforceTenantIsolation'
         );
     }
 
     /**
      * @test
+     *
      * @group bug6
      *
      * Property: untuk semua model yang ditambahkan ke $tenantModels,
@@ -906,13 +940,13 @@ class BugConditionExplorationTest extends TestCase
         $tenantModels = $this->getTenantModelsFromMiddleware();
 
         $requiredModels = [
-            \App\Models\ErpNotification::class,
-            \App\Models\UserPermission::class,
-            \App\Models\CustomField::class,
-            \App\Models\DocumentTemplate::class,
-            \App\Models\Workflow::class,
-            \App\Models\AiTourSession::class,
-            \App\Models\WebhookSubscription::class, // sudah ada sebelumnya
+            ErpNotification::class,
+            UserPermission::class,
+            CustomField::class,
+            DocumentTemplate::class,
+            Workflow::class,
+            AiTourSession::class,
+            WebhookSubscription::class, // sudah ada sebelumnya
         ];
 
         foreach ($requiredModels as $modelClass) {
@@ -932,12 +966,12 @@ class BugConditionExplorationTest extends TestCase
      * Simulasikan logika EnforceTenantIsolation untuk satu model dan user.
      * Mengembalikan true jika akses akan diblokir (tenant_id tidak cocok).
      */
-    private function simulateTenantIsolationCheck(object $model, \App\Models\User $user): bool
+    private function simulateTenantIsolationCheck(object $model, User $user): bool
     {
         $tenantModels = $this->getTenantModelsFromMiddleware();
         $modelClass = get_class($model);
 
-        if (!in_array($modelClass, $tenantModels)) {
+        if (! in_array($modelClass, $tenantModels)) {
             return false; // Model tidak dicek
         }
 
@@ -953,7 +987,7 @@ class BugConditionExplorationTest extends TestCase
      */
     private function getTenantModelsFromMiddleware(): array
     {
-        $middleware = app(\App\Http\Middleware\EnforceTenantIsolation::class);
+        $middleware = app(EnforceTenantIsolation::class);
         $reflection = new \ReflectionClass($middleware);
         $method = $reflection->getMethod('handle');
 
@@ -984,16 +1018,17 @@ class BugConditionExplorationTest extends TestCase
         return $tenantModels;
     }
 
-    private function createUserWithRole(string $role, ?\App\Models\Tenant $tenant = null): User
+    private function createUserWithRole(string $role, ?Tenant $tenant = null): User
     {
         $targetTenant = $tenant ?? $this->tenant;
+
         return User::create([
-            'tenant_id'         => $targetTenant->id,
-            'name'              => ucfirst($role) . ' Test',
-            'email'             => $role . '-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => $role,
-            'is_active'         => true,
+            'tenant_id' => $targetTenant->id,
+            'name' => ucfirst($role).' Test',
+            'email' => $role.'-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => $role,
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
     }

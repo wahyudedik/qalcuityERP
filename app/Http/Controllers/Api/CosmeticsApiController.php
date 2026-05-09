@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\CosmeticFormulation;
 use App\Models\BpomRegistration;
 use App\Models\CosmeticBatch;
+use App\Models\CosmeticFormulation;
 use Illuminate\Http\Request;
 
 class CosmeticsApiController extends ApiBaseController
@@ -20,6 +19,7 @@ class CosmeticsApiController extends ApiBaseController
         }
 
         $formulations = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($formulations);
     }
 
@@ -28,6 +28,7 @@ class CosmeticsApiController extends ApiBaseController
         $formulation = CosmeticFormulation::where('tenant_id', $this->getTenantId())
             ->with(['bpomRegistration', 'batches'])
             ->findOrFail($id);
+
         return $this->success($formulation);
     }
 
@@ -58,6 +59,7 @@ class CosmeticsApiController extends ApiBaseController
         }
 
         $registrations = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($registrations);
     }
 
@@ -88,6 +90,7 @@ class CosmeticsApiController extends ApiBaseController
         }
 
         $batches = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($batches);
     }
 

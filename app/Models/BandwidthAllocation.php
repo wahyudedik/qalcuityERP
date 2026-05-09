@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BandwidthAllocation extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'device_id',
@@ -85,7 +85,7 @@ class BandwidthAllocation extends Model
      */
     public function isCurrentlyActive(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -158,7 +158,7 @@ class BandwidthAllocation extends Model
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**

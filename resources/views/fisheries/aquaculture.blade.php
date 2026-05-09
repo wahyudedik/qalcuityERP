@@ -2,8 +2,7 @@
     <x-slot name="header">🐠 Aquaculture Management</x-slot>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
@@ -48,8 +47,7 @@
 
     {{-- Pond Cards --}}
     @if (empty($ponds) || count($ponds) === 0)
-        <div
-            class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+        <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p class="text-4xl mb-3">🐠</p>
             <p class="text-sm text-gray-500">Belum ada kolam budidaya. Tambahkan kolam pertama Anda.
             </p>
@@ -70,20 +68,18 @@
                     x-data="{ showWaterForm: false, showFeedingForm: false }">
 
                     {{-- Header --}}
-                    <div
-                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
+                    <div class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
                         <div>
                             <div class="flex items-center gap-2">
                                 <span class="text-lg font-bold text-gray-900">{{ $pond->code }}</span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                                     {{ $pond->status_label }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-500 mt-0.5">{{ $pond->name }}</p>
                         </div>
-                        <span
-                            class="text-xs text-gray-400">{{ number_format($pond->area_size, 1) }}
+                        <span class="text-xs text-gray-400">{{ number_format($pond->area_size, 1) }}
                             m²</span>
                     </div>
 
@@ -161,21 +157,19 @@
                         {{-- Water Quality Form --}}
                         <div x-show="showWaterForm" x-transition
                             class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <form :action="'{{ route('fisheries.aquaculture.log-water-quality', $pond->id) }}'"
+                            <form :action="'{{ route('fisheries.api.aquaculture.ponds.water-quality', $pond->id) }}'"
                                 method="POST" class="space-y-2">
                                 @csrf
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">pH
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">pH
                                             *</label>
                                         <input type="number" name="ph" required step="0.1" min="0"
                                             max="14" placeholder="7.0"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Oksigen
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Oksigen
                                             Terlarut (mg/L) *</label>
                                         <input type="number" name="dissolved_oxygen" required step="0.1"
                                             min="0" placeholder="6.5"
@@ -184,15 +178,13 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Suhu
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Suhu
                                             Air (°C)</label>
                                         <input type="number" name="temperature" step="0.1" placeholder="28.5"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Amonia
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Amonia
                                             (mg/L)</label>
                                         <input type="number" name="ammonia" step="0.01" min="0"
                                             placeholder="0.02"
@@ -200,8 +192,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label
-                                        class="block text-xs font-medium text-gray-600 mb-1">Salinitas
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Salinitas
                                         (ppt)</label>
                                     <input type="number" name="salinity" step="0.1" min="0"
                                         placeholder="15.0"
@@ -223,21 +214,19 @@
                         {{-- Feeding Form --}}
                         <div x-show="showFeedingForm" x-transition
                             class="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                            <form :action="'{{ route('fisheries.aquaculture.log-feeding', $pond->id) }}'"
+                            <form :action="'{{ route('fisheries.api.aquaculture.feeding.record', $pond->id) }}'"
                                 method="POST" class="space-y-2">
                                 @csrf
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Jumlah
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah
                                             Pakan (kg) *</label>
                                         <input type="number" name="feed_quantity" required step="0.01"
                                             min="0" placeholder="5.5"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Biaya
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Biaya
                                             Pakan (Rp)</label>
                                         <input type="number" name="feed_cost" step="100" min="0"
                                             placeholder="50000"
@@ -245,15 +234,13 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label
-                                        class="block text-xs font-medium text-gray-600 mb-1">Jenis
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Jenis
                                         Pakan</label>
                                     <input type="text" name="feed_type" placeholder="Pelet 781-2"
                                         class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                 </div>
                                 <div>
-                                    <label
-                                        class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                                     <textarea name="notes" rows="2" placeholder="Waktu pemberian, kondisi ikan, dll."
                                         class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900"></textarea>
                                 </div>
@@ -282,8 +269,7 @@
                             @if ($pond->water_source)
                                 <div>
                                     <span class="text-gray-400">Sumber Air:</span>
-                                    <span
-                                        class="text-gray-700">{{ ucfirst($pond->water_source) }}</span>
+                                    <span class="text-gray-700">{{ ucfirst($pond->water_source) }}</span>
                                 </div>
                             @endif
                         </div>
@@ -313,14 +299,13 @@
     {{-- Add Pond Modal --}}
     <div id="addPondModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-base font-semibold text-gray-900">🏊 Tambah Kolam Budidaya</h3>
                 <button onclick="document.getElementById('addPondModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.aquaculture.store-pond') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.aquaculture.ponds.create') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 

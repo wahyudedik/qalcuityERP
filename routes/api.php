@@ -1,20 +1,33 @@
 <?php
 
-use App\Http\Controllers\Api\ApiProductController;
-use App\Http\Controllers\Api\ApiOrderController;
-use App\Http\Controllers\Api\ApiInvoiceController;
+use App\Http\Controllers\Api\AgricultureApiController;
 use App\Http\Controllers\Api\ApiCustomerController;
+use App\Http\Controllers\Api\ApiInvoiceController;
+use App\Http\Controllers\Api\ApiOrderController;
+use App\Http\Controllers\Api\ApiProductController;
 use App\Http\Controllers\Api\ApiStatsController;
+use App\Http\Controllers\Api\CosmeticsApiController;
+use App\Http\Controllers\Api\FingerprintWebhookController;
+use App\Http\Controllers\Api\FisheriesApiController;
+use App\Http\Controllers\Api\HealthcareApiController;
+use App\Http\Controllers\Api\HotelApiController;
+use App\Http\Controllers\Api\HrmApiController;
+use App\Http\Controllers\Api\InventoryApiController;
+use App\Http\Controllers\Api\IotWebhookController;
+use App\Http\Controllers\Api\LivestockApiController;
+use App\Http\Controllers\Api\ManufacturingApiController;
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\MarketplaceWebhookController;
-use App\Http\Controllers\Pos\PrintController;
 use App\Http\Controllers\Api\Telecom\DeviceController;
 use App\Http\Controllers\Api\Telecom\HotspotUserController;
 use App\Http\Controllers\Api\Telecom\UsageController;
 use App\Http\Controllers\Api\Telecom\VoucherController;
 use App\Http\Controllers\Api\Telecom\WebhookController;
-use App\Http\Controllers\OfflineSyncController;
+use App\Http\Controllers\Api\TourTravelApiController;
+use App\Http\Controllers\Api\WebhookTestController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\MarketplaceWebhookController;
+use App\Http\Controllers\OfflineSyncController;
+use App\Http\Controllers\Pos\PrintController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,14 +68,14 @@ Route::prefix('webhooks')->middleware('api.rate:webhook-inbound')->group(functio
     Route::post('/tokopedia', [MarketplaceWebhookController::class, 'handleTokopedia']);
     Route::post('/lazada', [MarketplaceWebhookController::class, 'handleLazada']);
     // Fingerprint device webhooks
-    Route::post('/fingerprint/attendance', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'handleAttendance']);
-    Route::post('/fingerprint/heartbeat', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'heartbeat']);
-    Route::get('/fingerprint/pending-registrations', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'getPendingRegistrations']);
+    Route::post('/fingerprint/attendance', [FingerprintWebhookController::class, 'handleAttendance']);
+    Route::post('/fingerprint/heartbeat', [FingerprintWebhookController::class, 'heartbeat']);
+    Route::get('/fingerprint/pending-registrations', [FingerprintWebhookController::class, 'getPendingRegistrations']);
 
     // IoT Device webhooks (ESP32 / Arduino / Raspberry Pi)
-    Route::post('/iot/telemetry', [\App\Http\Controllers\Api\IotWebhookController::class, 'telemetry']);
-    Route::post('/iot/heartbeat', [\App\Http\Controllers\Api\IotWebhookController::class, 'heartbeat']);
-    Route::get('/iot/config', [\App\Http\Controllers\Api\IotWebhookController::class, 'getConfig']);
+    Route::post('/iot/telemetry', [IotWebhookController::class, 'telemetry']);
+    Route::post('/iot/heartbeat', [IotWebhookController::class, 'heartbeat']);
+    Route::get('/iot/config', [IotWebhookController::class, 'getConfig']);
 });
 
 // ── Telecom Module API Endpoints ──────────────────────────────────────
@@ -129,11 +142,11 @@ Route::prefix('payment')->group(function () {
 
         // Webhook testing & monitoring
         Route::prefix('webhook-test')->group(function () {
-            Route::post('/midtrans', [\App\Http\Controllers\Api\WebhookTestController::class, 'testMidtrans']);
-            Route::post('/xendit', [\App\Http\Controllers\Api\WebhookTestController::class, 'testXendit']);
-            Route::get('/history', [\App\Http\Controllers\Api\WebhookTestController::class, 'getWebhookHistory']);
-            Route::post('/retry-failed', [\App\Http\Controllers\Api\WebhookTestController::class, 'retryFailedWebhooks']);
-            Route::get('/stats', [\App\Http\Controllers\Api\WebhookTestController::class, 'getWebhookStats']);
+            Route::post('/midtrans', [WebhookTestController::class, 'testMidtrans']);
+            Route::post('/xendit', [WebhookTestController::class, 'testXendit']);
+            Route::get('/history', [WebhookTestController::class, 'getWebhookHistory']);
+            Route::post('/retry-failed', [WebhookTestController::class, 'retryFailedWebhooks']);
+            Route::get('/stats', [WebhookTestController::class, 'getWebhookStats']);
         });
     });
 });
@@ -161,16 +174,6 @@ Route::middleware(['auth:sanctum'])->get('/csrf-token', function () {
     ]);
 });
 
-use App\Http\Controllers\Api\HealthcareApiController;
-use App\Http\Controllers\Api\HotelApiController;
-use App\Http\Controllers\Api\InventoryApiController;
-use App\Http\Controllers\Api\HrmApiController;
-use App\Http\Controllers\Api\ManufacturingApiController;
-use App\Http\Controllers\Api\AgricultureApiController;
-use App\Http\Controllers\Api\FisheriesApiController;
-use App\Http\Controllers\Api\LivestockApiController;
-use App\Http\Controllers\Api\CosmeticsApiController;
-use App\Http\Controllers\Api\TourTravelApiController;
 
 // ── Health Check endpoints ───────────────────────────────────────
 // /health dan /live: public (dipakai load balancer & uptime monitor)
@@ -472,5 +475,3 @@ Route::prefix('tour-travel')->middleware(['auth:sanctum', 'api.rate:api-read'])-
     Route::get('/vehicles', [TourTravelApiController::class, 'vehicles']);
     Route::post('/vehicles', [TourTravelApiController::class, 'createVehicle'])->middleware('api.rate:api-write');
 });
-
-

@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\ChannelManagerConfig;
 use App\Models\ChannelManagerLog;
+use App\Models\Room;
+use App\Models\RoomType;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -30,23 +33,19 @@ class ChannelManagerService
      * Push room availability to a channel.
      * In this initial implementation, prepares the payload and logs the action.
      * Actual API calls would be implemented per-channel adapter later.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return array
      */
     public function pushAvailability(int $tenantId, string $channel): array
     {
         $config = $this->getConfig($tenantId, $channel);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not configured for this tenant.",
             ];
         }
 
-        if (!$config->is_active) {
+        if (! $config->is_active) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not active.",
@@ -97,30 +96,26 @@ class ChannelManagerService
 
             return [
                 'success' => false,
-                'message' => 'Failed to push availability: ' . $e->getMessage(),
+                'message' => 'Failed to push availability: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Push rates to a channel.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return array
      */
     public function pushRates(int $tenantId, string $channel): array
     {
         $config = $this->getConfig($tenantId, $channel);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not configured for this tenant.",
             ];
         }
 
-        if (!$config->is_active) {
+        if (! $config->is_active) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not active.",
@@ -168,30 +163,26 @@ class ChannelManagerService
 
             return [
                 'success' => false,
-                'message' => 'Failed to push rates: ' . $e->getMessage(),
+                'message' => 'Failed to push rates: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Pull reservations from a channel (stub — logs the attempt).
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return array
      */
     public function pullReservations(int $tenantId, string $channel): array
     {
         $config = $this->getConfig($tenantId, $channel);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not configured for this tenant.",
             ];
         }
 
-        if (!$config->is_active) {
+        if (! $config->is_active) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not active.",
@@ -231,30 +222,26 @@ class ChannelManagerService
 
             return [
                 'success' => false,
-                'message' => 'Failed to pull reservations: ' . $e->getMessage(),
+                'message' => 'Failed to pull reservations: '.$e->getMessage(),
             ];
         }
     }
 
     /**
      * Sync all data (availability + rates + pull reservations) for a channel.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return array
      */
     public function syncAll(int $tenantId, string $channel): array
     {
         $config = $this->getConfig($tenantId, $channel);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not configured for this tenant.",
             ];
         }
 
-        if (!$config->is_active) {
+        if (! $config->is_active) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not active.",
@@ -267,7 +254,7 @@ class ChannelManagerService
             'reservations' => $this->pullReservations($tenantId, $channel),
         ];
 
-        $allSuccess = collect($results)->every(fn($r) => $r['success']);
+        $allSuccess = collect($results)->every(fn ($r) => $r['success']);
 
         // Log the full sync
         $this->logAction(
@@ -294,15 +281,6 @@ class ChannelManagerService
 
     /**
      * Log a channel manager action.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @param string $action
-     * @param string $status
-     * @param array|null $requestData
-     * @param array|null $responseData
-     * @param string|null $error
-     * @return ChannelManagerLog
      */
     public function logAction(
         int $tenantId,
@@ -326,10 +304,6 @@ class ChannelManagerService
 
     /**
      * Get active config for a channel+tenant. Returns null if not configured.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return ChannelManagerConfig|null
      */
     public function getConfig(int $tenantId, string $channel): ?ChannelManagerConfig
     {
@@ -340,11 +314,8 @@ class ChannelManagerService
 
     /**
      * Get all active channel configs for a tenant.
-     *
-     * @param int $tenantId
-     * @return \Illuminate\Support\Collection
      */
-    public function getActiveConfigs(int $tenantId): \Illuminate\Support\Collection
+    public function getActiveConfigs(int $tenantId): Collection
     {
         return ChannelManagerConfig::where('tenant_id', $tenantId)
             ->where('is_active', true)
@@ -353,12 +324,8 @@ class ChannelManagerService
 
     /**
      * Get recent logs for a tenant.
-     *
-     * @param int $tenantId
-     * @param int $limit
-     * @return \Illuminate\Support\Collection
      */
-    public function getRecentLogs(int $tenantId, int $limit = 50): \Illuminate\Support\Collection
+    public function getRecentLogs(int $tenantId, int $limit = 50): Collection
     {
         return ChannelManagerLog::where('tenant_id', $tenantId)
             ->orderBy('created_at', 'desc')
@@ -368,15 +335,11 @@ class ChannelManagerService
 
     /**
      * Prepare availability payload for channel.
-     *
-     * @param int $tenantId
-     * @param ChannelManagerConfig $config
-     * @return array
      */
     private function prepareAvailabilityPayload(int $tenantId, ChannelManagerConfig $config): array
     {
         // Get all active rooms with their availability status
-        $rooms = \App\Models\Room::with('roomType')
+        $rooms = Room::with('roomType')
             ->where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->get();
@@ -401,17 +364,13 @@ class ChannelManagerService
 
     /**
      * Prepare rates payload for channel.
-     *
-     * @param int $tenantId
-     * @param ChannelManagerConfig $config
-     * @return array
      */
     private function prepareRatesPayload(int $tenantId, ChannelManagerConfig $config): array
     {
         $rateService = app(RateManagementService::class);
 
         // Get all room types with their rates
-        $roomTypes = \App\Models\RoomType::where('tenant_id', $tenantId)
+        $roomTypes = RoomType::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->get();
 
@@ -441,16 +400,12 @@ class ChannelManagerService
 
     /**
      * Test connection to a channel.
-     *
-     * @param int $tenantId
-     * @param string $channel
-     * @return array
      */
     public function testConnection(int $tenantId, string $channel): array
     {
         $config = $this->getConfig($tenantId, $channel);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'success' => false,
                 'message' => "Channel {$channel} is not configured.",

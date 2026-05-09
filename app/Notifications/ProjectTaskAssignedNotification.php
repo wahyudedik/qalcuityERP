@@ -21,8 +21,8 @@ class ProjectTaskAssignedNotification extends Notification implements ShouldQueu
 
     public function toMail(object $notifiable): MailMessage
     {
-        $project  = $this->task->project;
-        $due      = $this->task->due_date?->format('d M Y') ?? 'Tidak ditentukan';
+        $project = $this->task->project;
+        $due = $this->task->due_date?->format('d M Y') ?? 'Tidak ditentukan';
         $assigner = auth()->user()?->name ?? 'Manajer';
 
         return (new MailMessage)
@@ -30,7 +30,7 @@ class ProjectTaskAssignedNotification extends Notification implements ShouldQueu
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Anda mendapat tugas baru di proyek **{$project?->name}**:")
             ->line("**Task:** {$this->task->name}")
-            ->when($this->task->description, fn($m) => $m->line("**Deskripsi:** {$this->task->description}"))
+            ->when($this->task->description, fn ($m) => $m->line("**Deskripsi:** {$this->task->description}"))
             ->line("**Deadline:** {$due}")
             ->line("**Bobot:** {$this->task->weight}%")
             ->action('Lihat Proyek', url("/projects/{$project?->id}"))

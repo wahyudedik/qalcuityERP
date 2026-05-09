@@ -26,7 +26,7 @@ class GeminiProviderTest extends TestCase
         Config::set('ai.providers.gemini.model', 'gemini-2.5-flash');
         Config::set('ai.providers.gemini.fallback_models', ['gemini-2.5-flash']);
 
-        return new GeminiProvider();
+        return new GeminiProvider;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -167,6 +167,6 @@ class GeminiProviderTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
 
-        new GeminiProvider();
+        new GeminiProvider;
     }
 }

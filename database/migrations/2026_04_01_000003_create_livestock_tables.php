@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Livestock herds / flocks — a group of animals in a pen/coop
-        if (!Schema::hasTable('livestock_herds')) {
+        if (! Schema::hasTable('livestock_herds')) {
             Schema::create('livestock_herds', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -29,7 +29,7 @@ return new class extends Migration
                 $table->decimal('target_weight_kg', 10, 3)->default(0); // target berat panen
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'code']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['farm_plot_id']);
@@ -37,7 +37,7 @@ return new class extends Migration
         }
 
         // Population movements — every change in count
-        if (!Schema::hasTable('livestock_movements')) {
+        if (! Schema::hasTable('livestock_movements')) {
             Schema::create('livestock_movements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('livestock_herd_id')->constrained()->cascadeOnDelete();
@@ -48,7 +48,7 @@ return new class extends Migration
                     'purchase',    // beli/masuk DOC
                     'birth',       // lahir
                     'transfer_in', // pindah masuk dari kandang lain
-                    'transfer_out',// pindah keluar ke kandang lain
+                    'transfer_out', // pindah keluar ke kandang lain
                     'death',       // mati
                     'cull',        // afkir
                     'sold',        // dijual hidup
@@ -63,7 +63,7 @@ return new class extends Migration
                 $table->string('destination')->nullable();             // kandang tujuan / pembeli
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['livestock_herd_id', 'date']);
                 $table->index(['tenant_id', 'type', 'date']);
             });

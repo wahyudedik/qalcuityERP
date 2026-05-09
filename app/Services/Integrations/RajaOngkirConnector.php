@@ -3,21 +3,23 @@
 namespace App\Services\Integrations;
 
 use App\Models\Integration;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * RajaOngkir Logistics Connector
- * 
+ *
  * Handles shipping rate calculation and tracking
  * Supports JNE, TIKI, POS, and other Indonesian couriers
  */
 class RajaOngkirConnector extends BaseConnector
 {
     protected string $apiUrl;
+
     protected string $apiKey;
+
     protected string $accountType; // starter, basic, pro
 
     public function __construct(Integration $integration)
@@ -41,12 +43,14 @@ class RajaOngkirConnector extends BaseConnector
 
             if ($response->successful()) {
                 $this->integration->markAsActive();
+
                 return true;
             }
 
             return false;
         } catch (Throwable $e) {
             Log::error('RajaOngkir authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -68,11 +72,11 @@ class RajaOngkirConnector extends BaseConnector
             $response = Http::withHeaders([
                 'key' => $this->apiKey,
             ])->post("{$this->apiUrl}/cost", [
-                        'origin' => $params['origin'], // City ID
-                        'destination' => $params['destination'], // City ID
-                        'weight' => $params['weight'], // grams
-                        'courier' => $params['courier'] ?? 'jne', // jne, tiki, pos, etc.
-                    ]);
+                'origin' => $params['origin'], // City ID
+                'destination' => $params['destination'], // City ID
+                'weight' => $params['weight'], // grams
+                'courier' => $params['courier'] ?? 'jne', // jne, tiki, pos, etc.
+            ]);
 
             if ($response->successful()) {
                 $data = $response->json()['rajaongkir']['results'] ?? [];
@@ -143,6 +147,7 @@ class RajaOngkirConnector extends BaseConnector
 
             if ($response->successful()) {
                 $cities = $response->json()['rajaongkir']['results'] ?? [];
+
                 return ['success' => true, 'cities' => $cities];
             }
 
@@ -185,18 +190,22 @@ class RajaOngkirConnector extends BaseConnector
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncOrders(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncInventory(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function registerWebhooks(): array
     {
         return ['success' => true, 'registered' => []];
     }
+
     public function handleWebhook(array $payload): void
     {
         Log::info('RajaOngkir webhook', ['data' => $payload]);

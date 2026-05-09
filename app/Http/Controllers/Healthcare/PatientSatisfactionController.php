@@ -65,6 +65,7 @@ class PatientSatisfactionController extends Controller
     public function show(PatientSatisfaction $survey)
     {
         $survey->load(['patient', 'doctor', 'visit']);
+
         return view('healthcare.patient-satisfaction.show', compact('survey'));
     }
 
@@ -88,8 +89,10 @@ class PatientSatisfactionController extends Controller
     public function destroy(PatientSatisfaction $survey)
     {
         $survey->delete();
+
         return response()->json(['success' => true, 'message' => 'Survey deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/patient-satisfaction/{patient_satisfaction}/edit
@@ -97,9 +100,10 @@ class PatientSatisfactionController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.patient-satisfaction.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/patient-satisfaction/{patient_satisfaction}
@@ -107,13 +111,13 @@ class PatientSatisfactionController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.patient-satisfaction.update')
             ->with('success', 'Updated successfully.');
     }

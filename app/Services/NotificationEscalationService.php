@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * NotificationEscalationService - Handle automatic escalation of unread notifications.
- * 
+ *
  * Escalation levels:
  * - Level 1: User → Manager (after 30 minutes)
  * - Level 2: Manager → Admin (after 1 hour)
@@ -19,11 +19,10 @@ class NotificationEscalationService
 {
     /**
      * Create escalation rule for a notification.
-     * 
-     * @param ErpNotification $notification The notification to monitor
-     * @param int $userId The user who should read it
-     * @param array $rules Escalation rules [minutes => escalation_level]
-     * @return void
+     *
+     * @param  ErpNotification  $notification  The notification to monitor
+     * @param  int  $userId  The user who should read it
+     * @param  array  $rules  Escalation rules [minutes => escalation_level]
      */
     public function createEscalation(ErpNotification $notification, int $userId, array $rules = []): void
     {
@@ -37,14 +36,14 @@ class NotificationEscalationService
         }
 
         $user = User::find($userId);
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         foreach ($rules as $minutes => $level) {
             $escalationTarget = $this->getEscalationTarget($user->tenant_id, $level);
 
-            if (!$escalationTarget) {
+            if (! $escalationTarget) {
                 continue;
             }
 
@@ -63,7 +62,7 @@ class NotificationEscalationService
 
     /**
      * Process pending escalations and send notifications.
-     * 
+     *
      * @return int Number of escalations processed
      */
     public function processEscalations(): int
@@ -80,7 +79,7 @@ class NotificationEscalationService
                 $this->sendEscalationNotification($escalation);
                 $count++;
             } catch (\Throwable $e) {
-                Log::error("Failed to process escalation #{$escalation->id}: " . $e->getMessage());
+                Log::error("Failed to process escalation #{$escalation->id}: ".$e->getMessage());
             }
         }
 
@@ -100,7 +99,7 @@ class NotificationEscalationService
         ErpNotification::create([
             'tenant_id' => $escalation->tenant_id,
             'user_id' => $toUser->id,
-            'type' => 'escalation_level_' . $escalation->escalation_level,
+            'type' => 'escalation_level_'.$escalation->escalation_level,
             'module' => $notification->module ?? 'system',
             'title' => "⚠️ Eskalasi: {$notification->title}",
             'body' => "Notifikasi dari {$fromUser->name} perlu perhatian Anda: {$notification->body}",
@@ -119,10 +118,9 @@ class NotificationEscalationService
 
     /**
      * Get escalation target user based on level.
-     * 
-     * @param int $tenantId Tenant ID
-     * @param int $level Escalation level (1=Manager, 2=Admin, 3=Super Admin)
-     * @return User|null
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  int  $level  Escalation level (1=Manager, 2=Admin, 3=Super Admin)
      */
     protected function getEscalationTarget(int $tenantId, int $level): ?User
     {

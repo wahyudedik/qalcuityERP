@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 class StrongPassword implements ValidationRule
 {
     protected $user;
+
     protected $attribute;
 
     public function __construct($user = null)
@@ -32,22 +33,22 @@ class StrongPassword implements ValidationRule
         }
 
         // Check uppercase
-        if (config('password.require_uppercase', true) && !preg_match('/[A-Z]/', $value)) {
+        if (config('password.require_uppercase', true) && ! preg_match('/[A-Z]/', $value)) {
             $errors[] = 'Password must contain at least one uppercase letter.';
         }
 
         // Check lowercase
-        if (config('password.require_lowercase', true) && !preg_match('/[a-z]/', $value)) {
+        if (config('password.require_lowercase', true) && ! preg_match('/[a-z]/', $value)) {
             $errors[] = 'Password must contain at least one lowercase letter.';
         }
 
         // Check numbers
-        if (config('password.require_numbers', true) && !preg_match('/[0-9]/', $value)) {
+        if (config('password.require_numbers', true) && ! preg_match('/[0-9]/', $value)) {
             $errors[] = 'Password must contain at least one number.';
         }
 
         // Check special characters
-        if (config('password.require_special_chars', true) && !preg_match('/[' . preg_quote(config('password.special_chars', '!@#$%^&*()_+-=[]{}|;:,.<>?'), '/') . ']/', $value)) {
+        if (config('password.require_special_chars', true) && ! preg_match('/['.preg_quote(config('password.special_chars', '!@#$%^&*()_+-=[]{}|;:,.<>?'), '/').']/', $value)) {
             $errors[] = 'Password must contain at least one special character.';
         }
 
@@ -99,7 +100,7 @@ class StrongPassword implements ValidationRule
         }
 
         // Fail validation if there are errors
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $fail(implode(' ', $errors));
         }
     }
@@ -111,7 +112,7 @@ class StrongPassword implements ValidationRule
     {
         $commonPasswordsFile = config('password.common_passwords_file');
 
-        if (!file_exists($commonPasswordsFile)) {
+        if (! file_exists($commonPasswordsFile)) {
             // Fallback: check against a small list of very common passwords
             $commonPasswords = [
                 'password',
@@ -150,10 +151,12 @@ class StrongPassword implements ValidationRule
                 'charlie',
                 'donald',
             ];
+
             return in_array(strtolower($password), $commonPasswords);
         }
 
         $commonPasswords = file($commonPasswordsFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
         return in_array(strtolower($password), $commonPasswords);
     }
 
@@ -202,16 +205,21 @@ class StrongPassword implements ValidationRule
      */
     public static function getStrengthLevel(string $password): string
     {
-        $score = (new static())->calculateStrengthScore($password);
+        $score = (new static)->calculateStrengthScore($password);
 
-        if ($score >= 8)
+        if ($score >= 8) {
             return 'Very Strong';
-        if ($score >= 6)
+        }
+        if ($score >= 6) {
             return 'Strong';
-        if ($score >= 4)
+        }
+        if ($score >= 4) {
             return 'Medium';
-        if ($score >= 2)
+        }
+        if ($score >= 2) {
             return 'Weak';
+        }
+
         return 'Very Weak';
     }
 
@@ -220,6 +228,6 @@ class StrongPassword implements ValidationRule
      */
     public static function getStrengthScore(string $password): int
     {
-        return (new static())->calculateStrengthScore($password);
+        return (new static)->calculateStrengthScore($password);
     }
 }

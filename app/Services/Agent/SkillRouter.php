@@ -18,23 +18,30 @@ class SkillRouter
     /**
      * Nama-nama skill yang tersedia.
      */
-    public const SKILL_ACCOUNTING  = 'accounting';
-    public const SKILL_INVENTORY   = 'inventory';
-    public const SKILL_HRM         = 'hrm';
-    public const SKILL_SALES       = 'sales';
-    public const SKILL_PROJECT     = 'project';
-    public const SKILL_HEALTHCARE  = 'healthcare';
+    public const SKILL_ACCOUNTING = 'accounting';
+
+    public const SKILL_INVENTORY = 'inventory';
+
+    public const SKILL_HRM = 'hrm';
+
+    public const SKILL_SALES = 'sales';
+
+    public const SKILL_PROJECT = 'project';
+
+    public const SKILL_HEALTHCARE = 'healthcare';
+
     public const SKILL_MANUFACTURE = 'manufacture';
-    public const SKILL_TELECOM     = 'telecom';
+
+    public const SKILL_TELECOM = 'telecom';
 
     /**
      * Modul industri khusus yang memerlukan skill tambahan.
      */
     private const INDUSTRY_MODULE_SKILL_MAP = [
-        'healthcare'    => self::SKILL_HEALTHCARE,
+        'healthcare' => self::SKILL_HEALTHCARE,
         'manufacturing' => self::SKILL_MANUFACTURE,
-        'manufacture'   => self::SKILL_MANUFACTURE,
-        'telecom'       => self::SKILL_TELECOM,
+        'manufacture' => self::SKILL_MANUFACTURE,
+        'telecom' => self::SKILL_TELECOM,
     ];
 
     /**
@@ -109,12 +116,12 @@ class SkillRouter
      */
     private const MODULE_SKILL_MAP = [
         'accounting' => self::SKILL_ACCOUNTING,
-        'inventory'  => self::SKILL_INVENTORY,
-        'hrm'        => self::SKILL_HRM,
-        'payroll'    => self::SKILL_HRM,
-        'sales'      => self::SKILL_SALES,
-        'crm'        => self::SKILL_SALES,
-        'project'    => self::SKILL_PROJECT,
+        'inventory' => self::SKILL_INVENTORY,
+        'hrm' => self::SKILL_HRM,
+        'payroll' => self::SKILL_HRM,
+        'sales' => self::SKILL_SALES,
+        'crm' => self::SKILL_SALES,
+        'project' => self::SKILL_PROJECT,
     ];
 
     /**
@@ -123,22 +130,22 @@ class SkillRouter
      * Mengembalikan array skill names yang aktif, misalnya:
      * ['accounting', 'inventory']
      *
-     * @param  string $message       Pesan dari user
-     * @param  array  $activeModules Daftar modul aktif tenant
-     * @return array<string>         Skill names yang terdeteksi
+     * @param  string  $message  Pesan dari user
+     * @param  array  $activeModules  Daftar modul aktif tenant
+     * @return array<string> Skill names yang terdeteksi
      *
      * Requirements: 8.1, 8.2, 8.6
      */
     public function detectSkills(string $message, array $activeModules): array
     {
         $skills = [];
-        $lower  = mb_strtolower($message);
+        $lower = mb_strtolower($message);
 
         // Deteksi skill dari keyword dalam pesan
         foreach (self::SKILL_KEYWORDS as $skill => $keywords) {
             foreach ($keywords as $keyword) {
                 if (str_contains($lower, $keyword)) {
-                    if (!in_array($skill, $skills, true)) {
+                    if (! in_array($skill, $skills, true)) {
                         $skills[] = $skill;
                     }
                     break; // Satu keyword cukup untuk mengaktifkan skill ini
@@ -150,7 +157,7 @@ class SkillRouter
         $normalizedModules = array_map('strtolower', $activeModules);
         foreach (self::INDUSTRY_MODULE_SKILL_MAP as $module => $industrySkill) {
             if (in_array($module, $normalizedModules, true)) {
-                if (!in_array($industrySkill, $skills, true)) {
+                if (! in_array($industrySkill, $skills, true)) {
                     $skills[] = $industrySkill;
                 }
             }
@@ -167,9 +174,9 @@ class SkillRouter
      * - HRM: regulasi ketenagakerjaan Indonesia (UMR, BPJS, PPh 21)
      * - Inventory: metode costing FIFO/Average dari konteks tenant
      *
-     * @param  array      $skills  Daftar skill yang aktif
-     * @param  ErpContext $context Konteks ERP tenant
-     * @return string              System prompt tambahan
+     * @param  array  $skills  Daftar skill yang aktif
+     * @param  ErpContext  $context  Konteks ERP tenant
+     * @return string System prompt tambahan
      *
      * Requirements: 8.2, 8.3, 8.4, 8.5
      */
@@ -196,15 +203,15 @@ class SkillRouter
     private function buildSingleSkillPrompt(string $skill, ErpContext $context): string
     {
         return match ($skill) {
-            self::SKILL_ACCOUNTING  => $this->buildAccountingPrompt($context),
-            self::SKILL_INVENTORY   => $this->buildInventoryPrompt($context),
-            self::SKILL_HRM         => $this->buildHrmPrompt($context),
-            self::SKILL_SALES       => $this->buildSalesPrompt($context),
-            self::SKILL_PROJECT     => $this->buildProjectPrompt($context),
-            self::SKILL_HEALTHCARE  => $this->buildHealthcarePrompt($context),
+            self::SKILL_ACCOUNTING => $this->buildAccountingPrompt($context),
+            self::SKILL_INVENTORY => $this->buildInventoryPrompt($context),
+            self::SKILL_HRM => $this->buildHrmPrompt($context),
+            self::SKILL_SALES => $this->buildSalesPrompt($context),
+            self::SKILL_PROJECT => $this->buildProjectPrompt($context),
+            self::SKILL_HEALTHCARE => $this->buildHealthcarePrompt($context),
             self::SKILL_MANUFACTURE => $this->buildManufacturePrompt($context),
-            self::SKILL_TELECOM     => $this->buildTelecomPrompt($context),
-            default                 => '',
+            self::SKILL_TELECOM => $this->buildTelecomPrompt($context),
+            default => '',
         };
     }
 
@@ -265,7 +272,7 @@ class SkillRouter
      */
     private function buildHrmPrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: HRM & Payroll]
         Gunakan regulasi ketenagakerjaan Indonesia yang berlaku:
         - UMR/UMK: Upah Minimum Regional/Kota sebagai batas minimum gaji
@@ -284,7 +291,7 @@ class SkillRouter
      */
     private function buildSalesPrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: Penjualan & CRM]
         Terminologi yang relevan:
         - Siklus penjualan: Prospek → Penawaran (Quotation) → Sales Order → Delivery Order → Invoice → Pembayaran
@@ -302,7 +309,7 @@ class SkillRouter
      */
     private function buildProjectPrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: Project Management]
         Terminologi yang relevan:
         - WBS (Work Breakdown Structure): dekomposisi pekerjaan proyek
@@ -323,7 +330,7 @@ class SkillRouter
      */
     private function buildHealthcarePrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: Healthcare]
         Terminologi dan regulasi yang relevan untuk industri kesehatan:
         - BPJS Kesehatan: klaim, kapitasi, INA-CBGs
@@ -343,7 +350,7 @@ class SkillRouter
      */
     private function buildManufacturePrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: Manufaktur]
         Terminologi yang relevan untuk industri manufaktur:
         - BOM (Bill of Materials): daftar bahan baku untuk satu unit produk
@@ -365,7 +372,7 @@ class SkillRouter
      */
     private function buildTelecomPrompt(ErpContext $context): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
         [SKILL: Telecom/ISP]
         Terminologi yang relevan untuk industri telekomunikasi/ISP:
         - Paket Internet: bandwidth, kuota, FUP (Fair Usage Policy)

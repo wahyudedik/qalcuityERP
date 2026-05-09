@@ -26,6 +26,7 @@ class CrmLeadConversionDuplicateTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -80,8 +81,8 @@ class CrmLeadConversionDuplicateTest extends TestCase
         $this->assertEquals(
             $customerCountBefore,
             $customerCountAfter,
-            "Bug 1.16: LeadConversionService membuat customer baru (duplikat) " .
-            "meskipun customer dengan email yang sama sudah ada. " .
+            'Bug 1.16: LeadConversionService membuat customer baru (duplikat) '.
+            'meskipun customer dengan email yang sama sudah ada. '.
             "Jumlah customer sebelum: {$customerCountBefore}, setelah: {$customerCountAfter}."
         );
 
@@ -90,7 +91,7 @@ class CrmLeadConversionDuplicateTest extends TestCase
             $this->assertEquals(
                 'linked',
                 $result['action'],
-                "Bug 1.16: Action seharusnya 'linked' (menggunakan customer existing), " .
+                "Bug 1.16: Action seharusnya 'linked' (menggunakan customer existing), ".
                 "bukan 'created' (membuat customer baru)."
             );
         }
@@ -131,8 +132,8 @@ class CrmLeadConversionDuplicateTest extends TestCase
         // Test ini AKAN GAGAL jika duplicate check tidak berfungsi
         $this->assertTrue(
             $duplicateCheck['has_duplicates'],
-            "Bug 1.16: checkForDuplicates() tidak mendeteksi duplikat " .
-            "meskipun ada customer dengan email yang sama."
+            'Bug 1.16: checkForDuplicates() tidak mendeteksi duplikat '.
+            'meskipun ada customer dengan email yang sama.'
         );
 
         // Assert: Duplikat yang ditemukan harus merujuk ke customer existing
@@ -141,7 +142,7 @@ class CrmLeadConversionDuplicateTest extends TestCase
             $this->assertContains(
                 $existingCustomer->id,
                 $foundCustomerIds,
-                "Bug 1.16: Duplikat yang terdeteksi tidak merujuk ke customer existing yang benar."
+                'Bug 1.16: Duplikat yang terdeteksi tidak merujuk ke customer existing yang benar.'
             );
         }
     }

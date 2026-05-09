@@ -13,7 +13,7 @@ class NewUserAddedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        public User   $newUser,
+        public User $newUser,
         public string $plainPassword
     ) {}
 
@@ -24,10 +24,10 @@ class NewUserAddedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $role = match($this->newUser->role) {
+        $role = match ($this->newUser->role) {
             'manager' => 'Manager',
-            'staff'   => 'Staff',
-            default   => ucfirst($this->newUser->role),
+            'staff' => 'Staff',
+            default => ucfirst($this->newUser->role),
         };
 
         return (new MailMessage)

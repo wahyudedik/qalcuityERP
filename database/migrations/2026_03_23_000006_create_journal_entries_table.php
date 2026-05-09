@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('journal_entries')) {
+        if (! Schema::hasTable('journal_entries')) {
             Schema::create('journal_entries', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -29,7 +29,7 @@ return new class extends Migration
                 $table->boolean('is_recurring')->default(false);
                 $table->unsignedBigInteger('recurring_journal_id')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'date']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['reference_type', 'reference_id']);
@@ -37,7 +37,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('journal_entry_lines')) {
+        if (! Schema::hasTable('journal_entry_lines')) {
             Schema::create('journal_entry_lines', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('journal_entry_id');
@@ -48,7 +48,7 @@ return new class extends Migration
                 $table->string('description')->nullable();
                 $table->unsignedBigInteger('cost_center_id')->nullable(); // department/branch
                 $table->timestamps();
-    
+
                 $table->index('journal_entry_id');
                 $table->index('account_id');
                 $table->foreign('journal_entry_id')->references('id')->on('journal_entries')->cascadeOnDelete();

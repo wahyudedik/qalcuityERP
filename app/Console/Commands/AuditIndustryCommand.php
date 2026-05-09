@@ -13,22 +13,23 @@ class AuditIndustryCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:industry {--module=} {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run industry-focused audit scoped by module.';
 
     public function handle(ControllerAnalyzer $controllerAnalyzer, ModelAnalyzer $modelAnalyzer): int
     {
         $module = strtolower((string) $this->option('module'));
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         foreach (array_merge($controllerAnalyzer->analyze(), $modelAnalyzer->analyze()) as $finding) {
-            if ($module !== '' && $finding->file !== null && !str_contains(strtolower($finding->file), $module)) {
+            if ($module !== '' && $finding->file !== null && ! str_contains(strtolower($finding->file), $module)) {
                 continue;
             }
             $report->add($finding);
         }
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

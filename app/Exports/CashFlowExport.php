@@ -3,19 +3,20 @@
 namespace App\Exports;
 
 use App\Services\FinancialStatementService;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class CashFlowExport implements WithMultipleSheets
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $from,
         protected string $to,
         protected string $tenantName = 'Qalcuity ERP',
@@ -24,14 +25,15 @@ class CashFlowExport implements WithMultipleSheets
     public function sheets(): array
     {
         $data = app(FinancialStatementService::class)->cashFlowStatement($this->tenantId, $this->from, $this->to);
+
         return [new CashFlowSheet($data, $this->from, $this->to, $this->tenantName)];
     }
 }
 
-class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class CashFlowSheet implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
     public function __construct(
-        protected array  $data,
+        protected array $data,
         protected string $from,
         protected string $to,
         protected string $tenantName,
@@ -39,14 +41,14 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
 
     public function array(): array
     {
-        $fmt = fn($n) => round((float) $n, 2);
+        $fmt = fn ($n) => round((float) $n, 2);
         $rows = [];
 
         $rows[] = [$this->tenantName];
         $rows[] = ['LAPORAN ARUS KAS (CASH FLOW STATEMENT)'];
         $rows[] = ['Metode Tidak Langsung (Indirect Method)'];
-        $rows[] = ['Periode: ' . \Carbon\Carbon::parse($this->from)->translatedFormat('d F Y') . ' s/d ' . \Carbon\Carbon::parse($this->to)->translatedFormat('d F Y')];
-        $rows[] = ['Rekonsiliasi: ' . ($this->data['reconciled'] ? 'OK ✓' : 'TIDAK OK ✗')];
+        $rows[] = ['Periode: '.Carbon::parse($this->from)->translatedFormat('d F Y').' s/d '.Carbon::parse($this->to)->translatedFormat('d F Y')];
+        $rows[] = ['Rekonsiliasi: '.($this->data['reconciled'] ? 'OK ✓' : 'TIDAK OK ✗')];
         $rows[] = [];
         $rows[] = ['KETERANGAN', 'JUMLAH (Rp)'];
 
@@ -58,7 +60,7 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
         $rows[] = ['I. ARUS KAS DARI AKTIVITAS OPERASI', ''];
         $rows[] = ['  Laba/Rugi Bersih', $fmt($this->data['operating']['net_income'])];
         foreach ($this->data['operating']['wc_adjustments'] as $item) {
-            $rows[] = ['    ' . $item['label'], $fmt($item['amount'])];
+            $rows[] = ['    '.$item['label'], $fmt($item['amount'])];
         }
         $rows[] = ['  Arus Kas Bersih dari Operasi', $fmt($this->data['operating']['total'])];
         $rows[] = [];
@@ -69,7 +71,7 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
             $rows[] = ['  Tidak ada aktivitas investasi', 0];
         } else {
             foreach ($this->data['investing']['items'] as $item) {
-                $rows[] = ['  ' . $item['label'], $fmt($item['amount'])];
+                $rows[] = ['  '.$item['label'], $fmt($item['amount'])];
             }
         }
         $rows[] = ['  Arus Kas Bersih dari Investasi', $fmt($this->data['investing']['total'])];
@@ -81,7 +83,7 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
             $rows[] = ['  Tidak ada aktivitas pendanaan', 0];
         } else {
             foreach ($this->data['financing']['items'] as $item) {
-                $rows[] = ['  ' . $item['label'], $fmt($item['amount'])];
+                $rows[] = ['  '.$item['label'], $fmt($item['amount'])];
             }
         }
         $rows[] = ['  Arus Kas Bersih dari Pendanaan', $fmt($this->data['financing']['total'])];
@@ -95,7 +97,10 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
         return $rows;
     }
 
-    public function title(): string { return 'Arus Kas'; }
+    public function title(): string
+    {
+        return 'Arus Kas';
+    }
 
     public function columnWidths(): array
     {
@@ -110,6 +115,7 @@ class CashFlowSheet implements FromArray, WithTitle, WithStyles, WithColumnWidth
         $sheet->getStyle('A7:B7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1E40AF');
         $sheet->getStyle('A7:B7')->getFont()->getColor()->setRGB('FFFFFF');
         $sheet->getStyle('B7:B200')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
         return [];
     }
 }

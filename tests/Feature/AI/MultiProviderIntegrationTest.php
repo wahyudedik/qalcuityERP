@@ -6,9 +6,9 @@ use App\Exceptions\AllProvidersUnavailableException;
 use App\Exceptions\RateLimitException;
 use App\Models\AiProviderSwitchLog;
 use App\Services\AI\AiProviderRouter;
-use App\Services\AI\ProviderSwitcher;
 use App\Services\AI\Providers\AnthropicProvider;
 use App\Services\AI\Providers\GeminiProvider;
+use App\Services\AI\ProviderSwitcher;
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Config;
@@ -19,8 +19,11 @@ use Tests\TestCase;
 class MultiProviderIntegrationTest extends TestCase
 {
     private GeminiProvider $geminiMock;
+
     private AnthropicProvider $anthropicMock;
+
     private ProviderSwitcher $switcher;
+
     private AiProviderRouter $router;
 
     protected function setUp(): void
@@ -35,7 +38,7 @@ class MultiProviderIntegrationTest extends TestCase
         Config::set('ai.providers.anthropic.api_key', 'fake-key');
         Config::set('ai.providers.anthropic.rate_limit_cooldown', 60);
 
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
         $this->switcher = new ProviderSwitcher($cache);
 
         $this->geminiMock = Mockery::mock(GeminiProvider::class);
@@ -87,7 +90,7 @@ class MultiProviderIntegrationTest extends TestCase
     public function switch_log_created_when_fallback_occurs(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         $this->actingAs($user);
 
         $this->router->withTenantId($tenant->id);
@@ -105,10 +108,10 @@ class MultiProviderIntegrationTest extends TestCase
         $this->router->generate('Test prompt');
 
         $this->assertDatabaseHas('ai_provider_switch_logs', [
-            'tenant_id'     => $tenant->id,
+            'tenant_id' => $tenant->id,
             'from_provider' => 'gemini',
-            'to_provider'   => 'anthropic',
-            'reason'        => 'rate_limit',
+            'to_provider' => 'anthropic',
+            'reason' => 'rate_limit',
         ]);
     }
 
@@ -136,7 +139,7 @@ class MultiProviderIntegrationTest extends TestCase
     public function switch_log_contains_correct_from_to_and_reason(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         $this->actingAs($user);
 
         $this->router->withTenantId($tenant->id);

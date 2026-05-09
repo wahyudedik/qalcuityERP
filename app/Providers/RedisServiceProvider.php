@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Services\RedisHealthService;
 use App\Services\RedisConfigurationService;
-use Illuminate\Support\ServiceProvider;
+use App\Services\RedisHealthService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Redis Service Provider
@@ -22,11 +22,11 @@ class RedisServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(RedisHealthService::class, function ($app) {
-            return new RedisHealthService();
+            return new RedisHealthService;
         });
 
         $this->app->singleton(RedisConfigurationService::class, function ($app) {
-            return new RedisConfigurationService();
+            return new RedisConfigurationService;
         });
     }
 
@@ -36,15 +36,13 @@ class RedisServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Only perform Redis validation and fallback logic in non-testing environments
-        if (!$this->app->environment('testing')) {
+        if (! $this->app->environment('testing')) {
             $this->configureRedisFallback();
         }
     }
 
     /**
      * Configure Redis fallback mechanisms
-     *
-     * @return void
      */
     private function configureRedisFallback(): void
     {
@@ -53,8 +51,9 @@ class RedisServiceProvider extends ServiceProvider
             $redisConfig = $this->app->make(RedisConfigurationService::class);
             $isRedisAvailable = $redisConfig->validateAndConfigureFallback();
 
-            if (!$isRedisAvailable) {
+            if (! $isRedisAvailable) {
                 Log::info('Redis configuration service activated database fallback');
+
                 return;
             }
 
@@ -64,8 +63,9 @@ class RedisServiceProvider extends ServiceProvider
             // Validate Redis configuration
             $isConfigValid = $redisHealth->validateConfiguration();
 
-            if (!$isConfigValid) {
+            if (! $isConfigValid) {
                 $this->enableDatabaseFallback();
+
                 return;
             }
 
@@ -79,7 +79,7 @@ class RedisServiceProvider extends ServiceProvider
                         'cache' => 'database',
                         'session' => 'database',
                         'queue' => 'database',
-                    ]
+                    ],
                 ]);
             }
         } catch (\Exception $e) {
@@ -95,8 +95,6 @@ class RedisServiceProvider extends ServiceProvider
 
     /**
      * Enable database fallback for cache, session, and queue drivers
-     *
-     * @return void
      */
     private function enableDatabaseFallback(): void
     {
@@ -127,19 +125,17 @@ class RedisServiceProvider extends ServiceProvider
 
     /**
      * Ensure failover cache store is properly configured
-     *
-     * @return void
      */
     private function ensureFailoverCacheStore(): void
     {
         $failoverStores = config('cache.stores.failover.stores', []);
 
         // Ensure database and array stores are in failover configuration
-        if (!in_array('database', $failoverStores)) {
+        if (! in_array('database', $failoverStores)) {
             $failoverStores[] = 'database';
         }
 
-        if (!in_array('array', $failoverStores)) {
+        if (! in_array('array', $failoverStores)) {
             $failoverStores[] = 'array';
         }
 

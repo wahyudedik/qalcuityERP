@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Patient extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'medical_record_number',
@@ -95,10 +95,10 @@ class Patient extends Model
     public static function generateMedicalRecordNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'MR-' . $date;
+        $prefix = 'MR-'.$date;
 
         // Get the last number for today
-        $lastPatient = static::where('medical_record_number', 'like', $prefix . '%')
+        $lastPatient = static::where('medical_record_number', 'like', $prefix.'%')
             ->orderBy('medical_record_number', 'desc')
             ->first();
 
@@ -109,7 +109,7 @@ class Patient extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -119,7 +119,7 @@ class Patient extends Model
     {
         $parts = array_filter([
             $this->address_street,
-            'RT ' . $this->address_rt . '/RW ' . $this->address_rw,
+            'RT '.$this->address_rt.'/RW '.$this->address_rw,
             $this->address_kelurahan,
             $this->address_kecamatan,
             $this->address_city,
@@ -143,7 +143,7 @@ class Patient extends Model
      */
     public function getBloodTypeFormattedAttribute()
     {
-        if (!$this->blood_type) {
+        if (! $this->blood_type) {
             return 'Unknown';
         }
 
@@ -155,7 +155,8 @@ class Patient extends Model
         ];
 
         $emoji = $emojis[$this->blood_type] ?? '';
-        return $emoji . ' ' . $this->blood_type;
+
+        return $emoji.' '.$this->blood_type;
     }
 
     /**
@@ -163,7 +164,7 @@ class Patient extends Model
      */
     public function hasAllergies()
     {
-        return !empty($this->known_allergies) && count($this->known_allergies) > 0;
+        return ! empty($this->known_allergies) && count($this->known_allergies) > 0;
     }
 
     /**
@@ -171,7 +172,7 @@ class Patient extends Model
      */
     public function hasChronicDiseases()
     {
-        return !empty($this->chronic_diseases) && count($this->chronic_diseases) > 0;
+        return ! empty($this->chronic_diseases) && count($this->chronic_diseases) > 0;
     }
 
     /**
@@ -179,7 +180,7 @@ class Patient extends Model
      */
     public function getInsuranceStatusAttribute()
     {
-        if (!$this->insurance_provider) {
+        if (! $this->insurance_provider) {
             return 'uninsured';
         }
 

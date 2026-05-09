@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AccountingPeriod;
 use App\Models\JournalEntry;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class JournalService
 {
@@ -11,8 +12,9 @@ class JournalService
      * Buat jurnal entry baru dengan validasi status accounting period.
      *
      * @param  array  $data  Harus mengandung 'tenant_id' dan 'date'.
-     * @throws \DomainException  Jika periode dalam status locked atau closed.
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException  Jika periode tidak ditemukan.
+     *
+     * @throws \DomainException Jika periode dalam status locked atau closed.
+     * @throws ModelNotFoundException Jika periode tidak ditemukan.
      */
     public function createJournalEntry(array $data): JournalEntry
     {

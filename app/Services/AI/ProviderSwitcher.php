@@ -51,18 +51,18 @@ class ProviderSwitcher
         $now = Carbon::now();
 
         $entry = [
-            'reason'     => $reason,
-            'marked_at'  => $now->toIso8601String(),
+            'reason' => $reason,
+            'marked_at' => $now->toIso8601String(),
             'expires_at' => $now->copy()->addSeconds($cooldown)->toIso8601String(),
         ];
 
         try {
-            $this->cache->put(self::UNAVAILABLE_PREFIX . $provider, $entry, $cooldown);
+            $this->cache->put(self::UNAVAILABLE_PREFIX.$provider, $entry, $cooldown);
         } catch (\Throwable $e) {
             Log::warning('ProviderSwitcher: cache unavailable in markProviderUnavailable, using in-memory fallback.', [
                 'provider' => $provider,
-                'reason'   => $reason,
-                'error'    => $e->getMessage(),
+                'reason' => $reason,
+                'error' => $e->getMessage(),
             ]);
             $this->inMemoryState['unavailable'][$provider] = $entry;
         }
@@ -90,9 +90,8 @@ class ProviderSwitcher
      * Throws AllProvidersUnavailableException and dispatches AllModelsUnavailable event
      * if all providers are in cooldown.
      *
-     * @param  array<string>      $fallbackOrder     Ordered list of provider names, e.g. ['gemini', 'anthropic']
-     * @param  array<string, AiProvider> $providerInstances Map of provider name → AiProvider instance
-     * @return AiProvider
+     * @param  array<string>  $fallbackOrder  Ordered list of provider names, e.g. ['gemini', 'anthropic']
+     * @param  array<string, AiProvider>  $providerInstances  Map of provider name → AiProvider instance
      *
      * @throws AllProvidersUnavailableException
      *
@@ -106,12 +105,12 @@ class ProviderSwitcher
             // Single mode: only use the first provider, no fallback
             $primaryName = $fallbackOrder[0] ?? null;
 
-            if ($primaryName === null || !isset($providerInstances[$primaryName])) {
+            if ($primaryName === null || ! isset($providerInstances[$primaryName])) {
                 $this->dispatchAllUnavailableEvent($fallbackOrder);
                 throw new AllProvidersUnavailableException($fallbackOrder);
             }
 
-            if (!$this->isProviderAvailable($primaryName)) {
+            if (! $this->isProviderAvailable($primaryName)) {
                 $this->dispatchAllUnavailableEvent([$primaryName]);
                 throw new AllProvidersUnavailableException([$primaryName]);
             }
@@ -123,11 +122,12 @@ class ProviderSwitcher
         $unavailableProviders = [];
 
         foreach ($fallbackOrder as $providerName) {
-            if (!isset($providerInstances[$providerName])) {
+            if (! isset($providerInstances[$providerName])) {
                 // Provider instance not registered — skip silently
                 Log::debug('ProviderSwitcher: provider instance not found, skipping.', [
                     'provider' => $providerName,
                 ]);
+
                 continue;
             }
 
@@ -159,16 +159,16 @@ class ProviderSwitcher
 
             if ($entry === null) {
                 $result[] = [
-                    'provider'    => $provider,
-                    'available'   => true,
-                    'reason'      => null,
+                    'provider' => $provider,
+                    'available' => true,
+                    'reason' => null,
                     'recovers_at' => null,
                 ];
             } else {
                 $result[] = [
-                    'provider'    => $provider,
-                    'available'   => false,
-                    'reason'      => $entry['reason'],
+                    'provider' => $provider,
+                    'available' => false,
+                    'reason' => $entry['reason'],
                     'recovers_at' => Carbon::parse($entry['expires_at']),
                 ];
             }
@@ -183,11 +183,11 @@ class ProviderSwitcher
     public function resetProvider(string $provider): void
     {
         try {
-            $this->cache->forget(self::UNAVAILABLE_PREFIX . $provider);
+            $this->cache->forget(self::UNAVAILABLE_PREFIX.$provider);
         } catch (\Throwable $e) {
             Log::warning('ProviderSwitcher: cache unavailable in resetProvider.', [
                 'provider' => $provider,
-                'error'    => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
 
@@ -215,12 +215,12 @@ class ProviderSwitcher
     private function getUnavailableEntry(string $provider): ?array
     {
         try {
-            $entry = $this->cache->get(self::UNAVAILABLE_PREFIX . $provider);
+            $entry = $this->cache->get(self::UNAVAILABLE_PREFIX.$provider);
         } catch (\Throwable) {
             $entry = $this->inMemoryState['unavailable'][$provider] ?? null;
         }
 
-        if (!is_array($entry)) {
+        if (! is_array($entry)) {
             return null;
         }
 
@@ -228,6 +228,7 @@ class ProviderSwitcher
         if (isset($entry['expires_at']) && Carbon::now()->isAfter(Carbon::parse($entry['expires_at']))) {
             // Expired — clean up in-memory state if present
             unset($this->inMemoryState['unavailable'][$provider]);
+
             return null;
         }
 
@@ -246,7 +247,7 @@ class ProviderSwitcher
     {
         return match ($reason) {
             'quota_exceeded' => (int) config("ai.providers.{$provider}.quota_cooldown", 3600),
-            default          => (int) config("ai.providers.{$provider}.rate_limit_cooldown", 60),
+            default => (int) config("ai.providers.{$provider}.rate_limit_cooldown", 60),
         };
     }
 
@@ -262,7 +263,7 @@ class ProviderSwitcher
             AllModelsUnavailable::dispatch($unavailableProviders);
         } catch (\Throwable $e) {
             Log::error('ProviderSwitcher: failed to dispatch AllModelsUnavailable event.', [
-                'error'               => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'unavailable_providers' => $unavailableProviders,
             ]);
         }

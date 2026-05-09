@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChannelSalesPerformance extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -39,6 +38,7 @@ use HasFactory, BelongsToTenant;
     public function calculateNetRevenue(): float
     {
         $this->net_revenue = $this->total_sales - $this->total_discount - $this->total_commission;
+
         return $this->net_revenue;
     }
 
@@ -48,6 +48,7 @@ use HasFactory, BelongsToTenant;
         if ($this->order_count <= 0) {
             return 0;
         }
+
         return round($this->total_sales / $this->order_count, 2);
     }
 

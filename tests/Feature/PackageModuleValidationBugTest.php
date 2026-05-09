@@ -31,6 +31,7 @@ use Tests\TestCase;
 class PackageModuleValidationBugTest extends TestCase
 {
     private Tenant $tenant;
+
     private User $adminUser;
 
     protected function setUp(): void
@@ -62,10 +63,10 @@ class PackageModuleValidationBugTest extends TestCase
     public function test_starter_plan_cannot_activate_manufacturing_module(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'starter',
+            'plan' => 'starter',
             'enabled_modules' => ['pos'], // start with just pos to avoid cleanup service issues
         ]);
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $this->actingAs($user);
 
@@ -83,8 +84,8 @@ class PackageModuleValidationBugTest extends TestCase
         $this->assertNotContains(
             'manufacturing',
             $tenant->enabled_modules ?? [],
-            "Bug 1.1: Tenant with starter plan should NOT be able to activate manufacturing module. " .
-            "Counterexample: enabled_modules=" . json_encode($tenant->enabled_modules) .
+            'Bug 1.1: Tenant with starter plan should NOT be able to activate manufacturing module. '.
+            'Counterexample: enabled_modules='.json_encode($tenant->enabled_modules).
             " contains 'manufacturing' which is not allowed for starter plan."
         );
 
@@ -92,8 +93,8 @@ class PackageModuleValidationBugTest extends TestCase
         $this->assertNotEquals(
             302,
             $response->getStatusCode(),
-            "Bug 1.1: PUT /settings/modules with manufacturing should NOT succeed (302 redirect). " .
-            "Expected HTTP 422 validation error. Got: " . $response->getStatusCode()
+            'Bug 1.1: PUT /settings/modules with manufacturing should NOT succeed (302 redirect). '.
+            'Expected HTTP 422 validation error. Got: '.$response->getStatusCode()
         );
     }
 
@@ -123,18 +124,18 @@ class PackageModuleValidationBugTest extends TestCase
     {
         // Create a tenant with professional plan and advanced modules
         $tenant = $this->createTenant([
-            'plan'            => 'professional',
+            'plan' => 'professional',
             'enabled_modules' => ['pos', 'fleet', 'wms'],
         ]);
 
         // Create a super-admin user (no tenant_id needed for super_admin)
         $superAdmin = User::create([
-            'tenant_id'         => $tenant->id, // super_admin still needs a tenant_id in this app
-            'name'              => 'Super Admin Test',
-            'email'             => 'superadmin-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'super_admin',
-            'is_active'         => true,
+            'tenant_id' => $tenant->id, // super_admin still needs a tenant_id in this app
+            'name' => 'Super Admin Test',
+            'email' => 'superadmin-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
 
@@ -156,16 +157,16 @@ class PackageModuleValidationBugTest extends TestCase
         $this->assertNotContains(
             'fleet',
             $tenant->enabled_modules ?? [],
-            "Bug 1.2: After downgrade to starter, 'fleet' should be removed from enabled_modules. " .
-            "Counterexample: enabled_modules=" . json_encode($tenant->enabled_modules) .
+            "Bug 1.2: After downgrade to starter, 'fleet' should be removed from enabled_modules. ".
+            'Counterexample: enabled_modules='.json_encode($tenant->enabled_modules).
             " still contains 'fleet' which is not allowed for starter plan."
         );
 
         $this->assertNotContains(
             'wms',
             $tenant->enabled_modules ?? [],
-            "Bug 1.2: After downgrade to starter, 'wms' should be removed from enabled_modules. " .
-            "Counterexample: enabled_modules=" . json_encode($tenant->enabled_modules) .
+            "Bug 1.2: After downgrade to starter, 'wms' should be removed from enabled_modules. ".
+            'Counterexample: enabled_modules='.json_encode($tenant->enabled_modules).
             " still contains 'wms' which is not allowed for starter plan."
         );
 
@@ -202,7 +203,7 @@ class PackageModuleValidationBugTest extends TestCase
     public function test_starter_plan_cannot_access_fleet_route(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'starter',
+            'plan' => 'starter',
             'enabled_modules' => ['pos', 'inventory'],
         ]);
         $user = $this->createAdminUser($tenant);
@@ -223,9 +224,9 @@ class PackageModuleValidationBugTest extends TestCase
             str_contains($responseContent, 'paket') ||
             str_contains($responseContent, 'plan') ||
             $response->isClientError(),
-            "Bug 1.3: Accessing /fleet with starter plan should return 403 with upgrade message. " .
-            "Counterexample: GET /fleet with starter plan returned HTTP " . $response->getStatusCode() .
-            " — no plan-level middleware blocks access."
+            'Bug 1.3: Accessing /fleet with starter plan should return 403 with upgrade message. '.
+            'Counterexample: GET /fleet with starter plan returned HTTP '.$response->getStatusCode().
+            ' — no plan-level middleware blocks access.'
         );
     }
 
@@ -254,12 +255,12 @@ class PackageModuleValidationBugTest extends TestCase
         $tenant = $this->createTenant(['plan' => 'professional']);
 
         $superAdmin = User::create([
-            'tenant_id'         => $tenant->id,
-            'name'              => 'Super Admin Test',
-            'email'             => 'superadmin-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'super_admin',
-            'is_active'         => true,
+            'tenant_id' => $tenant->id,
+            'name' => 'Super Admin Test',
+            'email' => 'superadmin-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
 
@@ -276,8 +277,8 @@ class PackageModuleValidationBugTest extends TestCase
         $this->assertNotEquals(
             422,
             $response->getStatusCode(),
-            "Bug 1.4: Updating plan to 'starter' should be accepted. " .
-            "Counterexample: PATCH plan='starter' → HTTP 422 because validation rule uses " .
+            "Bug 1.4: Updating plan to 'starter' should be accepted. ".
+            "Counterexample: PATCH plan='starter' → HTTP 422 because validation rule uses ".
             "legacy slugs 'in:trial,basic,pro,enterprise' which does not include 'starter'."
         );
 
@@ -296,8 +297,8 @@ class PackageModuleValidationBugTest extends TestCase
         $this->assertContains(
             $tenant->plan,
             ['starter', 'business'],
-            "Bug 1.4: Tenant plan should have been updated to 'starter' or 'business'. " .
-            "Got: " . $tenant->plan
+            "Bug 1.4: Tenant plan should have been updated to 'starter' or 'business'. ".
+            'Got: '.$tenant->plan
         );
     }
 }

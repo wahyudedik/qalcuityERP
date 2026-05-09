@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierRfqResponse extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -26,7 +25,7 @@ use HasFactory, BelongsToTenant;
         'status',
         'submitted_at',
         'accepted_at',
-        'accepted_by'
+        'accepted_by',
     ];
 
     protected $casts = [
@@ -40,14 +39,17 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function rfq(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequisition::class, 'rfq_id');
     }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
+
     public function acceptedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'accepted_by');

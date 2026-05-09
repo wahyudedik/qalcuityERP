@@ -111,7 +111,7 @@ class LocationHistory extends Model
             ->orderBy('recorded_at', 'desc')
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return null;
         }
 
@@ -142,7 +142,7 @@ class LocationHistory extends Model
             ->orderBy('recorded_at', 'desc')
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return null;
         }
 

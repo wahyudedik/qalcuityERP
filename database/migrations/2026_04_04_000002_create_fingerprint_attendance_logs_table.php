@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('fingerprint_attendance_logs')) {
+        if (! Schema::hasTable('fingerprint_attendance_logs')) {
             Schema::create('fingerprint_attendance_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -24,7 +25,7 @@ return new class extends Migration {
                 $table->string('raw_data')->nullable(); // Data mentah dari perangkat (JSON)
                 $table->text('error_message')->nullable(); // Pesan error jika ada
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'employee_uid']);
                 $table->index(['tenant_id', 'scan_time']);
                 $table->index(['device_id', 'scan_time']);

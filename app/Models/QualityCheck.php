@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class QualityCheck extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'work_order_id',
@@ -40,10 +41,10 @@ class QualityCheck extends Model
         parent::boot();
 
         static::creating(function ($check) {
-            if (!$check->check_number) {
-                $check->check_number = 'QC-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            if (! $check->check_number) {
+                $check->check_number = 'QC-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
-            if (!$check->inspector_id) {
+            if (! $check->inspector_id) {
                 $check->inspector_id = Auth::id();
             }
         });
@@ -95,7 +96,7 @@ class QualityCheck extends Model
         }
     }
 
-    public function fail(string $correctiveAction = null)
+    public function fail(?string $correctiveAction = null)
     {
         $this->update([
             'status' => 'failed',
@@ -112,7 +113,7 @@ class QualityCheck extends Model
         }
     }
 
-    public function conditionalPass(string $notes = null)
+    public function conditionalPass(?string $notes = null)
     {
         $this->update([
             'status' => 'conditional_pass',
@@ -126,6 +127,7 @@ class QualityCheck extends Model
         if ($this->sample_size == 0) {
             return 0;
         }
+
         return ($this->sample_passed / $this->sample_size) * 100;
     }
 
@@ -134,6 +136,7 @@ class QualityCheck extends Model
         if ($this->sample_size == 0) {
             return 0;
         }
+
         return ($this->sample_failed / $this->sample_size) * 100;
     }
 }

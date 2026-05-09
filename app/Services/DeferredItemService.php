@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\AccountingPeriod;
-use App\Models\ChartOfAccount;
 use App\Models\DeferredItem;
 use App\Models\DeferredItemSchedule;
 use App\Models\JournalEntry;
@@ -95,8 +94,7 @@ class DeferredItemService
 
         $pendingSchedules = DeferredItemSchedule::whereHas(
             'deferredItem',
-            fn($q) =>
-            $q->where('tenant_id', $tenantId)->where('status', 'active')
+            fn ($q) => $q->where('tenant_id', $tenantId)->where('status', 'active')
         )
             ->where('status', 'pending')
             ->where('recognition_date', '<=', today()->toDateString())
@@ -117,8 +115,9 @@ class DeferredItemService
      */
     public function postSchedule(DeferredItemSchedule $schedule, int $userId): bool
     {
-        if ($schedule->isPosted())
+        if ($schedule->isPosted()) {
             return false;
+        }
 
         $item = $schedule->deferredItem;
 
@@ -128,7 +127,7 @@ class DeferredItemService
                 $amount = (float) $schedule->amount;
 
                 // BUG-FIN-002 FIX: Check period lock before creating journal
-                $periodLockService = app(\App\Services\PeriodLockService::class);
+                $periodLockService = app(PeriodLockService::class);
                 if ($periodLockService->isLocked($item->tenant_id, $date)) {
                     $lockInfo = $periodLockService->getLockInfo($item->tenant_id, $date);
                     throw new \RuntimeException(
@@ -205,7 +204,8 @@ class DeferredItemService
 
             return true;
         } catch (\Throwable $e) {
-            Log::error("DeferredItemService::postSchedule failed for schedule {$schedule->id}: " . $e->getMessage());
+            Log::error("DeferredItemService::postSchedule failed for schedule {$schedule->id}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -213,6 +213,7 @@ class DeferredItemService
     private function generateNumber(int $tenantId, string $type): string
     {
         $prefix = $type === 'deferred_revenue' ? 'DR' : 'PE';
-        return app(DocumentNumberService::class)->generate($tenantId, 'deferred_' . $type, $prefix);
+
+        return app(DocumentNumberService::class)->generate($tenantId, 'deferred_'.$type, $prefix);
     }
 }

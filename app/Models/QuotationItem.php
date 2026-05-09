@@ -14,6 +14,13 @@ class QuotationItem extends Model
         return ['price' => 'decimal:2', 'discount' => 'decimal:2', 'total' => 'decimal:2'];
     }
 
-    public function quotation(): BelongsTo { return $this->belongsTo(Quotation::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

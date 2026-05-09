@@ -255,6 +255,7 @@ class GroupBookingController extends Controller
             }),
         ]);
     }
+
     /**
      * Show the form for editing.
      * Route: hotel/group-bookings/{group_booking}/edit
@@ -265,6 +266,7 @@ class GroupBookingController extends Controller
 
         return view('hotel.group-booking.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: hotel/group-bookings/{group_booking}
@@ -282,6 +284,7 @@ class GroupBookingController extends Controller
         return redirect()->route('hotel.group-bookings.update')
             ->with('success', 'Updated successfully.');
     }
+
     /**
      * Remove the specified resource.
      * Route: hotel/group-bookings/{group_booking}
@@ -381,7 +384,7 @@ class GroupBookingController extends Controller
             );
 
             return redirect()->route('hotel.group-bookings.billing', $groupBooking)
-                ->with('success', "Payment of Rp " . number_format($data['amount'], 0, ',', '.') . " processed successfully.");
+                ->with('success', 'Payment of Rp '.number_format($data['amount'], 0, ',', '.').' processed successfully.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }

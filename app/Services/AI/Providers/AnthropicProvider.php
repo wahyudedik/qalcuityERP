@@ -20,25 +20,32 @@ use Illuminate\Support\Facades\Log;
 class AnthropicProvider implements AiProvider
 {
     protected Client $client;
+
     protected string $activeModel;
+
     protected array $fallbackModels;
+
     protected int $maxTokens;
+
     protected int $timeout;
+
     protected ?string $tenantContext = null;
+
     protected string $language = 'id';
 
     protected const API_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+
     protected const ANTHROPIC_VERSION = '2023-06-01';
 
     public function __construct()
     {
-        $this->activeModel   = config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022');
+        $this->activeModel = config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022');
         $this->fallbackModels = config('ai.providers.anthropic.fallback_models', [
             'claude-3-5-sonnet-20241022',
             'claude-3-haiku-20240307',
         ]);
         $this->maxTokens = (int) config('ai.providers.anthropic.max_tokens', 8192);
-        $this->timeout   = (int) config('ai.providers.anthropic.timeout', 60);
+        $this->timeout = (int) config('ai.providers.anthropic.timeout', 60);
 
         $this->client = new Client([
             'timeout' => $this->timeout,
@@ -63,7 +70,7 @@ class AnthropicProvider implements AiProvider
      */
     public function isAvailable(): bool
     {
-        return !empty(config('ai.providers.anthropic.api_key'));
+        return ! empty(config('ai.providers.anthropic.api_key'));
     }
 
     /**
@@ -73,6 +80,7 @@ class AnthropicProvider implements AiProvider
     public function withTenantContext(string $context): static
     {
         $this->tenantContext = $context;
+
         return $this;
     }
 
@@ -83,6 +91,7 @@ class AnthropicProvider implements AiProvider
     public function withLanguage(string $language): static
     {
         $this->language = $language;
+
         return $this;
     }
 
@@ -98,6 +107,7 @@ class AnthropicProvider implements AiProvider
 
         return $this->runWithFallback(function (string $model) use ($messages, $options) {
             $response = $this->sendRequest($model, $messages, $options);
+
             return $this->extractText($response);
         });
     }
@@ -113,6 +123,7 @@ class AnthropicProvider implements AiProvider
 
         return $this->runWithFallback(function (string $model) use ($messages, $options) {
             $response = $this->sendRequest($model, $messages, $options);
+
             return $this->extractText($response);
         });
     }
@@ -134,13 +145,13 @@ class AnthropicProvider implements AiProvider
             $mimeType = $file['mime_type'] ?? 'image/jpeg';
             $imageData = $file['data'] ?? '';
 
-            if (!empty($imageData)) {
+            if (! empty($imageData)) {
                 $contentParts[] = [
-                    'type'   => 'image',
+                    'type' => 'image',
                     'source' => [
-                        'type'       => 'base64',
+                        'type' => 'base64',
                         'media_type' => $mimeType,
-                        'data'       => $imageData,
+                        'data' => $imageData,
                     ],
                 ];
             }
@@ -153,12 +164,13 @@ class AnthropicProvider implements AiProvider
         ];
 
         $messages[] = [
-            'role'    => 'user',
+            'role' => 'user',
             'content' => $contentParts,
         ];
 
         return $this->runWithFallback(function (string $model) use ($messages, $options) {
             $response = $this->sendRequest($model, $messages, $options);
+
             return $this->extractText($response);
         });
     }
@@ -172,14 +184,14 @@ class AnthropicProvider implements AiProvider
     {
         $messages = [
             [
-                'role'    => 'user',
+                'role' => 'user',
                 'content' => [
                     [
-                        'type'   => 'image',
+                        'type' => 'image',
                         'source' => [
-                            'type'       => 'base64',
+                            'type' => 'base64',
                             'media_type' => $mimeType,
-                            'data'       => $imageData,
+                            'data' => $imageData,
                         ],
                     ],
                     [
@@ -192,6 +204,7 @@ class AnthropicProvider implements AiProvider
 
         return $this->runWithFallback(function (string $model) use ($messages) {
             $response = $this->sendRequest($model, $messages);
+
             return $this->extractText($response);
         });
     }
@@ -253,20 +266,17 @@ PROMPT;
      * Kirim request ke Anthropic Messages API.
      * Requirements: 10.1, 10.2, 10.3, 10.4
      *
-     * @param  string  $model
-     * @param  array   $messages
-     * @param  array   $options
-     * @return array   Decoded JSON response body
+     * @return array Decoded JSON response body
      */
     protected function sendRequest(string $model, array $messages, array $options = []): array
     {
         $apiKey = config('ai.providers.anthropic.api_key');
 
         $payload = [
-            'model'      => $model,
+            'model' => $model,
             'max_tokens' => $options['max_tokens'] ?? $this->maxTokens,
-            'system'     => $this->getSystemPrompt(),
-            'messages'   => $messages,
+            'system' => $this->getSystemPrompt(),
+            'messages' => $messages,
         ];
 
         if (isset($options['temperature'])) {
@@ -277,8 +287,8 @@ PROMPT;
             $response = $this->client->post(self::API_ENDPOINT, [
                 'headers' => [
                     'anthropic-version' => self::ANTHROPIC_VERSION,
-                    'x-api-key'         => $apiKey,
-                    'content-type'      => 'application/json',
+                    'x-api-key' => $apiKey,
+                    'content-type' => 'application/json',
                 ],
                 'json' => $payload,
             ]);
@@ -290,12 +300,12 @@ PROMPT;
             $this->handleServerException($e);
         } catch (\Throwable $e) {
             Log::error('AnthropicProvider: unexpected error', [
-                'model'   => $model,
+                'model' => $model,
                 'message' => $e->getMessage(),
-                'code'    => $e->getCode(),
+                'code' => $e->getCode(),
             ]);
             throw new \RuntimeException(
-                'Gagal terhubung ke Anthropic API: ' . $e->getMessage(),
+                'Gagal terhubung ke Anthropic API: '.$e->getMessage(),
                 503
             );
         }
@@ -307,8 +317,8 @@ PROMPT;
      * Tangani ClientException (4xx) dari Guzzle.
      * Requirements: 2.4, 2.5
      *
-     * @throws RateLimitException  untuk HTTP 429, 529
-     * @throws \RuntimeException   untuk HTTP 401, 403
+     * @throws RateLimitException untuk HTTP 429, 529
+     * @throws \RuntimeException untuk HTTP 401, 403
      */
     protected function handleClientException(ClientException $e): never
     {
@@ -341,7 +351,7 @@ PROMPT;
             'message' => $e->getMessage(),
         ]);
         throw new \RuntimeException(
-            "Anthropic API mengembalikan error {$statusCode}: " . $e->getMessage(),
+            "Anthropic API mengembalikan error {$statusCode}: ".$e->getMessage(),
             $statusCode,
             $e
         );
@@ -351,8 +361,8 @@ PROMPT;
      * Tangani ServerException (5xx) dari Guzzle.
      * Requirements: 2.6
      *
-     * @throws RateLimitException  untuk HTTP 529 (jika Guzzle mengklasifikasikannya sebagai 5xx)
-     * @throws \RuntimeException   untuk HTTP 500, 503
+     * @throws RateLimitException untuk HTTP 529 (jika Guzzle mengklasifikasikannya sebagai 5xx)
+     * @throws \RuntimeException untuk HTTP 500, 503
      */
     protected function handleServerException(ServerException $e): never
     {
@@ -385,7 +395,6 @@ PROMPT;
      * Ekstrak teks dari response Anthropic API.
      *
      * @param  array  $response  Decoded JSON response
-     * @return string
      */
     protected function extractText(array $response): string
     {
@@ -413,7 +422,7 @@ PROMPT;
      * Requirements: 10.5
      *
      * @param  array  $history  History dalam format Gemini
-     * @return array  Messages dalam format Anthropic
+     * @return array Messages dalam format Anthropic
      */
     protected function convertHistory(array $history): array
     {
@@ -429,7 +438,7 @@ PROMPT;
             $role = $entry['role'] === 'model' ? 'assistant' : 'user';
 
             $messages[] = [
-                'role'    => $role,
+                'role' => $role,
                 'content' => $text,
             ];
         }
@@ -467,9 +476,10 @@ PROMPT;
                 return ['text' => $text, 'model' => $model];
             } catch (RateLimitException $e) {
                 Log::warning("AnthropicProvider: rate limit on [{$model}], trying next model...", [
-                    'model'  => $model,
+                    'model' => $model,
                     'status' => $e->getCode(),
                 ]);
+
                 // Lanjut ke model berikutnya dalam queue
                 continue;
             } catch (\RuntimeException $e) {

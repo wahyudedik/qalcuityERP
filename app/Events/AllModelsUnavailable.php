@@ -16,8 +16,8 @@ class AllModelsUnavailable
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @param array    $unavailableModels    List of model names that are currently unavailable
-     * @param int|null $triggeredByTenantId  Tenant whose request triggered the exhaustion (null for system-level)
+     * @param  array  $unavailableModels  List of model names that are currently unavailable
+     * @param  int|null  $triggeredByTenantId  Tenant whose request triggered the exhaustion (null for system-level)
      */
     public function __construct(
         public readonly array $unavailableModels,

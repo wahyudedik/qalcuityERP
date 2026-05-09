@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
 class EcommerceChannel extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
     protected array $auditExclude = ['api_key', 'api_secret', 'access_token', 'refresh_token'];
 
@@ -35,14 +34,14 @@ class EcommerceChannel extends Model
     ];
 
     protected $casts = [
-        'is_active'           => 'boolean',
-        'last_sync_at'        => 'datetime',
-        'stock_sync_enabled'  => 'boolean',
-        'price_sync_enabled'  => 'boolean',
-        'last_stock_sync_at'  => 'datetime',
-        'last_price_sync_at'  => 'datetime',
-        'sync_errors'         => 'array',
-        'webhook_enabled'     => 'boolean',
+        'is_active' => 'boolean',
+        'last_sync_at' => 'datetime',
+        'stock_sync_enabled' => 'boolean',
+        'price_sync_enabled' => 'boolean',
+        'last_stock_sync_at' => 'datetime',
+        'last_price_sync_at' => 'datetime',
+        'sync_errors' => 'array',
+        'webhook_enabled' => 'boolean',
     ];
 
     // ─── Encrypt sensitive fields at rest ────────────────────────
@@ -54,7 +53,9 @@ class EcommerceChannel extends Model
 
     public function getApiKeyAttribute(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
         try {
             return Crypt::decryptString($value);
         } catch (\Throwable) {
@@ -69,7 +70,9 @@ class EcommerceChannel extends Model
 
     public function getApiSecretAttribute(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
         try {
             return Crypt::decryptString($value);
         } catch (\Throwable) {
@@ -84,7 +87,9 @@ class EcommerceChannel extends Model
 
     public function getAccessTokenAttribute(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
         try {
             return Crypt::decryptString($value);
         } catch (\Throwable) {

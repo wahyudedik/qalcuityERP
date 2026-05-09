@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class RabItem extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'project_id', 'tenant_id', 'parent_id', 'code', 'name', 'type',
         'category', 'volume', 'unit', 'unit_price', 'coefficient',
@@ -20,11 +21,11 @@ class RabItem extends Model
     protected function casts(): array
     {
         return [
-            'volume'        => 'decimal:3',
-            'unit_price'    => 'decimal:2',
-            'coefficient'   => 'decimal:4',
-            'subtotal'      => 'decimal:2',
-            'actual_cost'   => 'decimal:2',
+            'volume' => 'decimal:3',
+            'unit_price' => 'decimal:2',
+            'coefficient' => 'decimal:4',
+            'subtotal' => 'decimal:2',
+            'actual_cost' => 'decimal:2',
             'actual_volume' => 'decimal:3',
         ];
     }
@@ -50,10 +51,25 @@ class RabItem extends Model
 
     // ─── Relationships ────────────────────────────────────────────
 
-    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function parent(): BelongsTo { return $this->belongsTo(self::class, 'parent_id'); }
-    public function children(): HasMany { return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order'); }
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
+    }
 
     // ─── Calculations ─────────────────────────────────────────────
 
@@ -62,10 +78,14 @@ class RabItem extends Model
      */
     public function recalculateParent(): void
     {
-        if (!$this->parent_id) return;
+        if (! $this->parent_id) {
+            return;
+        }
 
         $parent = self::find($this->parent_id);
-        if (!$parent || $parent->type !== 'group') return;
+        if (! $parent || $parent->type !== 'group') {
+            return;
+        }
 
         $parent->timestamps = false;
         $parent->subtotal = $parent->children()->sum('subtotal');
@@ -108,7 +128,7 @@ class RabItem extends Model
     /**
      * Get the full hierarchical tree for a project.
      */
-    public static function tree(int $projectId): \Illuminate\Database\Eloquent\Collection
+    public static function tree(int $projectId): Collection
     {
         return self::where('project_id', $projectId)
             ->whereNull('parent_id')

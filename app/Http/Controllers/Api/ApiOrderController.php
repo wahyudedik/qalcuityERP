@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\SalesOrder;
 use App\Models\Customer;
-use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Services\WebhookService;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ class ApiOrderController extends ApiBaseController
 {
     /**
      * BUG-SALES-001 FIX: Valid status transitions for Sales Orders
-     * 
+     *
      * Valid flow: pending → confirmed → processing → shipped → delivered
      * cancelled dan delivered adalah terminal states
      */
@@ -30,25 +29,24 @@ class ApiOrderController extends ApiBaseController
 
     /**
      * BUG-SALES-004 FIX: Validate customer credit limit before order creation
-     * 
-     * @param int|null $customerId
-     * @param float $orderAmount
+     *
      * @return array|null Error response if credit limit exceeded, null if OK
      */
     protected function validateCreditLimit(?int $customerId, float $orderAmount): ?array
     {
-        if (!$customerId) {
+        if (! $customerId) {
             return null; // No customer, no credit check needed
         }
 
         $customer = Customer::find($customerId);
-        if (!$customer) {
+        if (! $customer) {
             return null; // Customer not found, will be caught by validation
         }
 
         // Check if customer would exceed credit limit
         if ($customer->wouldExceedCreditLimit($orderAmount)) {
             $available = number_format($customer->availableCredit(), 0, ',', '.');
+
             return [
                 'status' => 'error',
                 'code' => 'CREDIT_LIMIT_EXCEEDED',
@@ -60,19 +58,20 @@ class ApiOrderController extends ApiBaseController
                     'outstanding_balance' => $customer->outstandingBalance(),
                     'available_credit' => $customer->availableCredit(),
                     'order_amount' => $orderAmount,
-                ]
+                ],
             ];
         }
 
         return null; // OK
     }
+
     public function index(Request $request)
     {
         $orders = SalesOrder::where('tenant_id', $this->tenantId())
             ->with(['customer', 'items.product'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->from, fn($q) => $q->where('date', '>=', $request->from))
-            ->when($request->to, fn($q) => $q->where('date', '<=', $request->to))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->from, fn ($q) => $q->where('date', '>=', $request->from))
+            ->when($request->to, fn ($q) => $q->where('date', '<=', $request->to))
             ->latest()
             ->paginate(50);
 
@@ -103,7 +102,7 @@ class ApiOrderController extends ApiBaseController
         $tenantId = $this->tenantId();
 
         // BUG-SALES-004 FIX: Calculate order total for credit limit check
-        $orderTotal = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['price']);
+        $orderTotal = collect($validated['items'])->sum(fn ($i) => $i['quantity'] * $i['price']);
 
         // BUG-SALES-004 FIX: Validate credit limit before creating order
         $creditError = $this->validateCreditLimit($validated['customer_id'] ?? null, $orderTotal);
@@ -118,7 +117,7 @@ class ApiOrderController extends ApiBaseController
             $order = SalesOrder::create([
                 'tenant_id' => $tenantId,
                 'customer_id' => $validated['customer_id'] ?? null,
-                'number' => 'SO-API-' . strtoupper(substr(uniqid(), -6)),
+                'number' => 'SO-API-'.strtoupper(substr(uniqid(), -6)),
                 'date' => $validated['date'],
                 'status' => 'pending',
                 'total' => $total,
@@ -144,7 +143,8 @@ class ApiOrderController extends ApiBaseController
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return $this->error('Gagal membuat order: ' . $e->getMessage());
+
+            return $this->error('Gagal membuat order: '.$e->getMessage());
         }
     }
 
@@ -176,7 +176,7 @@ class ApiOrderController extends ApiBaseController
         $currentStatus = $order->status;
 
         // Check if current status is known
-        if (!isset(self::VALID_TRANSITIONS[$currentStatus])) {
+        if (! isset(self::VALID_TRANSITIONS[$currentStatus])) {
             throw new \RuntimeException("Invalid current status: {$currentStatus}");
         }
 
@@ -189,10 +189,10 @@ class ApiOrderController extends ApiBaseController
             );
         }
 
-        if (!in_array($newStatus, $allowedTransitions)) {
+        if (! in_array($newStatus, $allowedTransitions)) {
             $allowedList = implode(', ', $allowedTransitions);
             throw new \RuntimeException(
-                "Invalid status transition from '{$currentStatus}' to '{$newStatus}'. " .
+                "Invalid status transition from '{$currentStatus}' to '{$newStatus}'. ".
                 "Allowed transitions: {$allowedList}"
             );
         }
@@ -202,14 +202,14 @@ class ApiOrderController extends ApiBaseController
             // Check if already has invoice
             if ($order->invoices()->where('status', '!=', 'cancelled')->exists()) {
                 throw new \RuntimeException(
-                    "Cannot cancel order with active invoices."
+                    'Cannot cancel order with active invoices.'
                 );
             }
 
             // Check if already delivered
             if ($order->status === 'delivered') {
                 throw new \RuntimeException(
-                    "Cannot cancel delivered order."
+                    'Cannot cancel delivered order.'
                 );
             }
         }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Services\GlPostingResult;
 use App\Services\GlPostingService;
@@ -10,6 +11,7 @@ use Tests\TestCase;
 class GlPostingTest extends TestCase
 {
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -17,7 +19,7 @@ class GlPostingTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->seedCoa($this->tenant->id);
     }
 
@@ -26,16 +28,16 @@ class GlPostingTest extends TestCase
     public function test_gl_posting_result_success_returns_correct_state(): void
     {
         $je = JournalEntry::create([
-            'tenant_id'     => $this->tenant->id,
-            'user_id'       => $this->user->id,
-            'number'        => 'TEST-001',
-            'date'          => today(),
-            'description'   => 'Test',
-            'reference'     => 'REF-001',
-            'reference_type'=> 'test',
+            'tenant_id' => $this->tenant->id,
+            'user_id' => $this->user->id,
+            'number' => 'TEST-001',
+            'date' => today(),
+            'description' => 'Test',
+            'reference' => 'REF-001',
+            'reference_type' => 'test',
             'currency_code' => 'IDR',
             'currency_rate' => 1,
-            'status'        => 'posted',
+            'status' => 'posted',
         ]);
 
         $result = GlPostingResult::success($je);
@@ -74,15 +76,15 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postSalesOrder(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            soNumber:    'SO-TEST-001',
-            soId:        1,
-            subtotal:    500000,
-            taxAmount:   0,
-            total:       500000,
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            soNumber: 'SO-TEST-001',
+            soId: 1,
+            subtotal: 500000,
+            taxAmount: 0,
+            total: 500000,
             paymentType: 'credit',
-            date:        today()->toDateString(),
+            date: today()->toDateString(),
         );
 
         $this->assertTrue($result->isSuccess());
@@ -105,13 +107,13 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postSalesOrder(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            soNumber:    'SO-CASH-001',
-            soId:        1,
-            subtotal:    200000,
-            taxAmount:   0,
-            total:       200000,
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            soNumber: 'SO-CASH-001',
+            soId: 1,
+            subtotal: 200000,
+            taxAmount: 0,
+            total: 200000,
             paymentType: 'cash',
         );
 
@@ -124,18 +126,18 @@ class GlPostingTest extends TestCase
 
     public function test_returns_failed_when_coa_missing(): void
     {
-        \App\Models\ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
+        ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
 
         $gl = app(GlPostingService::class);
 
         $result = $gl->postSalesOrder(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            soNumber:    'SO-NOCOA-001',
-            soId:        1,
-            subtotal:    100000,
-            taxAmount:   0,
-            total:       100000,
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            soNumber: 'SO-NOCOA-001',
+            soId: 1,
+            subtotal: 100000,
+            taxAmount: 0,
+            total: 100000,
             paymentType: 'credit',
         );
 
@@ -145,8 +147,8 @@ class GlPostingTest extends TestCase
 
         // Tidak ada jurnal di DB
         $this->assertDatabaseMissing('journal_entries', [
-            'tenant_id'  => $this->tenant->id,
-            'reference'  => 'SO-NOCOA-001',
+            'tenant_id' => $this->tenant->id,
+            'reference' => 'SO-NOCOA-001',
         ]);
     }
 
@@ -185,12 +187,12 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postInvoicePayment(
-            tenantId:      $this->tenant->id,
-            userId:        $this->user->id,
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
             invoiceNumber: 'INV-PAY-001',
-            invoiceId:     1,
-            amount:        300000,
-            method:        'transfer',
+            invoiceId: 1,
+            amount: 300000,
+            method: 'transfer',
         );
 
         $this->assertTrue($result->isSuccess());
@@ -213,12 +215,12 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postPurchaseReceived(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            poNumber:    'PO-TEST-001',
-            poId:        1,
-            total:       400000,
-            taxAmount:   0,
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            poNumber: 'PO-TEST-001',
+            poId: 1,
+            total: 400000,
+            taxAmount: 0,
             paymentType: 'credit',
         );
 
@@ -240,11 +242,11 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postDepreciation(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            period:      '2026-03',
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            period: '2026-03',
             totalAmount: 150000,
-            assetLines:  [
+            assetLines: [
                 ['asset_name' => 'Laptop', 'amount' => 100000],
                 ['asset_name' => 'Printer', 'amount' => 50000],
             ],
@@ -268,9 +270,9 @@ class GlPostingTest extends TestCase
         $gl = app(GlPostingService::class);
 
         $result = $gl->postDepreciation(
-            tenantId:    $this->tenant->id,
-            userId:      $this->user->id,
-            period:      '2026-03',
+            tenantId: $this->tenant->id,
+            userId: $this->user->id,
+            period: '2026-03',
             totalAmount: 0,
         );
 
@@ -295,7 +297,7 @@ class GlPostingTest extends TestCase
             ->get();
 
         foreach ($journals as $journal) {
-            $debit  = round($journal->lines->sum('debit'), 2);
+            $debit = round($journal->lines->sum('debit'), 2);
             $credit = round($journal->lines->sum('credit'), 2);
             $this->assertEquals($debit, $credit,
                 "Journal {$journal->number} is not balanced: D={$debit} C={$credit}");

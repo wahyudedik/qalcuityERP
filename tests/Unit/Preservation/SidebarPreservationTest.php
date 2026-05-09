@@ -78,8 +78,10 @@ class SidebarPreservationTest extends TestCase
         }
         if (str_ends_with($pattern, '*')) {
             $prefix = rtrim($pattern, '*');
+
             return str_starts_with($routeName, $prefix);
         }
+
         return false;
     }
 
@@ -322,7 +324,7 @@ class SidebarPreservationTest extends TestCase
         $this->assertCount(
             1,
             $matchedGroups,
-            "Route 'dashboard' harus cocok dengan tepat 1 grup, bukan: " . implode(', ', $matchedGroups)
+            "Route 'dashboard' harus cocok dengan tepat 1 grup, bukan: ".implode(', ', $matchedGroups)
         );
 
         $this->assertEquals('home', $matchedGroups[0]);

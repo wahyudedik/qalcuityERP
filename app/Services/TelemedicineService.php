@@ -3,13 +3,15 @@
 namespace App\Services;
 
 use App\Models\Teleconsultation;
+use App\Models\TeleconsultationFeedback;
+use App\Models\TeleconsultationPayment;
 use App\Models\TeleconsultationRecording;
 use App\Models\TelemedicinePrescription;
-use App\Models\TeleconsultationPayment;
-use App\Models\TeleconsultationFeedback;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class TelemedicineService
 {
@@ -40,7 +42,7 @@ class TelemedicineService
             // Generate meeting details
             $this->generateMeetingDetails($consultation);
 
-            Log::info("Teleconsultation booked", [
+            Log::info('Teleconsultation booked', [
                 'consultation_number' => $consultation->consultation_number,
                 'doctor_id' => $consultation->doctor_id,
                 'scheduled_time' => $consultation->scheduled_time,
@@ -58,7 +60,7 @@ class TelemedicineService
         return DB::transaction(function () use ($consultationId) {
             $consultation = Teleconsultation::findOrFail($consultationId);
 
-            if (!$consultation->canStart()) {
+            if (! $consultation->canStart()) {
                 throw new Exception('Consultation cannot be started yet.');
             }
 
@@ -67,7 +69,7 @@ class TelemedicineService
                 'status' => 'in_progress',
             ]);
 
-            Log::info("Teleconsultation started", [
+            Log::info('Teleconsultation started', [
                 'consultation_number' => $consultation->consultation_number,
                 'start_time' => $consultation->actual_start_time,
             ]);
@@ -97,7 +99,7 @@ class TelemedicineService
                 'status' => 'completed',
             ]);
 
-            Log::info("Teleconsultation completed", [
+            Log::info('Teleconsultation completed', [
                 'consultation_number' => $consultation->consultation_number,
                 'duration' => $duration,
             ]);
@@ -114,7 +116,7 @@ class TelemedicineService
         return DB::transaction(function () use ($consultationId, $reason, $cancelledBy) {
             $consultation = Teleconsultation::findOrFail($consultationId);
 
-            if (!$consultation->canCancel()) {
+            if (! $consultation->canCancel()) {
                 throw new Exception('Consultation cannot be cancelled.');
             }
 
@@ -125,7 +127,7 @@ class TelemedicineService
                 'cancelled_at' => now(),
             ]);
 
-            Log::info("Teleconsultation cancelled", [
+            Log::info('Teleconsultation cancelled', [
                 'consultation_number' => $consultation->consultation_number,
                 'reason' => $reason,
             ]);
@@ -154,7 +156,7 @@ class TelemedicineService
                 'status' => 'available',
             ]);
 
-            Log::info("Teleconsultation recording saved", [
+            Log::info('Teleconsultation recording saved', [
                 'consultation_id' => $consultationId,
                 'duration' => $recording->duration,
             ]);
@@ -187,11 +189,11 @@ class TelemedicineService
             ]);
 
             // Send to pharmacy if specified
-            if (!empty($prescriptionData['pharmacy_id'])) {
+            if (! empty($prescriptionData['pharmacy_id'])) {
                 $this->sendToPharmacy($prescription->id, $prescriptionData['pharmacy_id']);
             }
 
-            Log::info("Telemedicine prescription created", [
+            Log::info('Telemedicine prescription created', [
                 'prescription_number' => $prescription->prescription_number,
             ]);
 
@@ -214,7 +216,7 @@ class TelemedicineService
                 'pharmacy_status' => 'pending',
             ]);
 
-            Log::info("Prescription sent to pharmacy", [
+            Log::info('Prescription sent to pharmacy', [
                 'prescription_number' => $prescription->prescription_number,
                 'pharmacy_id' => $pharmacyId,
             ]);
@@ -261,7 +263,7 @@ class TelemedicineService
                 $this->markPaymentSuccess($payment);
             }
 
-            Log::info("Teleconsultation payment processed", [
+            Log::info('Teleconsultation payment processed', [
                 'payment_number' => $payment->payment_number,
                 'status' => $payment->status,
             ]);
@@ -300,7 +302,7 @@ class TelemedicineService
                 'followup_notes' => $feedbackData['followup_notes'] ?? null,
             ]);
 
-            Log::info("Teleconsultation feedback submitted", [
+            Log::info('Teleconsultation feedback submitted', [
                 'consultation_id' => $consultationId,
                 'rating' => $feedback->rating,
             ]);
@@ -366,13 +368,13 @@ class TelemedicineService
     protected function generateConsultationNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'TEL-' . $date;
+        $prefix = 'TEL-'.$date;
 
-        $last = Teleconsultation::where('consultation_number', 'like', $prefix . '%')
+        $last = Teleconsultation::where('consultation_number', 'like', $prefix.'%')
             ->orderBy('consultation_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->consultation_number, -4) + 1 : 1,
             4,
             '0',
@@ -386,13 +388,13 @@ class TelemedicineService
     protected function generatePrescriptionNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'RX-TEL-' . $date;
+        $prefix = 'RX-TEL-'.$date;
 
-        $last = TelemedicinePrescription::where('prescription_number', 'like', $prefix . '%')
+        $last = TelemedicinePrescription::where('prescription_number', 'like', $prefix.'%')
             ->orderBy('prescription_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->prescription_number, -4) + 1 : 1,
             4,
             '0',
@@ -406,13 +408,13 @@ class TelemedicineService
     protected function generatePaymentNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'PAY-TEL-' . $date;
+        $prefix = 'PAY-TEL-'.$date;
 
-        $last = TeleconsultationPayment::where('payment_number', 'like', $prefix . '%')
+        $last = TeleconsultationPayment::where('payment_number', 'like', $prefix.'%')
             ->orderBy('payment_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->payment_number, -4) + 1 : 1,
             4,
             '0',
@@ -426,7 +428,7 @@ class TelemedicineService
     protected function generateMeetingDetails(Teleconsultation $consultation): void
     {
         // For WebRTC implementation
-        $meetingId = 'TEL-' . uniqid();
+        $meetingId = 'TEL-'.uniqid();
         $meetingUrl = route('healthcare.telemedicine.video-room', ['id' => $consultation->id]);
 
         $consultation->update([
@@ -453,7 +455,7 @@ class TelemedicineService
 
         // Prepare payment payload for Midtrans
         $transactionDetails = [
-            'order_id' => 'TELEMED-' . $payment->id . '-' . time(),
+            'order_id' => 'TELEMED-'.$payment->id.'-'.time(),
             'gross_amount' => (int) $payment->amount,
         ];
 
@@ -465,10 +467,10 @@ class TelemedicineService
 
         $itemDetails = [
             [
-                'id' => 'TELECONSULT-' . $consultation->id,
+                'id' => 'TELECONSULT-'.$consultation->id,
                 'price' => (int) $payment->amount,
                 'quantity' => 1,
-                'name' => 'Konsultasi Telemedicine - Dr. ' . $doctor->full_name,
+                'name' => 'Konsultasi Telemedicine - Dr. '.$doctor->full_name,
                 'category' => 'healthcare',
             ],
         ];
@@ -476,7 +478,7 @@ class TelemedicineService
         // Midtrans SNAP integration
         $midtransConfig = config('services.midtrans');
 
-        if (!$midtransConfig || !isset($midtransConfig['server_key'])) {
+        if (! $midtransConfig || ! isset($midtransConfig['server_key'])) {
             // Fallback: Mark as manual payment required
             Log::warning('Midtrans not configured - marking as manual payment');
 
@@ -500,19 +502,19 @@ class TelemedicineService
         // Note: Requires midtrans/midtrans-php package. Fallback to manual payment if not available.
         try {
             // Check if Midtrans library is available
-            if (!class_exists('\Midtrans\Config')) {
+            if (! class_exists('\Midtrans\Config')) {
                 Log::warning('Midtrans library not installed - using manual payment');
-                throw new \Exception('Midtrans library not available');
+                throw new Exception('Midtrans library not available');
             }
 
             // @phpstan-ignore-next-line - Midtrans is optional dependency
-            \Midtrans\Config::$serverKey = $midtransConfig['server_key'];
+            Config::$serverKey = $midtransConfig['server_key'];
             // @phpstan-ignore-next-line
-            \Midtrans\Config::$isProduction = $midtransConfig['is_production'] ?? false;
+            Config::$isProduction = $midtransConfig['is_production'] ?? false;
             // @phpstan-ignore-next-line
-            \Midtrans\Config::$isSanitized = true;
+            Config::$isSanitized = true;
             // @phpstan-ignore-next-line
-            \Midtrans\Config::$is3ds = true;
+            Config::$is3ds = true;
 
             $params = [
                 'transaction_details' => $transactionDetails,
@@ -547,8 +549,8 @@ class TelemedicineService
                 ],
             ];
 
-            $snapToken = \Midtrans\Snap::getSnapToken($params);
-            $redirectUrl = \Midtrans\Snap::getSnapUrl($params);
+            $snapToken = Snap::getSnapToken($params);
+            $redirectUrl = Snap::getSnapUrl($params);
 
             // Update payment with gateway info
             $payment->update([
@@ -566,13 +568,13 @@ class TelemedicineService
                 'status' => 'pending',
                 'message' => 'Payment redirect generated',
             ];
-        } catch (\Exception $e) {
-            Log::error('Midtrans payment error: ' . $e->getMessage(), [
+        } catch (Exception $e) {
+            Log::error('Midtrans payment error: '.$e->getMessage(), [
                 'payment_id' => $payment->id,
                 'consultation_id' => $consultation->id,
             ]);
 
-            throw new \Exception('Payment gateway error: ' . $e->getMessage());
+            throw new Exception('Payment gateway error: '.$e->getMessage());
         }
     }
 

@@ -23,6 +23,7 @@ class AuditRoadmapCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:roadmap {--output=} {--format=json}';
+
     protected $description = 'Generate prioritized roadmap and audit matrices.';
 
     public function handle(
@@ -39,7 +40,7 @@ class AuditRoadmapCommand extends Command
         SecurityAnalyzer $securityAnalyzer,
         RoadmapGenerator $roadmapGenerator
     ): int {
-        $report = new AuditReport();
+        $report = new AuditReport;
         foreach ([
             $controllerAnalyzer,
             $queryAnalyzer,
@@ -62,11 +63,11 @@ class AuditRoadmapCommand extends Command
 
         $output = $this->option('output') ? (string) $this->option('output') : null;
         if ($output !== null && $output !== '') {
-            if (!is_dir($output)) {
+            if (! is_dir($output)) {
                 mkdir($output, 0777, true);
             }
-            file_put_contents(rtrim($output, '/\\') . '/audit-roadmap.json', (string) $payload);
-            $this->info('Roadmap written to ' . rtrim($output, '/\\') . '/audit-roadmap.json');
+            file_put_contents(rtrim($output, '/\\').'/audit-roadmap.json', (string) $payload);
+            $this->info('Roadmap written to '.rtrim($output, '/\\').'/audit-roadmap.json');
         }
 
         return self::SUCCESS;

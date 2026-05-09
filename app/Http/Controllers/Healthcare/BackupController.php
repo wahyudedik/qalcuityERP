@@ -64,7 +64,7 @@ class BackupController extends Controller
             $backup->update([
                 'status' => 'completed',
                 'completed_at' => now(),
-                'size_bytes' => Storage::size('backups/' . $backup->id . '.sql'),
+                'size_bytes' => Storage::size('backups/'.$backup->id.'.sql'),
             ]);
 
             return redirect()->route('healthcare.backups.show', $backup)
@@ -76,7 +76,7 @@ class BackupController extends Controller
             ]);
 
             return redirect()->route('healthcare.backups.index')
-                ->with('error', 'Backup failed: ' . $e->getMessage());
+                ->with('error', 'Backup failed: '.$e->getMessage());
         }
     }
 
@@ -102,7 +102,7 @@ class BackupController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Database restored successfully']);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Restore failed: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Restore failed: '.$e->getMessage()], 500);
         }
     }
 
@@ -112,19 +112,20 @@ class BackupController extends Controller
             abort(404);
         }
 
-        return Storage::download('backups/' . $backup->id . '.sql');
+        return Storage::download('backups/'.$backup->id.'.sql');
     }
 
     public function destroy(BackupLog $backup)
     {
-        if (Storage::exists('backups/' . $backup->id . '.sql')) {
-            Storage::delete('backups/' . $backup->id . '.sql');
+        if (Storage::exists('backups/'.$backup->id.'.sql')) {
+            Storage::delete('backups/'.$backup->id.'.sql');
         }
 
         $backup->delete();
 
         return response()->json(['success' => true, 'message' => 'Backup deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/backups/{backup}/edit
@@ -132,9 +133,10 @@ class BackupController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.backup.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/backups/{backup}
@@ -142,13 +144,13 @@ class BackupController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.backups.update')
             ->with('success', 'Updated successfully.');
     }

@@ -94,7 +94,7 @@
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js', 'resources/js/conflict-resolution.js', 'resources/js/topbar-offline-indicator.js']); ?>
     <?php echo $__env->yieldPushContent('head'); ?>
     <style>
-        /* ── Module color CSS custom properties ── */
+        /* â”€â”€ Module color CSS custom properties â”€â”€ */
         :root {
             --module-color-home: #3b82f6;
             --module-color-ai: #8b5cf6;
@@ -104,6 +104,18 @@
             --module-color-finance: #06b6d4;
             --module-color-settings: #6b7280;
             --module-color-superadmin: #ef4444;
+            /* Modul Industri */
+            --module-color-hotel: #0ea5e9;
+            --module-color-telecom: #6366f1;
+            --module-color-fnb: #f43f5e;
+            --module-color-spa: #ec4899;
+            --module-color-agriculture: #84cc16;
+            --module-color-livestock: #78716c;
+            --module-color-healthcare: #14b8a6;
+            --module-color-tour_travel: #f59e0b;
+            --module-color-construction: #d97706;
+            --module-color-cosmetic: #db2777;
+            --module-color-printing: #7c3aed;
         }
 
         /* Scrollbar utilities */
@@ -140,12 +152,12 @@
             $user = auth()->user();
             $navTenant = $user?->tenant;
 
-            // resolveActiveGroup() — array-priority approach.
+            // resolveActiveGroup() â€” array-priority approach.
             // Each route pattern belongs to exactly ONE group. The first matching group wins.
             function resolveActiveGroup(): string
             {
                 $groupMap = [
-                    // 1. Super Admin (checked first — most specific)
+                    // 1. Super Admin (checked first â€” most specific)
                     'superadmin' => ['super-admin*'],
                     // 2. Dashboard & Analytics
                     'home' => [
@@ -196,8 +208,6 @@
                         'printing*',
                         'cosmetic*',
                         'tour-travel*',
-                        'livestock-enhancement*',
-                        'fisheries*',
                         'fleet*',
                         'contracts*',
                         'shipping*',
@@ -207,9 +217,7 @@
                         'projects*',
                         'timesheets*',
                         'project-billing*',
-                        'farm*',
                         'pos*',
-                        'telecom*',
                     ],
                     // 7. Keuangan
                     'finance' => [
@@ -244,8 +252,19 @@
                         'custom-fields*',
                         'constraints*',
                         'company-groups*',
-                        'hotel*',
                     ],
+                    // 9. Modul Industri
+                    'hotel' => ['hotel*'],
+                    'telecom' => ['telecom*'],
+                    'fnb' => ['fnb*'],
+                    'spa' => ['hotel.spa*'],
+                    'agriculture' => ['farm*'],
+                    'livestock' => ['livestock-enhancement*', 'fisheries*'],
+                    'healthcare' => ['healthcare*'],
+                    'tour_travel' => ['tour-travel*'],
+                    'construction' => ['construction*'],
+                    'cosmetic' => ['cosmetic*'],
+                    'printing' => ['printing*'],
                 ];
 
                 foreach ($groupMap as $group => $patterns) {
@@ -281,7 +300,9 @@
             </div>
 
             
-            <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 flex flex-col min-w-0" x-data
+                :class="($store.navSystem.sidebarVisible && !$store.navSystem.sidebarCollapsed) ? 'lg:ml-[260px]' : ''"
+                style="transition: margin-left 250ms cubic-bezier(0.16, 1, 0.3, 1)">
 
                 
                 <header
@@ -435,7 +456,7 @@
                                 <div class="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
                                     <button id="btn-enable-push" onclick="enablePushNotifications()"
                                         class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition">
-                                        🔔 Aktifkan Notifikasi Push
+                                        ðŸ”” Aktifkan Notifikasi Push
                                     </button>
                                 </div>
                             </div>
@@ -563,7 +584,7 @@
 
     
     <?php
-        // Permission helper for sidebar — only for non-admin/non-superadmin
+        // Permission helper for sidebar â€” only for non-admin/non-superadmin
         $ps = app(\App\Services\PermissionService::class);
         $canView = function (string $module) use ($user, $ps): bool {
             if (!$user || $user->isAdmin() || $user->isSuperAdmin()) {
@@ -1416,8 +1437,6 @@
                             <?php if($user?->isAdmin() || $user?->isManager()): ?>
                                 <?php if(($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm')): ?>
                                     {
-                                        section: 'Manajemen SDM'
-                                    }, {
                                         label: 'Rekrutmen',
                                         href: '<?php echo e(route('hrm.recruitment.index')); ?>',
                                         active: <?php echo e(request()->routeIs('hrm.recruitment*', 'hrm.onboarding*') ? 'true' : 'false'); ?>
@@ -1667,72 +1686,74 @@
                             <?php endif; ?>
                         ]
                     },
-                    <?php if(($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang()): ?>
-                        
+                    
+                    <?php if($navTenant?->isModuleEnabled('hotel') ?? false): ?>
+                        hotel: {
+                            title: 'Hotel & PMS',
+                            items: [{
+                                section: 'Hotel PMS'
+                            }, {
+                                label: 'Dashboard Hotel',
+                                href: '<?php echo e(route('hotel.dashboard')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.dashboard') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Tipe Kamar',
+                                href: '<?php echo e(route('hotel.room-types.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.room-types*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Kamar',
+                                href: '<?php echo e(route('hotel.rooms.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Ketersediaan Kamar',
+                                href: '<?php echo e(route('hotel.rooms.availability')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Reservasi',
+                                href: '<?php echo e(route('hotel.reservations.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Tamu',
+                                href: '<?php echo e(route('hotel.guests.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.guests*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Check-in / Check-out',
+                                href: '<?php echo e(route('hotel.checkin-out.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.checkin-out*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Housekeeping',
+                                href: '<?php echo e(route('hotel.housekeeping.room-board')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.housekeeping*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Tarif Kamar',
+                                href: '<?php echo e(route('hotel.rates.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.rates*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Channel Distribution',
+                                href: '<?php echo e(route('hotel.channels.index')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.channels*') ? 'true' : 'false'); ?>
+
+                            }, {
+                                label: 'Pengaturan Hotel',
+                                href: '<?php echo e(route('hotel.settings.edit')); ?>',
+                                active: <?php echo e(request()->routeIs('hotel.settings*') ? 'true' : 'false'); ?>
+
+                            }, ]
+                        },
                     <?php endif; ?>
+                    <?php echo $__env->make('layouts._nav_industry_groups', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                     settings: {
                         title: 'Pengaturan',
-                        items: [
-                            <?php if(($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang()): ?>
-                                {
-                                    section: 'Hotel PMS'
-                                }, {
-                                    label: 'Dashboard Hotel',
-                                    href: '<?php echo e(route('hotel.dashboard')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.dashboard') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Tipe Kamar',
-                                    href: '<?php echo e(route('hotel.room-types.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.room-types*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Kamar',
-                                    href: '<?php echo e(route('hotel.rooms.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Ketersediaan Kamar',
-                                    href: '<?php echo e(route('hotel.rooms.availability')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Reservasi',
-                                    href: '<?php echo e(route('hotel.reservations.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Tamu',
-                                    href: '<?php echo e(route('hotel.guests.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.guests*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Check-in / Check-out',
-                                    href: '<?php echo e(route('hotel.checkin-out.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.checkin-out*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Housekeeping',
-                                    href: '<?php echo e(route('hotel.housekeeping.room-board')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.housekeeping*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Tarif Kamar',
-                                    href: '<?php echo e(route('hotel.rates.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.rates*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Channel Distribution',
-                                    href: '<?php echo e(route('hotel.channels.index')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.channels*') ? 'true' : 'false'); ?>
-
-                                }, {
-                                    label: 'Pengaturan Hotel',
-                                    href: '<?php echo e(route('hotel.settings.edit')); ?>',
-                                    active: <?php echo e(request()->routeIs('hotel.settings*') ? 'true' : 'false'); ?>
-
-                                },
-                            <?php endif; ?> {
+                        items: [{
                                 section: 'Akun & Notifikasi'
                             }, {
                                 label: 'Notifikasi',
@@ -1757,6 +1778,11 @@
                                     label: 'Kelola Pengguna',
                                     href: '<?php echo e(route('tenant.users.index')); ?>',
                                     active: <?php echo e(request()->routeIs('tenant.users*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Manajemen Role',
+                                    href: '<?php echo e(route('tenant.roles.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('tenant.roles*') ? 'true' : 'false'); ?>
 
                                 }, {
                                     label: 'Pengingat',
@@ -1890,25 +1916,134 @@
                     key: 'ai',
                     label: 'AI Chat',
                     icon: 'sparkle'
-                }, {
-                    key: 'transactions',
-                    label: 'Transaksi',
-                    icon: 'tag'
-                }, {
-                    key: 'inventory',
-                    label: 'Inventori',
-                    icon: 'cube'
                 },
-                <?php if(!$user?->isKasir() && !$user?->isGudang()): ?>
+                
+                <?php if(
+                    ($navTenant?->isModuleEnabled('sales') ?? true) ||
+                        ($navTenant?->isModuleEnabled('invoicing') ?? true) ||
+                        ($navTenant?->isModuleEnabled('pos') ?? true) ||
+                        ($navTenant?->isModuleEnabled('crm') ?? true)): ?>
                     {
-                        key: 'operations',
-                        label: 'Operasional',
-                        icon: 'cog'
-                    }, {
-                        key: 'finance',
-                        label: 'Keuangan',
-                        icon: 'currency'
-                    }, {
+                        key: 'transactions',
+                        label: 'Transaksi',
+                        icon: 'tag'
+                    },
+                <?php endif; ?>
+                
+                <?php if(($navTenant?->isModuleEnabled('inventory') ?? true) || ($navTenant?->isModuleEnabled('purchasing') ?? true)): ?>
+                    {
+                        key: 'inventory',
+                        label: 'Inventori',
+                        icon: 'cube'
+                    },
+                <?php endif; ?>
+                <?php if(!$user?->isKasir() && !$user?->isGudang()): ?>
+                    
+                    <?php if(
+                        ($navTenant?->isModuleEnabled('production') ?? true) ||
+                            ($navTenant?->isModuleEnabled('manufacturing') ?? true) ||
+                            ($navTenant?->isModuleEnabled('hrm') ?? true) ||
+                            ($navTenant?->isModuleEnabled('payroll') ?? true) ||
+                            ($navTenant?->isModuleEnabled('fleet') ?? true) ||
+                            ($navTenant?->isModuleEnabled('projects') ?? true) ||
+                            ($navTenant?->isModuleEnabled('ecommerce') ?? true) ||
+                            ($navTenant?->isModuleEnabled('contracts') ?? true)): ?>
+                        {
+                            key: 'operations',
+                            label: 'Operasional',
+                            icon: 'cog'
+                        },
+                    <?php endif; ?>
+                    
+                    <?php if(
+                        ($navTenant?->isModuleEnabled('accounting') ?? true) ||
+                            ($navTenant?->isModuleEnabled('budget') ?? true) ||
+                            ($navTenant?->isModuleEnabled('bank_reconciliation') ?? true) ||
+                            ($navTenant?->isModuleEnabled('assets') ?? true)): ?>
+                        {
+                            key: 'finance',
+                            label: 'Keuangan',
+                            icon: 'currency'
+                        },
+                    <?php endif; ?>
+                    
+                    <?php if($navTenant?->isModuleEnabled('hotel') ?? false): ?>
+                        {
+                            key: 'hotel',
+                            label: 'Hotel & PMS',
+                            icon: 'building'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('telecom') ?? false): ?>
+                        {
+                            key: 'telecom',
+                            label: 'Telecom / ISP',
+                            icon: 'telecom'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('fnb') ?? false): ?>
+                        {
+                            key: 'fnb',
+                            label: 'F&B / Restoran',
+                            icon: 'fnb'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('spa') ?? false): ?>
+                        {
+                            key: 'spa',
+                            label: 'Spa & Wellness',
+                            icon: 'spa'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('tour_travel') ?? false): ?>
+                        {
+                            key: 'tour_travel',
+                            label: 'Tour & Travel',
+                            icon: 'tour_travel'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('construction') ?? false): ?>
+                        {
+                            key: 'construction',
+                            label: 'Konstruksi',
+                            icon: 'construction'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('cosmetic') ?? false): ?>
+                        {
+                            key: 'cosmetic',
+                            label: 'Kosmetik & Beauty',
+                            icon: 'cosmetic'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('printing') ?? false): ?>
+                        {
+                            key: 'printing',
+                            label: 'Percetakan',
+                            icon: 'printing'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('healthcare') ?? false): ?>
+                        {
+                            key: 'healthcare',
+                            label: 'SimRS / Healthcare',
+                            icon: 'healthcare'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('agriculture') ?? false): ?>
+                        {
+                            key: 'agriculture',
+                            label: 'Pertanian',
+                            icon: 'agriculture'
+                        },
+                    <?php endif; ?>
+                    <?php if($navTenant?->isModuleEnabled('livestock') ?? false): ?>
+                        {
+                            key: 'livestock',
+                            label: 'Peternakan & Perikanan',
+                            icon: 'livestock'
+                        },
+                    <?php endif; ?> {
                         key: 'settings',
                         label: 'Pengaturan',
                         icon: 'gear'
@@ -1917,7 +2052,7 @@
             <?php endif; ?>
         ];
 
-        // ── Task 1.3 & 1.4: Alpine.js navSystem Store ──
+        // â”€â”€ Task 1.3 & 1.4: Alpine.js navSystem Store â”€â”€
         document.addEventListener('alpine:init', () => {
             Alpine.store('navSystem', {
                 // Launcher state
@@ -1952,7 +2087,7 @@
                     }
 
                     // Persist collapse state on change.
-                    // NOTE: Alpine stores do NOT have $watch — use Alpine.effect() instead.
+                    // NOTE: Alpine stores do NOT have $watch â€” use Alpine.effect() instead.
                     Alpine.effect(() => {
                         const val = this.sidebarCollapsed;
                         try {
@@ -1965,7 +2100,7 @@
                     this.launcherOpen = !this.launcherOpen;
                     if (this.launcherOpen) {
                         this.launcherQuery = '';
-                        // NOTE: Alpine stores do NOT have $nextTick — use Alpine.nextTick() global.
+                        // NOTE: Alpine stores do NOT have $nextTick â€” use Alpine.nextTick() global.
                         Alpine.nextTick(() => {
                             document.getElementById('launcher-search')?.focus();
                         });
@@ -1974,7 +2109,7 @@
 
                 closeLauncher() {
                     this.launcherOpen = false;
-                    // NOTE: Alpine stores do NOT have $nextTick — use Alpine.nextTick() global.
+                    // NOTE: Alpine stores do NOT have $nextTick â€” use Alpine.nextTick() global.
                     Alpine.nextTick(() => {
                         document.getElementById('launcher-btn')?.focus();
                     });
@@ -1982,7 +2117,7 @@
 
                 selectModule(moduleKey) {
                     if (moduleKey === this.activeModule) {
-                        // Same module — just close launcher (Req 7.2)
+                        // Same module â€” just close launcher (Req 7.2)
                         this.closeLauncher();
                         return;
                     }
@@ -2029,7 +2164,7 @@
 
 
     <script>
-        // ── Notification dropdown ──────────────────────────────────────────────
+        // â”€â”€ Notification dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function toggleNotif() {
             document.getElementById('notif-dropdown')?.classList.toggle('hidden');
         }
@@ -2040,7 +2175,7 @@
             }
         });
 
-        // ── Profile dropdown ──────────────────────────────────────────────
+        // â”€â”€ Profile dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function toggleProfile() {
             document.getElementById('profile-dropdown')?.classList.toggle('hidden');
         }
@@ -2051,7 +2186,7 @@
             }
         });
 
-        // ── DOMContentLoaded: track recently visited ───────────────────────────
+        // â”€â”€ DOMContentLoaded: track recently visited â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         document.addEventListener('DOMContentLoaded', () => {
             // Task 5.3: Track recently visited page
             try {
@@ -2065,9 +2200,9 @@
             const maxEntries = 5;
             const currentUrl = window.location.href;
 
-            // Task 5.2: Extract clean page title (strip after " — " or " | ")
+            // Task 5.2: Extract clean page title (strip after " â€” " or " | ")
             const rawTitle = document.title || '';
-            const currentTitle = rawTitle.split(/\s[—|]\s/)[0].trim() || rawTitle;
+            const currentTitle = rawTitle.split(/\s[â€”|]\s/)[0].trim() || rawTitle;
 
             // Guard: only track if Alpine store is available and activeModule is set
             if (typeof Alpine === 'undefined') return;
@@ -2083,7 +2218,7 @@
                 entries = [];
             }
 
-            // Task 5.1: Dedup by URL — remove existing entry for same URL
+            // Task 5.1: Dedup by URL â€” remove existing entry for same URL
             entries = entries.filter(e => e.url !== currentUrl);
 
             // Add new entry at front
@@ -2102,7 +2237,7 @@
                 // Update Alpine store so launcher shows updated list immediately
                 store.recentlyVisited = entries;
             } catch (e) {
-                // localStorage unavailable (private browsing / storage full) — fail silently
+                // localStorage unavailable (private browsing / storage full) â€” fail silently
             }
         }
 
@@ -2168,7 +2303,7 @@
                 // Update UI
                 const btn = document.getElementById('btn-enable-push');
                 if (btn) {
-                    btn.textContent = '✓ Push aktif';
+                    btn.textContent = 'âœ“ Push aktif';
                     btn.disabled = true;
                     btn.classList.add('opacity-50');
                 }
@@ -2230,7 +2365,7 @@
 
                         
                         <div id="help-tips" class="mt-6 hidden">
-                            <h4 class="mb-3 text-sm font-semibold text-gray-900">💡 Tips:</h4>
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900">ðŸ’¡ Tips:</h4>
                             <ul id="help-tips-list" class="space-y-2 text-sm text-gray-700">
                                 <!-- Tips will be inserted here -->
                             </ul>
@@ -2238,7 +2373,7 @@
 
                         
                         <div id="help-video" class="mt-6 hidden">
-                            <h4 class="mb-3 text-sm font-semibold text-gray-900">🎥 Video Tutorial:
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900">ðŸŽ¥ Video Tutorial:
                             </h4>
                             <div class="aspect-video rounded-xl bg-gray-900 flex items-center justify-center">
                                 <p class="text-gray-400 text-sm">Video akan tersedia segera</p>
@@ -2262,7 +2397,7 @@
                     <div class="border-t border-gray-200 px-6 py-4 flex items-center justify-between">
                         <button type="button" onclick="window.helpSystem?.openSearch()"
                             class="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                            🔍 Cari topik lain
+                            ðŸ” Cari topik lain
                         </button>
                         <button type="button" @click="show = false"
                             class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
@@ -2280,7 +2415,7 @@
     <?php echo $__env->yieldPushContent('scripts'); ?>
 
     <script>
-        // ── Fullscreen (global, persisten antar halaman) ──────────────────────────
+        // â”€â”€ Fullscreen (global, persisten antar halaman) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const FS_KEY = 'qalcuity_fullscreen';
 
         function toggleFullscreen() {
@@ -2320,7 +2455,7 @@
             }
         });
 
-        // ── Overlay "klik untuk fullscreen" ──────────────────────────────────────
+        // â”€â”€ Overlay "klik untuk fullscreen" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function _showFsOverlay() {
             const el = document.getElementById('fs-restore-overlay');
             if (el) el.classList.remove('hidden');

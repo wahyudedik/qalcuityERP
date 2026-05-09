@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api\Telecom;
 
+use App\Models\NetworkAlert;
 use App\Models\NetworkDevice;
+use App\Models\TelecomSubscription;
 use App\Services\Telecom\UsageTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class WebhookController extends TelecomApiController
 {
@@ -13,12 +16,12 @@ class WebhookController extends TelecomApiController
 
     public function __construct()
     {
-        $this->usageService = new UsageTrackingService();
+        $this->usageService = new UsageTrackingService;
     }
 
     /**
      * Receive usage data from router.
-     * 
+     *
      * POST /api/telecom/webhook/router-usage
      */
     public function routerUsage(Request $request)
@@ -42,7 +45,7 @@ class WebhookController extends TelecomApiController
             ]);
 
             // Find subscription
-            $subscription = \App\Models\TelecomSubscription::findOrFail($validated['subscription_id']);
+            $subscription = TelecomSubscription::findOrFail($validated['subscription_id']);
 
             // Record usage
             $metadata = $validated['metadata'] ?? [];
@@ -55,10 +58,10 @@ class WebhookController extends TelecomApiController
                 $metadata
             );
 
-            Log::info("Webhook usage received", [
+            Log::info('Webhook usage received', [
                 'subscription_id' => $subscription->id,
                 'bytes_total' => $usageRecord->bytes_total,
-                'device_id' => $validated['device_id']
+                'device_id' => $validated['device_id'],
             ]);
 
             return response()->json([
@@ -66,16 +69,17 @@ class WebhookController extends TelecomApiController
                 'message' => 'Usage data received',
             ], 200);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error("Webhook usage processing failed", [
+            Log::error('Webhook usage processing failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Processing failed',
@@ -85,7 +89,7 @@ class WebhookController extends TelecomApiController
 
     /**
      * Receive device alert from router.
-     * 
+     *
      * POST /api/telecom/webhook/device-alert
      */
     public function deviceAlert(Request $request)
@@ -113,7 +117,7 @@ class WebhookController extends TelecomApiController
             $device = NetworkDevice::findOrFail($validated['device_id']);
 
             // Create alert
-            $alert = \App\Models\NetworkAlert::create([
+            $alert = NetworkAlert::create([
                 'tenant_id' => $device->tenant_id,
                 'device_id' => $device->id,
                 'alert_type' => $validated['alert_type'],
@@ -132,10 +136,10 @@ class WebhookController extends TelecomApiController
                 $device->update(['status' => 'online', 'last_seen_at' => now()]);
             }
 
-            Log::info("Webhook alert received", [
+            Log::info('Webhook alert received', [
                 'device_id' => $device->id,
                 'alert_type' => $validated['alert_type'],
-                'severity' => $validated['severity']
+                'severity' => $validated['severity'],
             ]);
 
             return response()->json([
@@ -144,16 +148,17 @@ class WebhookController extends TelecomApiController
                 'alert_id' => $alert->id,
             ], 200);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error("Webhook alert processing failed", [
+            Log::error('Webhook alert processing failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Processing failed',

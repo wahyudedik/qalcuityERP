@@ -140,8 +140,10 @@ class SidebarActiveGroupTest extends TestCase
         }
         if (str_ends_with($pattern, '*')) {
             $prefix = rtrim($pattern, '*');
+
             return str_starts_with($routeName, $prefix);
         }
+
         return false;
     }
 
@@ -161,7 +163,7 @@ class SidebarActiveGroupTest extends TestCase
         $this->assertNotEquals(
             '',
             $activeGroup,
-            "Bug 1.4 FIX: Route 'hotel.night-audit' seharusnya terdaftar di suatu grup. " .
+            "Bug 1.4 FIX: Route 'hotel.night-audit' seharusnya terdaftar di suatu grup. ".
             "Setelah fix, hotel.* ada di grup 'settings'."
         );
 
@@ -170,7 +172,7 @@ class SidebarActiveGroupTest extends TestCase
         $this->assertEquals(
             1,
             $count,
-            "Bug 1.1 FIX: Route 'hotel.night-audit' seharusnya cocok dengan tepat 1 grup, " .
+            "Bug 1.1 FIX: Route 'hotel.night-audit' seharusnya cocok dengan tepat 1 grup, ".
             "bukan {$count} grup."
         );
     }
@@ -189,7 +191,7 @@ class SidebarActiveGroupTest extends TestCase
         $this->assertNotEquals(
             '',
             $activeGroup,
-            "Bug 1.4 FIX: Route 'telecom.mikrotik.index' seharusnya terdaftar di suatu grup. " .
+            "Bug 1.4 FIX: Route 'telecom.mikrotik.index' seharusnya terdaftar di suatu grup. ".
             "Setelah fix, telecom.* ada di grup 'operations'."
         );
     }
@@ -222,7 +224,7 @@ class SidebarActiveGroupTest extends TestCase
 
         $this->assertEmpty(
             $violations,
-            "Bug 1.1 FIX: Beberapa route tidak eksklusif:\n" . implode("\n", $violations)
+            "Bug 1.1 FIX: Beberapa route tidak eksklusif:\n".implode("\n", $violations)
         );
     }
 
@@ -257,7 +259,7 @@ class SidebarActiveGroupTest extends TestCase
 
         $this->assertEmpty(
             $failures,
-            "Bug 1.4 FIX: Route modul baru seharusnya terdaftar di tepat satu grup:\n" .
+            "Bug 1.4 FIX: Route modul baru seharusnya terdaftar di tepat satu grup:\n".
             implode("\n", $failures)
         );
     }

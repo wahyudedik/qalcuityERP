@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Warehouse zones (Zona Penyimpanan: Dry, Cold, Hazmat, Staging, etc)
-        if (!Schema::hasTable('warehouse_zones')) {
+        if (! Schema::hasTable('warehouse_zones')) {
             Schema::create('warehouse_zones', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('warehouse_id')->constrained()->cascadeOnDelete();
@@ -24,7 +24,7 @@ return new class extends Migration
         }
 
         // Bin locations (Rak/Lokasi: Z01-A01-R01-B01)
-        if (!Schema::hasTable('warehouse_bins')) {
+        if (! Schema::hasTable('warehouse_bins')) {
             Schema::create('warehouse_bins', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('warehouse_id')->constrained()->cascadeOnDelete();
@@ -43,7 +43,7 @@ return new class extends Migration
         }
 
         // Bin-level stock (stok per lokasi rak)
-        if (!Schema::hasTable('bin_stocks')) {
+        if (! Schema::hasTable('bin_stocks')) {
             Schema::create('bin_stocks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('bin_id')->constrained('warehouse_bins')->cascadeOnDelete();
@@ -56,7 +56,7 @@ return new class extends Migration
         }
 
         // Putaway rules (aturan penempatan barang masuk)
-        if (!Schema::hasTable('putaway_rules')) {
+        if (! Schema::hasTable('putaway_rules')) {
             Schema::create('putaway_rules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -72,7 +72,7 @@ return new class extends Migration
         }
 
         // Picking lists (daftar ambil barang untuk SO/DO)
-        if (!Schema::hasTable('picking_lists')) {
+        if (! Schema::hasTable('picking_lists')) {
             Schema::create('picking_lists', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -92,7 +92,7 @@ return new class extends Migration
         }
 
         // Picking list items
-        if (!Schema::hasTable('picking_list_items')) {
+        if (! Schema::hasTable('picking_list_items')) {
             Schema::create('picking_list_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('picking_list_id')->constrained()->cascadeOnDelete();
@@ -106,7 +106,7 @@ return new class extends Migration
         }
 
         // Stock opname per bin
-        if (!Schema::hasTable('stock_opname_sessions')) {
+        if (! Schema::hasTable('stock_opname_sessions')) {
             Schema::create('stock_opname_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -120,7 +120,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('stock_opname_items')) {
+        if (! Schema::hasTable('stock_opname_items')) {
             Schema::create('stock_opname_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('session_id')->constrained('stock_opname_sessions')->cascadeOnDelete();

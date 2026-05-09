@@ -3,6 +3,9 @@
 namespace Tests\Feature\Agent;
 
 use App\DTOs\Agent\UndoResult;
+use App\Http\Middleware\CheckAiQuota;
+use App\Http\Middleware\EnforceTenantIsolation;
+use App\Http\Middleware\RateLimitAiRequests;
 use App\Models\AgentAuditLog;
 use App\Models\ChatSession;
 use App\Models\ProactiveInsight;
@@ -26,9 +29,9 @@ class AgentControllerTest extends TestCase
         parent::setUp();
         // Bypass rate limiting and quota middleware in tests
         $this->withoutMiddleware([
-            \App\Http\Middleware\RateLimitAiRequests::class,
-            \App\Http\Middleware\CheckAiQuota::class,
-            \App\Http\Middleware\EnforceTenantIsolation::class,
+            RateLimitAiRequests::class,
+            CheckAiQuota::class,
+            EnforceTenantIsolation::class,
         ]);
 
         // Mock all agent services by default to prevent real API calls
@@ -55,10 +58,10 @@ class AgentControllerTest extends TestCase
     // Requirements: 7.1, 7.6
     // =========================================================================
 
-    public function testSendReturnsJsonResponseWithEvents(): void
+    public function test_send_returns_json_response_with_events(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
 
         // Override default mock
         $this->mock(AgentOrchestrator::class, function ($mock) {
@@ -85,10 +88,10 @@ class AgentControllerTest extends TestCase
         $this->assertNotNull($response->json('summary'));
     }
 
-    public function testSendValidatesRequiredMessage(): void
+    public function test_send_validates_required_message(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/agent/send', []);
@@ -97,10 +100,10 @@ class AgentControllerTest extends TestCase
             ->assertJsonValidationErrors(['message']);
     }
 
-    public function testSendRejectsMessageTooLong(): void
+    public function test_send_rejects_message_too_long(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/agent/send', ['message' => str_repeat('a', 4001)]);
@@ -109,14 +112,14 @@ class AgentControllerTest extends TestCase
             ->assertJsonValidationErrors(['message']);
     }
 
-    public function testSendUsesExistingSessionWhenSessionIdProvided(): void
+    public function test_send_uses_existing_session_when_session_id_provided(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = ChatSession::create([
-            'tenant_id'    => $tenant->id,
-            'user_id'      => $user->id,
-            'title'        => 'Existing Session',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'title' => 'Existing Session',
             'session_type' => 'agent',
             'is_cancelled' => false,
         ]);
@@ -124,7 +127,7 @@ class AgentControllerTest extends TestCase
         $this->mock(AgentOrchestrator::class, function ($mock) use ($session) {
             $mock->shouldReceive('handle')
                 ->once()
-                ->withArgs(fn($msg, $u, $s, $confirmed) => $s->id === $session->id)
+                ->withArgs(fn ($msg, $u, $s, $confirmed) => $s->id === $session->id)
                 ->andReturn($this->makeGenerator([
                     ['event' => 'task_summary', 'data' => ['completed' => 0, 'failed' => 0, 'cancelled' => false, 'actions' => []]],
                 ]));
@@ -132,7 +135,7 @@ class AgentControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->postJson('/agent/send', [
-                'message'    => 'Halo',
+                'message' => 'Halo',
                 'session_id' => $session->id,
             ]);
 
@@ -140,7 +143,7 @@ class AgentControllerTest extends TestCase
         $this->assertSame($session->id, $response->json('session_id'));
     }
 
-    public function testSendRequiresAuthentication(): void
+    public function test_send_requires_authentication(): void
     {
         // Re-enable auth middleware for this test
         $response = $this->withMiddleware()->postJson('/agent/send', ['message' => 'test']);
@@ -152,10 +155,10 @@ class AgentControllerTest extends TestCase
     // Requirements: 7.1, 7.2, 7.6
     // =========================================================================
 
-    public function testStreamReturnsSSEResponse(): void
+    public function test_stream_returns_sse_response(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         // Override default mock - stream calls handle() which returns a generator
         $this->mock(AgentOrchestrator::class, function ($mock) {
@@ -174,10 +177,10 @@ class AgentControllerTest extends TestCase
         $this->assertStringContainsString('text/event-stream', $response->headers->get('Content-Type'));
     }
 
-    public function testStreamValidatesRequiredMessage(): void
+    public function test_stream_validates_required_message(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/agent/stream', []);
@@ -191,24 +194,24 @@ class AgentControllerTest extends TestCase
     // Requirements: 1.5, 7.1
     // =========================================================================
 
-    public function testConfirmContinuesExecutionWithConfirmedFlag(): void
+    public function test_confirm_continues_execution_with_confirmed_flag(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = ChatSession::create([
-            'tenant_id'        => $tenant->id,
-            'user_id'          => $user->id,
-            'title'            => 'Agent Session',
-            'session_type'     => 'agent',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'title' => 'Agent Session',
+            'session_type' => 'agent',
             'execution_status' => 'awaiting_approval',
-            'active_plan'      => ['goal' => 'Buat invoice', 'steps' => []],
-            'is_cancelled'     => false,
+            'active_plan' => ['goal' => 'Buat invoice', 'steps' => []],
+            'is_cancelled' => false,
         ]);
 
         $this->mock(AgentOrchestrator::class, function ($mock) {
             $mock->shouldReceive('handle')
                 ->once()
-                ->withArgs(fn($msg, $u, $s, $confirmed) => $confirmed === true)
+                ->withArgs(fn ($msg, $u, $s, $confirmed) => $confirmed === true)
                 ->andReturn($this->makeGenerator([
                     ['event' => 'step_completed', 'data' => ['step' => 1, 'name' => 'Buat invoice']],
                     ['event' => 'task_summary', 'data' => ['completed' => 1, 'failed' => 0, 'cancelled' => false, 'actions' => []]],
@@ -222,10 +225,10 @@ class AgentControllerTest extends TestCase
             ->assertJsonStructure(['session_id', 'events', 'summary']);
     }
 
-    public function testConfirmReturns404ForUnknownSession(): void
+    public function test_confirm_returns404_for_unknown_session(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/agent/confirm', ['session_id' => 99999]);
@@ -233,16 +236,16 @@ class AgentControllerTest extends TestCase
         $response->assertStatus(422); // validation error: session_id doesn't exist
     }
 
-    public function testConfirmReturns404ForOtherUsersSession(): void
+    public function test_confirm_returns404_for_other_users_session(): void
     {
-        $tenant   = $this->createTenant();
-        $user     = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $otherUser = $this->createAdminUser($tenant, ['email' => 'other@test.com', 'role' => 'staff']);
 
         $session = ChatSession::create([
-            'tenant_id'    => $tenant->id,
-            'user_id'      => $otherUser->id, // belongs to other user
-            'title'        => 'Other Session',
+            'tenant_id' => $tenant->id,
+            'user_id' => $otherUser->id, // belongs to other user
+            'title' => 'Other Session',
             'session_type' => 'agent',
             'is_cancelled' => false,
         ]);
@@ -258,23 +261,23 @@ class AgentControllerTest extends TestCase
     // Requirements: 7.4, 7.5
     // =========================================================================
 
-    public function testCancelCallsOrchestratorCancel(): void
+    public function test_cancel_calls_orchestrator_cancel(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = ChatSession::create([
-            'tenant_id'        => $tenant->id,
-            'user_id'          => $user->id,
-            'title'            => 'Agent Session',
-            'session_type'     => 'agent',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'title' => 'Agent Session',
+            'session_type' => 'agent',
             'execution_status' => 'executing',
-            'is_cancelled'     => false,
+            'is_cancelled' => false,
         ]);
 
         $this->mock(AgentOrchestrator::class, function ($mock) use ($session) {
             $mock->shouldReceive('cancel')
                 ->once()
-                ->withArgs(fn($s) => $s->id === $session->id);
+                ->withArgs(fn ($s) => $s->id === $session->id);
         });
 
         $response = $this->actingAs($user)
@@ -284,16 +287,16 @@ class AgentControllerTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    public function testCancelReturns404ForOtherUsersSession(): void
+    public function test_cancel_returns404_for_other_users_session(): void
     {
-        $tenant    = $this->createTenant();
-        $user      = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $otherUser = $this->createAdminUser($tenant, ['email' => 'other2@test.com', 'role' => 'staff']);
 
         $session = ChatSession::create([
-            'tenant_id'    => $tenant->id,
-            'user_id'      => $otherUser->id,
-            'title'        => 'Other Session',
+            'tenant_id' => $tenant->id,
+            'user_id' => $otherUser->id,
+            'title' => 'Other Session',
             'session_type' => 'agent',
             'is_cancelled' => false,
         ]);
@@ -309,36 +312,36 @@ class AgentControllerTest extends TestCase
     // Requirements: 6.6
     // =========================================================================
 
-    public function testUndoCallsExecutorUndoForLastWriteLog(): void
+    public function test_undo_calls_executor_undo_for_last_write_log(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = ChatSession::create([
-            'tenant_id'    => $tenant->id,
-            'user_id'      => $user->id,
-            'title'        => 'Agent Session',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'title' => 'Agent Session',
             'session_type' => 'agent',
             'is_cancelled' => false,
         ]);
 
         // Create an undoable audit log within 5 minutes
         $auditLog = AgentAuditLog::create([
-            'tenant_id'      => $tenant->id,
-            'user_id'        => $user->id,
-            'session_id'     => $session->id,
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
-            'parameters'     => ['amount' => 1000000],
-            'result'         => ['invoice_id' => 42, 'status' => 'success'],
-            'status'         => 'success',
-            'is_undoable'    => true,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'session_id' => $session->id,
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
+            'parameters' => ['amount' => 1000000],
+            'result' => ['invoice_id' => 42, 'status' => 'success'],
+            'status' => 'success',
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(4),
         ]);
 
         $this->mock(AgentExecutor::class, function ($mock) use ($auditLog) {
             $mock->shouldReceive('undo')
                 ->once()
-                ->withArgs(fn($log, $registry) => $log->id === $auditLog->id)
+                ->withArgs(fn ($log, $registry) => $log->id === $auditLog->id)
                 ->andReturn(new UndoResult(
                     success: true,
                     message: 'Aksi berhasil di-undo.',
@@ -354,10 +357,10 @@ class AgentControllerTest extends TestCase
             ->assertJsonStructure(['success', 'message', 'restored_data']);
     }
 
-    public function testUndoReturns404WhenNoUndoableActionExists(): void
+    public function test_undo_returns404_when_no_undoable_action_exists(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/agent/undo', []);
@@ -366,21 +369,21 @@ class AgentControllerTest extends TestCase
             ->assertJson(['code' => 'NO_UNDOABLE_ACTION']);
     }
 
-    public function testUndoReturns422WhenUndoFails(): void
+    public function test_undo_returns422_when_undo_fails(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
 
         // Create an audit log that is NOT undoable (window expired)
         AgentAuditLog::create([
-            'tenant_id'      => $tenant->id,
-            'user_id'        => $user->id,
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
-            'parameters'     => [],
-            'result'         => [],
-            'status'         => 'success',
-            'is_undoable'    => true,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
+            'parameters' => [],
+            'result' => [],
+            'status' => 'success',
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(4), // still valid
         ]);
 
@@ -405,21 +408,21 @@ class AgentControllerTest extends TestCase
     // Requirements: 4.4
     // =========================================================================
 
-    public function testInsightsReturnsPendingInsightsForUser(): void
+    public function test_insights_returns_pending_insights_for_user(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $insight = ProactiveInsight::create([
-            'tenant_id'       => $tenant->id,
-            'condition_type'  => 'low_stock',
-            'urgency'         => 'high',
-            'title'           => 'Stok Rendah',
-            'description'     => 'Beberapa produk stok rendah.',
+            'tenant_id' => $tenant->id,
+            'condition_type' => 'low_stock',
+            'urgency' => 'high',
+            'title' => 'Stok Rendah',
+            'description' => 'Beberapa produk stok rendah.',
             'business_impact' => 'Kehilangan penjualan.',
             'recommendations' => ['Buat PO segera.'],
-            'condition_data'  => [],
-            'condition_hash'  => md5('low_stock_test'),
+            'condition_data' => [],
+            'condition_hash' => md5('low_stock_test'),
         ]);
 
         $this->mock(ProactiveInsightEngine::class, function ($mock) use ($insight) {
@@ -443,10 +446,10 @@ class AgentControllerTest extends TestCase
         $this->assertSame(1, $response->json('count'));
     }
 
-    public function testInsightsReturnsEmptyArrayWhenNoInsightsPending(): void
+    public function test_insights_returns_empty_array_when_no_insights_pending(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         // Default mock already returns empty array for getPendingInsights
         $response = $this->actingAs($user)
@@ -461,28 +464,28 @@ class AgentControllerTest extends TestCase
     // Requirements: 4.5
     // =========================================================================
 
-    public function testDismissInsightCallsInsightEngineDismiss(): void
+    public function test_dismiss_insight_calls_insight_engine_dismiss(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $insight = ProactiveInsight::create([
-            'tenant_id'       => $tenant->id,
-            'condition_type'  => 'overdue_ar',
-            'urgency'         => 'medium',
-            'title'           => 'Piutang Jatuh Tempo',
-            'description'     => 'Ada piutang jatuh tempo.',
+            'tenant_id' => $tenant->id,
+            'condition_type' => 'overdue_ar',
+            'urgency' => 'medium',
+            'title' => 'Piutang Jatuh Tempo',
+            'description' => 'Ada piutang jatuh tempo.',
             'business_impact' => 'Arus kas terganggu.',
             'recommendations' => ['Tagih pelanggan.'],
-            'condition_data'  => [],
-            'condition_hash'  => md5('overdue_ar_test'),
+            'condition_data' => [],
+            'condition_hash' => md5('overdue_ar_test'),
         ]);
 
         $this->mock(ProactiveInsightEngine::class, function ($mock) use ($insight) {
             $mock->shouldReceive('getPendingInsights')->andReturn([]);
             $mock->shouldReceive('dismiss')
                 ->once()
-                ->withArgs(fn($i, $reason) => $i->id === $insight->id && $reason === 'handled');
+                ->withArgs(fn ($i, $reason) => $i->id === $insight->id && $reason === 'handled');
         });
 
         $response = $this->actingAs($user)
@@ -492,22 +495,22 @@ class AgentControllerTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    public function testDismissInsightReturns404ForOtherTenantInsight(): void
+    public function test_dismiss_insight_returns404_for_other_tenant_insight(): void
     {
-        $tenant      = $this->createTenant();
-        $otherTenant = $this->createTenant(['name' => 'Other Tenant ' . uniqid()]);
-        $user        = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $otherTenant = $this->createTenant(['name' => 'Other Tenant '.uniqid()]);
+        $user = $this->createAdminUser($tenant);
 
         $insight = ProactiveInsight::create([
-            'tenant_id'       => $otherTenant->id, // belongs to other tenant
-            'condition_type'  => 'low_stock',
-            'urgency'         => 'low',
-            'title'           => 'Other Tenant Insight',
-            'description'     => 'Desc.',
+            'tenant_id' => $otherTenant->id, // belongs to other tenant
+            'condition_type' => 'low_stock',
+            'urgency' => 'low',
+            'title' => 'Other Tenant Insight',
+            'description' => 'Desc.',
             'business_impact' => 'Impact.',
             'recommendations' => ['Action.'],
-            'condition_data'  => [],
-            'condition_hash'  => md5('other_tenant_insight'),
+            'condition_data' => [],
+            'condition_hash' => md5('other_tenant_insight'),
         ]);
 
         $response = $this->actingAs($user)
@@ -521,10 +524,10 @@ class AgentControllerTest extends TestCase
     // Requirements: 5.6
     // =========================================================================
 
-    public function testMemoryReturnsUserPreferencesAndSuggestions(): void
+    public function test_memory_returns_user_preferences_and_suggestions(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $this->mock(AiMemoryService::class, function ($mock) {
             $mock->shouldReceive('getPreferences')
@@ -547,10 +550,10 @@ class AgentControllerTest extends TestCase
     // Requirements: 5.6
     // =========================================================================
 
-    public function testClearMemoryCallsResetMemoryAndReturnsDeletedCount(): void
+    public function test_clear_memory_calls_reset_memory_and_returns_deleted_count(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         $this->mock(AiMemoryService::class, function ($mock) {
             $mock->shouldReceive('resetMemory')

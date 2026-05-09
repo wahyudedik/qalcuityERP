@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
  * OvertimeApprovalService - Secure overtime approval with separation of duties
- * 
+ *
  * BUG-HRM-004 FIX: Prevent self-approval and enforce approval hierarchy
- * 
+ *
  * Security Rules:
  * 1. Employee CANNOT approve their own overtime
  * 2. Must be manager/admin role to approve
@@ -22,9 +23,9 @@ class OvertimeApprovalService
 {
     /**
      * BUG-HRM-004 FIX: Validate if user can approve overtime request
-     * 
-     * @param User $approver User attempting to approve
-     * @param OvertimeRequest $overtime Overtime request to approve
+     *
+     * @param  User  $approver  User attempting to approve
+     * @param  OvertimeRequest  $overtime  Overtime request to approve
      * @return array ['allowed' => bool, 'reason' => string]
      */
     public function canApprove(User $approver, OvertimeRequest $overtime): array
@@ -38,7 +39,7 @@ class OvertimeApprovalService
         }
 
         // Rule 2: Must be admin or manager
-        if (!$this->hasApprovalRole($approver)) {
+        if (! $this->hasApprovalRole($approver)) {
             return [
                 'allowed' => false,
                 'reason' => 'Hanya Admin atau Manager yang dapat menyetujui lembur.',
@@ -57,7 +58,7 @@ class OvertimeApprovalService
         if ($overtime->status !== 'pending') {
             return [
                 'allowed' => false,
-                'reason' => 'Pengajuan lembur ini sudah diproses (status: ' . $overtime->status . ').',
+                'reason' => 'Pengajuan lembur ini sudah diproses (status: '.$overtime->status.').',
             ];
         }
 
@@ -70,9 +71,7 @@ class OvertimeApprovalService
 
     /**
      * BUG-HRM-004 FIX: Approve overtime with security validation
-     * 
-     * @param User $approver
-     * @param OvertimeRequest $overtime
+     *
      * @return array Result with success status and message
      */
     public function approve(User $approver, OvertimeRequest $overtime): array
@@ -80,7 +79,7 @@ class OvertimeApprovalService
         // Validate approval permission
         $validation = $this->canApprove($approver, $overtime);
 
-        if (!$validation['allowed']) {
+        if (! $validation['allowed']) {
             Log::warning('Overtime: Self-approval attempt blocked', [
                 'approver_id' => $approver->id,
                 'approver_name' => $approver->name,
@@ -122,7 +121,7 @@ class OvertimeApprovalService
 
         return [
             'success' => true,
-            'message' => "Lembur disetujui. Upah Rp " . number_format($pay, 0, ',', '.') . " akan masuk payroll.",
+            'message' => 'Lembur disetujui. Upah Rp '.number_format($pay, 0, ',', '.').' akan masuk payroll.',
             'data' => [
                 'overtime_id' => $overtime->id,
                 'overtime_pay' => $pay,
@@ -133,18 +132,13 @@ class OvertimeApprovalService
 
     /**
      * BUG-HRM-004 FIX: Reject overtime with security validation
-     * 
-     * @param User $rejector
-     * @param OvertimeRequest $overtime
-     * @param string|null $reason
-     * @return array
      */
     public function reject(User $rejector, OvertimeRequest $overtime, ?string $reason = null): array
     {
         // Validate approval permission (same rules as approve)
         $validation = $this->canApprove($rejector, $overtime);
 
-        if (!$validation['allowed']) {
+        if (! $validation['allowed']) {
             Log::warning('Overtime: Self-rejection attempt blocked', [
                 'rejector_id' => $rejector->id,
                 'rejector_name' => $rejector->name,
@@ -185,9 +179,8 @@ class OvertimeApprovalService
 
     /**
      * Get eligible approvers for an overtime request
-     * 
-     * @param OvertimeRequest $overtime
-     * @return \Illuminate\Database\Eloquent\Collection
+     *
+     * @return Collection
      */
     public function getEligibleApprovers(OvertimeRequest $overtime)
     {
@@ -200,10 +193,6 @@ class OvertimeApprovalService
 
     /**
      * BUG-HRM-004 FIX: Check if this is a self-approval attempt
-     * 
-     * @param User $approver
-     * @param OvertimeRequest $overtime
-     * @return bool
      */
     protected function isSelfApproval(User $approver, OvertimeRequest $overtime): bool
     {
@@ -222,9 +211,6 @@ class OvertimeApprovalService
 
     /**
      * Check if user has approval role
-     * 
-     * @param User $user
-     * @return bool
      */
     protected function hasApprovalRole(User $user): bool
     {
@@ -235,9 +221,6 @@ class OvertimeApprovalService
 
     /**
      * Get approval audit log for overtime request
-     * 
-     * @param OvertimeRequest $overtime
-     * @return array
      */
     public function getApprovalAudit(OvertimeRequest $overtime): array
     {

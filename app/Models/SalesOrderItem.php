@@ -14,6 +14,13 @@ class SalesOrderItem extends Model
         return ['price' => 'decimal:2', 'discount' => 'decimal:2', 'total' => 'decimal:2'];
     }
 
-    public function salesOrder(): BelongsTo { return $this->belongsTo(SalesOrder::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

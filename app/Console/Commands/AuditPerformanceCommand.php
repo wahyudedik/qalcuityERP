@@ -13,16 +13,17 @@ class AuditPerformanceCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:performance {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run performance audit (pagination, eager loading, exports, jobs).';
 
     public function handle(PerformanceAnalyzer $performanceAnalyzer, QueryAnalyzer $queryAnalyzer): int
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($performanceAnalyzer->analyze());
         $report->addAll($queryAnalyzer->analyze());
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

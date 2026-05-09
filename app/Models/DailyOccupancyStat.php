@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DailyOccupancyStat extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -70,7 +70,7 @@ class DailyOccupancyStat extends Model
     /**
      * Get or create stat for date
      */
-    public static function getOrCreateForDate(int $tenantId, \Carbon\Carbon $date): self
+    public static function getOrCreateForDate(int $tenantId, Carbon $date): self
     {
         return static::firstOrCreate(
             ['tenant_id' => $tenantId, 'stat_date' => $date],

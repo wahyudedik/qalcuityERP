@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class QualityCheckStandard extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'name',

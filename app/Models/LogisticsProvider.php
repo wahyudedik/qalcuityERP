@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LogisticsProvider extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -32,6 +31,7 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function shipments()
     {
         return $this->hasMany(Shipment::class);

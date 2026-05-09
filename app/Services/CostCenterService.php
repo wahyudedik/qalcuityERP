@@ -39,7 +39,9 @@ class CostCenterService
      */
     public function validateDepth(int $tenantId, ?int $parentId): void
     {
-        if ($parentId === null) return; // Level 1 (root), selalu valid
+        if ($parentId === null) {
+            return;
+        } // Level 1 (root), selalu valid
 
         $depth = 1;
         $current = CostCenter::where('tenant_id', $tenantId)->find($parentId);
@@ -48,7 +50,7 @@ class CostCenterService
             $depth++;
             if ($depth >= 3) {
                 throw new \RuntimeException(
-                    'Hierarki cost center maksimal 3 level. Cost center ini sudah berada di level ' . ($depth + 1) . '.'
+                    'Hierarki cost center maksimal 3 level. Cost center ini sudah berada di level '.($depth + 1).'.'
                 );
             }
             $current = CostCenter::where('tenant_id', $tenantId)->find($current->parent_id);
@@ -90,6 +92,7 @@ class CostCenterService
         foreach ($children as $childId) {
             $ids = array_merge($ids, $this->getSubtreeIds($childId));
         }
+
         return $ids;
     }
 
@@ -108,6 +111,7 @@ class CostCenterService
 
         return $centers->map(function ($cc) use ($from, $to) {
             $subtreeIds = $this->getSubtreeIds($cc->id);
+
             return $this->aggregatePL($subtreeIds, $cc->name, $from, $to);
         });
     }
@@ -122,32 +126,34 @@ class CostCenterService
             : CostCenter::where('tenant_id', $tenantId)->pluck('id')->toArray();
 
         $lines = JournalEntryLine::whereIn('cost_center_id', $subtreeIds)
-            ->whereHas('journalEntry', fn($q) => $q
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('status', 'posted')
                 ->whereDate('date', '<=', $asOf)
             )
             ->with('account')
             ->get();
 
-        $assets      = 0;
+        $assets = 0;
         $liabilities = 0;
-        $equity      = 0;
+        $equity = 0;
 
         foreach ($lines as $line) {
-            if (!$line->account) continue;
+            if (! $line->account) {
+                continue;
+            }
             $net = $line->debit - $line->credit;
             match ($line->account->type) {
-                'asset'     => $assets      += $net,
+                'asset' => $assets += $net,
                 'liability' => $liabilities += -$net,
-                'equity'    => $equity      += -$net,
-                default     => null,
+                'equity' => $equity += -$net,
+                default => null,
             };
         }
 
         return [
-            'assets'      => $assets,
+            'assets' => $assets,
             'liabilities' => $liabilities,
-            'equity'      => $equity,
+            'equity' => $equity,
         ];
     }
 
@@ -159,7 +165,7 @@ class CostCenterService
         return [
             'revenue' => $report->sum('revenue'),
             'expense' => $report->sum('expense'),
-            'profit'  => $report->sum('profit'),
+            'profit' => $report->sum('profit'),
         ];
     }
 
@@ -169,7 +175,7 @@ class CostCenterService
     private function aggregatePL(array $costCenterIds, string $label, string $from, string $to): array
     {
         $lines = JournalEntryLine::whereIn('cost_center_id', $costCenterIds)
-            ->whereHas('journalEntry', fn($q) => $q
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('status', 'posted')
                 ->whereBetween('date', [$from, $to])
             )
@@ -180,7 +186,9 @@ class CostCenterService
         $expense = 0;
 
         foreach ($lines as $line) {
-            if (!$line->account) continue;
+            if (! $line->account) {
+                continue;
+            }
             if ($line->account->type === 'revenue') {
                 $revenue += $line->account->normal_balance === 'credit'
                     ? ($line->credit - $line->debit)
@@ -193,10 +201,10 @@ class CostCenterService
         }
 
         return [
-            'label'   => $label,
+            'label' => $label,
             'revenue' => $revenue,
             'expense' => $expense,
-            'profit'  => $revenue - $expense,
+            'profit' => $revenue - $expense,
         ];
     }
 }

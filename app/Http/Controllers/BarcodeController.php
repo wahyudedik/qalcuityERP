@@ -4,16 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Services\BarcodeService;
-use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class BarcodeController extends Controller
 {
     public function __construct(
         private BarcodeService $barcodeService
-    ) {
-    }
+    ) {}
 
     /**
      * Show barcode for single product (preview)

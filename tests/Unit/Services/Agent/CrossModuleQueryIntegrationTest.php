@@ -5,13 +5,11 @@ namespace Tests\Unit\Services\Agent;
 use App\Models\Attendance;
 use App\Models\CrmLead;
 use App\Models\Employee;
-use App\Models\Invoice;
 use App\Models\PayrollRun;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\Project;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\Agent\CrossModuleQueryService;
 use Tests\TestCase;
 
@@ -35,9 +33,9 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.4
     // =========================================================================
 
-    public function testThreeModuleQueryCompletesWithinFiveSeconds(): void
+    public function test_three_module_query_completes_within_five_seconds(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Seed data representatif untuk 3 modul
@@ -47,8 +45,8 @@ class CrossModuleQueryIntegrationTest extends TestCase
 
         $service = new CrossModuleQueryService($tenant->id, ['sales', 'crm', 'inventory']);
 
-        $start   = microtime(true);
-        $result  = $service->queryPenjualanCrmInventory([]);
+        $start = microtime(true);
+        $result = $service->queryPenjualanCrmInventory([]);
         $elapsed = microtime(true) - $start;
 
         $this->assertLessThan(
@@ -60,7 +58,7 @@ class CrossModuleQueryIntegrationTest extends TestCase
         $this->assertSame('success', $result['status']);
     }
 
-    public function testHrmPayrollAbsensiQueryCompletesWithinFiveSeconds(): void
+    public function test_hrm_payroll_absensi_query_completes_within_five_seconds(): void
     {
         $tenant = $this->createTenant();
 
@@ -70,8 +68,8 @@ class CrossModuleQueryIntegrationTest extends TestCase
 
         $service = new CrossModuleQueryService($tenant->id, ['hrm', 'payroll']);
 
-        $start   = microtime(true);
-        $result  = $service->queryHrmPayrollAbsensi([]);
+        $start = microtime(true);
+        $result = $service->queryHrmPayrollAbsensi([]);
         $elapsed = microtime(true) - $start;
 
         $this->assertLessThan(
@@ -83,10 +81,10 @@ class CrossModuleQueryIntegrationTest extends TestCase
         $this->assertSame('success', $result['status']);
     }
 
-    public function testProjectKeuanganQueryCompletesWithinFiveSeconds(): void
+    public function test_project_keuangan_query_completes_within_five_seconds(): void
     {
-        $tenant   = $this->createTenant();
-        $user     = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $customer = $this->createCustomer($tenant->id);
 
         $this->seedProjectData($tenant->id, $user->id, $customer->id);
@@ -94,8 +92,8 @@ class CrossModuleQueryIntegrationTest extends TestCase
 
         $service = new CrossModuleQueryService($tenant->id, ['project', 'accounting']);
 
-        $start   = microtime(true);
-        $result  = $service->queryProjectKeuangan([]);
+        $start = microtime(true);
+        $result = $service->queryProjectKeuangan([]);
         $elapsed = microtime(true) - $start;
 
         $this->assertLessThan(
@@ -113,29 +111,29 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.1, 3.2
     // =========================================================================
 
-    public function testAkuntansiInventoryReturnsAccurateData(): void
+    public function test_akuntansi_inventory_returns_accurate_data(): void
     {
-        $tenant    = $this->createTenant();
-        $user      = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Seed transaksi keuangan
         Transaction::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
-            'number'      => 'TRX-' . uniqid(),
-            'type'        => 'income',
-            'date'        => now()->startOfMonth()->addDays(2),
-            'amount'      => 5000000,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'number' => 'TRX-'.uniqid(),
+            'type' => 'income',
+            'date' => now()->startOfMonth()->addDays(2),
+            'amount' => 5000000,
             'description' => 'Pendapatan test',
         ]);
         Transaction::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
-            'number'      => 'TRX-' . uniqid(),
-            'type'        => 'expense',
-            'date'        => now()->startOfMonth()->addDays(3),
-            'amount'      => 2000000,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'number' => 'TRX-'.uniqid(),
+            'type' => 'expense',
+            'date' => now()->startOfMonth()->addDays(3),
+            'amount' => 2000000,
             'description' => 'Pengeluaran test',
         ]);
 
@@ -144,7 +142,7 @@ class CrossModuleQueryIntegrationTest extends TestCase
         $this->setStock($product->id, $warehouse->id, 3);
 
         $service = new CrossModuleQueryService($tenant->id, ['accounting', 'inventory']);
-        $result  = $service->queryAkuntansiInventory(['period' => 'this_month']);
+        $result = $service->queryAkuntansiInventory(['period' => 'this_month']);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('akuntansi', $result['data']);
@@ -168,19 +166,19 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.1, 3.2
     // =========================================================================
 
-    public function testAkuntansiHrmReturnsAccurateData(): void
+    public function test_akuntansi_hrm_returns_accurate_data(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         // Seed transaksi
         Transaction::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
-            'number'      => 'TRX-' . uniqid(),
-            'type'        => 'income',
-            'date'        => now()->startOfMonth()->addDays(1),
-            'amount'      => 10000000,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'number' => 'TRX-'.uniqid(),
+            'type' => 'income',
+            'date' => now()->startOfMonth()->addDays(1),
+            'amount' => 10000000,
             'description' => 'Pendapatan',
         ]);
 
@@ -188,14 +186,14 @@ class CrossModuleQueryIntegrationTest extends TestCase
         for ($i = 0; $i < 3; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenant->id,
-                'name'      => 'Karyawan ' . ($i + 1),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Karyawan '.($i + 1),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
 
         $service = new CrossModuleQueryService($tenant->id, ['accounting', 'hrm']);
-        $result  = $service->queryAkuntansiHrm(['period' => 'this_month']);
+        $result = $service->queryAkuntansiHrm(['period' => 'this_month']);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('akuntansi', $result['data']);
@@ -214,7 +212,7 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.1, 3.2
     // =========================================================================
 
-    public function testHrmPayrollAbsensiReturnsAccurateData(): void
+    public function test_hrm_payroll_absensi_returns_accurate_data(): void
     {
         $tenant = $this->createTenant();
 
@@ -223,41 +221,41 @@ class CrossModuleQueryIntegrationTest extends TestCase
         for ($i = 0; $i < 2; $i++) {
             $employees[] = Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenant->id,
-                'name'      => 'Karyawan ' . ($i + 1),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Karyawan '.($i + 1),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
 
         // Seed payroll run bulan ini
         $period = now()->format('Y-m');
         PayrollRun::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenant->id,
-            'period'           => $period,
-            'status'           => 'draft',
-            'total_gross'      => 10000000,
+            'tenant_id' => $tenant->id,
+            'period' => $period,
+            'status' => 'draft',
+            'total_gross' => 10000000,
             'total_deductions' => 1000000,
-            'total_net'        => 9000000,
+            'total_net' => 9000000,
         ]);
 
         // Seed absensi bulan ini
         foreach ($employees as $emp) {
             Attendance::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenant->id,
+                'tenant_id' => $tenant->id,
                 'employee_id' => $emp->id,
-                'date'        => now()->startOfMonth()->addDays(1),
-                'status'      => 'present',
+                'date' => now()->startOfMonth()->addDays(1),
+                'status' => 'present',
             ]);
         }
         Attendance::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
+            'tenant_id' => $tenant->id,
             'employee_id' => $employees[0]->id,
-            'date'        => now()->startOfMonth()->addDays(2),
-            'status'      => 'absent',
+            'date' => now()->startOfMonth()->addDays(2),
+            'status' => 'absent',
         ]);
 
         $service = new CrossModuleQueryService($tenant->id, ['hrm', 'payroll']);
-        $result  = $service->queryHrmPayrollAbsensi(['period' => $period]);
+        $result = $service->queryHrmPayrollAbsensi(['period' => $period]);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('hrm', $result['data']);
@@ -280,49 +278,49 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.1, 3.2
     // =========================================================================
 
-    public function testProjectKeuanganReturnsAccurateData(): void
+    public function test_project_keuangan_returns_accurate_data(): void
     {
-        $tenant   = $this->createTenant();
-        $user     = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $customer = $this->createCustomer($tenant->id);
 
         // Seed 2 proyek
         Project::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
             'customer_id' => $customer->id,
-            'number'      => 'PRJ-001',
-            'name'        => 'Proyek A',
-            'status'      => 'active',
-            'budget'      => 50000000,
+            'number' => 'PRJ-001',
+            'name' => 'Proyek A',
+            'status' => 'active',
+            'budget' => 50000000,
             'actual_cost' => 30000000,
-            'progress'    => 60,
+            'progress' => 60,
         ]);
         Project::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
             'customer_id' => $customer->id,
-            'number'      => 'PRJ-002',
-            'name'        => 'Proyek B',
-            'status'      => 'planning',
-            'budget'      => 20000000,
+            'number' => 'PRJ-002',
+            'name' => 'Proyek B',
+            'status' => 'planning',
+            'budget' => 20000000,
             'actual_cost' => 0,
-            'progress'    => 0,
+            'progress' => 0,
         ]);
 
         // Seed transaksi keuangan
         Transaction::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
-            'user_id'     => $user->id,
-            'number'      => 'TRX-' . uniqid(),
-            'type'        => 'income',
-            'date'        => now()->startOfMonth()->addDays(1),
-            'amount'      => 15000000,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'number' => 'TRX-'.uniqid(),
+            'type' => 'income',
+            'date' => now()->startOfMonth()->addDays(1),
+            'amount' => 15000000,
             'description' => 'Pendapatan proyek',
         ]);
 
         $service = new CrossModuleQueryService($tenant->id, ['project', 'accounting']);
-        $result  = $service->queryProjectKeuangan([]);
+        $result = $service->queryProjectKeuangan([]);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('project', $result['data']);
@@ -344,13 +342,13 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.5
     // =========================================================================
 
-    public function testPartialResultsWhenModuleInactive(): void
+    public function test_partial_results_when_module_inactive(): void
     {
         $tenant = $this->createTenant();
 
         // Hanya HRM aktif, payroll tidak aktif
         $service = new CrossModuleQueryService($tenant->id, ['hrm']);
-        $result  = $service->queryHrmPayrollAbsensi([]);
+        $result = $service->queryHrmPayrollAbsensi([]);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('hrm', $result['data']);
@@ -366,34 +364,34 @@ class CrossModuleQueryIntegrationTest extends TestCase
     // Validates: Requirements 3.1, 3.2, 3.3
     // =========================================================================
 
-    public function testPenjualanCrmInventoryReturnsAccurateData(): void
+    public function test_penjualan_crm_inventory_returns_accurate_data(): void
     {
-        $tenant    = $this->createTenant();
-        $user      = $this->createAdminUser($tenant);
-        $customer  = $this->createCustomer($tenant->id);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
+        $customer = $this->createCustomer($tenant->id);
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Seed sales orders
         SalesOrder::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
+            'tenant_id' => $tenant->id,
             'customer_id' => $customer->id,
-            'user_id'     => $user->id,
-            'number'      => 'SO-' . uniqid(),
-            'status'      => 'confirmed',
-            'date'        => now()->startOfMonth()->addDays(1),
-            'total'       => 3000000,
-            'subtotal'    => 3000000,
-            'discount'    => 0,
-            'tax'         => 0,
+            'user_id' => $user->id,
+            'number' => 'SO-'.uniqid(),
+            'status' => 'confirmed',
+            'date' => now()->startOfMonth()->addDays(1),
+            'total' => 3000000,
+            'subtotal' => 3000000,
+            'discount' => 0,
+            'tax' => 0,
         ]);
 
         // Seed CRM leads
         CrmLead::withoutGlobalScopes()->create([
-            'tenant_id'       => $tenant->id,
-            'name'            => 'Lead Test',
-            'stage'           => 'qualified',
+            'tenant_id' => $tenant->id,
+            'name' => 'Lead Test',
+            'stage' => 'qualified',
             'estimated_value' => 5000000,
-            'probability'     => 60,
+            'probability' => 60,
         ]);
 
         // Seed produk dengan stok kritis
@@ -401,7 +399,7 @@ class CrossModuleQueryIntegrationTest extends TestCase
         $this->setStock($product->id, $warehouse->id, 5);
 
         $service = new CrossModuleQueryService($tenant->id, ['sales', 'crm', 'inventory']);
-        $result  = $service->queryPenjualanCrmInventory(['period' => 'this_month']);
+        $result = $service->queryPenjualanCrmInventory(['period' => 'this_month']);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('penjualan', $result['data']);
@@ -420,29 +418,29 @@ class CrossModuleQueryIntegrationTest extends TestCase
 
     private function seedSalesData(int $tenantId): void
     {
-        $user     = \App\Models\User::create([
-            'tenant_id'         => $tenantId,
-            'name'              => 'User ' . uniqid(),
-            'email'             => 'user-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'staff',
-            'is_active'         => true,
+        $user = User::create([
+            'tenant_id' => $tenantId,
+            'name' => 'User '.uniqid(),
+            'email' => 'user-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'staff',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
         $customer = $this->createCustomer($tenantId);
 
         for ($i = 0; $i < 3; $i++) {
             SalesOrder::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'customer_id' => $customer->id,
-                'user_id'     => $user->id,
-                'number'      => 'SO-INT-' . uniqid(),
-                'status'      => 'confirmed',
-                'date'        => now()->startOfMonth()->addDays($i),
-                'total'       => 1000000,
-                'subtotal'    => 1000000,
-                'discount'    => 0,
-                'tax'         => 0,
+                'user_id' => $user->id,
+                'number' => 'SO-INT-'.uniqid(),
+                'status' => 'confirmed',
+                'date' => now()->startOfMonth()->addDays($i),
+                'total' => 1000000,
+                'subtotal' => 1000000,
+                'discount' => 0,
+                'tax' => 0,
             ]);
         }
     }
@@ -451,11 +449,11 @@ class CrossModuleQueryIntegrationTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             CrmLead::withoutGlobalScopes()->create([
-                'tenant_id'       => $tenantId,
-                'name'            => 'Lead ' . ($i + 1),
-                'stage'           => 'qualified',
+                'tenant_id' => $tenantId,
+                'name' => 'Lead '.($i + 1),
+                'stage' => 'qualified',
                 'estimated_value' => 2000000,
-                'probability'     => 50,
+                'probability' => 50,
             ]);
         }
     }
@@ -473,9 +471,9 @@ class CrossModuleQueryIntegrationTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenantId,
-                'name'      => 'Karyawan ' . ($i + 1),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Karyawan '.($i + 1),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
     }
@@ -483,12 +481,12 @@ class CrossModuleQueryIntegrationTest extends TestCase
     private function seedPayrollData(int $tenantId): void
     {
         PayrollRun::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenantId,
-            'period'           => now()->format('Y-m'),
-            'status'           => 'draft',
-            'total_gross'      => 25000000,
+            'tenant_id' => $tenantId,
+            'period' => now()->format('Y-m'),
+            'status' => 'draft',
+            'total_gross' => 25000000,
             'total_deductions' => 2500000,
-            'total_net'        => 22500000,
+            'total_net' => 22500000,
         ]);
     }
 
@@ -500,10 +498,10 @@ class CrossModuleQueryIntegrationTest extends TestCase
 
         foreach ($employees as $emp) {
             Attendance::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'employee_id' => $emp->id,
-                'date'        => now()->startOfMonth()->addDays(1),
-                'status'      => 'present',
+                'date' => now()->startOfMonth()->addDays(1),
+                'status' => 'present',
             ]);
         }
     }
@@ -512,15 +510,15 @@ class CrossModuleQueryIntegrationTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             Project::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenantId,
-                'user_id'     => $userId,
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
                 'customer_id' => $customerId,
-                'number'      => 'PRJ-INT-' . uniqid(),
-                'name'        => 'Proyek ' . ($i + 1),
-                'status'      => 'active',
-                'budget'      => 10000000,
+                'number' => 'PRJ-INT-'.uniqid(),
+                'name' => 'Proyek '.($i + 1),
+                'status' => 'active',
+                'budget' => 10000000,
                 'actual_cost' => 5000000,
-                'progress'    => 50,
+                'progress' => 50,
             ]);
         }
     }
@@ -528,12 +526,12 @@ class CrossModuleQueryIntegrationTest extends TestCase
     private function seedTransactionData(int $tenantId, int $userId): void
     {
         Transaction::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenantId,
-            'user_id'     => $userId,
-            'number'      => 'TRX-INT-' . uniqid(),
-            'type'        => 'income',
-            'date'        => now()->startOfMonth()->addDays(1),
-            'amount'      => 8000000,
+            'tenant_id' => $tenantId,
+            'user_id' => $userId,
+            'number' => 'TRX-INT-'.uniqid(),
+            'type' => 'income',
+            'date' => now()->startOfMonth()->addDays(1),
+            'amount' => 8000000,
             'description' => 'Pendapatan proyek',
         ]);
     }

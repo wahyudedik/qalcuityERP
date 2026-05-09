@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Mix Design Calculator Service
- * 
+ *
  * Advanced concrete mix design calculations with SNI standards,
  * cost estimation, volume calculation, and material optimization.
  */
@@ -121,6 +121,7 @@ class MixDesignCalculatorService
         usort($results, function ($a, $b) {
             $efficiencyA = $a['total_cost'] / $a['mix_design']->target_strength;
             $efficiencyB = $b['total_cost'] / $b['mix_design']->target_strength;
+
             return $efficiencyA <=> $efficiencyB;
         });
 
@@ -205,7 +206,7 @@ class MixDesignCalculatorService
             $required = $config['required_kg'] ?? ($config['required_liter'] ?? 0);
             $sufficient = $stock >= $required;
 
-            if (!$sufficient) {
+            if (! $sufficient) {
                 $allAvailable = false;
             }
 
@@ -238,7 +239,7 @@ class MixDesignCalculatorService
     ): array {
         $optimal = $this->findOptimalMix($tenantId, $requiredStrength, $volumeM3, maxBudget: $budget);
 
-        if (!$optimal) {
+        if (! $optimal) {
             return [
                 'status' => 'no_match',
                 'message' => 'Tidak ada mix design yang sesuai dengan kriteria',

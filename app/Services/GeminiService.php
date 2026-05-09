@@ -58,7 +58,8 @@ class GeminiService
      */
     public function chatWithMedia(string $message, array $files, array $history = [], array $toolDeclarations = [], ?string $useCase = null): array
     {
-        $options = !empty($toolDeclarations) ? ['tools' => $toolDeclarations] : [];
+        $options = ! empty($toolDeclarations) ? ['tools' => $toolDeclarations] : [];
+
         return $this->router->chatWithMedia($message, $files, $history, $options, $useCase);
     }
 
@@ -81,6 +82,7 @@ class GeminiService
     {
         $this->router->withTenantContext($context);
         $this->geminiProvider->withTenantContext($context);
+
         return $this;
     }
 
@@ -93,6 +95,7 @@ class GeminiService
     {
         $this->router->withLanguage($language);
         $this->geminiProvider->withLanguage($language);
+
         return $this;
     }
 
@@ -151,6 +154,7 @@ class GeminiService
     public function setModel(string $model): static
     {
         $this->geminiProvider->setModel($model);
+
         return $this;
     }
 }

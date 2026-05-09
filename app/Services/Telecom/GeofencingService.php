@@ -2,10 +2,10 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
-use App\Models\GeofenceZone;
 use App\Models\GeofenceAlert;
+use App\Models\GeofenceZone;
 use App\Models\LocationHistory;
+use App\Models\NetworkDevice;
 use Illuminate\Support\Facades\Log;
 
 class GeofencingService
@@ -16,7 +16,7 @@ class GeofencingService
      */
     public function checkDeviceGeofences(NetworkDevice $device): array
     {
-        if (!$device->hasCoordinates()) {
+        if (! $device->hasCoordinates()) {
             return ['success' => false, 'message' => 'Device has no coordinates'];
         }
 
@@ -40,7 +40,7 @@ class GeofencingService
             $lastEventWasEnter = $lastAlert && $lastAlert->event_type === 'enter';
 
             // Check if we need to trigger an alert
-            if ($isInside && !$lastEventWasEnter && in_array($alertType, ['enter', 'both'])) {
+            if ($isInside && ! $lastEventWasEnter && in_array($alertType, ['enter', 'both'])) {
                 // Device ENTERED zone
                 $alert = $this->createGeofenceAlert(
                     $device,
@@ -51,7 +51,7 @@ class GeofencingService
                 $alerts[] = $alert;
 
                 Log::info("Geofence: Device {$device->name} ENTERED zone {$zone->name}");
-            } elseif (!$isInside && $lastEventWasEnter && in_array($alertType, ['exit', 'both'])) {
+            } elseif (! $isInside && $lastEventWasEnter && in_array($alertType, ['exit', 'both'])) {
                 // Device EXITED zone
                 $alert = $this->createGeofenceAlert(
                     $device,
@@ -158,8 +158,9 @@ class GeofencingService
             $alertSettings = $alert->zone->alert_settings ?? [];
 
             // Check if notifications are enabled
-            if (!($alertSettings['enabled'] ?? true)) {
+            if (! ($alertSettings['enabled'] ?? true)) {
                 $alert->markAsNotified();
+
                 return false;
             }
 
@@ -171,24 +172,26 @@ class GeofencingService
                 $alert->markAsNotified();
             }
 
-            if (in_array('email', $channels) && !empty($alertSettings['email_recipients'])) {
+            if (in_array('email', $channels) && ! empty($alertSettings['email_recipients'])) {
                 // TODO: Send email notification
                 // Notification::route('mail', $alertSettings['email_recipients'])
                 //     ->notify(new GeofenceAlertNotification($alert));
                 Log::info("Email notification would be sent for alert {$alert->id}");
             }
 
-            if (in_array('webhook', $channels) && !empty($alertSettings['webhook_url'])) {
+            if (in_array('webhook', $channels) && ! empty($alertSettings['webhook_url'])) {
                 // TODO: Send webhook
                 // Http::post($alertSettings['webhook_url'], $alert->toArray());
                 Log::info("Webhook notification would be sent for alert {$alert->id}");
             }
 
             Log::info("Geofence notification sent for alert {$alert->id}");
+
             return true;
 
         } catch (\Exception $e) {
-            Log::error("Failed to send geofence notification: " . $e->getMessage());
+            Log::error('Failed to send geofence notification: '.$e->getMessage());
+
             return false;
         }
     }
@@ -240,7 +243,7 @@ class GeofencingService
                 'geofenceZones' => function ($query) {
                     $query->wherePivot('is_enabled', true)
                         ->wherePivot('alert_type', '!=', 'enter');
-                }
+                },
             ])
             ->get();
 
@@ -253,7 +256,7 @@ class GeofencingService
 
             $outsideZones = [];
             foreach ($device->geofenceZones as $zone) {
-                if (!$zone->containsPoint($device->latitude, $device->longitude)) {
+                if (! $zone->containsPoint($device->latitude, $device->longitude)) {
                     $outsideZones[] = [
                         'zone_id' => $zone->id,
                         'zone_name' => $zone->name,
@@ -262,7 +265,7 @@ class GeofencingService
                 }
             }
 
-            if (!empty($outsideZones)) {
+            if (! empty($outsideZones)) {
                 $devicesOutside[] = [
                     'device' => $device,
                     'outside_zones' => $outsideZones,
@@ -284,7 +287,7 @@ class GeofencingService
             ->with([
                 'geofenceZones' => function ($query) {
                     $query->wherePivot('is_enabled', true);
-                }
+                },
             ])
             ->get();
 
@@ -306,7 +309,7 @@ class GeofencingService
                 }
             }
 
-            if (!empty($insideZones)) {
+            if (! empty($insideZones)) {
                 $devicesInside[] = [
                     'device' => $device,
                     'inside_zones' => $insideZones,

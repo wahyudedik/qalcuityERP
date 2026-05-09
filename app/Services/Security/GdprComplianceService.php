@@ -2,15 +2,19 @@
 
 namespace App\Services\Security;
 
+use App\Models\Customer;
+use App\Models\Employee;
 use App\Models\GdprConsent;
 use App\Models\GdprDataExport;
 use App\Models\GdprDeletionRequest;
+use App\Models\Patient;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
  * GDPR Compliance Service
- * 
+ *
  * Implements GDPR requirements:
  * - Right to Access (Data Export)
  * - Right to be Forgotten (Data Deletion)
@@ -22,11 +26,9 @@ class GdprComplianceService
 {
     /**
      * Create data export request
-     * 
-     * @param int $userId
-     * @param string $exportType (personal_data, all_data, specific_module)
-     * @param array $modules (optional)
-     * @return GdprDataExport
+     *
+     * @param  string  $exportType  (personal_data, all_data, specific_module)
+     * @param  array  $modules  (optional)
      */
     public function createDataExportRequest(int $userId, string $exportType = 'personal_data', array $modules = []): GdprDataExport
     {
@@ -47,8 +49,7 @@ class GdprComplianceService
 
     /**
      * Process data export
-     * 
-     * @param GdprDataExport $export
+     *
      * @return string Path to exported file
      */
     public function processDataExport(GdprDataExport $export): string
@@ -77,7 +78,7 @@ class GdprComplianceService
             }
 
             // Generate JSON file
-            $filename = "gdpr_export_{$user->id}_" . Str::uuid() . '.json';
+            $filename = "gdpr_export_{$user->id}_".Str::uuid().'.json';
             $path = "gdpr/exports/{$filename}";
 
             Storage::disk('local')->put($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -102,10 +103,6 @@ class GdprComplianceService
 
     /**
      * Create data deletion request (Right to be Forgotten)
-     * 
-     * @param int $userId
-     * @param string $reason
-     * @return GdprDeletionRequest
      */
     public function createDeletionRequest(int $userId, string $reason): GdprDeletionRequest
     {
@@ -121,10 +118,6 @@ class GdprComplianceService
 
     /**
      * Approve and process deletion request
-     * 
-     * @param GdprDeletionRequest $deletion
-     * @param int $approvedBy
-     * @return bool
      */
     public function processDeletionRequest(GdprDeletionRequest $deletion, int $approvedBy): bool
     {
@@ -163,14 +156,12 @@ class GdprComplianceService
 
     /**
      * Anonymize user data
-     * 
-     * @param $user
      */
     protected function anonymizeUserData($user): void
     {
         $user->update([
-            'name' => 'Deleted User #' . $user->id,
-            'email' => 'deleted_' . $user->id . '@anonymized.local',
+            'name' => 'Deleted User #'.$user->id,
+            'email' => 'deleted_'.$user->id.'@anonymized.local',
             'phone' => null,
             'address' => null,
             'avatar' => null,
@@ -179,9 +170,6 @@ class GdprComplianceService
 
     /**
      * Delete or anonymize related data
-     * 
-     * @param $user
-     * @param int $tenantId
      */
     protected function deleteRelatedData($user, int $tenantId): void
     {
@@ -217,12 +205,6 @@ class GdprComplianceService
 
     /**
      * Record user consent
-     * 
-     * @param int $userId
-     * @param string $consentType
-     * @param string $ipAddress
-     * @param string $userAgent
-     * @return GdprConsent
      */
     public function recordConsent(int $userId, string $consentType, string $ipAddress, string $userAgent): GdprConsent
     {
@@ -244,10 +226,6 @@ class GdprComplianceService
 
     /**
      * Revoke user consent
-     * 
-     * @param int $userId
-     * @param string $consentType
-     * @return bool
      */
     public function revokeConsent(int $userId, string $consentType): bool
     {
@@ -259,10 +237,6 @@ class GdprComplianceService
 
     /**
      * Check if user has active consent
-     * 
-     * @param int $userId
-     * @param string $consentType
-     * @return bool
      */
     public function hasConsent(int $userId, string $consentType): bool
     {
@@ -274,11 +248,6 @@ class GdprComplianceService
 
     /**
      * Export module data
-     * 
-     * @param string $module
-     * @param $user
-     * @param int $tenantId
-     * @return array
      */
     protected function exportModuleData(string $module, $user, int $tenantId): array
     {
@@ -296,15 +265,15 @@ class GdprComplianceService
      */
     protected function exportPatientData($user, int $tenantId): array
     {
-        if (!class_exists('\App\Models\Patient')) {
+        if (! class_exists('\App\Models\Patient')) {
             return [];
         }
 
-        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+        $patients = Patient::where('tenant_id', $tenantId)
             ->where('created_by', $user->id)
             ->get();
 
-        return $patients->map(fn($p) => [
+        return $patients->map(fn ($p) => [
             'mrn' => $p->mrn,
             'name' => $p->full_name,
             'date_of_birth' => $p->date_of_birth,
@@ -323,15 +292,15 @@ class GdprComplianceService
             return []; // Only export own data
         }
 
-        if (!class_exists('\App\Models\Employee')) {
+        if (! class_exists('\App\Models\Employee')) {
             return [];
         }
 
-        $employee = \App\Models\Employee::where('tenant_id', $tenantId)
+        $employee = Employee::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$employee) {
+        if (! $employee) {
             return [];
         }
 
@@ -349,15 +318,15 @@ class GdprComplianceService
      */
     protected function exportCustomerData($user, int $tenantId): array
     {
-        if (!class_exists('\App\Models\Customer')) {
+        if (! class_exists('\App\Models\Customer')) {
             return [];
         }
 
-        $customers = \App\Models\Customer::where('tenant_id', $tenantId)
+        $customers = Customer::where('tenant_id', $tenantId)
             ->where('created_by', $user->id)
             ->get();
 
-        return $customers->map(fn($c) => [
+        return $customers->map(fn ($c) => [
             'code' => $c->customer_code,
             'name' => $c->name,
             'email' => $c->email,
@@ -371,16 +340,16 @@ class GdprComplianceService
      */
     protected function exportOrderData($user, int $tenantId): array
     {
-        if (!class_exists('\App\Models\SalesOrder')) {
+        if (! class_exists('\App\Models\SalesOrder')) {
             return [];
         }
 
-        $orders = \App\Models\SalesOrder::where('tenant_id', $tenantId)
+        $orders = SalesOrder::where('tenant_id', $tenantId)
             ->where('created_by', $user->id)
             ->with('customer')
             ->get();
 
-        return $orders->map(fn($o) => [
+        return $orders->map(fn ($o) => [
             'order_number' => $o->order_number,
             'customer' => $o->customer?->name,
             'date' => $o->order_date,

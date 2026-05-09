@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('projects')) {
+        if (! Schema::hasTable('projects')) {
             Schema::create('projects', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -29,7 +29,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('project_tasks')) {
+        if (! Schema::hasTable('project_tasks')) {
             Schema::create('project_tasks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -46,7 +46,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('project_expenses')) {
+        if (! Schema::hasTable('project_expenses')) {
             Schema::create('project_expenses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -62,7 +62,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('timesheets')) {
+        if (! Schema::hasTable('timesheets')) {
             Schema::create('timesheets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();

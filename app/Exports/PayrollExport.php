@@ -5,20 +5,23 @@ namespace App\Exports;
 use App\Models\PayrollItem;
 use App\Models\PayrollRun;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PayrollExport implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class PayrollExport implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $period,
         protected string $tenantName = 'Qalcuity ERP',
     ) {}
 
-    public function title(): string { return 'Payroll ' . $this->period; }
+    public function title(): string
+    {
+        return 'Payroll '.$this->period;
+    }
 
     public function columnWidths(): array
     {
@@ -40,7 +43,7 @@ class PayrollExport implements FromArray, WithTitle, WithStyles, WithColumnWidth
             ->where('period', $this->period)
             ->first();
 
-        if (!$run) {
+        if (! $run) {
             return [[$this->tenantName], ["Tidak ada data payroll untuk periode {$this->period}"]];
         }
 
@@ -49,12 +52,12 @@ class PayrollExport implements FromArray, WithTitle, WithStyles, WithColumnWidth
             ->orderBy('id')
             ->get();
 
-        $fmt  = fn($n) => round((float) $n, 0);
+        $fmt = fn ($n) => round((float) $n, 0);
         $rows = [];
 
         $rows[] = [$this->tenantName];
         $rows[] = ["LAPORAN PENGGAJIAN — PERIODE {$this->period}"];
-        $rows[] = ["Status: " . ucfirst($run->status) . " | Diproses: " . ($run->processed_at?->format('d M Y H:i') ?? '-')];
+        $rows[] = ['Status: '.ucfirst($run->status).' | Diproses: '.($run->processed_at?->format('d M Y H:i') ?? '-')];
         $rows[] = [];
         $rows[] = ['Nama Karyawan', 'Gaji Pokok', 'Hadir', 'Absen', 'Tunjangan', 'Lembur', 'BPJS', 'PPh 21', 'Gaji Bersih'];
 
@@ -62,8 +65,8 @@ class PayrollExport implements FromArray, WithTitle, WithStyles, WithColumnWidth
             $rows[] = [
                 $item->employee?->name ?? '-',
                 $fmt($item->base_salary),
-                $item->present_days . 'h',
-                $item->absent_days . 'h',
+                $item->present_days.'h',
+                $item->absent_days.'h',
                 $fmt($item->allowances),
                 $fmt($item->overtime_pay),
                 $fmt($item->bpjs_employee),

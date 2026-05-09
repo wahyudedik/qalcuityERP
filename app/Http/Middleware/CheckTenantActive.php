@@ -12,7 +12,7 @@ class CheckTenantActive
     public function handle(Request $request, Closure $next): Response
     {
         // Jika route belum di-resolve, skip saja
-        if (!$request->route()) {
+        if (! $request->route()) {
             return $next($request);
         }
 
@@ -37,7 +37,7 @@ class CheckTenantActive
         $user = $request->user();
 
         // Belum login — biarkan auth middleware yang handle
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -48,12 +48,13 @@ class CheckTenantActive
 
         $tenant = $user->tenant;
 
-        if (!$tenant) {
+        if (! $tenant) {
             Auth::logout();
+
             return redirect()->route('login')->with('error', 'Akun tidak terhubung dengan tenant.');
         }
 
-        if (!$tenant->canAccess()) {
+        if (! $tenant->canAccess()) {
             return redirect()->route('subscription.expired', [
                 'status' => $tenant->subscriptionStatus(),
             ]);

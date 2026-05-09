@@ -55,7 +55,7 @@ class RateController extends Controller
 
         // Verify room type belongs to tenant
         $roomType = RoomType::where('id', $data['room_type_id'])->where('tenant_id', $tid)->first();
-        if (!$roomType) {
+        if (! $roomType) {
             return back()->withErrors(['room_type_id' => 'Invalid room type.'])->withInput();
         }
 
@@ -170,6 +170,7 @@ class RateController extends Controller
         // Add tenant_id to each rate
         $rates = collect($data['rates'])->map(function ($rate) use ($tid) {
             $rate['tenant_id'] = $tid;
+
             return $rate;
         })->toArray();
 

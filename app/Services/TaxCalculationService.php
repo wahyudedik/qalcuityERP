@@ -3,20 +3,19 @@
 namespace App\Services;
 
 use App\Models\TaxRate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * TaxCalculationService - Comprehensive tax calculation with edge case handling
- * 
+ *
  * BUG-FIN-004 FIX: Handle multiple tax types, withholding taxes, and tax-inclusive pricing
- * 
+ *
  * Tax Calculation Rules (Indonesian Tax Law):
  * 1. PPN (VAT) is calculated on DPP (Dasar Pengenaan Pajak) = Subtotal - Discount
  * 2. PPh 23 is withholding tax (2% of gross amount BEFORE PPN)
  * 3. PPh Final is calculated on gross amount
  * 4. Tax-inclusive pricing: PPN is already included in the price
  * 5. Multiple taxes can apply simultaneously (e.g., PPN 11% + PPh 23 2%)
- * 
+ *
  * Calculation Order:
  * Subtotal
  *   - Discount
@@ -30,11 +29,11 @@ class TaxCalculationService
 {
     /**
      * BUG-FIN-004 FIX: Calculate all applicable taxes for an invoice
-     * 
-     * @param float $subtotal Subtotal before any deductions
-     * @param float $discount Discount amount
-     * @param array $taxRateIds Array of tax rate IDs to apply
-     * @param bool $taxInclusive Whether prices are tax-inclusive
+     *
+     * @param  float  $subtotal  Subtotal before any deductions
+     * @param  float  $discount  Discount amount
+     * @param  array  $taxRateIds  Array of tax rate IDs to apply
+     * @param  bool  $taxInclusive  Whether prices are tax-inclusive
      * @return array Complete tax breakdown
      */
     public function calculateAllTaxes(
@@ -61,6 +60,7 @@ class TaxCalculationService
         // If no tax rates specified, just return DPP as total
         if (empty($taxRateIds)) {
             $result['grand_total'] = $this->roundAccounting($dpp);
+
             return $result;
         }
 
@@ -70,8 +70,8 @@ class TaxCalculationService
             ->get();
 
         // Separate regular taxes and withholding taxes
-        $regularTaxes = $taxRates->filter(fn($rate) => !$rate->is_withholding);
-        $withholdingTaxes = $taxRates->filter(fn($rate) => $rate->is_withholding);
+        $regularTaxes = $taxRates->filter(fn ($rate) => ! $rate->is_withholding);
+        $withholdingTaxes = $taxRates->filter(fn ($rate) => $rate->is_withholding);
 
         // Calculate regular taxes (PPN, etc.)
         foreach ($regularTaxes as $taxRate) {
@@ -127,10 +127,10 @@ class TaxCalculationService
 
     /**
      * BUG-FIN-004 FIX: Calculate tax amount with proper edge case handling
-     * 
-     * @param float $baseAmount Tax base amount (DPP)
-     * @param TaxRate $taxRate Tax rate model
-     * @param bool $taxInclusive Whether price is tax-inclusive
+     *
+     * @param  float  $baseAmount  Tax base amount (DPP)
+     * @param  TaxRate  $taxRate  Tax rate model
+     * @param  bool  $taxInclusive  Whether price is tax-inclusive
      * @return float Tax amount
      */
     public function calculateTaxAmount(float $baseAmount, TaxRate $taxRate, bool $taxInclusive = false): float
@@ -153,10 +153,10 @@ class TaxCalculationService
 
     /**
      * BUG-FIN-004 FIX: Calculate PPN with tax-inclusive support
-     * 
-     * @param float $amount Amount (DPP or total depending on $inclusive)
-     * @param int $tenantId Tenant ID
-     * @param bool $inclusive Whether amount is tax-inclusive
+     *
+     * @param  float  $amount  Amount (DPP or total depending on $inclusive)
+     * @param  int  $tenantId  Tenant ID
+     * @param  bool  $inclusive  Whether amount is tax-inclusive
      * @return array PPN calculation result
      */
     public function calculatePpn(float $amount, int $tenantId, bool $inclusive = false): array
@@ -166,7 +166,7 @@ class TaxCalculationService
             ->where('is_active', true)
             ->first();
 
-        if (!$taxRate) {
+        if (! $taxRate) {
             return [
                 'dpp' => $amount,
                 'ppn' => 0,
@@ -197,13 +197,13 @@ class TaxCalculationService
 
     /**
      * BUG-FIN-004 FIX: Calculate PPh 23 withholding tax
-     * 
+     *
      * PPh 23 is calculated on gross amount BEFORE PPN
      * Standard rate: 2% for services, 15% for dividends
-     * 
-     * @param float $grossAmount Gross amount (before PPN)
-     * @param int $tenantId Tenant ID
-     * @param string $taxType Tax type (pph23, pph21, pph4ayat2)
+     *
+     * @param  float  $grossAmount  Gross amount (before PPN)
+     * @param  int  $tenantId  Tenant ID
+     * @param  string  $taxType  Tax type (pph23, pph21, pph4ayat2)
      * @return array PPh calculation result
      */
     public function calculatePph(float $grossAmount, int $tenantId, string $taxType = 'pph23'): array
@@ -214,7 +214,7 @@ class TaxCalculationService
             ->where('is_withholding', true)
             ->first();
 
-        if (!$taxRate) {
+        if (! $taxRate) {
             return [
                 'tax_type' => $taxType,
                 'tax_name' => strtoupper($taxType),
@@ -240,20 +240,20 @@ class TaxCalculationService
 
     /**
      * BUG-FIN-004 FIX: Calculate combined PPN + PPh 23
-     * 
+     *
      * This is the most common scenario in Indonesia:
      * - PPN 11% added to invoice
      * - PPh 23 2% withheld from payment
-     * 
+     *
      * Example:
      * Subtotal: Rp 1,000,000
      * PPN (11%): Rp 110,000 (added)
      * PPh 23 (2%): Rp 20,000 (withheld)
      * Total Payable: Rp 1,090,000 (1,000,000 + 110,000 - 20,000)
-     * 
-     * @param float $subtotal Subtotal amount
-     * @param float $discount Discount amount
-     * @param int $tenantId Tenant ID
+     *
+     * @param  float  $subtotal  Subtotal amount
+     * @param  float  $discount  Discount amount
+     * @param  int  $tenantId  Tenant ID
      * @return array Combined tax calculation
      */
     public function calculatePpnPlusPph23(float $subtotal, float $discount, int $tenantId): array
@@ -276,23 +276,24 @@ class TaxCalculationService
             'total_tax_additions' => $ppnResult['ppn'],
             'total_tax_deductions' => $pphResult['tax_amount'],
             'grand_total' => $this->roundAccounting($totalPayable),
-            'explanation' => "DPP: {$this->formatRupiah($dpp)} + " .
-                "PPN {$ppnResult['rate']}%: {$this->formatRupiah($ppnResult['ppn'])} - " .
-                "PPh 23 {$pphResult['rate']}%: {$this->formatRupiah($pphResult['tax_amount'])} = " .
+            'explanation' => "DPP: {$this->formatRupiah($dpp)} + ".
+                "PPN {$ppnResult['rate']}%: {$this->formatRupiah($ppnResult['ppn'])} - ".
+                "PPh 23 {$pphResult['rate']}%: {$this->formatRupiah($pphResult['tax_amount'])} = ".
                 "Total: {$this->formatRupiah($totalPayable)}",
         ];
     }
 
     /**
      * BUG-FIN-004 FIX: Accounting-compliant rounding (HALF_UP)
-     * 
-     * @param float $value Value to round
-     * @param int $precision Decimal precision (default: 2)
+     *
+     * @param  float  $value  Value to round
+     * @param  int  $precision  Decimal precision (default: 2)
      * @return float Rounded value
      */
     public function roundAccounting(float $value, int $precision = 2): float
     {
         $multiplier = pow(10, $precision);
+
         return floor($value * $multiplier + 0.5) / $multiplier;
     }
 
@@ -301,6 +302,6 @@ class TaxCalculationService
      */
     private function formatRupiah(float $amount): string
     {
-        return 'Rp ' . number_format($amount, 0, ',', '.');
+        return 'Rp '.number_format($amount, 0, ',', '.');
     }
 }

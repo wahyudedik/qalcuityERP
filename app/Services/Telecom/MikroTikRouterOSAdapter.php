@@ -2,13 +2,12 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
-use Illuminate\Support\Facades\Http;
 use Exception;
+use Illuminate\Support\Facades\Http;
 
 /**
  * MikroTik RouterOS API Adapter.
- * 
+ *
  * Uses MikroTik REST API (available in RouterOS 7.x+)
  * For older versions, consider using PEAR2_Net_RouterOS library.
  */
@@ -27,6 +26,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
     protected function getBaseUrl(): string
     {
         $protocol = $this->config['use_https'] ?? false ? 'https' : 'http';
+
         return "{$protocol}://{$this->device->ip_address}:{$this->device->port}";
     }
 
@@ -42,8 +42,8 @@ class MikroTikRouterOSAdapter extends RouterAdapter
         }
 
         return [
-            'Authorization' => 'Basic ' . base64_encode(
-                $this->device->username . ':' . $this->device->decrypted_password
+            'Authorization' => 'Basic '.base64_encode(
+                $this->device->username.':'.$this->device->decrypted_password
             ),
         ];
     }
@@ -58,15 +58,18 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             if ($response->successful()) {
                 $this->device->markAsOnline();
                 $this->log('info', 'Connection test successful');
+
                 return true;
             }
 
             $this->log('warning', 'Connection test failed', ['status' => $response->status()]);
+
             return false;
 
         } catch (Exception $e) {
             $this->log('error', 'Connection test exception', ['error' => $e->getMessage()]);
             $this->device->markAsOffline();
+
             return false;
         }
     }
@@ -104,6 +107,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', 'Failed to get system info', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -117,12 +121,12 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             ];
 
             // Add profile if provided
-            if (!empty($profile['profile'])) {
+            if (! empty($profile['profile'])) {
                 $payload['profile'] = $profile['profile'];
             }
 
             // Add comment
-            if (!empty($profile['comment'])) {
+            if (! empty($profile['comment'])) {
                 $payload['comment'] = $profile['comment'];
             }
 
@@ -134,17 +138,20 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Created hotspot user: {$username}");
+
                 return true;
             }
 
             $this->log('error', "Failed to create user: {$username}", [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
+
             return false;
 
         } catch (Exception $e) {
             $this->log('error', "Exception creating user: {$username}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -155,8 +162,9 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             // First, find user ID
             $user = $this->findUser($username);
 
-            if (!$user) {
+            if (! $user) {
                 $this->log('warning', "User not found for update: {$username}");
+
                 return false;
             }
 
@@ -167,6 +175,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Updated user: {$username}");
+
                 return true;
             }
 
@@ -174,6 +183,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Exception updating user: {$username}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -183,7 +193,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
         try {
             $user = $this->findUser($username);
 
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -194,6 +204,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Removed user: {$username}");
+
                 return true;
             }
 
@@ -201,6 +212,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Exception removing user: {$username}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -219,6 +231,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', 'Failed to get active users', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -229,7 +242,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             // Get user info
             $user = $this->findUser($username);
 
-            if (!$user) {
+            if (! $user) {
                 return [];
             }
 
@@ -253,6 +266,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Failed to get usage for user: {$username}", ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -270,7 +284,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             ];
 
             // Add burst settings if provided
-            if (!empty($options['burst_limit_download']) && !empty($options['burst_limit_upload'])) {
+            if (! empty($options['burst_limit_download']) && ! empty($options['burst_limit_upload'])) {
                 $burstDownload = $this->formatMikroTikSpeed($options['burst_limit_download']);
                 $burstUpload = $this->formatMikroTikSpeed($options['burst_limit_upload']);
                 $burstThreshold = $this->formatMikroTikSpeed($options['burst_threshold'] ?? 0);
@@ -302,6 +316,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Set bandwidth profile: {$name}");
+
                 return true;
             }
 
@@ -309,6 +324,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Failed to set bandwidth profile: {$name}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -318,7 +334,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
         try {
             $queue = $this->findSimpleQueue($name);
 
-            if (!$queue) {
+            if (! $queue) {
                 return false;
             }
 
@@ -329,6 +345,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Removed bandwidth profile: {$name}");
+
                 return true;
             }
 
@@ -336,6 +353,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Failed to remove profile: {$name}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -357,6 +375,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', 'Failed to get interface stats', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -369,6 +388,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('warning', 'Router reboot initiated');
+
                 return true;
             }
 
@@ -376,6 +396,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', 'Failed to reboot router', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -386,10 +407,12 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             // Note: REST API has limited command execution
             // For advanced commands, use SSH instead
             $this->log('warning', 'executeCommand called - consider using SSH for complex operations');
+
             return null;
 
         } catch (Exception $e) {
             $this->log('error', 'Command execution failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -400,7 +423,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
             $activeSessions = $this->getActiveUsers();
             $session = collect($activeSessions)->firstWhere('user', $username);
 
-            if (!$session) {
+            if (! $session) {
                 return false;
             }
 
@@ -411,6 +434,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $this->log('info', "Disconnected user: {$username}");
+
                 return true;
             }
 
@@ -418,6 +442,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', "Failed to disconnect user: {$username}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -436,6 +461,7 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
         } catch (Exception $e) {
             $this->log('error', 'Failed to get DHCP leases', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -451,13 +477,15 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $users = $response->json();
-                return !empty($users) ? $users[0] : null;
+
+                return ! empty($users) ? $users[0] : null;
             }
 
             return null;
 
         } catch (Exception $e) {
             $this->log('error', "Failed to find user: {$username}", ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -473,7 +501,8 @@ class MikroTikRouterOSAdapter extends RouterAdapter
 
             if ($response->successful()) {
                 $queues = $response->json();
-                return !empty($queues) ? $queues[0] : null;
+
+                return ! empty($queues) ? $queues[0] : null;
             }
 
             return null;
@@ -489,9 +518,9 @@ class MikroTikRouterOSAdapter extends RouterAdapter
     protected function formatMikroTikSpeed(int $kbps): string
     {
         if ($kbps >= 1024) {
-            return round($kbps / 1024) . 'M';
+            return round($kbps / 1024).'M';
         }
 
-        return $kbps . 'K';
+        return $kbps.'K';
     }
 }

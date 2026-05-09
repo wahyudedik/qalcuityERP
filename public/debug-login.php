@@ -1,10 +1,14 @@
 <?php
+
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Http\Request;
+
 // TEMPORARY DEBUG FILE - DELETE AFTER USE
 define('LARAVEL_START', microtime(true));
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-$request = Illuminate\Http\Request::create(
+$request = Request::create(
     'http://qalcuityerp.test/login', 'GET', [], [], [],
     ['HTTP_HOST' => 'qalcuityerp.test', 'SERVER_NAME' => 'qalcuityerp.test']
 );
@@ -14,11 +18,11 @@ $originalHandle = null;
 $middlewareTrace = [];
 
 // Monkey-patch via event
-$app->make('events')->listen('*', function($event, $payload) use (&$middlewareTrace) {
+$app->make('events')->listen('*', function ($event, $payload) use (&$middlewareTrace) {
     $middlewareTrace[] = $event;
 });
 
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$kernel = $app->make(Kernel::class);
 
 // Use reflection to get middleware stack
 $ref = new ReflectionClass($kernel);
@@ -31,9 +35,9 @@ foreach ($prop->getValue($kernel) as $m) {
 
 try {
     $response = $kernel->handle($request);
-    echo "\nSTATUS: " . $response->getStatusCode() . "\n";
-    echo "LOCATION: " . ($response->headers->get('Location') ?? 'NONE') . "\n";
-} catch (\Throwable $e) {
-    echo "EXCEPTION: " . get_class($e) . ": " . $e->getMessage() . "\n";
-    echo "AT: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "\nSTATUS: ".$response->getStatusCode()."\n";
+    echo 'LOCATION: '.($response->headers->get('Location') ?? 'NONE')."\n";
+} catch (Throwable $e) {
+    echo 'EXCEPTION: '.get_class($e).': '.$e->getMessage()."\n";
+    echo 'AT: '.$e->getFile().':'.$e->getLine()."\n";
 }

@@ -2,16 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Tenant;
-use App\Services\Ai\GeminiService;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
  * Test AI Tool Execution and Gemini Integration
- * 
+ *
  * @group ai
  * @group feature
  */
@@ -20,6 +19,7 @@ class AiToolExecutionTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -40,11 +40,11 @@ class AiToolExecutionTest extends TestCase
                 'candidates' => [
                     [
                         'content' => [
-                            'parts' => [['text' => 'This is a sample AI response']]
-                        ]
-                    ]
-                ]
-            ], 200)
+                            'parts' => [['text' => 'This is a sample AI response']],
+                        ],
+                    ],
+                ],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -136,14 +136,15 @@ class AiToolExecutionTest extends TestCase
 
         Http::fake(function () use (&$callCount) {
             $callCount++;
+
             return Http::response([
                 'candidates' => [
                     [
                         'content' => [
-                            'parts' => [['text' => 'Cached response']]
-                        ]
-                    ]
-                ]
+                            'parts' => [['text' => 'Cached response']],
+                        ],
+                    ],
+                ],
             ], 200);
         });
 

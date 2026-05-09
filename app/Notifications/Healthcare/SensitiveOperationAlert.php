@@ -12,8 +12,11 @@ class SensitiveOperationAlert extends Notification implements ShouldQueue
     use Queueable;
 
     protected $user;
+
     protected $operation;
+
     protected $resource;
+
     protected $timestamp;
 
     /**
@@ -62,7 +65,7 @@ class SensitiveOperationAlert extends Notification implements ShouldQueue
             ->line("• **Resource Type:** {$resourceType}")
             ->line("• **Resource ID:** {$resourceId}")
             ->line("• **Timestamp:** {$this->timestamp->format('Y-m-d H:i:s')}")
-            ->line("• **IP Address:** " . request()->ip())
+            ->line('• **IP Address:** '.request()->ip())
             ->line('**Review Required:**')
             ->line('This operation requires immediate review by security team.')
             ->action('View Audit Log', url('/healthcare/admin/audit-logs'))

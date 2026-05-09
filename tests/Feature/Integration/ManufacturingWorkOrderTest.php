@@ -4,7 +4,6 @@ namespace Tests\Feature\Integration;
 
 use App\Models\Bom;
 use App\Models\BomLine;
-use App\Models\Product;
 use App\Services\Manufacturing\BomExplosionService;
 use App\Services\ManufacturingService;
 use Tests\TestCase;
@@ -21,8 +20,8 @@ use Tests\TestCase;
  */
 class ManufacturingWorkOrderTest extends TestCase
 {
-
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -30,7 +29,7 @@ class ManufacturingWorkOrderTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->actingAs($this->user);
     }
 
@@ -50,77 +49,77 @@ class ManufacturingWorkOrderTest extends TestCase
     private function createThreeLevelBom(): array
     {
         // Produk-produk
-        $productMeja   = $this->createProduct($this->tenant->id, ['name' => 'Meja Kantor',  'sku' => 'MEJA-001']);
+        $productMeja = $this->createProduct($this->tenant->id, ['name' => 'Meja Kantor',  'sku' => 'MEJA-001']);
         $productRangka = $this->createProduct($this->tenant->id, ['name' => 'Rangka Meja',  'sku' => 'RANGKA-001']);
-        $productKaki   = $this->createProduct($this->tenant->id, ['name' => 'Kaki Meja',    'sku' => 'KAKI-001']);
-        $productBaut   = $this->createProduct($this->tenant->id, ['name' => 'Baut M8',      'sku' => 'BAUT-M8']);
-        $productPapan  = $this->createProduct($this->tenant->id, ['name' => 'Papan Kayu',   'sku' => 'PAPAN-001']);
+        $productKaki = $this->createProduct($this->tenant->id, ['name' => 'Kaki Meja',    'sku' => 'KAKI-001']);
+        $productBaut = $this->createProduct($this->tenant->id, ['name' => 'Baut M8',      'sku' => 'BAUT-M8']);
+        $productPapan = $this->createProduct($this->tenant->id, ['name' => 'Papan Kayu',   'sku' => 'PAPAN-001']);
 
         // BOM Level 2: Kaki Meja → Baut M8 (4 baut per kaki)
         $bomKaki = Bom::create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'product_id' => $productKaki->id,
-            'name'       => 'BOM Kaki Meja',
+            'name' => 'BOM Kaki Meja',
             'batch_size' => 1,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
         BomLine::create([
-            'bom_id'             => $bomKaki->id,
-            'product_id'         => $productBaut->id,
+            'bom_id' => $bomKaki->id,
+            'product_id' => $productBaut->id,
             'quantity_per_batch' => 4,
-            'unit'               => 'pcs',
-            'sort_order'         => 1,
+            'unit' => 'pcs',
+            'sort_order' => 1,
         ]);
 
         // BOM Level 1: Rangka Meja → Kaki Meja (4 kaki) + Papan Kayu (1 papan)
         $bomRangka = Bom::create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'product_id' => $productRangka->id,
-            'name'       => 'BOM Rangka Meja',
+            'name' => 'BOM Rangka Meja',
             'batch_size' => 1,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
         BomLine::create([
-            'bom_id'             => $bomRangka->id,
-            'product_id'         => $productKaki->id,
+            'bom_id' => $bomRangka->id,
+            'product_id' => $productKaki->id,
             'quantity_per_batch' => 4,
-            'unit'               => 'unit',
-            'child_bom_id'       => $bomKaki->id,
-            'sort_order'         => 1,
+            'unit' => 'unit',
+            'child_bom_id' => $bomKaki->id,
+            'sort_order' => 1,
         ]);
         BomLine::create([
-            'bom_id'             => $bomRangka->id,
-            'product_id'         => $productPapan->id,
+            'bom_id' => $bomRangka->id,
+            'product_id' => $productPapan->id,
             'quantity_per_batch' => 1,
-            'unit'               => 'lembar',
-            'sort_order'         => 2,
+            'unit' => 'lembar',
+            'sort_order' => 2,
         ]);
 
         // BOM Level 0: Meja Kantor → Rangka Meja (1 rangka)
         $bomMeja = Bom::create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'product_id' => $productMeja->id,
-            'name'       => 'BOM Meja Kantor',
+            'name' => 'BOM Meja Kantor',
             'batch_size' => 1,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
         BomLine::create([
-            'bom_id'             => $bomMeja->id,
-            'product_id'         => $productRangka->id,
+            'bom_id' => $bomMeja->id,
+            'product_id' => $productRangka->id,
             'quantity_per_batch' => 1,
-            'unit'               => 'unit',
-            'child_bom_id'       => $bomRangka->id,
-            'sort_order'         => 1,
+            'unit' => 'unit',
+            'child_bom_id' => $bomRangka->id,
+            'sort_order' => 1,
         ]);
 
         return [
-            'bom'      => $bomMeja,
+            'bom' => $bomMeja,
             'products' => [
-                'meja'   => $productMeja,
+                'meja' => $productMeja,
                 'rangka' => $productRangka,
-                'kaki'   => $productKaki,
-                'baut'   => $productBaut,
-                'papan'  => $productPapan,
+                'kaki' => $productKaki,
+                'baut' => $productBaut,
+                'papan' => $productPapan,
             ],
         ];
     }
@@ -140,20 +139,20 @@ class ManufacturingWorkOrderTest extends TestCase
         ['bom' => $bomMeja, 'products' => $products] = $this->createThreeLevelBom();
 
         $service = app(BomExplosionService::class);
-        $result  = $service->explodeBom($bomMeja, 1, $this->tenant->id, false);
+        $result = $service->explodeBom($bomMeja, 1, $this->tenant->id, false);
 
         $this->assertTrue($result['success'],
-            'BOM explosion harus berhasil: ' . ($result['error'] ?? 'unknown error'));
+            'BOM explosion harus berhasil: '.($result['error'] ?? 'unknown error'));
 
-        $materials   = $result['materials'] ?? [];
-        $productIds  = array_column($materials, 'product_id');
+        $materials = $result['materials'] ?? [];
+        $productIds = array_column($materials, 'product_id');
 
         // Level 3: Baut M8 harus ada di hasil explosion
         $this->assertContains(
             $products['baut']->id,
             $productIds,
-            'BOM explosion harus menyertakan komponen level 3 (Baut M8). ' .
-            'Komponen ditemukan: ' . implode(', ', array_column($materials, 'product_name'))
+            'BOM explosion harus menyertakan komponen level 3 (Baut M8). '.
+            'Komponen ditemukan: '.implode(', ', array_column($materials, 'product_name'))
         );
 
         // Level 2: Papan Kayu (raw material di level 1) harus ada
@@ -180,14 +179,14 @@ class ManufacturingWorkOrderTest extends TestCase
         ['bom' => $bomMeja, 'products' => $products] = $this->createThreeLevelBom();
 
         $service = app(BomExplosionService::class);
-        $result  = $service->explodeBom($bomMeja, 1, $this->tenant->id, false);
+        $result = $service->explodeBom($bomMeja, 1, $this->tenant->id, false);
 
         $this->assertTrue($result['success']);
 
         $materials = $result['materials'] ?? [];
 
         // Cari Baut M8 di hasil explosion
-        $bautMaterials = array_filter($materials, fn($m) => $m['product_id'] === $products['baut']->id);
+        $bautMaterials = array_filter($materials, fn ($m) => $m['product_id'] === $products['baut']->id);
 
         $this->assertNotEmpty($bautMaterials,
             'Baut M8 harus ada di hasil BOM explosion.');
@@ -208,15 +207,15 @@ class ManufacturingWorkOrderTest extends TestCase
         ['bom' => $bomMeja, 'products' => $products] = $this->createThreeLevelBom();
 
         $service = app(BomExplosionService::class);
-        $result  = $service->explodeBom($bomMeja, 2, $this->tenant->id, false);
+        $result = $service->explodeBom($bomMeja, 2, $this->tenant->id, false);
 
         $this->assertTrue($result['success']);
 
         $materials = $result['materials'] ?? [];
 
         // Untuk 2 meja: 2 × 16 = 32 baut
-        $bautMaterials = array_filter($materials, fn($m) => $m['product_id'] === $products['baut']->id);
-        $totalBaut     = array_sum(array_column($bautMaterials, 'quantity'));
+        $bautMaterials = array_filter($materials, fn ($m) => $m['product_id'] === $products['baut']->id);
+        $totalBaut = array_sum(array_column($bautMaterials, 'quantity'));
 
         $this->assertEquals(32.0, $totalBaut,
             "Untuk 2 meja, total Baut M8 harus 32. Actual: {$totalBaut}");
@@ -260,35 +259,35 @@ class ManufacturingWorkOrderTest extends TestCase
         $productB = $this->createProduct($this->tenant->id, ['name' => 'Produk B', 'sku' => 'PROD-B']);
 
         $bomA = Bom::create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'product_id' => $productA->id,
-            'name'       => 'BOM A',
+            'name' => 'BOM A',
             'batch_size' => 1,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
 
         $bomB = Bom::create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'product_id' => $productB->id,
-            'name'       => 'BOM B',
+            'name' => 'BOM B',
             'batch_size' => 1,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
 
         // A → B → A (circular)
         BomLine::create([
-            'bom_id'             => $bomA->id,
-            'product_id'         => $productB->id,
+            'bom_id' => $bomA->id,
+            'product_id' => $productB->id,
             'quantity_per_batch' => 1,
-            'unit'               => 'pcs',
-            'child_bom_id'       => $bomB->id,
+            'unit' => 'pcs',
+            'child_bom_id' => $bomB->id,
         ]);
         BomLine::create([
-            'bom_id'             => $bomB->id,
-            'product_id'         => $productA->id,
+            'bom_id' => $bomB->id,
+            'product_id' => $productA->id,
             'quantity_per_batch' => 1,
-            'unit'               => 'pcs',
-            'child_bom_id'       => $bomA->id,
+            'unit' => 'pcs',
+            'child_bom_id' => $bomA->id,
         ]);
 
         // Harus melempar exception untuk circular reference

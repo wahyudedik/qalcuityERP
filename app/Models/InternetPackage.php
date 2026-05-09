@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -107,7 +106,7 @@ class InternetPackage extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->price, 0, ',', '.');
+        return 'Rp '.number_format($this->price, 0, ',', '.');
     }
 
     /**
@@ -144,6 +143,7 @@ class InternetPackage extends Model
         }
 
         $excessGb = $excessBytes / (1024 * 1024 * 1024);
+
         return round($excessGb * $this->overage_price_per_gb, 2);
     }
 }

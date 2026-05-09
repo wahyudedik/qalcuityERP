@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Voice Commands History
-        if (!Schema::hasTable('voice_commands')) {
+        if (! Schema::hasTable('voice_commands')) {
             Schema::create('voice_commands', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -31,7 +32,7 @@ return new class extends Migration {
         }
 
         // 2. Image Recognition Results
-        if (!Schema::hasTable('image_recognition_results')) {
+        if (! Schema::hasTable('image_recognition_results')) {
             Schema::create('image_recognition_results', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -52,7 +53,7 @@ return new class extends Migration {
         }
 
         // 3. Predictive Maintenance Records
-        if (!Schema::hasTable('predictive_maintenance')) {
+        if (! Schema::hasTable('predictive_maintenance')) {
             Schema::create('predictive_maintenance', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -76,7 +77,7 @@ return new class extends Migration {
         }
 
         // 4. Dynamic Pricing Rules & History
-        if (!Schema::hasTable('dynamic_pricing_rules')) {
+        if (! Schema::hasTable('dynamic_pricing_rules')) {
             Schema::create('dynamic_pricing_rules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -94,7 +95,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('dynamic_pricing_history')) {
+        if (! Schema::hasTable('dynamic_pricing_history')) {
             Schema::create('dynamic_pricing_history', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -116,7 +117,7 @@ return new class extends Migration {
         }
 
         // 5. Sentiment Analysis Results
-        if (!Schema::hasTable('sentiment_analysis')) {
+        if (! Schema::hasTable('sentiment_analysis')) {
             Schema::create('sentiment_analysis', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -143,7 +144,7 @@ return new class extends Migration {
         }
 
         // 6. Chatbot Training Data
-        if (!Schema::hasTable('chatbot_training_data')) {
+        if (! Schema::hasTable('chatbot_training_data')) {
             Schema::create('chatbot_training_data', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -166,7 +167,7 @@ return new class extends Migration {
         }
 
         // 7. Chatbot Conversation Logs (for learning)
-        if (!Schema::hasTable('chatbot_conversations')) {
+        if (! Schema::hasTable('chatbot_conversations')) {
             Schema::create('chatbot_conversations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -186,7 +187,7 @@ return new class extends Migration {
         }
 
         // 8. AI Model Performance Tracking
-        if (!Schema::hasTable('ai_model_performance')) {
+        if (! Schema::hasTable('ai_model_performance')) {
             Schema::create('ai_model_performance', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

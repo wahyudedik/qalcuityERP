@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
     use BelongsToTenant;
+
     /**
      * Thread-local AI context flag.
      * Set to true before any AI-driven CRUD operations so that record() tags
@@ -16,6 +16,7 @@ class ActivityLog extends Model
      * Reset to false afterwards.
      */
     public static bool $aiContext = false;
+
     public static ?string $aiContextTool = null;
 
     /**
@@ -67,6 +68,7 @@ class ActivityLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function rolledBackByUser()
     {
         return $this->belongsTo(User::class, 'rolled_back_by');
@@ -80,9 +82,9 @@ class ActivityLog extends Model
         return config('audit.rollback_enabled', true)
             && $this->model_type
             && $this->model_id
-            && !empty($this->old_values)
+            && ! empty($this->old_values)
             && is_null($this->rolled_back_at)
-            && !$this->is_ai_action
+            && ! $this->is_ai_action
             && str_contains($this->action, 'updated');
     }
 
@@ -95,14 +97,14 @@ class ActivityLog extends Model
      */
     public function rollback(int $userId): array
     {
-        if (!$this->isRollbackable()) {
+        if (! $this->isRollbackable()) {
             return ['ok' => false, 'message' => 'Entry ini tidak dapat di-rollback.', 'conflicts' => []];
         }
 
         $modelClass = $this->model_type;
         $model = $modelClass::find($this->model_id);
 
-        if (!$model) {
+        if (! $model) {
             return ['ok' => false, 'message' => 'Record tidak ditemukan — mungkin sudah dihapus.', 'conflicts' => []];
         }
 
@@ -200,7 +202,7 @@ class ActivityLog extends Model
         static::create([
             'tenant_id' => $tenantId,
             'user_id' => $userId,
-            'action' => 'ai_' . $toolName,
+            'action' => 'ai_'.$toolName,
             'model_type' => null,
             'model_id' => null,
             'description' => $description,

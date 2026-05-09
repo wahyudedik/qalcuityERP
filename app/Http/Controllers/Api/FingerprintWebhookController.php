@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\FingerprintDevice;
+use App\Models\Employee;
 use App\Models\FingerprintAttendanceLog;
+use App\Models\FingerprintDevice;
 use App\Services\FingerprintDeviceService;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class FingerprintWebhookController extends Controller
 {
     public function __construct(
         private FingerprintDeviceService $fingerprintService
-    ) {
-    }
+    ) {}
 
     /**
      * Handle attendance data from fingerprint device
@@ -30,10 +31,10 @@ class FingerprintWebhookController extends Controller
             // Find device
             $device = FingerprintDevice::where('device_id', $deviceId)->first();
 
-            if (!$device) {
+            if (! $device) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Perangkat tidak ditemukan'
+                    'message' => 'Perangkat tidak ditemukan',
                 ], 404);
             }
 
@@ -41,15 +42,15 @@ class FingerprintWebhookController extends Controller
             if ($device->secret_key && $device->secret_key !== $deviceSecret) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Autentikasi gagal'
+                    'message' => 'Autentikasi gagal',
                 ], 403);
             }
 
             // Check if device is active
-            if (!$device->is_active) {
+            if (! $device->is_active) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Perangkat tidak aktif'
+                    'message' => 'Perangkat tidak aktif',
                 ], 403);
             }
 
@@ -67,7 +68,7 @@ class FingerprintWebhookController extends Controller
                     Log::error('Failed to process fingerprint record', [
                         'device_id' => $device->id,
                         'error' => $e->getMessage(),
-                        'record' => $record
+                        'record' => $record,
                     ]);
                 }
             }
@@ -75,25 +76,25 @@ class FingerprintWebhookController extends Controller
             // Update device status
             $device->update([
                 'last_sync_at' => now(),
-                'is_connected' => true
+                'is_connected' => true,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => "Data berhasil diproses: {$processed} record, {$errors} error",
                 'processed' => $processed,
-                'errors' => $errors
+                'errors' => $errors,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Fingerprint webhook error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses data'
+                'message' => 'Terjadi kesalahan saat memproses data',
             ], 500);
         }
     }
@@ -107,7 +108,7 @@ class FingerprintWebhookController extends Controller
         $timestamp = $record['timestamp'] ?? now();
         $scanType = $record['type'] ?? 'check_in';
 
-        if (!$employeeUid) {
+        if (! $employeeUid) {
             throw new \Exception('UID karyawan tidak ditemukan');
         }
 
@@ -116,7 +117,7 @@ class FingerprintWebhookController extends Controller
             'tenant_id' => $device->tenant_id,
             'device_id' => $device->id,
             'employee_uid' => $employeeUid,
-            'scan_time' => is_string($timestamp) ? \Carbon\Carbon::parse($timestamp) : $timestamp,
+            'scan_time' => is_string($timestamp) ? Carbon::parse($timestamp) : $timestamp,
             'scan_type' => in_array($scanType, ['check_in', 'check_out', 'break_in', 'break_out'])
                 ? $scanType
                 : 'check_in',
@@ -125,7 +126,7 @@ class FingerprintWebhookController extends Controller
         ]);
 
         // Try to find employee and process to attendance
-        $employee = \App\Models\Employee::where('tenant_id', $device->tenant_id)
+        $employee = Employee::where('tenant_id', $device->tenant_id)
             ->where('fingerprint_uid', $employeeUid)
             ->first();
 
@@ -146,22 +147,22 @@ class FingerprintWebhookController extends Controller
 
             $device = FingerprintDevice::where('device_id', $deviceId)->first();
 
-            if (!$device) {
+            if (! $device) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Perangkat tidak ditemukan'
+                    'message' => 'Perangkat tidak ditemukan',
                 ], 404);
             }
 
             if ($device->secret_key && $device->secret_key !== $deviceSecret) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Autentikasi gagal'
+                    'message' => 'Autentikasi gagal',
                 ], 403);
             }
 
             // Get employees without fingerprint registration
-            $employees = \App\Models\Employee::where('tenant_id', $device->tenant_id)
+            $employees = Employee::where('tenant_id', $device->tenant_id)
                 ->whereNull('fingerprint_uid')
                 ->orWhere('fingerprint_registered', false)
                 ->select('id', 'employee_id', 'name', 'position')
@@ -169,17 +170,17 @@ class FingerprintWebhookController extends Controller
 
             return response()->json([
                 'success' => true,
-                'employees' => $employees
+                'employees' => $employees,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Get pending registrations error', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan'
+                'message' => 'Terjadi kesalahan',
             ], 500);
         }
     }
@@ -197,25 +198,25 @@ class FingerprintWebhookController extends Controller
             if ($device) {
                 $device->update([
                     'is_connected' => true,
-                    'last_sync_at' => now()
+                    'last_sync_at' => now(),
                 ]);
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Heartbeat diterima',
-                    'device_name' => $device->name
+                    'device_name' => $device->name,
                 ]);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Perangkat tidak ditemukan'
+                'message' => 'Perangkat tidak ditemukan',
             ], 404);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error processing heartbeat'
+                'message' => 'Error processing heartbeat',
             ], 500);
         }
     }

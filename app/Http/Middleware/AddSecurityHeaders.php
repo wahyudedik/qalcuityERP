@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * AddSecurityHeaders - Add security headers including Content Security Policy (CSP).
- * 
+ *
  * Helps prevent XSS attacks by controlling which resources the browser is allowed to load.
  */
 class AddSecurityHeaders
@@ -79,7 +79,8 @@ class AddSecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net{$viteDevSrc}",
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://cloudflareinsights.com{$viteDevSrc}",
+            "connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cloudflareinsights.com{$viteDevSrc}",
+            "media-src 'self' data:",
             "worker-src 'self' blob:",
             "frame-src 'self'",
             "object-src 'none'",

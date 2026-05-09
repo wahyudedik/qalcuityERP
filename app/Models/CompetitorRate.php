@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompetitorRate extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -48,7 +48,7 @@ class CompetitorRate extends Model
     /**
      * Get average competitor rate for a date range
      */
-    public static function getAverageRate(int $tenantId, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate, ?string $competitor = null): float
+    public static function getAverageRate(int $tenantId, Carbon $startDate, Carbon $endDate, ?string $competitor = null): float
     {
         $query = static::where('tenant_id', $tenantId)
             ->whereBetween('rate_date', [$startDate, $endDate]);

@@ -3,26 +3,22 @@
 namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
-use App\Models\HousekeepingTask;
 use App\Models\HousekeepingSupply;
-use App\Models\HousekeepingSupplyUsage;
+use App\Models\HousekeepingTask;
 use App\Models\LinenInventory;
-use App\Models\LinenMovement;
 use App\Models\MaintenanceRequest;
 use App\Models\Room;
-use App\Models\RoomInspectionChecklist;
 use App\Models\User;
 use App\Services\HousekeepingService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class HousekeepingController extends Controller
 {
     public function __construct(
         protected HousekeepingService $housekeepingService
-    ) {
-    }
+    ) {}
 
     /**
      * Display housekeeping dashboard/board
@@ -36,7 +32,9 @@ class HousekeepingController extends Controller
 
         // Get rooms by status
         $rooms = Room::where('tenant_id', $tenantId)
-            ->with(['roomType', 'housekeepingTasks.pending'])
+            ->with(['roomType', 'housekeepingTasks' => function ($query) {
+                $query->where('status', 'pending');
+            }])
             ->orderBy('number')
             ->get()
             ->groupBy('status');
@@ -79,7 +77,7 @@ class HousekeepingController extends Controller
 
         // Get all housekeeping tasks for today grouped by status
         $today = now()->toDateString();
-        $tasks = \App\Models\HousekeepingTask::where('tenant_id', $tenantId)
+        $tasks = HousekeepingTask::where('tenant_id', $tenantId)
             ->with(['room.roomType', 'assignedTo'])
             ->whereDate('created_at', $today)
             ->orderBy('priority')
@@ -239,7 +237,7 @@ class HousekeepingController extends Controller
             $request->notes
         );
 
-        if (!empty($photos)) {
+        if (! empty($photos)) {
             $task->update(['photos' => $photos]);
         }
 
@@ -433,7 +431,7 @@ class HousekeepingController extends Controller
         $date = $request->get('date', today()->format('Y-m-d'));
         $report = $this->housekeepingService->generateDailyReport(
             $this->tenantId(),
-            \Carbon\Carbon::parse($date)
+            Carbon::parse($date)
         );
 
         return response()->json($report);

@@ -25,9 +25,13 @@ class Task9SalesFlowTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
+
     protected Customer $customer;
+
     protected Warehouse $warehouse;
+
     protected Product $product;
 
     protected function setUp(): void
@@ -210,7 +214,7 @@ class Task9SalesFlowTest extends TestCase
         $returnMovement = StockMovement::where('tenant_id', $this->tenant->id)
             ->where('product_id', $this->product->id)
             ->where('type', 'in')
-            ->where('reference', 'VOID-' . $invoice->number)
+            ->where('reference', 'VOID-'.$invoice->number)
             ->first();
 
         $this->assertNotNull($returnMovement, 'Stock return movement should be logged');
@@ -289,7 +293,7 @@ class Task9SalesFlowTest extends TestCase
         $returnMovement = StockMovement::where('tenant_id', $this->tenant->id)
             ->where('product_id', $this->product->id)
             ->where('type', 'in')
-            ->where('reference', 'CANCEL-' . $invoice->number)
+            ->where('reference', 'CANCEL-'.$invoice->number)
             ->first();
 
         $this->assertNotNull($returnMovement, 'Stock return movement should be logged');

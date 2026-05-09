@@ -9,10 +9,11 @@
                 <h1 class="text-xl font-semibold text-white">
                     Mapping Produk —
                     <span
-                        class="{{ $channel->platform === 'shopee' ? 'text-orange-400' : ($channel->platform === 'tokopedia' ? 'text-green-400' : 'text-red-400') }}">
+                        class="{{ $channel->platform === 'shopee' ? 'text-orange-400' : ($channel->platform === 'tokopedia' ? 'text-green-400' : ($channel->platform === 'tiktok_shop' ? 'text-gray-300' : 'text-red-400')) }}">
                         {{ $channel->shop_name }}
                     </span>
-                    <span class="text-gray-500 text-base font-normal">({{ ucfirst($channel->platform) }})</span>
+                    <span
+                        class="text-gray-500 text-base font-normal">({{ $channel->platform === 'tiktok_shop' ? 'TikTok Shop' : ucfirst($channel->platform) }})</span>
                 </h1>
                 <p class="text-sm text-gray-400 mt-0.5">Kelola pemetaan SKU produk ke marketplace</p>
             </div>

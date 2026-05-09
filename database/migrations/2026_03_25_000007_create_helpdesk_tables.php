@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Knowledge base articles
-        if (!Schema::hasTable('kb_articles')) {
+        if (! Schema::hasTable('kb_articles')) {
             Schema::create('kb_articles', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -21,13 +21,13 @@ return new class extends Migration
                 $table->unsignedInteger('views')->default(0);
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_published']);
             });
         }
 
         // Support tickets
-        if (!Schema::hasTable('helpdesk_tickets')) {
+        if (! Schema::hasTable('helpdesk_tickets')) {
             Schema::create('helpdesk_tickets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -57,7 +57,7 @@ return new class extends Migration
                 $table->decimal('satisfaction_rating', 2, 1)->nullable(); // 1.0 - 5.0
                 $table->text('tags')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'ticket_number']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'assigned_to']);
@@ -65,7 +65,7 @@ return new class extends Migration
         }
 
         // Ticket replies / comments
-        if (!Schema::hasTable('helpdesk_replies')) {
+        if (! Schema::hasTable('helpdesk_replies')) {
             Schema::create('helpdesk_replies', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('ticket_id')->constrained('helpdesk_tickets')->cascadeOnDelete();

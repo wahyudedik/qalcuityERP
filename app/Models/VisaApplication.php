@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VisaApplication extends Model
 {
@@ -93,7 +92,7 @@ class VisaApplication extends Model
 
     public function isExpired(): bool
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return false;
         }
 
@@ -102,7 +101,7 @@ class VisaApplication extends Model
 
     public function daysUntilExpiry(): ?int
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return null;
         }
 

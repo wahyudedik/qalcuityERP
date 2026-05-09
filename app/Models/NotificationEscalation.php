@@ -121,6 +121,6 @@ class NotificationEscalation extends Model
      */
     public function isOverdue(): bool
     {
-        return $this->escalated_at->lte(now()) && !$this->isRead();
+        return $this->escalated_at->lte(now()) && ! $this->isRead();
     }
 }

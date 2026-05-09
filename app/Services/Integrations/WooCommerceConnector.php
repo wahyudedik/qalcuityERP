@@ -2,15 +2,18 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\Customer;
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
-use Illuminate\Support\Facades\Http;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Log;
-use Exception;
 use Throwable;
 
 /**
  * WooCommerce Connector
- * 
+ *
  * Handles integration with WooCommerce REST API v3
  * Supports OAuth 1.0a authentication (Consumer Key/Secret)
  */
@@ -69,6 +72,7 @@ class WooCommerceConnector extends BaseConnector
                 Log::info('WooCommerce authentication successful', [
                     'store' => $this->storeUrl,
                 ]);
+
                 return true;
             }
 
@@ -82,6 +86,7 @@ class WooCommerceConnector extends BaseConnector
             Log::error('WooCommerce authentication error', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -102,7 +107,7 @@ class WooCommerceConnector extends BaseConnector
 
         try {
             // Get products from ERP
-            $products = \App\Models\Product::where('tenant_id', $this->integration->tenant_id)
+            $products = Product::where('tenant_id', $this->integration->tenant_id)
                 ->where('is_active', true)
                 ->get();
 
@@ -119,7 +124,7 @@ class WooCommerceConnector extends BaseConnector
 
                         if ($result['success']) {
                             // Save mapping
-                            \App\Models\EcommerceProductMapping::create([
+                            EcommerceProductMapping::create([
                                 'tenant_id' => $this->integration->tenant_id,
                                 'product_id' => $product->id,
                                 'channel_id' => $this->integration->id,
@@ -224,7 +229,7 @@ class WooCommerceConnector extends BaseConnector
     protected function transformProductToWooCommerce($product): array
     {
         // Get stock for this product
-        $stock = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+        $stock = ProductStock::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $product->id)
             ->first();
 
@@ -248,7 +253,7 @@ class WooCommerceConnector extends BaseConnector
      */
     protected function getProductCategories($product): array
     {
-        if (!$product->category) {
+        if (! $product->category) {
             return [];
         }
 
@@ -262,7 +267,7 @@ class WooCommerceConnector extends BaseConnector
      */
     protected function getProductImages($product): array
     {
-        if (!$product->image_url) {
+        if (! $product->image_url) {
             return [];
         }
 
@@ -292,15 +297,15 @@ class WooCommerceConnector extends BaseConnector
             foreach ($orders as $wooOrder) {
                 try {
                     // Check if order already exists
-                    $exists = \App\Models\SalesOrder::where('tenant_id', $this->integration->tenant_id)
+                    $exists = SalesOrder::where('tenant_id', $this->integration->tenant_id)
                         ->where('external_id', $wooOrder['id'])
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $erpOrder = $this->transformOrderFromWooCommerce($wooOrder);
 
                         // Create SalesOrder in ERP
-                        \App\Models\SalesOrder::create($erpOrder);
+                        SalesOrder::create($erpOrder);
                         $processed++;
                     }
                 } catch (Throwable $e) {
@@ -357,13 +362,13 @@ class WooCommerceConnector extends BaseConnector
     protected function transformOrderFromWooCommerce(array $wooOrder): array
     {
         // Find or create customer
-        $customer = \App\Models\Customer::firstOrCreate(
+        $customer = Customer::firstOrCreate(
             [
                 'tenant_id' => $this->integration->tenant_id,
                 'email' => $wooOrder['billing']['email'] ?? null,
             ],
             [
-                'name' => $wooOrder['billing']['first_name'] . ' ' . $wooOrder['billing']['last_name'],
+                'name' => $wooOrder['billing']['first_name'].' '.$wooOrder['billing']['last_name'],
                 'phone' => $wooOrder['billing']['phone'] ?? null,
             ]
         );
@@ -413,7 +418,7 @@ class WooCommerceConnector extends BaseConnector
 
         try {
             // Get all product stocks
-            $stocks = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+            $stocks = ProductStock::where('tenant_id', $this->integration->tenant_id)
                 ->where('quantity', '>=', 0)
                 ->get();
 
@@ -497,10 +502,10 @@ class WooCommerceConnector extends BaseConnector
     public function registerWebhooks(): array
     {
         $webhooks = [
-            ['topic' => 'order.created', 'delivery_url' => config('app.url') . '/api/integrations/webhooks/woocommerce'],
-            ['topic' => 'order.updated', 'delivery_url' => config('app.url') . '/api/integrations/webhooks/woocommerce'],
-            ['topic' => 'product.created', 'delivery_url' => config('app.url') . '/api/integrations/webhooks/woocommerce'],
-            ['topic' => 'product.updated', 'delivery_url' => config('app.url') . '/api/integrations/webhooks/woocommerce'],
+            ['topic' => 'order.created', 'delivery_url' => config('app.url').'/api/integrations/webhooks/woocommerce'],
+            ['topic' => 'order.updated', 'delivery_url' => config('app.url').'/api/integrations/webhooks/woocommerce'],
+            ['topic' => 'product.created', 'delivery_url' => config('app.url').'/api/integrations/webhooks/woocommerce'],
+            ['topic' => 'product.updated', 'delivery_url' => config('app.url').'/api/integrations/webhooks/woocommerce'],
         ];
 
         $registered = [];

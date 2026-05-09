@@ -17,7 +17,8 @@ class SyncEcommerceOrders implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 180;
 
     public function __construct(
@@ -34,9 +35,11 @@ class SyncEcommerceOrders implements ShouldQueue
 
         $channels = $query->get();
 
-        if ($channels->isEmpty()) return;
+        if ($channels->isEmpty()) {
+            return;
+        }
 
-        $totalNew    = 0;
+        $totalNew = 0;
         $totalErrors = 0;
 
         foreach ($channels as $channel) {
@@ -55,13 +58,13 @@ class SyncEcommerceOrders implements ShouldQueue
                     if ($admin) {
                         ErpNotification::create([
                             'tenant_id' => $channel->tenant_id,
-                            'user_id'   => $admin->id,
-                            'type'      => 'ecommerce_sync',
-                            'title'     => '🛒 Order E-Commerce Baru',
-                            'body'      => "{$newOrders} order baru dari {$channel->platform} ({$channel->name}) berhasil disinkronkan.",
-                            'data'      => [
+                            'user_id' => $admin->id,
+                            'type' => 'ecommerce_sync',
+                            'title' => '🛒 Order E-Commerce Baru',
+                            'body' => "{$newOrders} order baru dari {$channel->platform} ({$channel->name}) berhasil disinkronkan.",
+                            'data' => [
                                 'channel_id' => $channel->id,
-                                'platform'   => $channel->platform,
+                                'platform' => $channel->platform,
                                 'new_orders' => $newOrders,
                             ],
                         ]);
@@ -72,7 +75,7 @@ class SyncEcommerceOrders implements ShouldQueue
 
             } catch (\Throwable $e) {
                 $totalErrors++;
-                Log::error("SyncEcommerceOrders error channel={$channel->id}: " . $e->getMessage());
+                Log::error("SyncEcommerceOrders error channel={$channel->id}: ".$e->getMessage());
 
                 // Notifikasi error ke admin
                 $admin = User::where('tenant_id', $channel->tenant_id)
@@ -82,11 +85,11 @@ class SyncEcommerceOrders implements ShouldQueue
                 if ($admin) {
                     ErpNotification::create([
                         'tenant_id' => $channel->tenant_id,
-                        'user_id'   => $admin->id,
-                        'type'      => 'ecommerce_sync_error',
-                        'title'     => '❌ Gagal Sinkronisasi E-Commerce',
-                        'body'      => "Gagal sinkronisasi {$channel->platform} ({$channel->name}): " . $e->getMessage(),
-                        'data'      => ['channel_id' => $channel->id, 'error' => $e->getMessage()],
+                        'user_id' => $admin->id,
+                        'type' => 'ecommerce_sync_error',
+                        'title' => '❌ Gagal Sinkronisasi E-Commerce',
+                        'body' => "Gagal sinkronisasi {$channel->platform} ({$channel->name}): ".$e->getMessage(),
+                        'data' => ['channel_id' => $channel->id, 'error' => $e->getMessage()],
                     ]);
                 }
             }

@@ -42,10 +42,10 @@ class ProcessOcrQueue extends Command
         $tenantId = $this->option('tenant');
         $dryRun = $this->option('dry-run');
 
-        $this->info("🔍 Starting OCR processing...");
+        $this->info('🔍 Starting OCR processing...');
         $this->line("   Batch size: {$batchSize}");
-        $this->line("   Tenant: " . ($tenantId ?? 'All'));
-        $this->line("   Dry run: " . ($dryRun ? 'Yes' : 'No'));
+        $this->line('   Tenant: '.($tenantId ?? 'All'));
+        $this->line('   Dry run: '.($dryRun ? 'Yes' : 'No'));
 
         // Build query for documents needing OCR
         $query = Document::where('has_ocr', false)
@@ -58,7 +58,8 @@ class ProcessOcrQueue extends Command
         $documents = $query->limit($batchSize)->get();
 
         if ($documents->isEmpty()) {
-            $this->info("✅ No documents found that need OCR processing");
+            $this->info('✅ No documents found that need OCR processing');
+
             return Command::SUCCESS;
         }
 
@@ -67,7 +68,7 @@ class ProcessOcrQueue extends Command
 
         if ($dryRun) {
             $this->newLine();
-            $this->info("📋 Documents that would be processed:");
+            $this->info('📋 Documents that would be processed:');
             $this->table(
                 ['ID', 'Title', 'File Type', 'Tenant', 'Created At'],
                 $documents->map(function ($doc) {
@@ -80,12 +81,13 @@ class ProcessOcrQueue extends Command
                     ];
                 })->toArray()
             );
+
             return Command::SUCCESS;
         }
 
         // Process documents
         $this->newLine();
-        $this->info("⚙️ Processing OCR...");
+        $this->info('⚙️ Processing OCR...');
 
         $bar = $this->output->createProgressBar($documents->count());
         $bar->start();
@@ -124,14 +126,14 @@ class ProcessOcrQueue extends Command
         $this->newLine();
 
         // Display results
-        $this->info("📊 OCR Processing Results:");
+        $this->info('📊 OCR Processing Results:');
         $this->line("  ✅ Success: {$results['success']}");
 
         if ($results['failed'] > 0) {
             $this->error("  ❌ Failed: {$results['failed']}");
 
             $this->newLine();
-            $this->warn("Error details:");
+            $this->warn('Error details:');
             foreach ($results['errors'] as $error) {
                 $this->line("  • {$error}");
             }
@@ -145,7 +147,7 @@ class ProcessOcrQueue extends Command
         ]);
 
         $this->newLine();
-        $this->info("✅ OCR processing completed!");
+        $this->info('✅ OCR processing completed!');
 
         return Command::SUCCESS;
     }

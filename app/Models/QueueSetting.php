@@ -56,7 +56,7 @@ class QueueSetting extends Model
         $currentDay = strtolower($now->format('l'));
         $currentTime = $now->format('H:i:s');
 
-        if (!in_array($currentDay, $this->default_working_days)) {
+        if (! in_array($currentDay, $this->default_working_days)) {
             return false;
         }
 
@@ -69,7 +69,7 @@ class QueueSetting extends Model
     public function getNextQueueNumber()
     {
         $today = now()->format('Ymd');
-        $prefix = $this->queue_code . '-' . $today . '-';
+        $prefix = $this->queue_code.'-'.$today.'-';
 
         $lastVisit = OutpatientVisit::where('queue_setting_id', $this->id)
             ->whereDate('visit_date', today())
@@ -83,7 +83,7 @@ class QueueSetting extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . $newNumber;
+        return $prefix.$newNumber;
     }
 
     /**

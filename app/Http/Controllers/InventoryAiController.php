@@ -10,7 +10,10 @@ class InventoryAiController extends Controller
 {
     public function __construct(private InventoryAiService $ai) {}
 
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     /**
      * GET /inventory/ai/stockout/{product}
@@ -33,8 +36,8 @@ class InventoryAiController extends Controller
     {
         abort_unless($product->tenant_id === $this->tid(), 403);
 
-        $leadTime   = (int) $request->input('lead_time', 7);
-        $leadTime   = max(1, min(60, $leadTime));
+        $leadTime = (int) $request->input('lead_time', 7);
+        $leadTime = max(1, min(60, $leadTime));
         $suggestion = $this->ai->suggestReorderQty($this->tid(), $product->id, $leadTime);
 
         return response()->json(['suggestion' => $suggestion]);

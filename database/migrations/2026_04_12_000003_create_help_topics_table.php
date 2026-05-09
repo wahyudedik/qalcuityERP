@@ -4,15 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * TASK-015: Create help topics table for contextual help system
      */
     public function up(): void
     {
-        if (!Schema::hasTable('help_topics')) {
+        if (! Schema::hasTable('help_topics')) {
             Schema::create('help_topics', function (Blueprint $table) {
                 $table->id();
                 $table->string('topic_key')->unique(); // e.g., 'customer-selection'
@@ -29,7 +30,7 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->json('metadata')->nullable(); // Additional data
                 $table->timestamps();
-    
+
                 $table->index(['module', 'page']);
                 $table->index(['topic_key', 'is_active']);
             });

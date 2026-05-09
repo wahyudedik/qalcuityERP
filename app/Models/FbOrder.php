@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
+use App\Services\FbInventoryService;
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FbOrder extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -109,7 +109,7 @@ class FbOrder extends Model
         $date = now()->format('Ymd');
         $count = static::whereDate('created_at', today())->count() + 1;
 
-        return "{$prefix}-{$date}-" . str_pad($count, 3, '0', STR_PAD_LEFT);
+        return "{$prefix}-{$date}-".str_pad($count, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -169,12 +169,12 @@ class FbOrder extends Model
         $this->updateStatus('completed');
 
         // Trigger automatic stock deduction
-        $inventoryService = new \App\Services\FbInventoryService($this->tenant_id);
+        $inventoryService = new FbInventoryService($this->tenant_id);
         try {
             $inventoryService->deductStockForOrder($this);
         } catch (\Exception $e) {
             // Log error but don't fail the order completion
-            \Log::error('Stock deduction failed for order: ' . $this->order_number, [
+            \Log::error('Stock deduction failed for order: '.$this->order_number, [
                 'error' => $e->getMessage(),
             ]);
         }

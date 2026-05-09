@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // ── Purchase Requisition ──────────────────────────────────
-        if (!Schema::hasTable('purchase_requisitions')) {
+        if (! Schema::hasTable('purchase_requisitions')) {
             Schema::create('purchase_requisitions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -20,18 +20,18 @@ return new class extends Migration
                 $table->date('required_date')->nullable();
                 $table->text('purpose')->nullable();
                 $table->enum('status', ['draft', 'pending', 'approved', 'rejected', 'converted'])
-                      ->default('draft');
+                    ->default('draft');
                 $table->text('rejection_reason')->nullable();
                 $table->timestamp('approved_at')->nullable();
                 $table->decimal('estimated_total', 15, 2)->default(0);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
-        if (!Schema::hasTable('purchase_requisition_items')) {
+        if (! Schema::hasTable('purchase_requisition_items')) {
             Schema::create('purchase_requisition_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('purchase_requisition_id')->constrained()->cascadeOnDelete();
@@ -47,7 +47,7 @@ return new class extends Migration
         }
 
         // ── RFQ (Request for Quotation) ───────────────────────────
-        if (!Schema::hasTable('rfqs')) {
+        if (! Schema::hasTable('rfqs')) {
             Schema::create('rfqs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -60,12 +60,12 @@ return new class extends Migration
                 $table->enum('status', ['open', 'closed', 'converted'])->default('open');
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
-        if (!Schema::hasTable('rfq_items')) {
+        if (! Schema::hasTable('rfq_items')) {
             Schema::create('rfq_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('rfq_id')->constrained()->cascadeOnDelete();
@@ -78,7 +78,7 @@ return new class extends Migration
         }
 
         // Supplier responses to RFQ
-        if (!Schema::hasTable('rfq_responses')) {
+        if (! Schema::hasTable('rfq_responses')) {
             Schema::create('rfq_responses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('rfq_id')->constrained()->cascadeOnDelete();
@@ -91,13 +91,13 @@ return new class extends Migration
                 $table->boolean('is_selected')->default(false);
                 $table->json('item_prices')->nullable(); // [{rfq_item_id, unit_price, total}]
                 $table->timestamps();
-    
+
                 $table->unique(['rfq_id', 'supplier_id']);
             });
         }
 
         // ── Goods Receipt (GR) ────────────────────────────────────
-        if (!Schema::hasTable('goods_receipts')) {
+        if (! Schema::hasTable('goods_receipts')) {
             Schema::create('goods_receipts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -110,12 +110,12 @@ return new class extends Migration
                 $table->enum('status', ['draft', 'confirmed'])->default('draft');
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'purchase_order_id']);
             });
         }
 
-        if (!Schema::hasTable('goods_receipt_items')) {
+        if (! Schema::hasTable('goods_receipt_items')) {
             Schema::create('goods_receipt_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('goods_receipt_id')->constrained()->cascadeOnDelete();
@@ -131,13 +131,13 @@ return new class extends Migration
 
         // Link PO ke PR
         Schema::table('purchase_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('purchase_orders', 'purchase_requisition_id')) {
+            if (! Schema::hasColumn('purchase_orders', 'purchase_requisition_id')) {
                 $table->foreignId('purchase_requisition_id')->nullable()->after('warehouse_id')
-                      ->constrained()->nullOnDelete();
+                    ->constrained()->nullOnDelete();
             }
-            if (!Schema::hasColumn('purchase_orders', 'rfq_id')) {
+            if (! Schema::hasColumn('purchase_orders', 'rfq_id')) {
                 $table->foreignId('rfq_id')->nullable()->after('purchase_requisition_id')
-                      ->constrained()->nullOnDelete();
+                    ->constrained()->nullOnDelete();
             }
         });
     }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FiscalYear extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'name', 'start_date', 'end_date',
         'status', 'closed_by', 'closed_at', 'locked_by', 'locked_at', 'notes',
@@ -18,19 +18,45 @@ class FiscalYear extends Model
 
     protected $casts = [
         'start_date' => 'date',
-        'end_date'   => 'date',
-        'closed_at'  => 'datetime',
-        'locked_at'  => 'datetime',
+        'end_date' => 'date',
+        'closed_at' => 'datetime',
+        'locked_at' => 'datetime',
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function closedBy(): BelongsTo { return $this->belongsTo(User::class, 'closed_by'); }
-    public function lockedBy(): BelongsTo { return $this->belongsTo(User::class, 'locked_by'); }
-    public function periods(): HasMany { return $this->hasMany(AccountingPeriod::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
-    public function isOpen(): bool   { return $this->status === 'open'; }
-    public function isClosed(): bool { return $this->status === 'closed'; }
-    public function isLocked(): bool { return $this->status === 'locked'; }
+    public function closedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    public function lockedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'locked_by');
+    }
+
+    public function periods(): HasMany
+    {
+        return $this->hasMany(AccountingPeriod::class);
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->status === 'open';
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->status === 'locked';
+    }
 
     /** Apakah tanggal tertentu jatuh dalam tahun fiskal ini */
     public function containsDate(string $date): bool
@@ -52,7 +78,9 @@ class FiscalYear extends Model
     {
         // Cek fiscal year lock
         $fy = self::findForDate($tenantId, $date);
-        if ($fy && $fy->isLocked()) return true;
+        if ($fy && $fy->isLocked()) {
+            return true;
+        }
 
         // Cek accounting period lock
         $period = AccountingPeriod::where('tenant_id', $tenantId)

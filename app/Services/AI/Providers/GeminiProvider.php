@@ -4,6 +4,7 @@ namespace App\Services\AI\Providers;
 
 use App\Contracts\AiProvider;
 use App\Exceptions\AllModelsUnavailableException;
+use App\Jobs\LogModelSwitchJob;
 use App\Services\AI\ModelSwitcher;
 use Gemini\Client;
 use Gemini\Data\Blob;
@@ -30,11 +31,17 @@ use Illuminate\Support\Facades\Log;
 class GeminiProvider implements AiProvider
 {
     protected Client $client;
+
     protected array $models;
+
     protected array $rateLimitCodes;
+
     protected string $activeModel;
+
     protected ?string $tenantContext = null;
+
     protected string $language = 'id';
+
     protected ModelSwitcher $switcher;
 
     public function __construct(?ModelSwitcher $switcher = null)
@@ -43,7 +50,7 @@ class GeminiProvider implements AiProvider
 
         if (empty($apiKey)) {
             $message = 'AI Assistant tidak dikonfigurasi. Silakan hubungi administrator untuk mengatur AI Service.';
-            Log::error('GeminiProvider: ' . $message);
+            Log::error('GeminiProvider: '.$message);
             throw new \RuntimeException($message, 500);
         }
 
@@ -51,7 +58,7 @@ class GeminiProvider implements AiProvider
             $this->client = \Gemini::factory()->withApiKey($apiKey)->make();
         } catch (\Throwable $e) {
             $message = 'Konfigurasi AI Assistant tidak valid. Silakan hubungi administrator untuk memeriksa pengaturan AI Service.';
-            Log::error('GeminiProvider: ' . $message, ['error' => $e->getMessage()]);
+            Log::error('GeminiProvider: '.$message, ['error' => $e->getMessage()]);
             throw new \RuntimeException($message, 500);
         }
 
@@ -86,7 +93,8 @@ class GeminiProvider implements AiProvider
     public function isAvailable(): bool
     {
         $apiKey = config('ai.providers.gemini.api_key') ?? config('gemini.api_key');
-        return !empty($apiKey);
+
+        return ! empty($apiKey);
     }
 
     /**
@@ -96,6 +104,7 @@ class GeminiProvider implements AiProvider
     public function withTenantContext(string $context): static
     {
         $this->tenantContext = $context;
+
         return $this;
     }
 
@@ -106,6 +115,7 @@ class GeminiProvider implements AiProvider
     public function withLanguage(string $language): static
     {
         $this->language = $language;
+
         return $this;
     }
 
@@ -178,7 +188,7 @@ class GeminiProvider implements AiProvider
                 ->generativeModel($model)
                 ->withSystemInstruction($this->getSystemInstruction());
 
-            if (!empty($toolDeclarations)) {
+            if (! empty($toolDeclarations)) {
                 $modelBuilder = $modelBuilder->withTool($this->buildTool($toolDeclarations));
             }
 
@@ -296,7 +306,7 @@ class GeminiProvider implements AiProvider
         $contents[] = Content::parse(part: $originalMessage, role: Role::USER);
 
         $callParts = array_map(
-            fn($r) => new Part(
+            fn ($r) => new Part(
                 functionCall: new FunctionCall(
                     name: $r['name'],
                     args: $r['data']['_args'] ?? [],
@@ -307,7 +317,7 @@ class GeminiProvider implements AiProvider
         $contents[] = new Content(parts: $callParts, role: Role::MODEL);
 
         $responseParts = array_map(
-            fn($r) => new Part(
+            fn ($r) => new Part(
                 functionResponse: new FunctionResponse(
                     name: $r['name'],
                     response: array_diff_key($r['data'], ['_args' => null]),
@@ -336,6 +346,7 @@ class GeminiProvider implements AiProvider
     public function setModel(string $model): static
     {
         $this->activeModel = $model;
+
         return $this;
     }
 
@@ -407,6 +418,7 @@ PROMPT;
                 $text = '';
             }
         }
+
         return $text;
     }
 
@@ -414,32 +426,32 @@ PROMPT;
     {
         return match (strtolower($mimeType)) {
             'image/jpeg', 'image/jpg' => MimeType::IMAGE_JPEG,
-            'image/png'               => MimeType::IMAGE_PNG,
-            'image/webp'              => MimeType::IMAGE_WEBP,
-            'image/heic'              => MimeType::IMAGE_HEIC,
-            'image/heif'              => MimeType::IMAGE_HEIF,
-            'application/pdf'         => MimeType::APPLICATION_PDF,
-            'text/plain'              => MimeType::TEXT_PLAIN,
-            'text/csv'                => MimeType::TEXT_CSV,
-            'text/markdown'           => MimeType::TEXT_MARKDOWN,
-            'text/html'               => MimeType::TEXT_HTML,
-            'application/json'        => MimeType::APPLICATION_JSON,
-            'video/mp4'               => MimeType::VIDEO_MP4,
+            'image/png' => MimeType::IMAGE_PNG,
+            'image/webp' => MimeType::IMAGE_WEBP,
+            'image/heic' => MimeType::IMAGE_HEIC,
+            'image/heif' => MimeType::IMAGE_HEIF,
+            'application/pdf' => MimeType::APPLICATION_PDF,
+            'text/plain' => MimeType::TEXT_PLAIN,
+            'text/csv' => MimeType::TEXT_CSV,
+            'text/markdown' => MimeType::TEXT_MARKDOWN,
+            'text/html' => MimeType::TEXT_HTML,
+            'application/json' => MimeType::APPLICATION_JSON,
+            'video/mp4' => MimeType::VIDEO_MP4,
             'audio/mpeg', 'audio/mp3' => MimeType::AUDIO_MP3,
-            'audio/wav'               => MimeType::AUDIO_WAV,
-            'audio/ogg'               => MimeType::AUDIO_OGG,
-            default                   => MimeType::IMAGE_JPEG,
+            'audio/wav' => MimeType::AUDIO_WAV,
+            'audio/ogg' => MimeType::AUDIO_OGG,
+            default => MimeType::IMAGE_JPEG,
         };
     }
 
     protected function buildHistory(array $history): array
     {
         return array_values(array_map(
-            fn($entry) => Content::parse(
+            fn ($entry) => Content::parse(
                 part: $entry['text'],
                 role: $entry['role'] === 'user' ? Role::USER : Role::MODEL
             ),
-            array_filter($history, fn($e) => !empty(trim($e['text'] ?? '')))
+            array_filter($history, fn ($e) => ! empty(trim($e['text'] ?? '')))
         ));
     }
 
@@ -466,6 +478,7 @@ PROMPT;
         foreach ($properties as $name => $prop) {
             $result[$name] = $this->buildSchema($prop);
         }
+
         return $result;
     }
 
@@ -473,15 +486,15 @@ PROMPT;
     {
         $type = match ($prop['type'] ?? 'string') {
             'integer' => DataType::INTEGER,
-            'number'  => DataType::NUMBER,
+            'number' => DataType::NUMBER,
             'boolean' => DataType::BOOLEAN,
-            'array'   => DataType::ARRAY,
-            'object'  => DataType::OBJECT,
-            default   => DataType::STRING,
+            'array' => DataType::ARRAY,
+            'object' => DataType::OBJECT,
+            default => DataType::STRING,
         };
 
         $args = [
-            'type'        => $type,
+            'type' => $type,
             'description' => $prop['description'] ?? null,
         ];
 
@@ -490,9 +503,9 @@ PROMPT;
             $args['items'] = $this->buildSchema($itemsDef);
         }
 
-        if ($type === DataType::OBJECT && !empty($prop['properties'])) {
+        if ($type === DataType::OBJECT && ! empty($prop['properties'])) {
             $args['properties'] = $this->buildProperties($prop['properties']);
-            if (!empty($prop['required'])) {
+            if (! empty($prop['required'])) {
                 $args['required'] = $prop['required'];
             }
         }
@@ -508,6 +521,7 @@ PROMPT;
                 $queue[] = $model;
             }
         }
+
         return $queue;
     }
 
@@ -560,6 +574,7 @@ PROMPT;
                 return true;
             }
         }
+
         return false;
     }
 
@@ -673,13 +688,13 @@ PROMPT;
                 $errorClass = $this->classifyError($e);
 
                 if ($errorClass === null) {
-                    Log::error("GeminiProvider error on [{$currentModel}]: " . $e->getMessage(), [
-                        'model'      => $currentModel,
+                    Log::error("GeminiProvider error on [{$currentModel}]: ".$e->getMessage(), [
+                        'model' => $currentModel,
                         'error_code' => $e->getCode(),
                         'error_type' => get_class($e),
                     ]);
                     throw new \RuntimeException(
-                        'Gagal terhubung ke AI Assistant. Error: ' . $this->getUserFriendlyError($e),
+                        'Gagal terhubung ke AI Assistant. Error: '.$this->getUserFriendlyError($e),
                         503
                     );
                 }
@@ -691,8 +706,9 @@ PROMPT;
                     $nextModel = $this->switcher->nextAvailableModel($currentModel);
                 } catch (AllModelsUnavailableException $ex) {
                     $this->dispatchSwitchLog($currentModel, 'none', $errorClass, $e->getMessage());
+
                     return [
-                        'text'  => 'Layanan AI sedang mengalami gangguan. Silakan coba beberapa saat lagi.',
+                        'text' => 'Layanan AI sedang mengalami gangguan. Silakan coba beberapa saat lagi.',
                         'error' => true,
                     ];
                 }
@@ -726,6 +742,7 @@ PROMPT;
                 if (is_array($result) && isset($result['_raw'])) {
                     unset($result['_raw']);
                     $result['model'] = $model;
+
                     return $result;
                 }
 
@@ -741,6 +758,7 @@ PROMPT;
 
                 if ($this->isRateLimitError($e)) {
                     Log::warning("GeminiProvider: rate limit on [{$model}], trying next...");
+
                     continue;
                 }
 
@@ -752,14 +770,14 @@ PROMPT;
                     );
                 }
 
-                Log::error("GeminiProvider error on [{$model}]: " . $e->getMessage(), [
-                    'model'      => $model,
+                Log::error("GeminiProvider error on [{$model}]: ".$e->getMessage(), [
+                    'model' => $model,
                     'error_code' => $e->getCode(),
                     'error_type' => get_class($e),
                 ]);
 
                 throw new \RuntimeException(
-                    'Gagal terhubung ke AI Assistant. Error: ' . $this->getUserFriendlyError($e),
+                    'Gagal terhubung ke AI Assistant. Error: '.$this->getUserFriendlyError($e),
                     503
                 );
             }
@@ -773,7 +791,7 @@ PROMPT;
      */
     private function dispatchSwitchLog(string $fromModel, string $toModel, string $reason, ?string $errorMessage): void
     {
-        if (!class_exists(\App\Jobs\LogModelSwitchJob::class)) {
+        if (! class_exists(LogModelSwitchJob::class)) {
             return;
         }
 
@@ -791,7 +809,7 @@ PROMPT;
             // Not in an HTTP context
         }
 
-        dispatch(new \App\Jobs\LogModelSwitchJob(
+        dispatch(new LogModelSwitchJob(
             fromModel: $fromModel,
             toModel: $toModel,
             reason: $reason,

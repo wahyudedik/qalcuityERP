@@ -79,16 +79,16 @@ class HotelSettingController extends Controller
         // Handle logo upload
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('hotel', 'public');
-            $data['logo'] = '/storage/' . $logoPath;
+            $data['logo'] = '/storage/'.$logoPath;
         }
 
         if ($settings) {
             $old = $settings->getOriginal();
             $settings->update($data);
-            ActivityLog::record('hotel_settings_updated', "Hotel settings updated", $settings, $old, $settings->fresh()->toArray());
+            ActivityLog::record('hotel_settings_updated', 'Hotel settings updated', $settings, $old, $settings->fresh()->toArray());
         } else {
             $settings = HotelSetting::create(array_merge($data, ['tenant_id' => $tid]));
-            ActivityLog::record('hotel_settings_created', "Hotel settings created", $settings, [], $settings->toArray());
+            ActivityLog::record('hotel_settings_created', 'Hotel settings created', $settings, [], $settings->toArray());
         }
 
         return back()->with('success', 'Hotel settings updated successfully.');

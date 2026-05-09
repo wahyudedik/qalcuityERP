@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * VerifyCsrfForUploads - Enforce CSRF token verification for file upload requests.
- * 
+ *
  * This middleware provides an additional layer of CSRF protection specifically
  * for file upload endpoints, ensuring that all file uploads include a valid
  * CSRF token.
@@ -24,7 +24,7 @@ class VerifyCsrfForUploads
         if ($this->isFileUploadRequest($request)) {
             // Laravel's built-in CSRF verification should already catch this,
             // but we add an explicit check for file uploads as defense in depth
-            if (!$request->hasValidSignature() && !$this->hasValidCsrfToken($request)) {
+            if (! $request->hasValidSignature() && ! $this->hasValidCsrfToken($request)) {
                 return response()->json([
                     'error' => 'csrf_token_missing',
                     'message' => 'Token CSRF tidak valid atau hilang. Harap refresh halaman dan coba lagi.',
@@ -41,7 +41,7 @@ class VerifyCsrfForUploads
     protected function isFileUploadRequest(Request $request): bool
     {
         // Check if request method can contain files
-        if (!in_array($request->method(), ['POST', 'PUT', 'PATCH'])) {
+        if (! in_array($request->method(), ['POST', 'PUT', 'PATCH'])) {
             return false;
         }
 
@@ -70,7 +70,7 @@ class VerifyCsrfForUploads
             ?? $request->header('X-CSRF-TOKEN')
             ?? $request->header('X-XSRF-TOKEN');
 
-        if (!$token) {
+        if (! $token) {
             return false;
         }
 

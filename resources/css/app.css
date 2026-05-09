@@ -44,3 +44,119 @@ select option {
     color: #111827;
     /* gray-900 */
 }
+
+/* ═══════════════════════════════════════════════
+   LIGHT MODE OVERRIDES (Dark-theme → Light-theme)
+   -----------------------------------------------
+   Many views use dark-theme classes (text-white, text-gray-300, bg-white/5,
+   border-white/10) that are invisible on the app's light background (#f8f8f8).
+   These rules remap them to readable colors. Placed AFTER @tailwind utilities
+   so they win specificity battles.
+═══════════════════════════════════════════════ */
+
+/* ── TEXT-WHITE override ──
+   Convert text-white to dark text, EXCEPT inside colored backgrounds
+   where white text is intentional (buttons, badges, alerts, totals). */
+main .text-white {
+    color: #111827 !important;
+}
+
+/* Preserve white text inside colored containers */
+main .bg-indigo-600 .text-white,
+main .bg-indigo-700 .text-white,
+main .bg-indigo-500 .text-white,
+main .bg-red-600 .text-white,
+main .bg-red-500 .text-white,
+main .bg-red-700 .text-white,
+main .bg-green-600 .text-white,
+main .bg-green-500 .text-white,
+main .bg-green-700 .text-white,
+main .bg-blue-600 .text-white,
+main .bg-blue-500 .text-white,
+main .bg-blue-700 .text-white,
+main .bg-purple-600 .text-white,
+main .bg-purple-500 .text-white,
+main .bg-amber-600 .text-white,
+main .bg-amber-500 .text-white,
+main .bg-emerald-600 .text-white,
+main .bg-emerald-500 .text-white,
+main .bg-cyan-600 .text-white,
+main .bg-cyan-500 .text-white,
+main .bg-orange-600 .text-white,
+main .bg-orange-500 .text-white,
+main .bg-rose-600 .text-white,
+main .bg-rose-500 .text-white,
+main .bg-teal-600 .text-white,
+main .bg-teal-500 .text-white,
+main .bg-gray-800 .text-white,
+main .bg-gray-900 .text-white,
+main .bg-slate-800 .text-white,
+main .bg-slate-900 .text-white,
+main .bg-indigo-600.text-white,
+main .bg-red-600.text-white,
+main .bg-green-600.text-white,
+main .bg-blue-600.text-white,
+main button.text-white,
+main a.bg-indigo-600.text-white,
+main a.bg-red-600.text-white,
+main a.bg-green-600.text-white,
+main a.bg-blue-600.text-white {
+    color: #ffffff !important;
+}
+
+/* ── GRAY TEXT overrides ── */
+main .text-gray-300 {
+    color: #374151 !important;
+    /* gray-700 */
+}
+
+/* ── BACKGROUND overrides ── */
+main .bg-white\/5,
+main .bg-white\/10 {
+    background-color: #ffffff !important;
+}
+
+/* ── BORDER overrides ── */
+main .border-white\/5,
+main .border-white\/10,
+main .border-white\/20 {
+    border-color: #e5e7eb !important;
+    /* gray-200 */
+}
+
+/* ── DIVIDE overrides ── */
+main .divide-white\/5> :not([hidden])~ :not([hidden]),
+main .divide-white\/10> :not([hidden])~ :not([hidden]) {
+    border-color: #f3f4f6 !important;
+    /* gray-100 */
+}
+
+/* ── HOVER overrides ── */
+main .hover\:bg-white\/5:hover,
+main .hover\:bg-white\/10:hover {
+    background-color: #f3f4f6 !important;
+    /* gray-100 */
+}
+
+/* ── INPUT overrides ── */
+main input.bg-white\/5,
+main select.bg-white\/5,
+main textarea.bg-white\/5,
+main input.bg-white\/10,
+main select.bg-white\/10,
+main textarea.bg-white\/10 {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+
+main input.text-white,
+main select.text-white,
+main textarea.text-white {
+    color: #111827 !important;
+}
+
+/* ── BORDER-B on dark-themed section headers ── */
+main .border-b.border-white\/10 {
+    border-bottom-color: #e5e7eb !important;
+}

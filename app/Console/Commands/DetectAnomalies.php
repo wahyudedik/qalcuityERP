@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 
 class DetectAnomalies extends Command
 {
-    protected $signature   = 'anomalies:detect {--tenant= : ID tenant spesifik}';
+    protected $signature = 'anomalies:detect {--tenant= : ID tenant spesifik}';
+
     protected $description = 'Deteksi anomali otomatis untuk semua tenant aktif';
 
     public function handle(AnomalyDetectionService $service): int
@@ -21,7 +22,7 @@ class DetectAnomalies extends Command
         }
 
         $tenants = $query->get();
-        $total   = 0;
+        $total = 0;
 
         foreach ($tenants as $tenant) {
             try {
@@ -31,11 +32,12 @@ class DetectAnomalies extends Command
                     $this->line("Tenant #{$tenant->id} ({$tenant->name}): {$count} anomali baru.");
                 }
             } catch (\Throwable $e) {
-                $this->error("Tenant #{$tenant->id}: " . $e->getMessage());
+                $this->error("Tenant #{$tenant->id}: ".$e->getMessage());
             }
         }
 
         $this->info("Selesai. Total {$total} anomali baru dari {$tenants->count()} tenant.");
+
         return self::SUCCESS;
     }
 }

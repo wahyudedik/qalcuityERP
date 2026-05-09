@@ -5,9 +5,7 @@
     :class="$store.navSystem.sidebarCollapsed ? 'w-0' : 'w-[260px]'"
     class="shrink-0
            fixed top-14 left-0 z-40
-           lg:relative lg:top-0 lg:z-auto
-           h-[calc(100vh-3.5rem)]
-           lg:h-auto"
+           h-[calc(100vh-3.5rem)]"
     style="transition: width 250ms cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;" role="navigation"
     :aria-label="`Navigasi ${NAV_GROUPS[$store.navSystem.activeModule]?.title ?? ''}`">
 
@@ -59,16 +57,69 @@
         </div>
 
         
-        <nav class="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin" aria-label="Menu navigasi">
+        <nav class="flex-1 overflow-y-auto py-2 px-2 scrollbar-thin" aria-label="Menu navigasi" x-data="{
+            collapsedSections: {},
+            initSections() {
+                // Auto-expand section that contains active item
+                const items = $store.navSystem.filteredNavItems;
+                let currentSection = null;
+                items.forEach(item => {
+                    if (item.section) {
+                        currentSection = item.section;
+                        // Default: collapse all sections except the one with active item
+                        if (this.collapsedSections[currentSection] === undefined) {
+                            this.collapsedSections[currentSection] = true;
+                        }
+                    } else if (item.active && currentSection) {
+                        this.collapsedSections[currentSection] = false;
+                    }
+                });
+                // If no section has active item, expand first section
+                const sections = items.filter(i => i.section).map(i => i.section);
+                const hasExpanded = sections.some(s => !this.collapsedSections[s]);
+                if (!hasExpanded && sections.length > 0) {
+                    this.collapsedSections[sections[0]] = false;
+                }
+            },
+            toggleSection(name) {
+                this.collapsedSections[name] = !this.collapsedSections[name];
+            },
+            isSectionCollapsed(name) {
+                return this.collapsedSections[name] ?? false;
+            },
+            getSectionForIndex(index) {
+                const items = $store.navSystem.filteredNavItems;
+                let section = null;
+                for (let i = index - 1; i >= 0; i--) {
+                    if (items[i].section) { section = items[i].section; break; }
+                }
+                return section;
+            },
+            isItemVisible(index) {
+                // If searching, show all items
+                if ($store.navSystem.sidebarQuery) return true;
+                const section = this.getSectionForIndex(index);
+                if (!section) return true;
+                return !this.isSectionCollapsed(section);
+            }
+        }"
+            x-init="$nextTick(() => initSections())">
             <template x-for="(item, index) in $store.navSystem.filteredNavItems" :key="`nav-item-${index}`">
                 <div>
                     
-                    <div x-show="item.section"
-                        class="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 pt-4 pb-1.5 mt-1 border-t border-gray-100"
-                        x-text="item.section" style="display: none;"></div>
+                    <button x-show="item.section" @click="toggleSection(item.section)"
+                        class="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 px-3 pt-4 pb-1.5 mt-1 border-t border-gray-100 cursor-pointer transition-colors duration-150 group"
+                        :aria-expanded="!isSectionCollapsed(item.section)" style="display: none;">
+                        <span x-text="item.section"></span>
+                        <svg class="w-3 h-3 transition-transform duration-200 text-gray-300 group-hover:text-gray-500"
+                            :class="isSectionCollapsed(item.section) ? '-rotate-90' : 'rotate-0'" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
 
                     
-                    <a x-show="!item.section" :href="item.href === '#logout' ? '#' : item.href"
+                    <a x-show="!item.section && isItemVisible(index)" :href="item.href === '#logout' ? '#' : item.href"
                         :class="item.active ?
                             'font-semibold' :
                             'text-gray-600 hover:text-gray-900 hover:bg-gray-100'"
@@ -77,7 +128,9 @@
                             (item.danger ? 'color: #f87171' : '')"
                         class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 relative"
                         @click="item.href === '#logout' ? (event.preventDefault(), document.getElementById('logout-form').submit()) : null"
-                        style="display: none;">
+                        style="display: none;" x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0">
                         
                         <span x-show="item.active" class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r"
                             :style="`background-color: var(--module-color-${$store.navSystem.activeModule})`"

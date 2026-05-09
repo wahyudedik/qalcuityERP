@@ -20,9 +20,13 @@ use App\DTOs\Audit\Severity;
 class PermissionAnalyzer implements AnalyzerInterface
 {
     private string $basePath;
+
     private string $permissionServiceFile;
+
     private string $policyPath;
+
     private string $controllerPath;
+
     private string $rbacMiddlewareFile;
 
     /** @var string[] */
@@ -50,12 +54,12 @@ class PermissionAnalyzer implements AnalyzerInterface
      */
     private const ROLE_CHECK_METHODS = [
         'isSuperAdmin' => 'super_admin',
-        'isAdmin'      => 'admin',
-        'isManager'    => 'manager',
-        'isStaff'      => 'staff',
-        'isKasir'      => 'kasir',
-        'isGudang'     => 'gudang',
-        'isAffiliate'  => 'affiliate',
+        'isAdmin' => 'admin',
+        'isManager' => 'manager',
+        'isStaff' => 'staff',
+        'isKasir' => 'kasir',
+        'isGudang' => 'gudang',
+        'isAffiliate' => 'affiliate',
     ];
 
     /**
@@ -63,12 +67,12 @@ class PermissionAnalyzer implements AnalyzerInterface
      */
     private const ROLE_HIERARCHY = [
         'super_admin' => 7,
-        'admin'       => 6,
-        'manager'     => 5,
-        'staff'       => 4,
-        'kasir'       => 3,
-        'gudang'      => 3,
-        'affiliate'   => 1,
+        'admin' => 6,
+        'manager' => 5,
+        'staff' => 4,
+        'kasir' => 3,
+        'gudang' => 3,
+        'affiliate' => 1,
     ];
 
     /**
@@ -106,17 +110,17 @@ class PermissionAnalyzer implements AnalyzerInterface
         }
 
         $this->permissionServiceFile = $permissionServiceFile
-            ?? ($this->basePath . '/app/Services/PermissionService.php');
+            ?? ($this->basePath.'/app/Services/PermissionService.php');
         $this->policyPath = $policyPath
-            ?? ($this->basePath . '/app/Policies');
+            ?? ($this->basePath.'/app/Policies');
         $this->controllerPath = $controllerPath
-            ?? ($this->basePath . '/app/Http/Controllers');
+            ?? ($this->basePath.'/app/Http/Controllers');
         $this->rbacMiddlewareFile = $rbacMiddlewareFile
-            ?? ($this->basePath . '/app/Http/Middleware/RBACMiddleware.php');
+            ?? ($this->basePath.'/app/Http/Middleware/RBACMiddleware.php');
         $this->routeFiles = $routeFiles ?? [
-            $this->basePath . '/routes/web.php',
-            $this->basePath . '/routes/api.php',
-            $this->basePath . '/routes/healthcare.php',
+            $this->basePath.'/routes/web.php',
+            $this->basePath.'/routes/api.php',
+            $this->basePath.'/routes/healthcare.php',
         ];
     }
 
@@ -171,12 +175,13 @@ class PermissionAnalyzer implements AnalyzerInterface
                 severity: Severity::High,
                 title: 'Cannot read PermissionService MODULES',
                 description: 'Could not extract MODULES constant from PermissionService. '
-                    . 'The permission service file may be missing or malformed.',
+                    .'The permission service file may be missing or malformed.',
                 file: $this->relativePath($this->permissionServiceFile),
                 line: null,
                 recommendation: 'Verify that PermissionService.php exists and contains a MODULES constant.',
                 metadata: ['check' => 'module_route_coverage'],
             );
+
             return $findings;
         }
 
@@ -184,19 +189,19 @@ class PermissionAnalyzer implements AnalyzerInterface
 
         // Modules defined in MODULES but with no routes using permission:module,action
         foreach (array_keys($modules) as $module) {
-            if (!in_array($module, $routeModules, true)) {
+            if (! in_array($module, $routeModules, true)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Medium,
                     title: "Module '{$module}' has no permission-protected routes",
                     description: "Module '{$module}' is defined in PermissionService::MODULES with actions ["
-                        . implode(', ', $modules[$module])
-                        . "] but no routes use 'permission:{$module},*' middleware. "
-                        . 'This module may be unused or its routes may lack permission enforcement.',
+                        .implode(', ', $modules[$module])
+                        ."] but no routes use 'permission:{$module},*' middleware. "
+                        .'This module may be unused or its routes may lack permission enforcement.',
                     file: $this->relativePath($this->permissionServiceFile),
                     line: null,
                     recommendation: "Add 'permission:{$module},<action>' middleware to routes that belong to this module, "
-                        . "or remove the module from MODULES if it's no longer needed.",
+                        ."or remove the module from MODULES if it's no longer needed.",
                     metadata: [
                         'check' => 'module_route_coverage',
                         'module' => $module,
@@ -209,13 +214,13 @@ class PermissionAnalyzer implements AnalyzerInterface
         // Routes referencing modules not defined in MODULES
         $definedModuleNames = array_keys($modules);
         foreach ($routeModules as $routeModule) {
-            if (!in_array($routeModule, $definedModuleNames, true)) {
+            if (! in_array($routeModule, $definedModuleNames, true)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Route references undefined module '{$routeModule}'",
                     description: "A route uses 'permission:{$routeModule},*' middleware but '{$routeModule}' "
-                        . 'is not defined in PermissionService::MODULES. This permission check will always fail.',
+                        .'is not defined in PermissionService::MODULES. This permission check will always fail.',
                     file: null,
                     line: null,
                     recommendation: "Add '{$routeModule}' to PermissionService::MODULES or fix the middleware parameter.",
@@ -248,20 +253,20 @@ class PermissionAnalyzer implements AnalyzerInterface
         $existingPolicies = $this->discoverExistingPolicies();
 
         foreach (self::CRITICAL_MODELS as $model) {
-            $expectedPolicyName = $model . 'Policy';
+            $expectedPolicyName = $model.'Policy';
 
-            if (!in_array($expectedPolicyName, $existingPolicies, true)) {
+            if (! in_array($expectedPolicyName, $existingPolicies, true)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Missing authorization policy for {$model}",
                     description: "Critical model {$model} does not have a corresponding {$expectedPolicyName}. "
-                        . 'Without a policy, authorization checks via $this->authorize() or Gate::allows() '
-                        . 'cannot be used for fine-grained access control on this model.',
+                        .'Without a policy, authorization checks via $this->authorize() or Gate::allows() '
+                        .'cannot be used for fine-grained access control on this model.',
                     file: null,
                     line: null,
                     recommendation: "Create app/Policies/{$expectedPolicyName}.php with viewAny, view, create, "
-                        . 'update, delete, and restore methods.',
+                        .'update, delete, and restore methods.',
                     metadata: [
                         'check' => 'policy_gaps',
                         'model' => $model,
@@ -329,7 +334,7 @@ class PermissionAnalyzer implements AnalyzerInterface
         $matrix = [];
 
         foreach ($this->routeFiles as $routeFile) {
-            if (!file_exists($routeFile)) {
+            if (! file_exists($routeFile)) {
                 continue;
             }
 
@@ -381,7 +386,7 @@ class PermissionAnalyzer implements AnalyzerInterface
     {
         $findings = [];
 
-        if (!file_exists($this->rbacMiddlewareFile)) {
+        if (! file_exists($this->rbacMiddlewareFile)) {
             return $findings;
         }
 
@@ -414,13 +419,13 @@ class PermissionAnalyzer implements AnalyzerInterface
                 severity: Severity::Medium,
                 title: "Healthcare RBAC role '{$overlap['rbac']}' conflicts with main role '{$overlap['main']}'",
                 description: "Healthcare RBACMiddleware defines role '{$overlap['rbac']}' which is similar to "
-                    . "the main permission system role '{$overlap['main']}' but uses different naming. "
-                    . 'This inconsistency can cause confusion and permission bypass if a user has one role '
-                    . 'in the main system but a differently-named equivalent in healthcare.',
+                    ."the main permission system role '{$overlap['main']}' but uses different naming. "
+                    .'This inconsistency can cause confusion and permission bypass if a user has one role '
+                    .'in the main system but a differently-named equivalent in healthcare.',
                 file: $this->relativePath($this->rbacMiddlewareFile),
                 line: null,
                 recommendation: 'Align healthcare RBAC role names with the main permission system, '
-                    . "or add explicit mapping between '{$overlap['rbac']}' and '{$overlap['main']}'.",
+                    ."or add explicit mapping between '{$overlap['rbac']}' and '{$overlap['main']}'.",
                 metadata: [
                     'check' => 'healthcare_rbac_integration',
                     'rbac_role' => $overlap['rbac'],
@@ -433,19 +438,19 @@ class PermissionAnalyzer implements AnalyzerInterface
         $usesPermissionService = str_contains($rbacSource, 'PermissionService')
             || str_contains($rbacSource, 'PermissionMiddleware');
 
-        if (!$usesPermissionService) {
+        if (! $usesPermissionService) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
                 title: 'Healthcare RBACMiddleware not integrated with PermissionService',
                 description: 'The healthcare RBACMiddleware manages its own role-permission mapping '
-                    . 'independently of the main PermissionService. This creates two separate permission '
-                    . 'systems that could diverge, making it harder to audit and manage permissions centrally.',
+                    .'independently of the main PermissionService. This creates two separate permission '
+                    .'systems that could diverge, making it harder to audit and manage permissions centrally.',
                 file: $this->relativePath($this->rbacMiddlewareFile),
                 line: null,
                 recommendation: 'Consider integrating healthcare RBAC with PermissionService by adding '
-                    . 'healthcare modules to PermissionService::MODULES and using PermissionMiddleware '
-                    . 'for healthcare routes.',
+                    .'healthcare modules to PermissionService::MODULES and using PermissionMiddleware '
+                    .'for healthcare routes.',
                 metadata: [
                     'check' => 'healthcare_rbac_integration',
                     'uses_permission_service' => false,
@@ -465,7 +470,7 @@ class PermissionAnalyzer implements AnalyzerInterface
      */
     private function extractModulesFromPermissionService(): array
     {
-        if (!file_exists($this->permissionServiceFile)) {
+        if (! file_exists($this->permissionServiceFile)) {
             return [];
         }
 
@@ -518,7 +523,7 @@ class PermissionAnalyzer implements AnalyzerInterface
         $modules = [];
 
         foreach ($this->routeFiles as $routeFile) {
-            if (!file_exists($routeFile)) {
+            if (! file_exists($routeFile)) {
                 continue;
             }
 
@@ -549,7 +554,7 @@ class PermissionAnalyzer implements AnalyzerInterface
     {
         $policies = [];
 
-        if (!is_dir($this->policyPath)) {
+        if (! is_dir($this->policyPath)) {
             return $policies;
         }
 
@@ -586,7 +591,7 @@ class PermissionAnalyzer implements AnalyzerInterface
             $rolesChecked = [];
 
             foreach (self::ROLE_CHECK_METHODS as $checkMethod => $role) {
-                if (preg_match('/->(' . preg_quote($checkMethod, '/') . ')\s*\(\s*\)/', $methodBody)) {
+                if (preg_match('/->('.preg_quote($checkMethod, '/').')\s*\(\s*\)/', $methodBody)) {
                     $rolesChecked[$role] = self::ROLE_HIERARCHY[$role] ?? 0;
                 }
             }
@@ -602,12 +607,12 @@ class PermissionAnalyzer implements AnalyzerInterface
             // Find roles between min and max that are NOT checked
             $missingRoles = [];
             foreach (self::ROLE_HIERARCHY as $role => $level) {
-                if ($level > $minChecked && $level < $maxChecked && !isset($rolesChecked[$role])) {
+                if ($level > $minChecked && $level < $maxChecked && ! isset($rolesChecked[$role])) {
                     $missingRoles[] = $role;
                 }
             }
 
-            if (!empty($missingRoles)) {
+            if (! empty($missingRoles)) {
                 $shortClass = $this->shortClassName($className);
                 $checkedRoleNames = implode(', ', array_keys($rolesChecked));
                 $missingRoleNames = implode(', ', $missingRoles);
@@ -617,12 +622,12 @@ class PermissionAnalyzer implements AnalyzerInterface
                     severity: Severity::Medium,
                     title: "Potential role escalation gap in {$shortClass}::{$methodName}()",
                     description: "Method {$methodName}() checks roles [{$checkedRoleNames}] but skips "
-                        . "intermediate roles [{$missingRoleNames}]. This could indicate an escalation gap "
-                        . 'where certain roles are accidentally excluded from access control.',
+                        ."intermediate roles [{$missingRoleNames}]. This could indicate an escalation gap "
+                        .'where certain roles are accidentally excluded from access control.',
                     file: $this->relativePath($filePath),
                     line: null,
                     recommendation: "Review the role checks in {$methodName}() and ensure all appropriate "
-                        . 'roles are included, or use PermissionService for centralized permission checks.',
+                        .'roles are included, or use PermissionService for centralized permission checks.',
                     metadata: [
                         'check' => 'role_consistency',
                         'method' => $methodName,
@@ -664,14 +669,14 @@ class PermissionAnalyzer implements AnalyzerInterface
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Low,
-                    title: "Direct role comparison in {$shortClass}" . ($methodName ? "::{$methodName}()" : ''),
+                    title: "Direct role comparison in {$shortClass}".($methodName ? "::{$methodName}()" : ''),
                     description: "Controller uses direct role string comparison (->role === '{$match[1]}') "
-                        . 'instead of the type-safe role helper methods (e.g., ->isAdmin()). '
-                        . 'Direct comparisons are fragile and can lead to inconsistencies if role names change.',
+                        .'instead of the type-safe role helper methods (e.g., ->isAdmin()). '
+                        .'Direct comparisons are fragile and can lead to inconsistencies if role names change.',
                     file: $this->relativePath($filePath),
                     line: $i + 1,
                     recommendation: 'Use the User model role helper methods (isSuperAdmin(), isAdmin(), '
-                        . 'isManager(), etc.) or PermissionService for role checks.',
+                        .'isManager(), etc.) or PermissionService for role checks.',
                     metadata: [
                         'check' => 'role_consistency',
                         'method' => $methodName,
@@ -694,7 +699,7 @@ class PermissionAnalyzer implements AnalyzerInterface
      * Detects data-modifying routes (POST/PUT/PATCH/DELETE) that have no
      * permission module assigned.
      *
-     * @param array<int, array{method: string, uri: string, middleware: string[], module: string|null, action: string|null}> $matrix
+     * @param  array<int, array{method: string, uri: string, middleware: string[], module: string|null, action: string|null}>  $matrix
      * @return AuditFinding[]
      */
     private function findingsFromPermissionMatrix(array $matrix): array
@@ -721,7 +726,7 @@ class PermissionAnalyzer implements AnalyzerInterface
         foreach ($matrix as $entry) {
             $method = strtoupper($entry['method']);
 
-            if (!in_array($method, $dataModifyingMethods, true)) {
+            if (! in_array($method, $dataModifyingMethods, true)) {
                 continue;
             }
 
@@ -746,7 +751,7 @@ class PermissionAnalyzer implements AnalyzerInterface
                 }
             }
 
-            if (!$hasPermission) {
+            if (! $hasPermission) {
                 // Check if it at least has auth
                 $hasAuth = false;
                 foreach ($entry['middleware'] as $mw) {
@@ -757,13 +762,13 @@ class PermissionAnalyzer implements AnalyzerInterface
                 }
 
                 // Only report if it doesn't even have auth — RouteAnalyzer handles the rest
-                if (!$hasAuth) {
+                if (! $hasAuth) {
                     $findings[] = new AuditFinding(
                         category: $this->category(),
                         severity: Severity::Critical,
                         title: "Unprotected {$method} route in permission matrix: {$entry['uri']}",
                         description: "Route {$method} {$entry['uri']} has no authentication or permission "
-                            . 'middleware in the permission matrix. This data-modifying endpoint is publicly accessible.',
+                            .'middleware in the permission matrix. This data-modifying endpoint is publicly accessible.',
                         file: null,
                         line: null,
                         recommendation: "Add 'permission:<module>,<action>' middleware to this route.",
@@ -806,6 +811,7 @@ class PermissionAnalyzer implements AnalyzerInterface
                 $stripped = $this->stripStringsAndComments($trimmed);
                 $braceDepth += substr_count($stripped, '{') - substr_count($stripped, '}');
                 $groupDepths[] = $braceDepth;
+
                 continue;
             }
 
@@ -814,7 +820,7 @@ class PermissionAnalyzer implements AnalyzerInterface
             $braceDepth += substr_count($stripped, '{') - substr_count($stripped, '}');
 
             // Close groups
-            while (!empty($groupDepths) && $braceDepth < end($groupDepths)) {
+            while (! empty($groupDepths) && $braceDepth < end($groupDepths)) {
                 array_pop($groupDepths);
                 array_pop($middlewareStack);
             }
@@ -913,7 +919,7 @@ class PermissionAnalyzer implements AnalyzerInterface
     /**
      * Extract method names and their bodies from source lines.
      *
-     * @param string[] $lines
+     * @param  string[]  $lines
      * @return array<string, string> Method name => method body text
      */
     private function extractMethodBodies(array $lines): array
@@ -928,7 +934,7 @@ class PermissionAnalyzer implements AnalyzerInterface
             $line = $lines[$i];
 
             if (preg_match('/^\s*(?:public|protected|private)\s+(?:static\s+)?function\s+(\w+)\s*\(/', $line, $match)) {
-                if ($currentMethod !== null && !empty($bodyLines)) {
+                if ($currentMethod !== null && ! empty($bodyLines)) {
                     $methods[$currentMethod] = implode("\n", $bodyLines);
                 }
 
@@ -939,7 +945,7 @@ class PermissionAnalyzer implements AnalyzerInterface
             }
 
             if ($currentMethod !== null) {
-                if (!$methodStart) {
+                if (! $methodStart) {
                     $bodyLines[] = $line;
                 }
                 $methodStart = false;
@@ -955,7 +961,7 @@ class PermissionAnalyzer implements AnalyzerInterface
             }
         }
 
-        if ($currentMethod !== null && !empty($bodyLines)) {
+        if ($currentMethod !== null && ! empty($bodyLines)) {
             $methods[$currentMethod] = implode("\n", $bodyLines);
         }
 
@@ -973,7 +979,7 @@ class PermissionAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -1034,6 +1040,7 @@ class PermissionAnalyzer implements AnalyzerInterface
                 return $matches[1];
             }
         }
+
         return null;
     }
 
@@ -1046,6 +1053,7 @@ class PermissionAnalyzer implements AnalyzerInterface
         $line = preg_replace('/#.*$/', '', $line);
         $line = preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'/', '""', $line);
         $line = preg_replace('/"(?:[^"\\\\]|\\\\.)*"/', '""', $line);
+
         return $line;
     }
 
@@ -1055,6 +1063,7 @@ class PermissionAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -1063,7 +1072,7 @@ class PermissionAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

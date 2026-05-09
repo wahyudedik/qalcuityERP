@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\FingerprintDevice;
-use App\Models\FingerprintAttendanceLog;
-use App\Models\Employee;
 use App\Models\Attendance;
-use Illuminate\Support\Facades\Log;
+use App\Models\Employee;
+use App\Models\FingerprintAttendanceLog;
+use App\Models\FingerprintDevice;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class FingerprintDeviceService
 {
@@ -34,17 +34,17 @@ class FingerprintDeviceService
                     'firmware' => '1.0.0',
                     'users_count' => 0,
                     'logs_count' => 0,
-                ]
+                ],
             ];
         } catch (\Exception $e) {
             Log::error('Fingerprint device connection failed', [
                 'device_id' => $device->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Koneksi gagal: ' . $e->getMessage()
+                'message' => 'Koneksi gagal: '.$e->getMessage(),
             ];
         }
     }
@@ -64,7 +64,7 @@ class FingerprintDeviceService
                 'firmware' => '6.6.0',
                 'users_count' => 50,
                 'logs_count' => 1000,
-            ]
+            ],
         ];
     }
 
@@ -97,7 +97,7 @@ class FingerprintDeviceService
                     Log::error('Failed to process attendance log', [
                         'device_id' => $device->id,
                         'error' => $e->getMessage(),
-                        'data' => $logData
+                        'data' => $logData,
                     ]);
                 }
             }
@@ -105,7 +105,7 @@ class FingerprintDeviceService
             // Update last sync time
             $device->update([
                 'last_sync_at' => now(),
-                'is_connected' => true
+                'is_connected' => true,
             ]);
 
             return [
@@ -117,14 +117,14 @@ class FingerprintDeviceService
         } catch (\Exception $e) {
             Log::error('Sync attendance logs failed', [
                 'device_id' => $device->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             $device->update(['is_connected' => false]);
 
             return [
                 'success' => false,
-                'message' => 'Sinkronisasi gagal: ' . $e->getMessage()
+                'message' => 'Sinkronisasi gagal: '.$e->getMessage(),
             ];
         }
     }
@@ -156,7 +156,7 @@ class FingerprintDeviceService
         $employeeUid = $logData['uid'] ?? null;
         $scanTime = $logData['timestamp'] ?? now();
 
-        if (!$employeeUid) {
+        if (! $employeeUid) {
             throw new \Exception('UID karyawan tidak ditemukan');
         }
 
@@ -188,7 +188,7 @@ class FingerprintDeviceService
      */
     private function determineScanType(?Employee $employee, $scanTime): string
     {
-        if (!$employee) {
+        if (! $employee) {
             return 'check_in';
         }
 
@@ -201,9 +201,9 @@ class FingerprintDeviceService
             ->where('date', $date)
             ->first();
 
-        if (!$existingAttendance || !$existingAttendance->check_in) {
+        if (! $existingAttendance || ! $existingAttendance->check_in) {
             return 'check_in';
-        } elseif ($existingAttendance && !$existingAttendance->check_out) {
+        } elseif ($existingAttendance && ! $existingAttendance->check_out) {
             return 'check_out';
         }
 
@@ -212,7 +212,7 @@ class FingerprintDeviceService
 
     /**
      * Process attendance log to attendance record
-     * 
+     *
      * BUG-HRM-002 FIX: Use timezone-aware processing
      */
     public function processToAttendance(FingerprintAttendanceLog $log, Employee $employee): void
@@ -228,11 +228,11 @@ class FingerprintDeviceService
             'date' => $date,
         ]);
 
-        if ($log->scan_type === 'check_in' && !$attendance->check_in) {
+        if ($log->scan_type === 'check_in' && ! $attendance->check_in) {
             $attendance->check_in = $time;
 
             // BUG-HRM-002 FIX: Determine status based on shift
-            $attendanceService = new \App\Services\AttendanceService();
+            $attendanceService = new AttendanceService;
             $shift = $attendanceService->getEmployeeShift($employee, $date);
             $attendance->status = $attendanceService->determineAttendanceStatus(
                 $employee,
@@ -241,7 +241,7 @@ class FingerprintDeviceService
             );
 
             $attendance->shift_id = $shift?->id;
-        } elseif ($log->scan_type === 'check_out' && !$attendance->check_out) {
+        } elseif ($log->scan_type === 'check_out' && ! $attendance->check_out) {
             $attendance->check_out = $time;
 
             // Hitung durasi kerja
@@ -295,18 +295,18 @@ class FingerprintDeviceService
 
             return [
                 'success' => true,
-                'message' => 'Fingerprint karyawan berhasil didaftarkan'
+                'message' => 'Fingerprint karyawan berhasil didaftarkan',
             ];
         } catch (\Exception $e) {
             Log::error('Failed to register fingerprint', [
                 'device_id' => $device->id,
                 'employee_id' => $employee->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Gagal mendaftarkan fingerprint: ' . $e->getMessage()
+                'message' => 'Gagal mendaftarkan fingerprint: '.$e->getMessage(),
             ];
         }
     }
@@ -327,18 +327,18 @@ class FingerprintDeviceService
 
             return [
                 'success' => true,
-                'message' => 'Fingerprint karyawan berhasil dihapus'
+                'message' => 'Fingerprint karyawan berhasil dihapus',
             ];
         } catch (\Exception $e) {
             Log::error('Failed to remove fingerprint', [
                 'device_id' => $device->id,
                 'employee_id' => $employee->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Gagal menghapus fingerprint: ' . $e->getMessage()
+                'message' => 'Gagal menghapus fingerprint: '.$e->getMessage(),
             ];
         }
     }

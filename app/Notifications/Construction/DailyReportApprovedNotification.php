@@ -28,7 +28,7 @@ class DailyReportApprovedNotification extends Notification implements ShouldQueu
         return (new MailMessage)
             ->subject('Daily Site Report Approved')
             ->greeting("Hello {$this->report->reportedBy->name},")
-            ->line("Your daily site report has been approved.")
+            ->line('Your daily site report has been approved.')
             ->line("**Project:** {$this->report->project->name}")
             ->line("**Date:** {$this->report->report_date->format('d F Y')}")
             ->line("**Progress:** {$this->report->progress_percentage}%")

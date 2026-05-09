@@ -22,6 +22,7 @@ class ProcessChatMessage implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 2;
+
     public int $timeout = 60;
 
     public function __construct(
@@ -29,8 +30,7 @@ class ProcessChatMessage implements ShouldQueue
         public readonly int $sessionId,
         public readonly string $message,
         public readonly string $cacheKey,  // untuk push hasil ke polling
-    ) {
-    }
+    ) {}
 
     public function handle(
         GeminiService $gemini,
@@ -39,18 +39,20 @@ class ProcessChatMessage implements ShouldQueue
         $user = User::find($this->userId);
         $session = ChatSession::find($this->sessionId);
 
-        if (!$user || !$session)
+        if (! $user || ! $session) {
             return;
+        }
 
         $tenantId = $user->tenant_id;
         $history = $sessionManager->getHistory($session);
 
         try {
-            if (!$tenantId) {
+            if (! $tenantId) {
                 $response = $gemini->chat($this->message, $history);
                 $text = $response['text'] ?: 'Maaf, tidak ada respons.';
                 $sessionManager->saveModelMessage($session, $text, $response['model']);
                 $this->pushResult($text, $response['model'], [], $session);
+
                 return;
             }
 
@@ -58,7 +60,7 @@ class ProcessChatMessage implements ShouldQueue
             $context = $this->buildContext($user);
 
             // OPTIMIZATION 3: Intent-based tool selection for queued messages
-            $intentDetector = new IntentDetector();
+            $intentDetector = new IntentDetector;
             $intent = $intentDetector->detect($this->message);
             $allowedTools = $user->allowedAiTools();
             $toolDeclarations = $registry->getDeclarationsForIntent($intent, $allowedTools);
@@ -71,6 +73,7 @@ class ProcessChatMessage implements ShouldQueue
                 $sessionManager->saveModelMessage($session, $text, $response['model']);
                 AiUsageLog::track($tenantId, $user->id, strlen($text));
                 $this->pushResult($text, $response['model'], [], $session);
+
                 return;
             }
 
@@ -103,7 +106,7 @@ class ProcessChatMessage implements ShouldQueue
             $this->pushResult($finalText, $finalResponse['model'], $executedActions, $session);
 
         } catch (\Throwable $e) {
-            Log::error("ProcessChatMessage failed: " . $e->getMessage());
+            Log::error('ProcessChatMessage failed: '.$e->getMessage());
             Cache::put($this->cacheKey, ['error' => 'Terjadi kesalahan pada sistem AI.'], 120);
         }
     }
@@ -112,7 +115,8 @@ class ProcessChatMessage implements ShouldQueue
     {
         $tenant = $user->tenant;
         $ctx = "[KONTEKS: Pengguna \"{$user->name}\" (role: {$user->role}), perusahaan \"{$tenant?->name}\"]\n\n";
-        return $ctx . $this->message;
+
+        return $ctx.$this->message;
     }
 
     private function pushResult(string $text, string $model, array $actions, ChatSession $session): void
@@ -129,6 +133,6 @@ class ProcessChatMessage implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         Cache::put($this->cacheKey, ['error' => 'Terjadi kesalahan pada sistem AI.'], 120);
-        Log::error("ProcessChatMessage job failed permanently: " . $e->getMessage());
+        Log::error('ProcessChatMessage job failed permanently: '.$e->getMessage());
     }
 }

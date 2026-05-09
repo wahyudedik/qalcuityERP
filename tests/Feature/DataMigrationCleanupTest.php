@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Invoice;
-use App\Models\SalesOrder;
 use App\Services\DataArchivalService;
 use App\Services\OrphanedDataCleanupService;
 use App\Services\TenantDataMigrationService;
@@ -17,7 +16,9 @@ class DataMigrationCleanupTest extends TestCase
     use RefreshDatabase;
 
     private $tenant1;
+
     private $tenant2;
+
     private $user;
 
     protected function setUp(): void
@@ -45,7 +46,7 @@ class DataMigrationCleanupTest extends TestCase
                 'description' => 'Old test log',
                 'created_at' => $oldDate,
                 'updated_at' => $oldDate,
-            ]
+            ],
         ]);
 
         $archivalService = app(DataArchivalService::class);
@@ -70,7 +71,7 @@ class DataMigrationCleanupTest extends TestCase
                 'description' => 'Old test log',
                 'created_at' => $oldDate,
                 'updated_at' => $oldDate,
-            ]
+            ],
         ]);
 
         $archivalService = app(DataArchivalService::class);
@@ -264,7 +265,7 @@ class DataMigrationCleanupTest extends TestCase
                 'description' => 'Recent test log',
                 'created_at' => $recentDate,
                 'updated_at' => $recentDate,
-            ]
+            ],
         ]);
 
         $archivalService = app(DataArchivalService::class);
@@ -298,7 +299,7 @@ class DataMigrationCleanupTest extends TestCase
                 'description' => 'Tenant 2 old log',
                 'created_at' => $oldDate,
                 'updated_at' => $oldDate,
-            ]
+            ],
         ]);
 
         $archivalService = app(DataArchivalService::class);

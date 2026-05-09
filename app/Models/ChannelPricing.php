@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChannelPricing extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -43,13 +42,14 @@ use HasFactory, BelongsToTenant;
         if ($this->bulk_discount_threshold && $quantity >= $this->bulk_discount_threshold) {
             return round($this->channel_price * (1 - ($this->bulk_discount_rate / 100)), 2);
         }
+
         return $this->channel_price;
     }
 
     // Check if pricing is currently active
     public function isCurrentlyActive(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
         if ($this->effective_date && $this->effective_date->isFuture()) {
@@ -58,6 +58,7 @@ use HasFactory, BelongsToTenant;
         if ($this->expiry_date && $this->expiry_date->isPast()) {
             return false;
         }
+
         return true;
     }
 

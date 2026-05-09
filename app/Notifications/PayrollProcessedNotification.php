@@ -21,14 +21,14 @@ class PayrollProcessedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $total = 'Rp ' . number_format($this->run->total_net, 0, ',', '.');
+        $total = 'Rp '.number_format($this->run->total_net, 0, ',', '.');
 
         return (new MailMessage)
             ->subject("Penggajian {$this->run->period} Telah Diproses")
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Penggajian periode **{$this->run->period}** telah berhasil diproses.")
             ->line("**Total Gaji Bersih:** {$total}")
-            ->line("**Status:** " . ucfirst($this->run->status))
+            ->line('**Status:** '.ucfirst($this->run->status))
             ->action('Lihat Detail Penggajian', url('/payroll'))
             ->line('Segera tandai sebagai dibayar setelah transfer dilakukan.')
             ->salutation('Salam, Qalcuity ERP');

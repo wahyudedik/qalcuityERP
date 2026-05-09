@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Patient;
-use App\Models\Emr;
 use App\Models\Diagnosis;
-use App\Models\Prescription;
+use App\Models\Emr;
 use App\Models\LabResult;
+use App\Models\Patient;
+use App\Models\Prescription;
 use App\Models\Workflow;
 use App\Policies\MedicalRecordPolicy;
 use App\Policies\PatientDataPolicy;

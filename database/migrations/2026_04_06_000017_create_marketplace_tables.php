@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Marketplace Apps (Third-Party Plugins)
-        if (!Schema::hasTable('marketplace_apps')) {
+        if (! Schema::hasTable('marketplace_apps')) {
             Schema::create('marketplace_apps', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -38,7 +39,7 @@ return new class extends Migration {
                 $table->string('repository_url')->nullable();
                 $table->timestamps();
                 $table->timestamp('published_at')->nullable();
-    
+
                 $table->index(['category', 'status']);
                 $table->index('developer_id');
                 $table->index('rating');
@@ -46,7 +47,7 @@ return new class extends Migration {
         }
 
         // 2. App Installations
-        if (!Schema::hasTable('app_installations')) {
+        if (! Schema::hasTable('app_installations')) {
             Schema::create('app_installations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('marketplace_app_id')->constrained()->onDelete('cascade');
@@ -59,14 +60,14 @@ return new class extends Migration {
                 $table->date('expires_at')->nullable(); // For subscriptions
                 $table->timestamp('last_synced_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['marketplace_app_id', 'tenant_id']);
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // 3. App Reviews & Ratings
-        if (!Schema::hasTable('app_reviews')) {
+        if (! Schema::hasTable('app_reviews')) {
             Schema::create('app_reviews', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('marketplace_app_id')->constrained()->onDelete('cascade');
@@ -79,14 +80,14 @@ return new class extends Migration {
                 $table->boolean('verified_purchase')->default(false);
                 $table->boolean('is_approved')->default(false);
                 $table->timestamps();
-    
+
                 $table->unique(['marketplace_app_id', 'user_id']);
                 $table->index('rating');
             });
         }
 
         // 4. Developer Accounts
-        if (!Schema::hasTable('developer_accounts')) {
+        if (! Schema::hasTable('developer_accounts')) {
             Schema::create('developer_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -101,13 +102,13 @@ return new class extends Migration {
                 $table->json('payout_details')->nullable();
                 $table->string('status')->default('active'); // active, suspended
                 $table->timestamps();
-    
+
                 $table->unique('user_id');
             });
         }
 
         // 5. Developer Earnings & Payouts
-        if (!Schema::hasTable('developer_earnings')) {
+        if (! Schema::hasTable('developer_earnings')) {
             Schema::create('developer_earnings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('developer_account_id')->constrained()->onDelete('cascade');
@@ -121,13 +122,13 @@ return new class extends Migration {
                 $table->date('earned_date');
                 $table->string('status')->default('pending'); // pending, paid, refunded
                 $table->timestamps();
-    
+
                 $table->index(['developer_account_id', 'status']);
                 $table->index('earned_date');
             });
         }
 
-        if (!Schema::hasTable('developer_payouts')) {
+        if (! Schema::hasTable('developer_payouts')) {
             Schema::create('developer_payouts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('developer_account_id')->constrained()->onDelete('cascade');
@@ -140,13 +141,13 @@ return new class extends Migration {
                 $table->timestamp('processed_at')->nullable();
                 $table->text('failure_reason')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['developer_account_id', 'status']);
             });
         }
 
         // 6. Custom Modules (Module Builder)
-        if (!Schema::hasTable('custom_modules')) {
+        if (! Schema::hasTable('custom_modules')) {
             Schema::create('custom_modules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -160,12 +161,12 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->foreignId('created_by_user_id')->constrained('users')->onDelete('cascade');
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
-        if (!Schema::hasTable('custom_module_records')) {
+        if (! Schema::hasTable('custom_module_records')) {
             Schema::create('custom_module_records', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('custom_module_id')->constrained()->onDelete('cascade');
@@ -174,13 +175,13 @@ return new class extends Migration {
                 $table->foreignId('created_by_user_id')->constrained('users')->onDelete('cascade');
                 $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamps();
-    
+
                 $table->index('custom_module_id');
             });
         }
 
         // 7. Themes & Customizations
-        if (!Schema::hasTable('themes')) {
+        if (! Schema::hasTable('themes')) {
             Schema::create('themes', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -196,12 +197,12 @@ return new class extends Migration {
                 $table->decimal('rating', 3, 2)->default(0.00);
                 $table->timestamps();
                 $table->timestamp('published_at')->nullable();
-    
+
                 $table->index(['status', 'published_at']);
             });
         }
 
-        if (!Schema::hasTable('theme_installations')) {
+        if (! Schema::hasTable('theme_installations')) {
             Schema::create('theme_installations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('theme_id')->constrained()->onDelete('cascade');
@@ -209,13 +210,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(false);
                 $table->json('customizations')->nullable(); // User customizations
                 $table->timestamps();
-    
+
                 $table->unique(['theme_id', 'tenant_id']);
             });
         }
 
         // 8. API Keys & Monetization
-        if (!Schema::hasTable('api_keys')) {
+        if (! Schema::hasTable('api_keys')) {
             Schema::create('api_keys', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -229,13 +230,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->timestamp('last_used_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
                 $table->index('key');
             });
         }
 
-        if (!Schema::hasTable('api_usage_logs')) {
+        if (! Schema::hasTable('api_usage_logs')) {
             Schema::create('api_usage_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('api_key_id')->constrained()->onDelete('cascade');
@@ -245,13 +246,13 @@ return new class extends Migration {
                 $table->integer('response_time'); // milliseconds
                 $table->ipAddress('ip_address')->nullable();
                 $table->timestamp('created_at');
-    
+
                 $table->index(['api_key_id', 'created_at']);
                 $table->index('endpoint');
             });
         }
 
-        if (!Schema::hasTable('api_subscriptions')) {
+        if (! Schema::hasTable('api_subscriptions')) {
             Schema::create('api_subscriptions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -264,13 +265,13 @@ return new class extends Migration {
                 $table->date('ends_at')->nullable();
                 $table->string('status')->default('active'); // active, cancelled, expired
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // 9. SDK Documentation
-        if (!Schema::hasTable('sdk_documentation')) {
+        if (! Schema::hasTable('sdk_documentation')) {
             Schema::create('sdk_documentation', function (Blueprint $table) {
                 $table->id();
                 $table->string('title');
@@ -281,7 +282,7 @@ return new class extends Migration {
                 $table->boolean('is_published')->default(false);
                 $table->json('code_examples')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['category', 'is_published']);
             });
         }

@@ -12,12 +12,13 @@ use Tests\TestCase;
 
 /**
  * QC Models Unit Tests
- * 
+ *
  * TASK-2.22: Unit tests for QC models
  */
 class QcModelsTest extends TestCase
 {
     private User $user;
+
     private WorkOrder $workOrder;
 
     protected function setUp(): void
@@ -26,17 +27,17 @@ class QcModelsTest extends TestCase
 
         // Create tenant first
         $tenant = Tenant::factory()->create();
-        
+
         // Create test user with the tenant
         $this->user = User::factory()->create([
             'tenant_id' => $tenant->id,
         ]);
-        
+
         // Create product with the same tenant
         $product = Product::factory()->create([
             'tenant_id' => $tenant->id,
         ]);
-        
+
         // Create work order with same tenant, user, and product
         $this->workOrder = WorkOrder::factory()->create([
             'tenant_id' => $tenant->id,

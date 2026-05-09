@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
         ->name('verification.send');
 
     // GET fallback — redirect to verify-email page (prevents 405 from browser cache/redirect)
-    Route::get('email/verification-notification', fn() => redirect()->route('verification.notice'));
+    Route::get('email/verification-notification', fn () => redirect()->route('verification.notice'));
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

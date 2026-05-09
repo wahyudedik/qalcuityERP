@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\ProductPriceHistory;
 use App\Models\EcommerceOrder;
+use App\Models\ProductPriceHistory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,7 +25,7 @@ class CalculatePriceElasticity implements ShouldQueue
 
         foreach ($histories as $history) {
             try {
-                if (!$history->product) {
+                if (! $history->product) {
                     continue;
                 }
 
@@ -43,6 +43,7 @@ class CalculatePriceElasticity implements ShouldQueue
                                 return true;
                             }
                         }
+
                         return false;
                     });
 

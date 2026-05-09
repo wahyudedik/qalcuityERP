@@ -23,7 +23,7 @@ class SampleDataGeneratorIntegrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        (new SampleDataTemplateSeeder())->run();
+        (new SampleDataTemplateSeeder)->run();
     }
 
     // ── Helper ────────────────────────────────────────────────────
@@ -31,14 +31,15 @@ class SampleDataGeneratorIntegrationTest extends TestCase
     private function makeTenantWithProfile(string $industry): array
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => $industry,
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => $industry,
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
+
         return [$tenant, $user];
     }
 
@@ -57,12 +58,12 @@ class SampleDataGeneratorIntegrationTest extends TestCase
         foreach (self::SUPPORTED_INDUSTRIES as $industry) {
             [$tenant, $user] = $this->makeTenantWithProfile($industry);
 
-            $start  = microtime(true);
+            $start = microtime(true);
             $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
             $elapsed = microtime(true) - $start;
 
             $this->assertTrue($result['success'],
-                "generate('$industry') failed: " . ($result['error'] ?? 'unknown error'));
+                "generate('$industry') failed: ".($result['error'] ?? 'unknown error'));
 
             $this->assertLessThan(
                 60,
@@ -85,7 +86,7 @@ class SampleDataGeneratorIntegrationTest extends TestCase
         foreach (self::SUPPORTED_INDUSTRIES as $industry) {
             [$tenant, $user] = $this->makeTenantWithProfile($industry);
 
-            $start  = microtime(true);
+            $start = microtime(true);
             $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
             $elapsed = microtime(true) - $start;
 
@@ -132,7 +133,7 @@ class SampleDataGeneratorIntegrationTest extends TestCase
         // Instead of rendering the full view 8 times (which causes PHP fatal error
         // due to redeclared functions in compiled views), we verify the controller
         // passes non-empty templates to the view for each industry.
-        $service = app(\App\Services\SampleDataGeneratorService::class);
+        $service = app(SampleDataGeneratorService::class);
 
         foreach (self::SUPPORTED_INDUSTRIES as $industry) {
             $templates = $service->getTemplates($industry);
@@ -162,7 +163,7 @@ class SampleDataGeneratorIntegrationTest extends TestCase
     public function test_sample_data_page_redirects_to_wizard_when_no_profile(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         // No OnboardingProfile created
 
         $response = $this->actingAs($user)

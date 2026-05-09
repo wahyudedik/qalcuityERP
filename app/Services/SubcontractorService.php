@@ -39,7 +39,7 @@ class SubcontractorService
     public function createContract(array $data, int $tenantId): SubcontractorContract
     {
         // Generate contract number
-        $contractNumber = 'SC-' . date('Ymd') . '-' . str_pad(
+        $contractNumber = 'SC-'.date('Ymd').'-'.str_pad(
             SubcontractorContract::where('tenant_id', $tenantId)->count() + 1,
             4,
             '0',
@@ -94,7 +94,7 @@ class SubcontractorService
         $netPayable = $data['claimed_amount'] - $retentionDeducted;
 
         // Generate invoice number
-        $invoiceNumber = 'INV-SC-' . date('Ymd') . '-' . str_pad(
+        $invoiceNumber = 'INV-SC-'.date('Ymd').'-'.str_pad(
             SubcontractorPayment::where('tenant_id', $tenantId)->count() + 1,
             4,
             '0',
@@ -175,16 +175,15 @@ class SubcontractorService
             'financial_summary' => [
                 'total_contract_value' => $contracts->sum('contract_value'),
                 'total_paid' => $contracts->flatMap->payments->where('status', 'paid')->sum('approved_amount'),
-                'total_outstanding' => $contracts->sum(fn($c) => $c->getRemainingBalance()),
-                'total_retention_held' => $contracts->sum(fn($c) => $c->getRetentionAmount()),
+                'total_outstanding' => $contracts->sum(fn ($c) => $c->getRemainingBalance()),
+                'total_retention_held' => $contracts->sum(fn ($c) => $c->getRetentionAmount()),
             ],
             'performance_metrics' => [
                 'completed_projects' => $completedContracts->count(),
                 'avg_performance_rating' => $completedContracts->avg('performance_rating') ?? 0,
                 'on_time_completion_rate' => $this->calculateOnTimeRate($completedContracts),
                 'avg_contract_duration_days' => $contracts->avg(
-                    fn($c) =>
-                    $c->start_date && $c->end_date
+                    fn ($c) => $c->start_date && $c->end_date
                     ? $c->start_date->diffInDays($c->end_date)
                     : 0
                 ) ?? 0,
@@ -218,7 +217,7 @@ class SubcontractorService
             ->where('status', 'active')
             ->orderByDesc('rating')
             ->get()
-            ->map(fn($s) => [
+            ->map(fn ($s) => [
                 'id' => $s->id,
                 'company_name' => $s->company_name,
                 'contact_person' => $s->contact_person,

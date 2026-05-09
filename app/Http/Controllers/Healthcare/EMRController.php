@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\PatientMedicalRecord;
 use App\Models\Patient;
+use App\Models\PatientMedicalRecord;
 use App\Models\PatientVisit;
+use App\Models\PharmacyInventory;
 use App\Services\EMRService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ class EMRController extends Controller
     {
         $this->emrService = $emrService;
     }
+
     /**
      * Display a listing of medical records.
      */
@@ -225,8 +227,8 @@ class EMRController extends Controller
             $timeline->push([
                 'date' => $labOrder->order_date,
                 'type' => 'lab',
-                'title' => 'Lab Test: ' . $labOrder->labTest?->test_name,
-                'description' => 'Status: ' . $labOrder->status,
+                'title' => 'Lab Test: '.$labOrder->labTest?->test_name,
+                'description' => 'Status: '.$labOrder->status,
             ]);
         });
 
@@ -385,6 +387,7 @@ class EMRController extends Controller
         }
 
         $patient = Patient::findOrFail($patientId);
+
         return view('healthcare.emr.timeline', compact('patient', 'timeline'));
     }
 
@@ -403,9 +406,9 @@ class EMRController extends Controller
      */
     public function prescribeForm($visitId)
     {
-        $visit = \App\Models\PatientVisit::with(['patient', 'doctor'])->findOrFail($visitId);
+        $visit = PatientVisit::with(['patient', 'doctor'])->findOrFail($visitId);
 
-        $pharmacyItems = \App\Models\PharmacyInventory::where('stock_quantity', '>', 0)
+        $pharmacyItems = PharmacyInventory::where('stock_quantity', '>', 0)
             ->orderBy('name')
             ->get(['id', 'name', 'generic_name', 'unit', 'stock_quantity']);
 
@@ -417,7 +420,7 @@ class EMRController extends Controller
      */
     public function diagnoseForm($visitId)
     {
-        $visit = \App\Models\PatientVisit::with(['patient', 'doctor', 'diagnoses'])->findOrFail($visitId);
+        $visit = PatientVisit::with(['patient', 'doctor', 'diagnoses'])->findOrFail($visitId);
 
         return view('healthcare.emr.diagnose', compact('visit'));
     }

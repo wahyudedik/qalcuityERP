@@ -12,7 +12,7 @@ class ReportsController extends Controller
 
     public function __construct()
     {
-        $this->reportsService = new TelecomReportsService();
+        $this->reportsService = new TelecomReportsService;
     }
 
     /**
@@ -39,7 +39,7 @@ class ReportsController extends Controller
             return $this->reportsService->exportToExcel(
                 'revenue_by_package',
                 $report,
-                'Revenue_by_Package_' . now()->format('Ymd')
+                'Revenue_by_Package_'.now()->format('Ymd')
             );
         }
 
@@ -63,7 +63,7 @@ class ReportsController extends Controller
             return $this->reportsService->exportToExcel(
                 'bandwidth_utilization',
                 $report,
-                'Bandwidth_Utilization_' . now()->format('Ymd')
+                'Bandwidth_Utilization_'.now()->format('Ymd')
             );
         }
 
@@ -87,7 +87,7 @@ class ReportsController extends Controller
             return $this->reportsService->exportToExcel(
                 'customer_usage_analytics',
                 $report,
-                'Customer_Usage_Analytics_' . now()->format('Ymd')
+                'Customer_Usage_Analytics_'.now()->format('Ymd')
             );
         }
 
@@ -112,7 +112,7 @@ class ReportsController extends Controller
             return $this->reportsService->exportToExcel(
                 'top_consumers',
                 $report,
-                'Top_Consumers_' . now()->format('Ymd')
+                'Top_Consumers_'.now()->format('Ymd')
             );
         }
 

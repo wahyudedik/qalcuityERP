@@ -8,14 +8,15 @@ use PHPUnit\Framework\TestCase;
 class MigrationGeneratorServiceTest extends TestCase
 {
     private string $tempDir;
+
     private string $migrationDir;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/migration_generator_test_' . uniqid();
-        $this->migrationDir = $this->tempDir . '/database/migrations';
+        $this->tempDir = sys_get_temp_dir().'/migration_generator_test_'.uniqid();
+        $this->migrationDir = $this->tempDir.'/database/migrations';
         mkdir($this->migrationDir, 0777, true);
     }
 
@@ -65,8 +66,8 @@ class MigrationGeneratorServiceTest extends TestCase
         $migration = $service->generateSoftDeleteMigration('orders');
 
         $this->assertStringContainsString('_add_soft_deletes_to_orders_table.php', $migration['filename']);
-        $this->assertStringContainsString("\$table->softDeletes();", $migration['content']);
-        $this->assertStringContainsString("\$table->dropSoftDeletes();", $migration['content']);
+        $this->assertStringContainsString('$table->softDeletes();', $migration['content']);
+        $this->assertStringContainsString('$table->dropSoftDeletes();', $migration['content']);
     }
 
     public function test_generates_enum_expansion_migration_content(): void
@@ -81,7 +82,7 @@ class MigrationGeneratorServiceTest extends TestCase
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

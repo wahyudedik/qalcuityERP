@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\InternetPackage;
 use App\Models\VoucherCode;
 use App\Services\Telecom\VoucherGenerationService;
-use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class VoucherController extends Controller
 {
@@ -15,7 +15,7 @@ class VoucherController extends Controller
 
     public function __construct()
     {
-        $this->voucherService = new VoucherGenerationService();
+        $this->voucherService = new VoucherGenerationService;
     }
 
     /**
@@ -45,7 +45,7 @@ class VoucherController extends Controller
 
         // Search by code
         if ($request->filled('search')) {
-            $query->where('code', 'like', '%' . $request->search . '%');
+            $query->where('code', 'like', '%'.$request->search.'%');
         }
 
         $vouchers = $query->orderBy('created_at', 'desc')
@@ -127,11 +127,11 @@ class VoucherController extends Controller
             }
 
             return redirect()->route('telecom.vouchers.index')
-                ->with('success', count($vouchers) . ' voucher berhasil dibuat.');
+                ->with('success', count($vouchers).' voucher berhasil dibuat.');
 
         } catch (\Exception $e) {
             return back()->withInput()
-                ->withErrors(['error' => 'Gagal membuat voucher: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal membuat voucher: '.$e->getMessage()]);
         }
     }
 
@@ -167,7 +167,7 @@ class VoucherController extends Controller
         $pdf = Pdf::loadView('telecom.vouchers.print', compact('vouchers'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->stream('vouchers-' . now()->format('YmdHis') . '.pdf');
+        return $pdf->stream('vouchers-'.now()->format('YmdHis').'.pdf');
     }
 
     /**
@@ -240,6 +240,6 @@ class VoucherController extends Controller
             'status' => 'unused', // Reactivate if expired
         ]);
 
-        return back()->with('success', 'Masa berlaku voucher diperpanjang hingga ' . $newExpiry->format('d M Y H:i'));
+        return back()->with('success', 'Masa berlaku voucher diperpanjang hingga '.$newExpiry->format('d M Y H:i'));
     }
 }

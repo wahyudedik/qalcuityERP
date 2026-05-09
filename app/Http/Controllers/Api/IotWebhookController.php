@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\IotDevice;
 use App\Models\IotTelemetryLog;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Endpoint yang dipanggil langsung oleh ESP32 / Arduino / Raspberry Pi
@@ -33,15 +33,15 @@ class IotWebhookController extends ApiBaseController
     {
         try {
             $device = $this->resolveDevice($request);
-            if (!$device) {
+            if (! $device) {
                 return $this->error('Device tidak ditemukan atau token tidak valid.', 401);
             }
 
-            if (!$device->is_active) {
+            if (! $device->is_active) {
                 return $this->error('Device tidak aktif.', 403);
             }
 
-            $sensors    = $request->input('sensors', []);
+            $sensors = $request->input('sensors', []);
             $recordedAt = $request->input('recorded_at')
                 ? Carbon::parse($request->input('recorded_at'))
                 : now();
@@ -53,17 +53,19 @@ class IotWebhookController extends ApiBaseController
 
             $saved = 0;
             foreach ($sensors as $sensor) {
-                if (empty($sensor['type'])) continue;
+                if (empty($sensor['type'])) {
+                    continue;
+                }
 
                 IotTelemetryLog::create([
-                    'tenant_id'    => $device->tenant_id,
-                    'iot_device_id'=> $device->id,
-                    'sensor_type'  => $sensor['type'],
-                    'value'        => $sensor['value'] ?? null,
-                    'unit'         => $sensor['unit'] ?? null,
-                    'payload'      => $sensor,
-                    'status'       => 'received',
-                    'recorded_at'  => $recordedAt,
+                    'tenant_id' => $device->tenant_id,
+                    'iot_device_id' => $device->id,
+                    'sensor_type' => $sensor['type'],
+                    'value' => $sensor['value'] ?? null,
+                    'unit' => $sensor['unit'] ?? null,
+                    'payload' => $sensor,
+                    'status' => 'received',
+                    'recorded_at' => $recordedAt,
                 ]);
                 $saved++;
             }
@@ -76,13 +78,14 @@ class IotWebhookController extends ApiBaseController
             ]);
 
             return $this->ok([
-                'saved'      => $saved,
-                'device_id'  => $device->device_id,
-                'server_time'=> now()->toIso8601String(),
+                'saved' => $saved,
+                'device_id' => $device->device_id,
+                'server_time' => now()->toIso8601String(),
             ], "Telemetry diterima: {$saved} sensor.");
 
         } catch (\Exception $e) {
             Log::error('IoT telemetry error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
             return $this->error('Terjadi kesalahan server.', 500);
         }
     }
@@ -94,7 +97,7 @@ class IotWebhookController extends ApiBaseController
     public function heartbeat(Request $request): JsonResponse
     {
         $device = $this->resolveDevice($request);
-        if (!$device) {
+        if (! $device) {
             return $this->error('Device tidak ditemukan.', 401);
         }
 
@@ -106,7 +109,7 @@ class IotWebhookController extends ApiBaseController
         return $this->ok([
             'server_time' => now()->toIso8601String(),
             'device_name' => $device->name,
-            'is_active'   => $device->is_active,
+            'is_active' => $device->is_active,
         ], 'Heartbeat diterima.');
     }
 
@@ -118,18 +121,18 @@ class IotWebhookController extends ApiBaseController
     public function getConfig(Request $request): JsonResponse
     {
         $device = $this->resolveDevice($request);
-        if (!$device) {
+        if (! $device) {
             return $this->error('Device tidak ditemukan.', 401);
         }
 
         return $this->ok([
-            'device_id'     => $device->device_id,
-            'device_name'   => $device->name,
+            'device_id' => $device->device_id,
+            'device_name' => $device->name,
             'target_module' => $device->target_module,
-            'sensor_types'  => $device->sensor_types ?? [],
-            'config'        => $device->config ?? [],
-            'is_active'     => $device->is_active,
-            'server_time'   => now()->toIso8601String(),
+            'sensor_types' => $device->sensor_types ?? [],
+            'config' => $device->config ?? [],
+            'is_active' => $device->is_active,
+            'server_time' => now()->toIso8601String(),
         ]);
     }
 
@@ -139,7 +142,9 @@ class IotWebhookController extends ApiBaseController
         $token = $request->header('X-Device-Token')
             ?? $request->input('device_token');
 
-        if (!$token) return null;
+        if (! $token) {
+            return null;
+        }
 
         return IotDevice::withoutGlobalScope('tenant')
             ->where('device_token', $token)

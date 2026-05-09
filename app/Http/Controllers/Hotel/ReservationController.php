@@ -12,11 +12,13 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Services\ReservationService;
 use App\Services\RoomAvailabilityService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
     private ReservationService $reservationService;
+
     private RoomAvailabilityService $availabilityService;
 
     public function __construct(
@@ -103,13 +105,13 @@ class ReservationController extends Controller
 
         // Verify guest belongs to tenant
         $guest = Guest::where('id', $data['guest_id'])->where('tenant_id', $tid)->first();
-        if (!$guest) {
+        if (! $guest) {
             return back()->withErrors(['guest_id' => 'Invalid guest.'])->withInput();
         }
 
         // Verify room type belongs to tenant
         $roomType = RoomType::where('id', $data['room_type_id'])->where('tenant_id', $tid)->first();
-        if (!$roomType) {
+        if (! $roomType) {
             return back()->withErrors(['room_type_id' => 'Invalid room type.'])->withInput();
         }
 
@@ -287,7 +289,7 @@ class ReservationController extends Controller
     {
         abort_unless($reservation->tenant_id === $this->tenantId(), 403);
 
-        if (!in_array($reservation->status, ['confirmed', 'checked_in'])) {
+        if (! in_array($reservation->status, ['confirmed', 'checked_in'])) {
             return back()->with('error', 'Can only change rooms for confirmed or checked-in reservations.');
         }
 
@@ -305,7 +307,7 @@ class ReservationController extends Controller
             ->with([
                 'rooms' => function ($query) use ($availableRooms) {
                     $query->whereIn('id', $availableRooms->pluck('id'));
-                }
+                },
             ])
             ->get();
 
@@ -455,7 +457,7 @@ class ReservationController extends Controller
 
         try {
             $actualTime = isset($data['actual_time'])
-                ? \Carbon\Carbon::parse($data['actual_time'])
+                ? Carbon::parse($data['actual_time'])
                 : now();
 
             $this->reservationService->recordActualCheckIn($reservation->id, $actualTime);
@@ -479,7 +481,7 @@ class ReservationController extends Controller
 
         try {
             $actualTime = isset($data['actual_time'])
-                ? \Carbon\Carbon::parse($data['actual_time'])
+                ? Carbon::parse($data['actual_time'])
                 : now();
 
             $this->reservationService->recordActualCheckOut($reservation->id, $actualTime);

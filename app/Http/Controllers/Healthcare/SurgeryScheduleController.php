@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\SurgerySchedule;
 use App\Models\Doctor;
-use App\Models\Patient;
 use App\Models\OperatingRoom;
+use App\Models\Patient;
+use App\Models\SurgerySchedule;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 
@@ -60,6 +60,7 @@ class SurgeryScheduleController extends Controller
         $patients = Patient::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
         $doctors = Doctor::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
         $operatingRooms = OperatingRoom::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
+
         return view('healthcare.surgery-schedules.create', compact('patients', 'doctors', 'operatingRooms'));
     }
 
@@ -80,7 +81,7 @@ class SurgeryScheduleController extends Controller
         ]);
 
         $validated['tenant_id'] = $tenantId;
-        $validated['surgery_number'] = 'SRG-' . now()->format('Ymd') . '-' . str_pad(SurgerySchedule::where('tenant_id', $tenantId)->whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['surgery_number'] = 'SRG-'.now()->format('Ymd').'-'.str_pad(SurgerySchedule::where('tenant_id', $tenantId)->whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'scheduled';
 
         $schedule = SurgerySchedule::create($validated);
@@ -95,6 +96,7 @@ class SurgeryScheduleController extends Controller
     public function show(SurgerySchedule $schedule)
     {
         $schedule->load(['patient', 'surgeon', 'operatingRoom', 'surgeryTeam', 'equipment']);
+
         return view('healthcare.surgery-schedules.show', compact('schedule'));
     }
 
@@ -168,6 +170,7 @@ class SurgeryScheduleController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Surgery deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/surgery-schedules/{surgery_schedule}/edit
@@ -175,9 +178,10 @@ class SurgeryScheduleController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.surgery-schedule.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/surgery-schedules/{surgery_schedule}
@@ -185,13 +189,13 @@ class SurgeryScheduleController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.surgery-schedules.update')
             ->with('success', 'Updated successfully.');
     }

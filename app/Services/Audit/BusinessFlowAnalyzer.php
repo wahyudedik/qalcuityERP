@@ -17,8 +17,11 @@ use App\DTOs\Audit\Severity;
 class BusinessFlowAnalyzer implements AnalyzerInterface
 {
     private string $modelPath;
+
     private string $servicePath;
+
     private string $controllerPath;
+
     private string $basePath;
 
     // ── Sales Flow Chain (Requirement 3.1) ───────────────────────
@@ -40,10 +43,10 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
      * Format: [child_model => [relationship_method => parent_model]]
      */
     private const SALES_FLOW_RELATIONSHIPS = [
-        'SalesOrder'    => ['quotation' => 'Quotation'],
+        'SalesOrder' => ['quotation' => 'Quotation'],
         'DeliveryOrder' => ['salesOrder' => 'SalesOrder'],
-        'Invoice'       => ['salesOrder' => 'SalesOrder'],
-        'Payment'       => ['invoice' => 'Invoice'],
+        'Invoice' => ['salesOrder' => 'SalesOrder'],
+        'Payment' => ['invoice' => 'Invoice'],
     ];
 
     /**
@@ -79,9 +82,9 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     ];
 
     private const PURCHASING_FLOW_RELATIONSHIPS = [
-        'Rfq'           => ['purchaseRequisition' => 'PurchaseRequisition'],
-        'PurchaseOrder'  => ['rfq' => 'Rfq'],
-        'GoodsReceipt'   => ['purchaseOrder' => 'PurchaseOrder'],
+        'Rfq' => ['purchaseRequisition' => 'PurchaseRequisition'],
+        'PurchaseOrder' => ['rfq' => 'Rfq'],
+        'GoodsReceipt' => ['purchaseOrder' => 'PurchaseOrder'],
     ];
 
     private const PURCHASING_GL_METHODS = [
@@ -163,10 +166,10 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
 
     private const KEY_SERVICES = [
         'TransactionStateMachine' => 'TransactionStateMachine.php',
-        'GlPostingService'       => 'GlPostingService.php',
+        'GlPostingService' => 'GlPostingService.php',
         'InventoryCostingService' => 'InventoryCostingService.php',
         'PayrollCalculationService' => 'PayrollCalculationService.php',
-        'WorkflowEngine'         => 'WorkflowEngine.php',
+        'WorkflowEngine' => 'WorkflowEngine.php',
     ];
 
     public function __construct(
@@ -185,9 +188,9 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->modelPath = $modelPath ?? ($this->basePath . '/app/Models');
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
+        $this->modelPath = $modelPath ?? ($this->basePath.'/app/Models');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
     }
 
     /**
@@ -428,13 +431,13 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
                     '/[\'"]status[\'"]\s*(?:,|=>)|[\'"]opening_balance[\'"]\s*(?:,|=>)/i',
                     $source
                 );
-                if (!$hasStatus) {
+                if (! $hasStatus) {
                     $findings[] = new AuditFinding(
                         category: $this->category(),
                         severity: Severity::Medium,
                         title: 'POS flow: CashierSession missing session tracking fields',
                         description: 'CashierSession model does not appear to have status or opening_balance '
-                            . 'fields in its $fillable array, which are needed for session open/close tracking.',
+                            .'fields in its $fillable array, which are needed for session open/close tracking.',
                         file: $this->relativePath($sessionFile),
                         line: null,
                         recommendation: 'Ensure CashierSession has status, opening_balance, and closing_balance fields.',
@@ -515,8 +518,8 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     /**
      * Check that all required models in a flow chain exist.
      *
-     * @param string $flowName Human-readable flow name (e.g., 'Sales')
-     * @param string[] $requiredModels List of model class names
+     * @param  string  $flowName  Human-readable flow name (e.g., 'Sales')
+     * @param  string[]  $requiredModels  List of model class names
      * @return AuditFinding[]
      */
     private function checkFlowModelsExist(string $flowName, array $requiredModels): array
@@ -531,7 +534,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
                     severity: Severity::High,
                     title: "{$flowName} flow: missing model {$modelName}",
                     description: "The {$flowName} flow requires model {$modelName} but it was not found "
-                        . "under the models directory. This breaks the end-to-end flow chain.",
+                        .'under the models directory. This breaks the end-to-end flow chain.',
                     file: null,
                     line: null,
                     recommendation: "Create the {$modelName} model to complete the {$flowName} flow.",
@@ -550,8 +553,8 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     /**
      * Check that models have the expected relationships linking them in the flow.
      *
-     * @param string $flowName Human-readable flow name
-     * @param array<string, array<string, string>> $expectedRelationships
+     * @param  string  $flowName  Human-readable flow name
+     * @param  array<string, array<string, string>>  $expectedRelationships
      * @return AuditFinding[]
      */
     private function checkFlowRelationships(string $flowName, array $expectedRelationships): array
@@ -573,17 +576,17 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
             foreach ($relationships as $methodName => $parentModel) {
                 $hasRelationship = $this->sourceHasMethod($source, $methodName);
 
-                if (!$hasRelationship) {
+                if (! $hasRelationship) {
                     $findings[] = new AuditFinding(
                         category: $this->category(),
                         severity: Severity::High,
                         title: "{$flowName} flow: {$childModel} missing relationship to {$parentModel}",
                         description: "Model {$childModel} does not define a {$methodName}() relationship "
-                            . "method linking it to {$parentModel}. This breaks the {$flowName} flow chain.",
+                            ."method linking it to {$parentModel}. This breaks the {$flowName} flow chain.",
                         file: $this->relativePath($modelFile),
                         line: null,
                         recommendation: "Add a {$methodName}() relationship method to {$childModel} that returns "
-                            . "a belongsTo or hasOne relationship to {$parentModel}.",
+                            ."a belongsTo or hasOne relationship to {$parentModel}.",
                         metadata: [
                             'check' => 'flow_relationship_missing',
                             'flow' => $flowName,
@@ -602,9 +605,9 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     /**
      * Check that a service class has the expected methods.
      *
-     * @param string $flowName Human-readable flow name
-     * @param string $serviceName Service class name (without .php)
-     * @param string[] $expectedMethods
+     * @param  string  $flowName  Human-readable flow name
+     * @param  string  $serviceName  Service class name (without .php)
+     * @param  string[]  $expectedMethods
      * @return AuditFinding[]
      */
     private function checkServiceMethods(string $flowName, string $serviceName, array $expectedMethods): array
@@ -618,10 +621,10 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
                 severity: Severity::Critical,
                 title: "{$flowName} flow: missing service {$serviceName}",
                 description: "The {$flowName} flow requires {$serviceName} but the service file was not found. "
-                    . 'This is a critical gap in the business flow infrastructure.',
+                    .'This is a critical gap in the business flow infrastructure.',
                 file: null,
                 line: null,
-                recommendation: "Create {$serviceName} with the required methods: " . implode(', ', $expectedMethods),
+                recommendation: "Create {$serviceName} with the required methods: ".implode(', ', $expectedMethods),
                 metadata: [
                     'check' => 'flow_service_missing',
                     'flow' => $flowName,
@@ -639,13 +642,13 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
         }
 
         foreach ($expectedMethods as $method) {
-            if (!$this->sourceHasMethod($source, $method)) {
+            if (! $this->sourceHasMethod($source, $method)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "{$flowName} flow: {$serviceName} missing method {$method}()",
                     description: "{$serviceName} does not define a {$method}() method. "
-                        . "This method is required for the {$flowName} flow to function correctly.",
+                        ."This method is required for the {$flowName} flow to function correctly.",
                     file: $this->relativePath($serviceFile),
                     line: null,
                     recommendation: "Add the {$method}() method to {$serviceName}.",
@@ -667,7 +670,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
      */
     private function sourceHasMethod(string $source, string $methodName): bool
     {
-        $pattern = '/function\s+' . preg_quote($methodName, '/') . '\s*\(/';
+        $pattern = '/function\s+'.preg_quote($methodName, '/').'\s*\(/';
 
         return (bool) preg_match($pattern, $source);
     }
@@ -683,7 +686,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     private function findModelFile(string $modelName): ?string
     {
         // Try direct file name first (most common case)
-        $directPath = $this->modelPath . '/' . $modelName . '.php';
+        $directPath = $this->modelPath.'/'.$modelName.'.php';
         if (is_file($directPath)) {
             return $directPath;
         }
@@ -711,7 +714,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     private function findServiceFile(string $serviceName): ?string
     {
         // Try direct file name first
-        $directPath = $this->servicePath . '/' . $serviceName . '.php';
+        $directPath = $this->servicePath.'/'.$serviceName.'.php';
         if (is_file($directPath)) {
             return $directPath;
         }
@@ -737,7 +740,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -763,7 +766,7 @@ class BusinessFlowAnalyzer implements AnalyzerInterface
     private function relativePath(string $absolutePath): string
     {
         $normalised = str_replace('\\', '/', $absolutePath);
-        $basePath = str_replace('\\', '/', $this->basePath) . '/';
+        $basePath = str_replace('\\', '/', $this->basePath).'/';
 
         if (str_starts_with($normalised, $basePath)) {
             return substr($normalised, strlen($basePath));

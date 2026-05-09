@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Models\Patient;
-use App\Models\PatientVisit;
 use App\Models\PatientAllergy;
 use App\Models\PatientInsurance;
 use App\Models\PatientMedicalRecord;
-use App\Models\Appointment;
+use App\Models\PatientVisit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class PatientService
 {
@@ -123,7 +121,7 @@ class PatientService
     {
         $query = Patient::query();
 
-        if (!empty($relations)) {
+        if (! empty($relations)) {
             $query->with($relations);
         } else {
             // Default eager loading
@@ -221,7 +219,7 @@ class PatientService
 
         // Update patient's known_allergies JSON field
         $allergies = $patient->known_allergies ?? [];
-        if (!in_array($data['allergen'], $allergies)) {
+        if (! in_array($data['allergen'], $allergies)) {
             $allergies[] = $data['allergen'];
             $patient->update(['known_allergies' => $allergies]);
         }
@@ -369,7 +367,7 @@ class PatientService
         ]);
 
         // Store QR data as JSON file (can be converted to image later)
-        $filename = 'patients/qr/' . $patient->qr_code . '.json';
+        $filename = 'patients/qr/'.$patient->qr_code.'.json';
         Storage::disk('public')->put($filename, $qrData);
 
         return $filename;
@@ -451,11 +449,11 @@ class PatientService
     /**
      * Deactivate patient
      */
-    public function deactivatePatient(Patient $patient, string $reason = null): void
+    public function deactivatePatient(Patient $patient, ?string $reason = null): void
     {
         $patient->update([
             'status' => 'inactive',
-            'notes' => $reason ? ($patient->notes . "\n\nDeactivated: " . $reason) : $patient->notes,
+            'notes' => $reason ? ($patient->notes."\n\nDeactivated: ".$reason) : $patient->notes,
         ]);
     }
 

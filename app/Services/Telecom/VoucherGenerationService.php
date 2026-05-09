@@ -2,6 +2,7 @@
 
 namespace App\Services\Telecom;
 
+use App\Models\Customer;
 use App\Models\InternetPackage;
 use App\Models\VoucherCode;
 use Illuminate\Support\Str;
@@ -13,10 +14,8 @@ class VoucherGenerationService
 {
     /**
      * Generate single voucher code.
-     * 
-     * @param InternetPackage $package
-     * @param array $options Generation options
-     * @return VoucherCode
+     *
+     * @param  array  $options  Generation options
      */
     public function generateSingle(InternetPackage $package, array $options = []): VoucherCode
     {
@@ -41,15 +40,14 @@ class VoucherGenerationService
 
     /**
      * Generate multiple voucher codes in batch.
-     * 
-     * @param InternetPackage $package
-     * @param int $quantity Number of vouchers to generate
-     * @param array $options Generation options
+     *
+     * @param  int  $quantity  Number of vouchers to generate
+     * @param  array  $options  Generation options
      * @return array Generated vouchers
      */
     public function generateBatch(InternetPackage $package, int $quantity, array $options = []): array
     {
-        $batchNumber = $options['batch_number'] ?? 'BATCH-' . now()->format('YmdHis') . '-' . Str::random(4);
+        $batchNumber = $options['batch_number'] ?? 'BATCH-'.now()->format('YmdHis').'-'.Str::random(4);
         $vouchers = [];
 
         for ($i = 0; $i < $quantity; $i++) {
@@ -63,24 +61,22 @@ class VoucherGenerationService
 
     /**
      * Redeem/use a voucher code.
-     * 
-     * @param string $code
-     * @param \App\Models\Customer|null $customer
-     * @param string|null $username
+     *
+     * @param  Customer|null  $customer
      * @return array Result
      */
     public function redeemVoucher(string $code, $customer = null, ?string $username = null): array
     {
         $voucher = VoucherCode::where('code', $code)->first();
 
-        if (!$voucher) {
+        if (! $voucher) {
             return [
                 'success' => false,
                 'error' => 'Kode voucher tidak ditemukan',
             ];
         }
 
-        if (!$voucher->canBeUsed()) {
+        if (! $voucher->canBeUsed()) {
             return [
                 'success' => false,
                 'error' => $this->getVoucherErrorMessage($voucher),
@@ -91,7 +87,7 @@ class VoucherGenerationService
         $voucher->markAsUsed($customer, $username);
 
         // If sold, mark as sold
-        if ($voucher->sale_price && !$voucher->sold_at) {
+        if ($voucher->sale_price && ! $voucher->sold_at) {
             $voucher->update([
                 'sold_at' => now(),
                 'sold_to_customer_id' => $customer?->id,
@@ -108,9 +104,7 @@ class VoucherGenerationService
 
     /**
      * Get voucher statistics.
-     * 
-     * @param int $tenantId
-     * @param string|null $batchNumber
+     *
      * @return array Statistics
      */
     public function getVoucherStats(int $tenantId, ?string $batchNumber = null): array
@@ -140,7 +134,7 @@ class VoucherGenerationService
             'revoked' => $revoked,
             'usage_rate' => $total > 0 ? round(($used / $total) * 100, 2) : 0,
             'total_revenue' => $totalRevenue,
-            'total_revenue_formatted' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
+            'total_revenue_formatted' => 'Rp '.number_format($totalRevenue, 0, ',', '.'),
         ];
     }
 

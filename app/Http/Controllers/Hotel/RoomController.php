@@ -74,7 +74,7 @@ class RoomController extends Controller
 
         // Verify room type belongs to tenant
         $roomType = RoomType::where('id', $data['room_type_id'])->where('tenant_id', $tid)->first();
-        if (!$roomType) {
+        if (! $roomType) {
             return back()->withErrors(['room_type_id' => 'Invalid room type.'])->withInput();
         }
 
@@ -115,7 +115,7 @@ class RoomController extends Controller
 
         // Verify room type belongs to tenant
         $roomType = RoomType::where('id', $data['room_type_id'])->where('tenant_id', $this->tenantId())->first();
-        if (!$roomType) {
+        if (! $roomType) {
             return back()->withErrors(['room_type_id' => 'Invalid room type.'])->withInput();
         }
 
@@ -180,7 +180,8 @@ class RoomController extends Controller
         return response()->json(['rooms' => $rooms]);
     }
 
-    public function updateStatus(Request $request, Room $room)    {
+    public function updateStatus(Request $request, Room $room)
+    {
         abort_unless($room->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
@@ -202,7 +203,7 @@ class RoomController extends Controller
             // Log error but don't fail the request
             Log::warning('Failed to log activity for room status change', [
                 'room_id' => $room->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 

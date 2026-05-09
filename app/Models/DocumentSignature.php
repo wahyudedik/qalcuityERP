@@ -73,6 +73,7 @@ class DocumentSignature extends Model
     public function verifyHash(string $content): bool
     {
         $computedHash = hash('sha256', $content);
+
         return $computedHash === $this->signature_hash;
     }
 
@@ -89,7 +90,7 @@ class DocumentSignature extends Model
      */
     public function hasCertificate(): bool
     {
-        return !empty($this->certificate_serial);
+        return ! empty($this->certificate_serial);
     }
 
     /**

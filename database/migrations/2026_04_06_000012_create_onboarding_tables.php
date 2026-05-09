@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Onboarding Profiles (User's industry selection & preferences)
-        if (!Schema::hasTable('onboarding_profiles')) {
+        if (! Schema::hasTable('onboarding_profiles')) {
             Schema::create('onboarding_profiles', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -24,14 +25,14 @@ return new class extends Migration {
                 $table->boolean('sample_data_generated')->default(false);
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id']);
                 $table->index('industry');
             });
         }
 
         // 2. Onboarding Progress Tracker
-        if (!Schema::hasTable('onboarding_progress')) {
+        if (! Schema::hasTable('onboarding_progress')) {
             Schema::create('onboarding_progress', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -45,14 +46,14 @@ return new class extends Migration {
                 $table->text('description')->nullable();
                 $table->json('metadata')->nullable(); // additional data
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id', 'step_key']);
                 $table->index(['tenant_id', 'completed']);
             });
         }
 
         // 3. Sample Data Templates
-        if (!Schema::hasTable('sample_data_templates')) {
+        if (! Schema::hasTable('sample_data_templates')) {
             Schema::create('sample_data_templates', function (Blueprint $table) {
                 $table->id();
                 $table->string('industry'); // which industry this template is for
@@ -63,13 +64,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->integer('usage_count')->default(0);
                 $table->timestamps();
-    
+
                 $table->index('industry');
             });
         }
 
         // 4. Sample Data Generation Logs
-        if (!Schema::hasTable('sample_data_logs')) {
+        if (! Schema::hasTable('sample_data_logs')) {
             Schema::create('sample_data_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -82,13 +83,13 @@ return new class extends Migration {
                 $table->timestamp('started_at');
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // 5. AI Tour Sessions
-        if (!Schema::hasTable('ai_tour_sessions')) {
+        if (! Schema::hasTable('ai_tour_sessions')) {
             Schema::create('ai_tour_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -100,13 +101,13 @@ return new class extends Migration {
                 $table->timestamp('started_at');
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // 6. User Tips & Hints
-        if (!Schema::hasTable('user_tips')) {
+        if (! Schema::hasTable('user_tips')) {
             Schema::create('user_tips', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -120,7 +121,7 @@ return new class extends Migration {
                 $table->timestamp('shown_at')->nullable();
                 $table->integer('times_shown')->default(0);
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'dismissed']);
             });
         }

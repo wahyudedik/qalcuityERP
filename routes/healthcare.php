@@ -1,61 +1,59 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Healthcare\PatientController;
-use App\Http\Controllers\Healthcare\DoctorController;
-use App\Http\Controllers\Healthcare\AppointmentController;
-use App\Http\Controllers\Healthcare\EMRController;
 use App\Http\Controllers\Healthcare\AdmissionController;
-use App\Http\Controllers\Healthcare\BedManagementController;
-use App\Http\Controllers\Healthcare\QueueController;
-// use App\Http\Controllers\Healthcare\OutpatientController; // Not yet created
-use App\Http\Controllers\Healthcare\TriageController;
-use App\Http\Controllers\Healthcare\EmergencyController;
-use App\Http\Controllers\Healthcare\PharmacyController;
-use App\Http\Controllers\Healthcare\LaboratoryController;
-use App\Http\Controllers\Healthcare\RadiologyController;
-use App\Http\Controllers\Healthcare\BillingController;
-use App\Http\Controllers\Healthcare\TelemedicineController;
-use App\Http\Controllers\Healthcare\TelemedicineSettingsController;
-use App\Http\Controllers\Healthcare\SurgeryController;
-use App\Http\Controllers\Healthcare\ResourceController;
-use App\Http\Controllers\Healthcare\InventoryController;
 use App\Http\Controllers\Healthcare\AnalyticsController;
-use App\Http\Controllers\Healthcare\ComplianceController;
-use App\Http\Controllers\Healthcare\IntegrationController;
-use App\Http\Controllers\Healthcare\PatientPortalController;
-
-// Task 8: Additional Controllers
-use App\Http\Controllers\Healthcare\WardController;
+use App\Http\Controllers\Healthcare\AnalyticsDashboardController;
+use App\Http\Controllers\Healthcare\AppointmentController;
+use App\Http\Controllers\Healthcare\AuditTrailController;
+use App\Http\Controllers\Healthcare\BackupController;
 use App\Http\Controllers\Healthcare\BedController;
-use App\Http\Controllers\Healthcare\TriageAssessmentController;
-use App\Http\Controllers\Healthcare\QueueManagementController;
-use App\Http\Controllers\Healthcare\LabTestCatalogController;
-use App\Http\Controllers\Healthcare\LabResultController;
-use App\Http\Controllers\Healthcare\RadiologyExamController;
+use App\Http\Controllers\Healthcare\BedManagementController;
+// use App\Http\Controllers\Healthcare\OutpatientController; // Not yet created
+use App\Http\Controllers\Healthcare\BillingController;
+use App\Http\Controllers\Healthcare\BPJSClaimController;
+use App\Http\Controllers\Healthcare\ClinicalQualityController;
+use App\Http\Controllers\Healthcare\ComplianceController;
+use App\Http\Controllers\Healthcare\ComplianceReportController;
+use App\Http\Controllers\Healthcare\DoctorController;
+use App\Http\Controllers\Healthcare\EmergencyController;
+use App\Http\Controllers\Healthcare\EMRController;
+use App\Http\Controllers\Healthcare\FinancialReportController;
+use App\Http\Controllers\Healthcare\HealthEducationController;
+use App\Http\Controllers\Healthcare\HL7Controller;
 use App\Http\Controllers\Healthcare\InsuranceClaimController;
-use App\Http\Controllers\Healthcare\TeleconsultationController;
-use App\Http\Controllers\Healthcare\SurgeryScheduleController;
+use App\Http\Controllers\Healthcare\IntegrationController;
+use App\Http\Controllers\Healthcare\InventoryController;
+// Task 8: Additional Controllers
+use App\Http\Controllers\Healthcare\LabEquipmentController;
+use App\Http\Controllers\Healthcare\LaboratoryController;
+use App\Http\Controllers\Healthcare\LabResultController;
+use App\Http\Controllers\Healthcare\LabTestCatalogController;
+use App\Http\Controllers\Healthcare\MedicalCertificateController;
 use App\Http\Controllers\Healthcare\MedicalEquipmentController;
 use App\Http\Controllers\Healthcare\MedicalSupplyController;
-use App\Http\Controllers\Healthcare\SterilizationController;
 use App\Http\Controllers\Healthcare\MedicalWasteController;
-use App\Http\Controllers\Healthcare\AuditTrailController;
-use App\Http\Controllers\Healthcare\ComplianceReportController;
-use App\Http\Controllers\Healthcare\BackupController;
-use App\Http\Controllers\Healthcare\HL7Controller;
-use App\Http\Controllers\Healthcare\BPJSClaimController;
-use App\Http\Controllers\Healthcare\LabEquipmentController;
-use App\Http\Controllers\Healthcare\NotificationController;
-use App\Http\Controllers\Healthcare\MedicalCertificateController;
-use App\Http\Controllers\Healthcare\HealthEducationController;
-use App\Http\Controllers\Healthcare\PatientMessageController;
-use App\Http\Controllers\Healthcare\AnalyticsDashboardController;
-use App\Http\Controllers\Healthcare\FinancialReportController;
-use App\Http\Controllers\Healthcare\ClinicalQualityController;
 use App\Http\Controllers\Healthcare\MinistryReportController;
-use App\Http\Controllers\Healthcare\TrendAnalysisController;
+use App\Http\Controllers\Healthcare\NotificationController;
+use App\Http\Controllers\Healthcare\PatientController;
+use App\Http\Controllers\Healthcare\PatientMessageController;
+use App\Http\Controllers\Healthcare\PatientPortalController;
 use App\Http\Controllers\Healthcare\PatientSatisfactionController;
+use App\Http\Controllers\Healthcare\PharmacyController;
+use App\Http\Controllers\Healthcare\QueueController;
+use App\Http\Controllers\Healthcare\QueueManagementController;
+use App\Http\Controllers\Healthcare\RadiologyController;
+use App\Http\Controllers\Healthcare\RadiologyExamController;
+use App\Http\Controllers\Healthcare\ResourceController;
+use App\Http\Controllers\Healthcare\SterilizationController;
+use App\Http\Controllers\Healthcare\SurgeryScheduleController;
+use App\Http\Controllers\Healthcare\TeleconsultationController;
+use App\Http\Controllers\Healthcare\TelemedicineController;
+use App\Http\Controllers\Healthcare\TelemedicineSettingsController;
+use App\Http\Controllers\Healthcare\TrendAnalysisController;
+use App\Http\Controllers\Healthcare\TriageAssessmentController;
+use App\Http\Controllers\Healthcare\TriageController;
+use App\Http\Controllers\Healthcare\WardController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,7 +72,7 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
     | Healthcare Dashboard
     |--------------------------------------------------------------------------
     */
-    Route::get('/', [\App\Http\Controllers\Healthcare\AnalyticsController::class, 'dashboard'])->name('dashboard');
+    Route::get('/', [AnalyticsController::class, 'dashboard'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
@@ -211,6 +209,9 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
     */
     Route::prefix('er')->name('er.')->group(function () {
         Route::get('/', [EmergencyController::class, 'index'])->name('index');
+        Route::get('/triage', function () {
+            return redirect()->route('healthcare.er.patients');
+        })->name('triage.index');
         Route::post('/triage', [TriageController::class, 'store'])->name('triage');
         Route::get('/triage/{id}', [TriageController::class, 'show'])->name('triage.show');
         Route::post('/triage/{id}/update', [TriageController::class, 'update'])->name('triage.update');

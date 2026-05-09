@@ -29,8 +29,8 @@ class ProductQrController extends Controller
         $path = $this->qrService->generate($product, force: true);
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'QR Code berhasil di-generate.',
+            'success' => true,
+            'message' => 'QR Code berhasil di-generate.',
             'qr_code_path' => $path,
         ]);
     }
@@ -51,7 +51,7 @@ class ProductQrController extends Controller
 
         return Storage::disk('public')->download(
             $product->qr_code_path,
-            'qr-' . $product->sku . '.png'
+            'qr-'.$product->sku.'.png'
         );
     }
 
@@ -65,12 +65,12 @@ class ProductQrController extends Controller
     public function printLabels(Request $request)
     {
         $request->validate([
-            'product_ids'   => 'required|array|min:1',
+            'product_ids' => 'required|array|min:1',
             'product_ids.*' => 'integer',
-            'format'        => 'in:thermal,a4',
+            'format' => 'in:thermal,a4',
         ]);
 
-        $format  = $request->input('format', 'a4');
+        $format = $request->input('format', 'a4');
         $tenantId = $this->tenantId();
 
         $products = Product::whereIn('id', $request->input('product_ids'))
@@ -104,8 +104,8 @@ class ProductQrController extends Controller
             }
 
             return [
-                'product'          => $product,
-                'qr_image'         => $qrBase64,
+                'product' => $product,
+                'qr_image' => $qrBase64,
                 'certificate_number' => optional($product->activeCertificate)->certificate_number,
             ];
         })->all();

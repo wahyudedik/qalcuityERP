@@ -47,7 +47,7 @@ class AiProviderServiceProvider extends ServiceProvider
 
         // AnthropicProvider — implementasi AiProvider untuk Anthropic Claude
         $this->app->singleton(AnthropicProvider::class, function ($app) {
-            return new AnthropicProvider();
+            return new AnthropicProvider;
         });
 
         // AiProviderRouter — orkestrasi pemilihan provider dan fallback lintas-provider

@@ -4,38 +4,40 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('sales_orders'))
+        if (! Schema::hasTable('sales_orders')) {
             return;
+        }
         Schema::table('sales_orders', function (Blueprint $table) {
             // Payment fields for POS
-            if (!Schema::hasColumn('sales_orders', 'payment_type')) {
+            if (! Schema::hasColumn('sales_orders', 'payment_type')) {
                 $table->string('payment_type')->nullable()->after('status');
             }
-            if (!Schema::hasColumn('sales_orders', 'payment_method')) {
+            if (! Schema::hasColumn('sales_orders', 'payment_method')) {
                 $table->string('payment_method')->nullable()->after('payment_type');
             }
-            if (!Schema::hasColumn('sales_orders', 'paid_amount')) {
+            if (! Schema::hasColumn('sales_orders', 'paid_amount')) {
                 $table->decimal('paid_amount', 15, 2)->default(0)->after('total');
             }
-            if (!Schema::hasColumn('sales_orders', 'change_amount')) {
+            if (! Schema::hasColumn('sales_orders', 'change_amount')) {
                 $table->decimal('change_amount', 15, 2)->default(0)->after('paid_amount');
             }
-            if (!Schema::hasColumn('sales_orders', 'payment_reference')) {
+            if (! Schema::hasColumn('sales_orders', 'payment_reference')) {
                 $table->string('payment_reference')->nullable()->after('change_amount');
             }
-            if (!Schema::hasColumn('sales_orders', 'completed_at')) {
+            if (! Schema::hasColumn('sales_orders', 'completed_at')) {
                 $table->timestamp('completed_at')->nullable()->after('payment_reference');
             }
-            if (!Schema::hasColumn('sales_orders', 'stock_deducted_at')) {
+            if (! Schema::hasColumn('sales_orders', 'stock_deducted_at')) {
                 $table->timestamp('stock_deducted_at')->nullable()->after('completed_at');
             }
-            if (!Schema::hasColumn('sales_orders', 'source')) {
+            if (! Schema::hasColumn('sales_orders', 'source')) {
                 $table->string('source')->default('manual')->after('user_id');
             }
 

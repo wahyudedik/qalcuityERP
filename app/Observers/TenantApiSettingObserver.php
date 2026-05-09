@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * TenantApiSettingObserver - Ensure cache is cleared on any tenant setting change
- * 
+ *
  * BUG-SET-001 FIX: Guarantees cache invalidation regardless of how settings are updated
  */
 class TenantApiSettingObserver

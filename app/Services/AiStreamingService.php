@@ -8,10 +8,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * AiStreamingService
- * 
+ *
  * Menyediakan response streaming untuk AI chat agar UX lebih smooth.
  * User dapat melihat respons muncul secara bertahap (typewriter effect).
- * 
+ *
  * BUG-AI-005 FIX: Added comprehensive error handling for:
  * - Client disconnect detection
  * - Partial response recovery
@@ -29,11 +29,11 @@ class AiStreamingService
 
     /**
      * Stream AI response dengan Server-Sent Events (SSE)
-     * 
-     * @param string $message User message
-     * @param array $history Chat history
-     * @param array $toolDeclarations Available tools
-     * @param callable|null $onChunk Callback untuk setiap chunk (untuk testing)
+     *
+     * @param  string  $message  User message
+     * @param  array  $history  Chat history
+     * @param  array  $toolDeclarations  Available tools
+     * @param  callable|null  $onChunk  Callback untuk setiap chunk (untuk testing)
      * @return StreamedResponse SSE response
      */
     public function streamResponse(
@@ -53,6 +53,7 @@ class AiStreamingService
                 // BUG-AI-005 FIX: Check if client disconnected before starting
                 if (connection_aborted()) {
                     Log::warning('AiStreamingService: Client disconnected before streaming started');
+
                     return;
                 }
 
@@ -62,6 +63,7 @@ class AiStreamingService
                 // BUG-AI-005 FIX: Check connection after initial event
                 if (connection_aborted()) {
                     Log::warning('AiStreamingService: Client disconnected after start event');
+
                     return;
                 }
 
@@ -77,9 +79,9 @@ class AiStreamingService
                 $functionCalls = $response['function_calls'] ?? [];
 
                 // If there are function calls, execute them
-                if (!empty($functionCalls)) {
+                if (! empty($functionCalls)) {
                     // BUG-AI-005 FIX: Check connection before sending function calls
-                    if (!connection_aborted()) {
+                    if (! connection_aborted()) {
                         $this->sendEvent('function_calls', [
                             'calls' => $functionCalls,
                             'count' => count($functionCalls),
@@ -88,7 +90,7 @@ class AiStreamingService
                 }
 
                 // Stream text in chunks for typewriter effect
-                if (!empty($text)) {
+                if (! empty($text)) {
                     $words = preg_split('/\s+/', $text);
                     $chunkSize = max(1, intdiv(count($words), 20)); // Split into ~20 chunks
                     $chunks = array_chunk($words, $chunkSize);
@@ -110,11 +112,12 @@ class AiStreamingService
                                 'disconnected' => true,
                                 'message' => 'Connection lost. Partial response saved.',
                             ]);
+
                             return;
                         }
 
                         $chunkText = implode(' ', $chunk);
-                        $accumulatedText .= ($accumulatedText ? ' ' : '') . $chunkText;
+                        $accumulatedText .= ($accumulatedText ? ' ' : '').$chunkText;
 
                         $this->sendEvent('chunk', [
                             'text' => $chunkText,
@@ -133,6 +136,7 @@ class AiStreamingService
                             Log::warning('AiStreamingService: Flush failed, client may have disconnected', [
                                 'error' => $e->getMessage(),
                             ]);
+
                             return;
                         }
 
@@ -147,7 +151,7 @@ class AiStreamingService
                 }
 
                 // BUG-AI-005 FIX: Final connection check before complete event
-                if (!connection_aborted()) {
+                if (! connection_aborted()) {
                     // Send final event
                     $this->sendEvent('complete', [
                         'full_text' => $text,
@@ -169,7 +173,7 @@ class AiStreamingService
                 ]);
 
                 // BUG-AI-005 FIX: Send error event with accumulated text for recovery
-                if (!connection_aborted()) {
+                if (! connection_aborted()) {
                     $this->sendEvent('error', [
                         'message' => 'Terjadi kesalahan saat memproses permintaan Anda.',
                         'details' => app()->isLocal() ? $e->getMessage() : null,
@@ -191,7 +195,7 @@ class AiStreamingService
 
     /**
      * Send SSE event
-     * 
+     *
      * BUG-AI-005 FIX: Added connection check and error handling
      */
     protected function sendEvent(string $event, array $data): void
@@ -204,6 +208,7 @@ class AiStreamingService
                     'event' => $event,
                     'json_error' => json_last_error_msg(),
                 ]);
+
                 return;
             }
 
@@ -225,7 +230,7 @@ class AiStreamingService
 
     /**
      * Stream simple text response (without tools)
-     * 
+     *
      * BUG-AI-005 FIX: Added disconnect detection and error handling
      */
     public function streamSimpleResponse(string $message, array $history = []): StreamedResponse
@@ -238,6 +243,7 @@ class AiStreamingService
                 // BUG-AI-005 FIX: Check connection before starting
                 if (connection_aborted()) {
                     Log::warning('AiStreamingService: Client disconnected before simple streaming started');
+
                     return;
                 }
 
@@ -268,6 +274,7 @@ class AiStreamingService
                             'model' => $model,
                             'disconnected' => true,
                         ]);
+
                         return;
                     }
 
@@ -288,6 +295,7 @@ class AiStreamingService
                         Log::warning('AiStreamingService: Flush failed in simple streaming', [
                             'error' => $e->getMessage(),
                         ]);
+
                         return;
                     }
 
@@ -295,7 +303,7 @@ class AiStreamingService
                 }
 
                 // BUG-AI-005 FIX: Final connection check
-                if (!connection_aborted()) {
+                if (! connection_aborted()) {
                     $this->sendEvent('complete', [
                         'full_text' => $text,
                         'model' => $model,
@@ -309,7 +317,7 @@ class AiStreamingService
                 ]);
 
                 // BUG-AI-005 FIX: Send error with accumulated text
-                if (!connection_aborted()) {
+                if (! connection_aborted()) {
                     $this->sendEvent('error', [
                         'message' => 'Terjadi kesalahan.',
                         'accumulated_text' => $accumulatedText,
@@ -332,6 +340,7 @@ class AiStreamingService
     public static function clientSupportsStreaming(): bool
     {
         $acceptHeader = request()->header('Accept', '');
+
         return str_contains($acceptHeader, 'text/event-stream');
     }
 }

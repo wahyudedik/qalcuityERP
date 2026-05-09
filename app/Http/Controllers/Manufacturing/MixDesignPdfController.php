@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Manufacturing;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bom;
 use App\Models\ConcreteMixDesign;
 use App\Services\Manufacturing\MixDesignCalculatorService;
+use App\Services\Manufacturing\MrpPlanningService;
+use App\Services\MrpService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +53,7 @@ class MixDesignPdfController extends Controller
             'waste'
         ));
 
-        $filename = 'MixDesign_' . $mixDesign->grade . '_' . date('Y-m-d_His') . '.pdf';
+        $filename = 'MixDesign_'.$mixDesign->grade.'_'.date('Y-m-d_His').'.pdf';
 
         return $pdf->download($filename);
     }
@@ -62,15 +65,15 @@ class MixDesignPdfController extends Controller
     {
         $tenantId = Auth::user()->tenant_id;
 
-        $planningService = app(\App\Services\Manufacturing\MrpPlanningService::class);
-        $mrpService = app(\App\Services\MrpService::class);
+        $planningService = app(MrpPlanningService::class);
+        $mrpService = app(MrpService::class);
 
         $bomId = $request->bom_id;
         $quantity = (float) ($request->quantity ?? 1);
 
         // Get MRP results
         $mrpResults = $bomId
-            ? $mrpService->calculate(\App\Models\Bom::find($bomId), $quantity, $tenantId)
+            ? $mrpService->calculate(Bom::find($bomId), $quantity, $tenantId)
             : $mrpService->runFullMrp($tenantId);
 
         // Get planning report
@@ -83,7 +86,7 @@ class MixDesignPdfController extends Controller
             'quantity'
         ));
 
-        $filename = 'MRP_Report_' . date('Y-m-d_His') . '.pdf';
+        $filename = 'MRP_Report_'.date('Y-m-d_His').'.pdf';
 
         return $pdf->download($filename);
     }

@@ -2,14 +2,17 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
-use Illuminate\Support\Facades\Http;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Shopee Connector
- * 
+ *
  * Handles integration with Shopee Open Platform API
  * Supports OAuth 2.0 authentication
  */
@@ -63,7 +66,8 @@ class ShopeeConnector extends BaseConnector
      */
     protected function generateSign(string $endpoint, int $timestamp): string
     {
-        $baseString = $this->partnerId . $endpoint . $timestamp;
+        $baseString = $this->partnerId.$endpoint.$timestamp;
+
         return hash_hmac('sha256', $baseString, $this->partnerKey);
     }
 
@@ -82,6 +86,7 @@ class ShopeeConnector extends BaseConnector
                 if (($data['error'] ?? '') === 0) {
                     $this->integration->markAsActive();
                     Log::info('Shopee authentication successful');
+
                     return true;
                 }
             }
@@ -91,6 +96,7 @@ class ShopeeConnector extends BaseConnector
             Log::error('Shopee authentication failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -106,7 +112,7 @@ class ShopeeConnector extends BaseConnector
         $errors = [];
 
         try {
-            $products = \App\Models\Product::where('tenant_id', $this->integration->tenant_id)
+            $products = Product::where('tenant_id', $this->integration->tenant_id)
                 ->where('is_active', true)
                 ->get();
 
@@ -120,7 +126,7 @@ class ShopeeConnector extends BaseConnector
                         $result = $this->createProduct($product);
 
                         if ($result['success']) {
-                            \App\Models\EcommerceProductMapping::create([
+                            EcommerceProductMapping::create([
                                 'tenant_id' => $this->integration->tenant_id,
                                 'product_id' => $product->id,
                                 'channel_id' => $this->integration->id,
@@ -210,6 +216,7 @@ class ShopeeConnector extends BaseConnector
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return ['success' => ($data['error'] ?? '') === 0];
             }
 
@@ -224,7 +231,7 @@ class ShopeeConnector extends BaseConnector
      */
     protected function transformProductToShopee($product): array
     {
-        $stock = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+        $stock = ProductStock::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $product->id)
             ->first();
 
@@ -259,13 +266,13 @@ class ShopeeConnector extends BaseConnector
 
                 foreach ($orders as $shopeeOrder) {
                     try {
-                        $exists = \App\Models\SalesOrder::where('tenant_id', $this->integration->tenant_id)
+                        $exists = SalesOrder::where('tenant_id', $this->integration->tenant_id)
                             ->where('external_id', $shopeeOrder['order_sn'])
                             ->exists();
 
-                        if (!$exists) {
+                        if (! $exists) {
                             $erpOrder = $this->transformOrderFromShopee($shopeeOrder);
-                            \App\Models\SalesOrder::create($erpOrder);
+                            SalesOrder::create($erpOrder);
                             $processed++;
                         }
                     } catch (Throwable $e) {
@@ -316,7 +323,7 @@ class ShopeeConnector extends BaseConnector
         $failed = 0;
 
         try {
-            $stocks = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+            $stocks = ProductStock::where('tenant_id', $this->integration->tenant_id)
                 ->where('quantity', '>=', 0)
                 ->get();
 
@@ -363,6 +370,7 @@ class ShopeeConnector extends BaseConnector
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return ['success' => ($data['error'] ?? '') === 0];
             }
 

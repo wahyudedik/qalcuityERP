@@ -4,12 +4,12 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Doctor;
-use App\Models\Patient;
 use App\Models\MedicalStaffSchedule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Models\Patient;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentSchedulingService
 {
@@ -75,7 +75,7 @@ class AppointmentSchedulingService
             throw new Exception('Doctor is not active');
         }
 
-        if (!$doctor->accepting_patients) {
+        if (! $doctor->accepting_patients) {
             throw new Exception('Doctor is not accepting patients');
         }
 
@@ -87,7 +87,7 @@ class AppointmentSchedulingService
         // Check practice days
         if ($doctor->practice_days) {
             $dayOfWeek = strtolower($date->format('l'));
-            if (!in_array($dayOfWeek, $doctor->practice_days)) {
+            if (! in_array($dayOfWeek, $doctor->practice_days)) {
                 throw new Exception("Doctor does not practice on {$dayOfWeek}");
             }
         }
@@ -153,7 +153,7 @@ class AppointmentSchedulingService
             ->whereDate('schedule_date', $date)
             ->first();
 
-        if (!$schedule) {
+        if (! $schedule) {
             // Auto-create schedule based on doctor's practice settings
             if ($doctor->practice_start_time && $doctor->practice_end_time) {
                 $schedule = MedicalStaffSchedule::create([
@@ -281,7 +281,7 @@ class AppointmentSchedulingService
         while ($currentTime < $endTime) {
             $timeString = $currentTime->format('H:i');
 
-            if (!in_array($timeString, $bookedTimes)) {
+            if (! in_array($timeString, $bookedTimes)) {
                 $slots[] = [
                     'time' => $timeString,
                     'available' => true,

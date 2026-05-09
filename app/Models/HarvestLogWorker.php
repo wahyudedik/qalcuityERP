@@ -14,6 +14,13 @@ class HarvestLogWorker extends Model
         return ['quantity_picked' => 'decimal:3', 'wage' => 'decimal:2'];
     }
 
-    public function harvestLog(): BelongsTo { return $this->belongsTo(HarvestLog::class); }
-    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
+    public function harvestLog(): BelongsTo
+    {
+        return $this->belongsTo(HarvestLog::class);
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

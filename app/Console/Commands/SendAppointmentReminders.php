@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Appointment;
+use App\Notifications\Healthcare\AppointmentReminder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -55,10 +56,11 @@ class SendAppointmentReminders extends Command
         $failedCount = 0;
 
         foreach ($appointments as $appointment) {
-            /** @var \App\Models\Appointment $appointment */
+            /** @var Appointment $appointment */
             try {
-                if (!$appointment->patient) {
+                if (! $appointment->patient) {
                     $this->warn("⚠️ Appointment {$appointment->id} has no patient");
+
                     continue;
                 }
 
@@ -67,6 +69,7 @@ class SendAppointmentReminders extends Command
                     $this->line("   Appointment: {$appointment->appointment_date->format('d M Y H:i')}");
                     $this->line("   Doctor: {$appointment->doctor?->name}");
                     $sentCount++;
+
                     continue;
                 }
 
@@ -119,12 +122,12 @@ class SendAppointmentReminders extends Command
      */
     protected function sendEmailReminder($appointment): void
     {
-        if (!$appointment->patient->email) {
+        if (! $appointment->patient->email) {
             return;
         }
 
         try {
-            $appointment->patient->notify(new \App\Notifications\Healthcare\AppointmentReminder(
+            $appointment->patient->notify(new AppointmentReminder(
                 $appointment,
                 'email'
             ));
@@ -141,7 +144,7 @@ class SendAppointmentReminders extends Command
      */
     protected function sendSmsReminder($appointment): void
     {
-        if (!$appointment->patient->phone) {
+        if (! $appointment->patient->phone) {
             return;
         }
 
@@ -169,19 +172,19 @@ class SendAppointmentReminders extends Command
      */
     protected function sendWhatsAppReminder($appointment): void
     {
-        if (!$appointment->patient->phone) {
+        if (! $appointment->patient->phone) {
             return;
         }
 
         $message = "🏥 *Appointment Reminder*\n\n"
-            . "Yth. {$appointment->patient->name},\n\n"
-            . "Janji temu Anda:\n"
-            . "👨‍⚕️ Dokter: " . ($appointment->doctor?->name ?? 'N/A') . "\n"
-            . "📅 Tanggal: {$appointment->appointment_date->format('l, d F Y')}\n"
-            . "⏰ Jam: {$appointment->appointment_date->format('H:i')}\n"
-            . "📍 Lokasi: " . ($appointment->department ?? 'Klinik') . "\n\n"
-            . "Harap datang 15 menit sebelum jadwal.\n"
-            . "Untuk reschedule, hubungi kami.";
+            ."Yth. {$appointment->patient->name},\n\n"
+            ."Janji temu Anda:\n"
+            .'👨‍⚕️ Dokter: '.($appointment->doctor?->name ?? 'N/A')."\n"
+            ."📅 Tanggal: {$appointment->appointment_date->format('l, d F Y')}\n"
+            ."⏰ Jam: {$appointment->appointment_date->format('H:i')}\n"
+            .'📍 Lokasi: '.($appointment->department ?? 'Klinik')."\n\n"
+            ."Harap datang 15 menit sebelum jadwal.\n"
+            .'Untuk reschedule, hubungi kami.';
 
         try {
             // Integrate with WhatsApp API (Fonnte, Wablas, Twilio)

@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
-
 /**
  * RuleBasedResponseHandler
- * 
+ *
  * Menangani pertanyaan sederhana dengan response template tanpa memanggil Gemini API.
  * Ini mengurangi biaya dan latency untuk pertanyaan yang jawabannya sudah bisa diprediksi.
  */
@@ -25,7 +23,7 @@ class RuleBasedResponseHandler
      */
     public function canHandle(string $message): bool
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return false;
         }
 
@@ -71,6 +69,7 @@ class RuleBasedResponseHandler
         // Selamat pagi/siang/sore/malam
         if (preg_match('/^selamat\s+(pagi|siang|sore|malam)/i', $message, $matches)) {
             $timeGreeting = ucfirst($matches[1]);
+
             return [
                 'text' => "Selamat {$timeGreeting}, {$name}! Semoga harimu menyenangkan. Ada yang bisa saya bantu terkait bisnis Anda?",
                 'model' => 'rule-based',
@@ -102,15 +101,15 @@ class RuleBasedResponseHandler
         // Siapa kamu
         if (preg_match('/^(siapa\s+kamu|nama\s+kamu|kamu\s+siapa)/i', $message)) {
             return [
-                'text' => "Saya **Qalcuity AI**, asisten cerdas untuk sistem ERP Qalcuity. 🤖\n\n" .
-                    "Saya dapat membantu Anda:\n" .
-                    "- 📊 Melihat laporan penjualan, keuangan, dan inventory\n" .
-                    "- 📦 Mengelola produk, stok, dan pesanan\n" .
-                    "- 👥 Mengelola pelanggan, supplier, dan karyawan\n" .
-                    "- 💰 Mencatat transaksi dan pengeluaran\n" .
-                    "- 📈 Menganalisis tren bisnis dan memberikan rekomendasi\n" .
-                    "- 📸 Menganalisis gambar struk, nota, atau foto produk\n\n" .
-                    "Cukup ketik pertanyaan Anda dalam bahasa natural, dan saya akan membantu!",
+                'text' => "Saya **Qalcuity AI**, asisten cerdas untuk sistem ERP Qalcuity. 🤖\n\n".
+                    "Saya dapat membantu Anda:\n".
+                    "- 📊 Melihat laporan penjualan, keuangan, dan inventory\n".
+                    "- 📦 Mengelola produk, stok, dan pesanan\n".
+                    "- 👥 Mengelola pelanggan, supplier, dan karyawan\n".
+                    "- 💰 Mencatat transaksi dan pengeluaran\n".
+                    "- 📈 Menganalisis tren bisnis dan memberikan rekomendasi\n".
+                    "- 📸 Menganalisis gambar struk, nota, atau foto produk\n\n".
+                    'Cukup ketik pertanyaan Anda dalam bahasa natural, dan saya akan membantu!',
                 'model' => 'rule-based',
                 'cached' => false,
                 'function_calls' => [],
@@ -120,26 +119,26 @@ class RuleBasedResponseHandler
         // Apa bisa / fitur apa
         if (preg_match('/^(apa\s+bisa|bisa\s+apa|fitur\s+apa)/i', $message)) {
             return [
-                'text' => "Berikut adalah beberapa hal yang bisa saya lakukan:\n\n" .
-                    "**📊 Dashboard & Laporan:**\n" .
-                    "- \"kondisi bisnis hari ini\"\n" .
-                    "- \"rekap penjualan minggu ini\"\n" .
-                    "- \"laporan keuangan bulan ini\"\n\n" .
-                    "**📦 Inventory & Produk:**\n" .
-                    "- \"tambah produk Kopi Latte harga 25000\"\n" .
-                    "- \"cek stok produk A\"\n" .
-                    "- \"produk apa saja yang stoknya menipis?\"\n\n" .
-                    "**💰 Transaksi:**\n" .
-                    "- \"jual kopi 2 gelas 30000 cash\"\n" .
-                    "- \"catat pengeluaran listrik 500000\"\n" .
-                    "- \"buat invoice untuk customer Budi\"\n\n" .
-                    "**👥 Manajemen Kontak:**\n" .
-                    "- \"tambah pelanggan Siti nomor 08123456789\"\n" .
-                    "- \"daftar semua supplier\"\n\n" .
-                    "**📸 Analisis Gambar:**\n" .
-                    "- Upload foto struk → otomatis catat pengeluaran\n" .
-                    "- Upload foto produk → simpan ke database\n\n" .
-                    "Dan masih banyak lagi! Coba tanyakan apa saja tentang bisnis Anda. 😊",
+                'text' => "Berikut adalah beberapa hal yang bisa saya lakukan:\n\n".
+                    "**📊 Dashboard & Laporan:**\n".
+                    "- \"kondisi bisnis hari ini\"\n".
+                    "- \"rekap penjualan minggu ini\"\n".
+                    "- \"laporan keuangan bulan ini\"\n\n".
+                    "**📦 Inventory & Produk:**\n".
+                    "- \"tambah produk Kopi Latte harga 25000\"\n".
+                    "- \"cek stok produk A\"\n".
+                    "- \"produk apa saja yang stoknya menipis?\"\n\n".
+                    "**💰 Transaksi:**\n".
+                    "- \"jual kopi 2 gelas 30000 cash\"\n".
+                    "- \"catat pengeluaran listrik 500000\"\n".
+                    "- \"buat invoice untuk customer Budi\"\n\n".
+                    "**👥 Manajemen Kontak:**\n".
+                    "- \"tambah pelanggan Siti nomor 08123456789\"\n".
+                    "- \"daftar semua supplier\"\n\n".
+                    "**📸 Analisis Gambar:**\n".
+                    "- Upload foto struk → otomatis catat pengeluaran\n".
+                    "- Upload foto produk → simpan ke database\n\n".
+                    'Dan masih banyak lagi! Coba tanyakan apa saja tentang bisnis Anda. 😊',
                 'model' => 'rule-based',
                 'cached' => false,
                 'function_calls' => [],
@@ -149,23 +148,23 @@ class RuleBasedResponseHandler
         // Bantuan / help
         if (preg_match('/^(bantuan|help|tolong)/i', $message)) {
             return [
-                'text' => "Tentu, saya siap membantu! 🙋‍♂️\n\n" .
-                    "**Cara menggunakan Qalcuity AI:**\n\n" .
-                    "1️⃣ **Tanya dalam bahasa natural** - Tidak perlu format khusus\n" .
-                    "   Contoh: \"berapa omzet bulan ini?\" atau \"stok kopi tinggal berapa?\"\n\n" .
-                    "2️⃣ **Perintah langsung** - Untuk aksi cepat\n" .
-                    "   Contoh: \"jual kopi 2 gelas 30000\" atau \"tambah produk Teh Botol\"\n\n" .
-                    "3️⃣ **Upload file/gambar** - Drag & drop atau klik upload\n" .
-                    "   - Foto struk/nota → otomatis ekstrak data\n" .
-                    "   - Foto produk → simpan ke database\n" .
-                    "   - PDF/CSV → analisis dan import\n\n" .
-                    "4️⃣ **Follow-up questions** - Saya ingat konteks percakapan\n" .
-                    "   Contoh: Setelah tanya omzet, bisa lanjut \"bandingkan dengan bulan lalu\"\n\n" .
-                    "**Tips:**\n" .
-                    "- Semakin spesifik pertanyaan, semakin akurat jawaban\n" .
-                    "- Gunakan kata kunci seperti \"hari ini\", \"minggu ini\", \"bulan ini\" untuk periode\n" .
-                    "- Jika ragu, coba \"kondisi bisnis\" untuk ringkasan umum\n\n" .
-                    "Ada yang ingin dicoba? 😊",
+                'text' => "Tentu, saya siap membantu! 🙋‍♂️\n\n".
+                    "**Cara menggunakan Qalcuity AI:**\n\n".
+                    "1️⃣ **Tanya dalam bahasa natural** - Tidak perlu format khusus\n".
+                    "   Contoh: \"berapa omzet bulan ini?\" atau \"stok kopi tinggal berapa?\"\n\n".
+                    "2️⃣ **Perintah langsung** - Untuk aksi cepat\n".
+                    "   Contoh: \"jual kopi 2 gelas 30000\" atau \"tambah produk Teh Botol\"\n\n".
+                    "3️⃣ **Upload file/gambar** - Drag & drop atau klik upload\n".
+                    "   - Foto struk/nota → otomatis ekstrak data\n".
+                    "   - Foto produk → simpan ke database\n".
+                    "   - PDF/CSV → analisis dan import\n\n".
+                    "4️⃣ **Follow-up questions** - Saya ingat konteks percakapan\n".
+                    "   Contoh: Setelah tanya omzet, bisa lanjut \"bandingkan dengan bulan lalu\"\n\n".
+                    "**Tips:**\n".
+                    "- Semakin spesifik pertanyaan, semakin akurat jawaban\n".
+                    "- Gunakan kata kunci seperti \"hari ini\", \"minggu ini\", \"bulan ini\" untuk periode\n".
+                    "- Jika ragu, coba \"kondisi bisnis\" untuk ringkasan umum\n\n".
+                    'Ada yang ingin dicoba? 😊',
                 'model' => 'rule-based',
                 'cached' => false,
                 'function_calls' => [],

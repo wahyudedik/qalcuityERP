@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Services\PaymentGatewayService;
 use App\Traits\BelongsToTenant;
-
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Crypt;
 
 class TenantPaymentGateway extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'provider',
@@ -70,7 +71,7 @@ class TenantPaymentGateway extends Model
     /**
      * Get active gateways for tenant
      */
-    public static function getActiveGateways(int $tenantId): \Illuminate\Database\Eloquent\Collection
+    public static function getActiveGateways(int $tenantId): Collection
     {
         return static::where('tenant_id', $tenantId)
             ->where('is_active', true)
@@ -108,7 +109,7 @@ class TenantPaymentGateway extends Model
     public function verifyCredentials(): array
     {
         try {
-            $service = new \App\Services\PaymentGatewayService($this->tenant_id);
+            $service = new PaymentGatewayService($this->tenant_id);
             $result = $service->verifyGateway($this->provider);
 
             if ($result['success']) {

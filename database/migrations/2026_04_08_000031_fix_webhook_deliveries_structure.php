@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -26,7 +27,7 @@ return new class extends Migration {
                         try {
                             $connection->statement("ALTER TABLE webhook_deliveries DROP FOREIGN KEY {$fkName}");
                             break;
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             // Try next foreign key name
                         }
                     }
@@ -44,25 +45,25 @@ return new class extends Migration {
                 }
 
                 // Add new columns if they don't exist
-                if (!Schema::hasColumn('webhook_deliveries', 'subscription_id')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'subscription_id')) {
                     $table->foreignId('subscription_id')->after('id')->constrained('webhook_subscriptions')->onDelete('cascade');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'event_type')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'event_type')) {
                     $table->string('event_type')->after('subscription_id');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'attempt_count')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'attempt_count')) {
                     $table->integer('attempt_count')->default(0)->after('response_body');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'max_attempts')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'max_attempts')) {
                     $table->integer('max_attempts')->default(5)->after('attempt_count');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'next_retry_at')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'next_retry_at')) {
                     $table->timestamp('next_retry_at')->nullable()->after('status');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'delivered_at')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'delivered_at')) {
                     $table->timestamp('delivered_at')->nullable()->after('next_retry_at');
                 }
-                if (!Schema::hasColumn('webhook_deliveries', 'error_message')) {
+                if (! Schema::hasColumn('webhook_deliveries', 'error_message')) {
                     $table->text('error_message')->nullable()->after('delivered_at');
                 }
             });
@@ -72,7 +73,7 @@ return new class extends Migration {
                 Schema::table('webhook_deliveries', function (Blueprint $table) {
                     $table->index(['subscription_id', 'status']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
 
@@ -80,7 +81,7 @@ return new class extends Migration {
                 Schema::table('webhook_deliveries', function (Blueprint $table) {
                     $table->index(['status', 'next_retry_at']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
 
@@ -88,7 +89,7 @@ return new class extends Migration {
                 Schema::table('webhook_deliveries', function (Blueprint $table) {
                     $table->index(['event_type', 'created_at']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
         }

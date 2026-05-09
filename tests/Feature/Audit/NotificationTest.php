@@ -8,16 +8,15 @@ use App\Models\User;
 use App\Notifications\InvoiceDueNotification;
 use App\Notifications\InvoiceOverdueNotification;
 use App\Notifications\LowStockEmailNotification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Task 24.5: Verify all notifications are sent to correct channels
- * 
+ *
  * Validates: Requirements 7.2, 7.3, 7.12
- * 
+ *
  * This test ensures that:
  * - Notifications are sent to the correct channels (in-app, email, push)
  * - Notification preferences are respected
@@ -26,6 +25,7 @@ use Tests\TestCase;
 class NotificationTest extends TestCase
 {
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void
@@ -337,6 +337,3 @@ class NotificationTest extends TestCase
         $this->assertEquals(3, $unreadCount);
     }
 }
-
-
-

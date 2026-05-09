@@ -31,11 +31,11 @@ class IotDevice extends Model
     protected function casts(): array
     {
         return [
-            'sensor_types'  => 'array',
-            'config'        => 'array',
-            'is_active'     => 'boolean',
-            'is_connected'  => 'boolean',
-            'last_seen_at'  => 'datetime',
+            'sensor_types' => 'array',
+            'config' => 'array',
+            'is_active' => 'boolean',
+            'is_connected' => 'boolean',
+            'last_seen_at' => 'datetime',
         ];
     }
 
@@ -52,7 +52,7 @@ class IotDevice extends Model
     /** Generate token unik untuk device baru */
     public static function generateToken(): string
     {
-        return Str::random(32) . bin2hex(random_bytes(16));
+        return Str::random(32).bin2hex(random_bytes(16));
     }
 
     public static function deviceTypes(): array
@@ -63,14 +63,14 @@ class IotDevice extends Model
     public static function targetModules(): array
     {
         return [
-            'inventory'     => 'Inventory / Gudang',
+            'inventory' => 'Inventory / Gudang',
             'manufacturing' => 'Manufacturing / Produksi',
-            'livestock'     => 'Peternakan',
-            'fisheries'     => 'Perikanan',
-            'agriculture'   => 'Pertanian',
-            'hrm'           => 'HRM / Karyawan',
-            'healthcare'    => 'Healthcare',
-            'general'       => 'Umum',
+            'livestock' => 'Peternakan',
+            'fisheries' => 'Perikanan',
+            'agriculture' => 'Pertanian',
+            'hrm' => 'HRM / Karyawan',
+            'healthcare' => 'Healthcare',
+            'general' => 'Umum',
         ];
     }
 
@@ -78,15 +78,15 @@ class IotDevice extends Model
     {
         return [
             'temperature' => 'Suhu (°C)',
-            'humidity'    => 'Kelembaban (%)',
-            'weight'      => 'Berat (kg)',
-            'counter'     => 'Counter / Hitungan',
-            'ph'          => 'pH Air',
-            'turbidity'   => 'Kekeruhan Air',
-            'gps'         => 'GPS / Lokasi',
-            'motion'      => 'Sensor Gerak',
-            'door'        => 'Sensor Pintu',
-            'custom'      => 'Custom',
+            'humidity' => 'Kelembaban (%)',
+            'weight' => 'Berat (kg)',
+            'counter' => 'Counter / Hitungan',
+            'ph' => 'pH Air',
+            'turbidity' => 'Kekeruhan Air',
+            'gps' => 'GPS / Lokasi',
+            'motion' => 'Sensor Gerak',
+            'door' => 'Sensor Pintu',
+            'custom' => 'Custom',
         ];
     }
 }

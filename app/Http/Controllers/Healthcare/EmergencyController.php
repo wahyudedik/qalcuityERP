@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admission;
+use App\Models\CriticalAlert;
 use App\Models\Patient;
 use App\Models\TriageAssessment;
-use App\Models\CriticalAlert;
 use Illuminate\Http\Request;
 
 class EmergencyController extends Controller
@@ -64,15 +65,14 @@ class EmergencyController extends Controller
     public function dashboard()
     {
         $statistics = [
-            'total_patients' => TriageAssessment::whereDate('triage_date', today())->count(),
-            'by_triage_level' => TriageAssessment::whereDate('triage_date', today())
-                ->selectRaw('triage_level, COUNT(*) as count')
-                ->groupBy('triage_level')
-                ->pluck('count', 'triage_level'),
+            'total_patients' => TriageAssessment::whereDate('assessment_date', today())->count(),
+            'by_triage_level' => TriageAssessment::whereDate('assessment_date', today())
+                ->selectRaw('urgency_level, COUNT(*) as count')
+                ->groupBy('urgency_level')
+                ->pluck('count', 'urgency_level'),
             'active_alerts' => CriticalAlert::where('status', 'active')
                 ->whereDate('created_at', today())->count(),
-            'avg_wait_time' => TriageAssessment::whereDate('triage_date', today())
-                ->whereNotNull('disposition')
+            'avg_wait_time' => TriageAssessment::whereDate('assessment_date', today())
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, updated_at)) as avg')
                 ->value('avg'),
         ];
@@ -167,7 +167,7 @@ class EmergencyController extends Controller
         ]);
 
         // Create admission
-        $admission = \App\Models\Admission::create([
+        $admission = Admission::create([
             'patient_id' => $validated['patient_id'],
             'bed_id' => $validated['bed_id'],
             'doctor_id' => $validated['doctor_id'],

@@ -3,14 +3,10 @@
 namespace Tests\Unit\Services\Agent;
 
 use App\DTOs\Agent\ErpContext;
-use App\Models\AccountingPeriod;
 use App\Models\Employee;
-use App\Models\Invoice;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\SalesOrder;
 use App\Models\Tenant;
-use App\Models\Warehouse;
+use App\Models\User;
 use App\Services\Agent\AgentContextBuilder;
 use Carbon\Carbon;
 use Eris\Attributes\ErisRepeat;
@@ -43,7 +39,7 @@ class AgentContextBuilderPropertyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->builder = new AgentContextBuilder();
+        $this->builder = new AgentContextBuilder;
     }
 
     // =========================================================================
@@ -57,7 +53,7 @@ class AgentContextBuilderPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testErpContextCompletenessForAnyModuleCombination(): void
+    public function test_erp_context_completeness_for_any_module_combination(): void
     {
         $this->forAll(
             // Generate subset acak dari modul yang tersedia (0 hingga semua modul)
@@ -69,6 +65,7 @@ class AgentContextBuilderPropertyTest extends TestCase
                             $selected[] = $module;
                         }
                     }
+
                     return $selected;
                 },
                 Generators::choose(0, (1 << count($this->allModules)) - 1)
@@ -161,9 +158,9 @@ class AgentContextBuilderPropertyTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testErpContextCompletenessWithEmptyModules(): void
+    public function test_erp_context_completeness_with_empty_modules(): void
     {
-        $tenant  = $this->createTenant();
+        $tenant = $this->createTenant();
         $context = $this->builder->build($tenant->id, []);
 
         $this->assertInstanceOf(ErpContext::class, $context);
@@ -186,7 +183,7 @@ class AgentContextBuilderPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 10)]
-    public function testTenantContextIsolation(): void
+    public function test_tenant_context_isolation(): void
     {
         $this->forAll(
             // Jumlah sales orders untuk tenant A (0-5)
@@ -203,8 +200,8 @@ class AgentContextBuilderPropertyTest extends TestCase
             int $salesB,
             int $employeesB
         ) {
-            $tenantA = $this->createTenant(['name' => 'Tenant A ' . uniqid()]);
-            $tenantB = $this->createTenant(['name' => 'Tenant B ' . uniqid()]);
+            $tenantA = $this->createTenant(['name' => 'Tenant A '.uniqid()]);
+            $tenantB = $this->createTenant(['name' => 'Tenant B '.uniqid()]);
 
             // Seed data untuk tenant A
             $this->seedTenantData($tenantA->id, $salesA, $employeesA);
@@ -275,10 +272,10 @@ class AgentContextBuilderPropertyTest extends TestCase
     // Validates: Requirements 2.5, 9.1
     // =========================================================================
 
-    public function testTenantContextIsolationWithEmptyTenant(): void
+    public function test_tenant_context_isolation_with_empty_tenant(): void
     {
         $tenantWithData = $this->createTenant();
-        $emptyTenant    = $this->createTenant();
+        $emptyTenant = $this->createTenant();
 
         // Seed data hanya untuk tenantWithData
         $this->seedTenantData($tenantWithData->id, salesCount: 3, employeeCount: 5);
@@ -300,18 +297,18 @@ class AgentContextBuilderPropertyTest extends TestCase
     private function seedTenantData(int $tenantId, int $salesCount = 0, int $employeeCount = 0): void
     {
         // Buat user dummy untuk foreign key sales_orders.user_id
-        $user     = null;
+        $user = null;
         $customer = null;
 
         if ($salesCount > 0) {
-            $tenant   = \App\Models\Tenant::withoutGlobalScopes()->find($tenantId);
-            $user     = \App\Models\User::create([
-                'tenant_id'         => $tenantId,
-                'name'              => 'User ' . uniqid(),
-                'email'             => 'user-' . uniqid() . '@test.com',
-                'password'          => bcrypt('password'),
-                'role'              => 'staff',
-                'is_active'         => true,
+            $tenant = Tenant::withoutGlobalScopes()->find($tenantId);
+            $user = User::create([
+                'tenant_id' => $tenantId,
+                'name' => 'User '.uniqid(),
+                'email' => 'user-'.uniqid().'@test.com',
+                'password' => bcrypt('password'),
+                'role' => 'staff',
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]);
             $customer = $this->createCustomer($tenantId);
@@ -321,16 +318,16 @@ class AgentContextBuilderPropertyTest extends TestCase
         for ($i = 0; $i < $salesCount; $i++) {
             $total = rand(100000, 1000000);
             SalesOrder::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'customer_id' => $customer->id,
-                'user_id'     => $user->id,
-                'number'      => 'SO-TEST-' . uniqid(),
-                'status'      => 'confirmed',
-                'date'        => now()->startOfMonth()->addDays(rand(0, 10)),
-                'total'       => $total,
-                'subtotal'    => $total,
-                'discount'    => 0,
-                'tax'         => 0,
+                'user_id' => $user->id,
+                'number' => 'SO-TEST-'.uniqid(),
+                'status' => 'confirmed',
+                'date' => now()->startOfMonth()->addDays(rand(0, 10)),
+                'total' => $total,
+                'subtotal' => $total,
+                'discount' => 0,
+                'tax' => 0,
             ]);
         }
 
@@ -338,9 +335,9 @@ class AgentContextBuilderPropertyTest extends TestCase
         for ($i = 0; $i < $employeeCount; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenantId,
-                'name'      => 'Employee ' . uniqid(),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Employee '.uniqid(),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
     }

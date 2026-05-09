@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GdprDataExport extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'user_id',

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Project billing config per project
-        if (!Schema::hasTable('project_billing_configs')) {
+        if (! Schema::hasTable('project_billing_configs')) {
             Schema::create('project_billing_configs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -22,13 +22,13 @@ return new class extends Migration
                 $table->date('next_billing_date')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique('project_id');
             });
         }
 
         // Project milestones (for milestone billing)
-        if (!Schema::hasTable('project_milestones')) {
+        if (! Schema::hasTable('project_milestones')) {
             Schema::create('project_milestones', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -47,7 +47,7 @@ return new class extends Migration
         }
 
         // Project invoices (link project billing → invoice)
-        if (!Schema::hasTable('project_invoices')) {
+        if (! Schema::hasTable('project_invoices')) {
             Schema::create('project_invoices', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_id')->constrained()->cascadeOnDelete();
@@ -71,12 +71,12 @@ return new class extends Migration
 
         // Add billing_status to timesheets
         Schema::table('timesheets', function (Blueprint $table) {
-            if (!Schema::hasColumn('timesheets', 'billing_status')) {
+            if (! Schema::hasColumn('timesheets', 'billing_status')) {
                 $table->enum('billing_status', ['unbilled', 'billed'])->default('unbilled')->after('hourly_rate');
             }
-            if (!Schema::hasColumn('timesheets', 'project_invoice_id')) {
+            if (! Schema::hasColumn('timesheets', 'project_invoice_id')) {
                 $table->foreignId('project_invoice_id')->nullable()->after('billing_status')
-                      ->constrained('project_invoices')->nullOnDelete();
+                    ->constrained('project_invoices')->nullOnDelete();
             }
         });
     }

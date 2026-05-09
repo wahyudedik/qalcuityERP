@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExpiryReport extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -51,7 +50,8 @@ use HasFactory, BelongsToTenant;
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'EXP-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'EXP-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     // Calculate expiry rate
@@ -60,6 +60,7 @@ use HasFactory, BelongsToTenant;
         if ($this->total_batches_monitored <= 0) {
             return 0;
         }
+
         return round(($this->batches_expired / $this->total_batches_monitored) * 100, 2);
     }
 
@@ -69,6 +70,7 @@ use HasFactory, BelongsToTenant;
         if ($this->total_batches_monitored <= 0) {
             return 0;
         }
+
         return round(($this->batches_recalled / $this->total_batches_monitored) * 100, 2);
     }
 

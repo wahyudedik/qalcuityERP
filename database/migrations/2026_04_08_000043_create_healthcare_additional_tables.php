@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Queue Tickets (new)
-        if (!Schema::hasTable('queue_tickets')) {
+        if (! Schema::hasTable('queue_tickets')) {
             Schema::create('queue_tickets', function (Blueprint $table) {
                 $table->id();
                 $table->string('queue_number')->unique();
@@ -31,7 +32,7 @@ return new class extends Migration {
         }
 
         // Sterilization Cycles (new)
-        if (!Schema::hasTable('sterilization_cycles')) {
+        if (! Schema::hasTable('sterilization_cycles')) {
             Schema::create('sterilization_cycles', function (Blueprint $table) {
                 $table->id();
                 $table->string('cycle_number')->unique();
@@ -57,7 +58,7 @@ return new class extends Migration {
         }
 
         // Medical Waste (new)
-        if (!Schema::hasTable('medical_wastes')) {
+        if (! Schema::hasTable('medical_wastes')) {
             Schema::create('medical_wastes', function (Blueprint $table) {
                 $table->id();
                 $table->string('waste_code')->unique();
@@ -83,7 +84,7 @@ return new class extends Migration {
         }
 
         // HL7 Messages (new)
-        if (!Schema::hasTable('hl7_messages')) {
+        if (! Schema::hasTable('hl7_messages')) {
             Schema::create('hl7_messages', function (Blueprint $table) {
                 $table->id();
                 $table->string('message_id')->unique();
@@ -106,7 +107,7 @@ return new class extends Migration {
         }
 
         // Notification Rules (new)
-        if (!Schema::hasTable('notification_rules')) {
+        if (! Schema::hasTable('notification_rules')) {
             Schema::create('notification_rules', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -128,7 +129,7 @@ return new class extends Migration {
         }
 
         // Patient Messages (new)
-        if (!Schema::hasTable('patient_messages')) {
+        if (! Schema::hasTable('patient_messages')) {
             Schema::create('patient_messages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
@@ -148,7 +149,7 @@ return new class extends Migration {
         }
 
         // Lab Equipment (new)
-        if (!Schema::hasTable('lab_equipment')) {
+        if (! Schema::hasTable('lab_equipment')) {
             Schema::create('lab_equipment', function (Blueprint $table) {
                 $table->id();
                 $table->string('equipment_code')->unique();
@@ -174,7 +175,7 @@ return new class extends Migration {
         }
 
         // Health Education (new)
-        if (!Schema::hasTable('health_education')) {
+        if (! Schema::hasTable('health_education')) {
             Schema::create('health_education', function (Blueprint $table) {
                 $table->id();
                 $table->string('title');
@@ -196,7 +197,7 @@ return new class extends Migration {
         }
 
         // Backup Logs (new)
-        if (!Schema::hasTable('backup_logs')) {
+        if (! Schema::hasTable('backup_logs')) {
             Schema::create('backup_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('backup_type');

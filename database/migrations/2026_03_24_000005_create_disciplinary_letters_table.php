@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('disciplinary_letters')) {
+        if (! Schema::hasTable('disciplinary_letters')) {
             Schema::create('disciplinary_letters', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -29,7 +29,7 @@ return new class extends Migration
                 $table->string('source')->nullable();          // 'manual' | 'ai_anomaly'
                 $table->json('ai_context')->nullable();        // data anomali dari AI
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->foreign('employee_id')->references('id')->on('employees')->cascadeOnDelete();
                 $table->foreign('issued_by')->references('id')->on('users')->restrictOnDelete();

@@ -16,11 +16,11 @@ class ConstructionGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId       = $ctx->tenantId;
-        $warehouseId    = $ctx->warehouseId;
-        $supplierIds    = $ctx->supplierIds;
+        $tenantId = $ctx->tenantId;
+        $warehouseId = $ctx->warehouseId;
+        $supplierIds = $ctx->supplierIds;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // ── 1. Construction Projects (3 — planning, in_progress, completed) ──
         $projectIds = [];
@@ -31,14 +31,14 @@ class ConstructionGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ConstructionGenerator: failed to seed projects', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['projects'] = 0;
         }
 
         // ── 2. RAB — 1 per project ─────────────────────────────────────────
         try {
-            if (!empty($projectIds)) {
+            if (! empty($projectIds)) {
                 $rabCount = $this->seedRab($tenantId, $projectIds);
                 $recordsCreated += $rabCount;
                 $generatedData['rab'] = $rabCount;
@@ -51,7 +51,7 @@ class ConstructionGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ConstructionGenerator: failed to seed RAB', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['rab'] = 0;
         }
@@ -65,14 +65,14 @@ class ConstructionGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ConstructionGenerator: failed to seed materials', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['materials'] = 0;
         }
 
         // ── 4. Purchase Orders (5 — for construction materials) ────────────
         try {
-            if (!empty($materialIds)) {
+            if (! empty($materialIds)) {
                 $poCount = $this->seedPurchaseOrders($tenantId, $materialIds, $supplierIds);
                 $recordsCreated += $poCount;
                 $generatedData['purchase_orders'] = $poCount;
@@ -85,7 +85,7 @@ class ConstructionGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ConstructionGenerator: failed to seed purchase orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['purchase_orders'] = 0;
         }
@@ -98,14 +98,14 @@ class ConstructionGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ConstructionGenerator: failed to seed employees', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['employees'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -117,46 +117,47 @@ class ConstructionGenerator extends BaseIndustryGenerator
     {
         // projects requires user_id — resolve any user for this tenant
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId) {
+        if (! $userId) {
             $this->logWarning('ConstructionGenerator: no user found for tenant, skipping projects', [
                 'tenant_id' => $tenantId,
             ]);
+
             return [];
         }
 
         $projects = [
             [
-                'number'      => 'CON-PRJ-' . $tenantId . '-001',
-                'name'        => 'Pembangunan Gedung Kantor PT Maju Sejahtera',
+                'number' => 'CON-PRJ-'.$tenantId.'-001',
+                'name' => 'Pembangunan Gedung Kantor PT Maju Sejahtera',
                 'description' => 'Pembangunan gedung kantor 5 lantai dengan fasilitas lengkap di kawasan bisnis.',
-                'type'        => 'construction',
-                'status'      => 'planning',
-                'start_date'  => Carbon::now()->addDays(14)->format('Y-m-d'),
-                'end_date'    => Carbon::now()->addMonths(12)->format('Y-m-d'),
-                'budget'      => 4500000000,
-                'progress'    => 0,
+                'type' => 'construction',
+                'status' => 'planning',
+                'start_date' => Carbon::now()->addDays(14)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(12)->format('Y-m-d'),
+                'budget' => 4500000000,
+                'progress' => 0,
             ],
             [
-                'number'      => 'CON-PRJ-' . $tenantId . '-002',
-                'name'        => 'Renovasi Jembatan Desa Sukamaju',
+                'number' => 'CON-PRJ-'.$tenantId.'-002',
+                'name' => 'Renovasi Jembatan Desa Sukamaju',
                 'description' => 'Renovasi dan perkuatan struktur jembatan beton sepanjang 40 meter.',
-                'type'        => 'construction',
-                'status'      => 'active',
-                'start_date'  => Carbon::now()->subDays(60)->format('Y-m-d'),
-                'end_date'    => Carbon::now()->addMonths(4)->format('Y-m-d'),
-                'budget'      => 850000000,
-                'progress'    => 45,
+                'type' => 'construction',
+                'status' => 'active',
+                'start_date' => Carbon::now()->subDays(60)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(4)->format('Y-m-d'),
+                'budget' => 850000000,
+                'progress' => 45,
             ],
             [
-                'number'      => 'CON-PRJ-' . $tenantId . '-003',
-                'name'        => 'Pembangunan Perumahan Griya Asri Blok C',
+                'number' => 'CON-PRJ-'.$tenantId.'-003',
+                'name' => 'Pembangunan Perumahan Griya Asri Blok C',
                 'description' => 'Pembangunan 20 unit rumah tipe 36/72 di kawasan perumahan Griya Asri.',
-                'type'        => 'construction',
-                'status'      => 'completed',
-                'start_date'  => Carbon::now()->subMonths(8)->format('Y-m-d'),
-                'end_date'    => Carbon::now()->subDays(15)->format('Y-m-d'),
-                'budget'      => 2200000000,
-                'progress'    => 100,
+                'type' => 'construction',
+                'status' => 'completed',
+                'start_date' => Carbon::now()->subMonths(8)->format('Y-m-d'),
+                'end_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+                'budget' => 2200000000,
+                'progress' => 100,
             ],
         ];
 
@@ -170,24 +171,25 @@ class ConstructionGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $projectIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('projects')->insertGetId([
-                'tenant_id'   => $tenantId,
-                'user_id'     => $userId,
-                'number'      => $p['number'],
-                'name'        => $p['name'],
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'number' => $p['number'],
+                'name' => $p['name'],
                 'description' => $p['description'],
-                'type'        => $p['type'],
-                'status'      => $p['status'],
-                'start_date'  => $p['start_date'],
-                'end_date'    => $p['end_date'],
-                'budget'      => $p['budget'],
+                'type' => $p['type'],
+                'status' => $p['status'],
+                'start_date' => $p['start_date'],
+                'end_date' => $p['end_date'],
+                'budget' => $p['budget'],
                 'actual_cost' => 0,
-                'progress'    => $p['progress'],
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'progress' => $p['progress'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $projectIds[] = (int) $id;
@@ -204,27 +206,27 @@ class ConstructionGenerator extends BaseIndustryGenerator
     {
         $rabData = [
             [
-                'number'      => 'RAB-CON-0001',
-                'title'       => 'RAB Pembangunan Gedung Kantor PT Maju Sejahtera',
+                'number' => 'RAB-CON-0001',
+                'title' => 'RAB Pembangunan Gedung Kantor PT Maju Sejahtera',
                 'description' => 'Rencana anggaran biaya lengkap untuk pembangunan gedung kantor 5 lantai.',
-                'status'      => 'approved',
-                'total_cost'  => 4500000000,
+                'status' => 'approved',
+                'total_cost' => 4500000000,
                 'project_idx' => 0,
             ],
             [
-                'number'      => 'RAB-CON-0002',
-                'title'       => 'RAB Renovasi Jembatan Desa Sukamaju',
+                'number' => 'RAB-CON-0002',
+                'title' => 'RAB Renovasi Jembatan Desa Sukamaju',
                 'description' => 'Rencana anggaran biaya renovasi dan perkuatan struktur jembatan.',
-                'status'      => 'approved',
-                'total_cost'  => 850000000,
+                'status' => 'approved',
+                'total_cost' => 850000000,
                 'project_idx' => 1,
             ],
             [
-                'number'      => 'RAB-CON-0003',
-                'title'       => 'RAB Pembangunan Perumahan Griya Asri Blok C',
+                'number' => 'RAB-CON-0003',
+                'title' => 'RAB Pembangunan Perumahan Griya Asri Blok C',
                 'description' => 'Rencana anggaran biaya pembangunan 20 unit rumah tipe 36/72.',
-                'status'      => 'approved',
-                'total_cost'  => 2200000000,
+                'status' => 'approved',
+                'total_cost' => 2200000000,
                 'project_idx' => 2,
             ],
         ];
@@ -244,15 +246,15 @@ class ConstructionGenerator extends BaseIndustryGenerator
             }
 
             DB::table('project_budgets')->insert([
-                'tenant_id'   => $tenantId,
-                'project_id'  => $projectId,
-                'number'      => $rab['number'],
-                'title'       => $rab['title'],
+                'tenant_id' => $tenantId,
+                'project_id' => $projectId,
+                'number' => $rab['number'],
+                'title' => $rab['title'],
                 'description' => $rab['description'],
-                'status'      => $rab['status'],
-                'total_cost'  => $rab['total_cost'],
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'status' => $rab['status'],
+                'total_cost' => $rab['total_cost'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -291,7 +293,7 @@ class ConstructionGenerator extends BaseIndustryGenerator
         ];
 
         $materialIds = [];
-        $stockRows   = [];
+        $stockRows = [];
 
         foreach ($materials as $m) {
             $existing = DB::table('products')
@@ -301,19 +303,20 @@ class ConstructionGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $materialIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $m['name'],
-                'sku'        => $m['sku'],
-                'category'   => 'construction_material',
-                'unit'       => $m['unit'],
-                'price_buy'  => $m['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $m['name'],
+                'sku' => $m['sku'],
+                'category' => 'construction_material',
+                'unit' => $m['unit'],
+                'price_buy' => $m['price_buy'],
                 'price_sell' => $m['price_sell'],
-                'stock_min'  => 10,
-                'is_active'  => true,
+                'stock_min' => 10,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -321,15 +324,15 @@ class ConstructionGenerator extends BaseIndustryGenerator
             $materialIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $m['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $m['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -346,63 +349,65 @@ class ConstructionGenerator extends BaseIndustryGenerator
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
         $warehouseId = DB::table('warehouses')->where('tenant_id', $tenantId)->where('is_active', true)->value('id');
 
-        if (!$userId || !$warehouseId) {
+        if (! $userId || ! $warehouseId) {
             $this->logWarning('ConstructionGenerator: missing user or warehouse for POs', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
-        $supplierId = !empty($supplierIds) ? $supplierIds[0] : null;
-        if (!$supplierId) {
+        $supplierId = ! empty($supplierIds) ? $supplierIds[0] : null;
+        if (! $supplierId) {
             $this->logWarning('ConstructionGenerator: no suppliers available for POs', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $poList = [
             [
-                'number'  => 'CON-PO-' . $tenantId . '-001',
-                'status'  => 'received',
-                'notes'   => 'Pembelian semen dan pasir untuk pondasi gedung kantor.',
-                'items'   => [
+                'number' => 'CON-PO-'.$tenantId.'-001',
+                'status' => 'received',
+                'notes' => 'Pembelian semen dan pasir untuk pondasi gedung kantor.',
+                'items' => [
                     ['mat_idx' => 0, 'qty' => 200],
                     ['mat_idx' => 3, 'qty' => 40],
                 ],
             ],
             [
-                'number'  => 'CON-PO-' . $tenantId . '-002',
-                'status'  => 'received',
-                'notes'   => 'Pembelian besi beton untuk struktur kolom dan balok.',
-                'items'   => [
+                'number' => 'CON-PO-'.$tenantId.'-002',
+                'status' => 'received',
+                'notes' => 'Pembelian besi beton untuk struktur kolom dan balok.',
+                'items' => [
                     ['mat_idx' => 1, 'qty' => 150],
                     ['mat_idx' => 2, 'qty' => 100],
                 ],
             ],
             [
-                'number'  => 'CON-PO-' . $tenantId . '-003',
-                'status'  => 'partial',
-                'notes'   => 'Pembelian bata merah dan material dinding.',
-                'items'   => [
+                'number' => 'CON-PO-'.$tenantId.'-003',
+                'status' => 'partial',
+                'notes' => 'Pembelian bata merah dan material dinding.',
+                'items' => [
                     ['mat_idx' => 5, 'qty' => 5000],
                     ['mat_idx' => 19 % count($materialIds), 'qty' => 100],
                 ],
             ],
             [
-                'number'  => 'CON-PO-' . $tenantId . '-004',
-                'status'  => 'sent',
-                'notes'   => 'Pembelian material finishing: keramik dan cat.',
-                'items'   => [
+                'number' => 'CON-PO-'.$tenantId.'-004',
+                'status' => 'sent',
+                'notes' => 'Pembelian material finishing: keramik dan cat.',
+                'items' => [
                     ['mat_idx' => 8 % count($materialIds), 'qty' => 100],
                     ['mat_idx' => 7 % count($materialIds), 'qty' => 30],
                 ],
             ],
             [
-                'number'  => 'CON-PO-' . $tenantId . '-005',
-                'status'  => 'draft',
-                'notes'   => 'Pembelian material MEP: pipa dan kabel listrik.',
-                'items'   => [
+                'number' => 'CON-PO-'.$tenantId.'-005',
+                'status' => 'draft',
+                'notes' => 'Pembelian material MEP: pipa dan kabel listrik.',
+                'items' => [
                     ['mat_idx' => 9 % count($materialIds), 'qty' => 40],
                     ['mat_idx' => 10 % count($materialIds), 'qty' => 20],
                 ],
@@ -422,27 +427,27 @@ class ConstructionGenerator extends BaseIndustryGenerator
             }
 
             $subtotal = 0;
-            $items    = [];
+            $items = [];
 
             foreach ($po['items'] as $item) {
-                $matIdx    = $item['mat_idx'] % count($materialIds);
+                $matIdx = $item['mat_idx'] % count($materialIds);
                 $productId = $materialIds[$matIdx];
-                $product   = DB::table('products')->where('id', $productId)->first();
-                if (!$product) {
+                $product = DB::table('products')->where('id', $productId)->first();
+                if (! $product) {
                     continue;
                 }
-                $price    = (float) $product->price_buy;
-                $total    = $item['qty'] * $price;
+                $price = (float) $product->price_buy;
+                $total = $item['qty'] * $price;
                 $subtotal += $total;
 
                 $items[] = [
-                    'product_id'        => $productId,
-                    'quantity_ordered'  => $item['qty'],
+                    'product_id' => $productId,
+                    'quantity_ordered' => $item['qty'],
                     'quantity_received' => 0,
-                    'price'             => $price,
-                    'total'             => $total,
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
+                    'price' => $price,
+                    'total' => $total,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -451,21 +456,21 @@ class ConstructionGenerator extends BaseIndustryGenerator
             }
 
             $poId = DB::table('purchase_orders')->insertGetId([
-                'tenant_id'     => $tenantId,
-                'supplier_id'   => $supplierIds[$idx % count($supplierIds)],
-                'user_id'       => $userId,
-                'warehouse_id'  => $warehouseId,
-                'number'        => $po['number'],
-                'status'        => $po['status'],
-                'date'          => Carbon::now()->subDays(rand(3, 45))->format('Y-m-d'),
+                'tenant_id' => $tenantId,
+                'supplier_id' => $supplierIds[$idx % count($supplierIds)],
+                'user_id' => $userId,
+                'warehouse_id' => $warehouseId,
+                'number' => $po['number'],
+                'status' => $po['status'],
+                'date' => Carbon::now()->subDays(rand(3, 45))->format('Y-m-d'),
                 'expected_date' => Carbon::now()->addDays(14)->format('Y-m-d'),
-                'subtotal'      => $subtotal,
-                'discount'      => 0,
-                'tax'           => 0,
-                'total'         => $subtotal,
-                'notes'         => $po['notes'],
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $subtotal,
+                'notes' => $po['notes'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($items as &$item) {
@@ -489,58 +494,58 @@ class ConstructionGenerator extends BaseIndustryGenerator
         $employees = [
             [
                 'employee_id' => 'CON-EMP-001',
-                'name'        => 'Bambang Supriyadi',
-                'email'       => 'bambang.supriyadi@demo-con.local',
-                'phone'       => '0812-4001-5001',
-                'position'    => 'Mandor',
-                'department'  => 'Konstruksi',
-                'join_date'   => Carbon::now()->subYears(5)->format('Y-m-d'),
-                'salary'      => 6500000,
-                'status'      => 'active',
+                'name' => 'Bambang Supriyadi',
+                'email' => 'bambang.supriyadi@demo-con.local',
+                'phone' => '0812-4001-5001',
+                'position' => 'Mandor',
+                'department' => 'Konstruksi',
+                'join_date' => Carbon::now()->subYears(5)->format('Y-m-d'),
+                'salary' => 6500000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'CON-EMP-002',
-                'name'        => 'Agus Setiawan',
-                'email'       => 'agus.setiawan@demo-con.local',
-                'phone'       => '0813-4002-6002',
-                'position'    => 'Tukang Batu',
-                'department'  => 'Konstruksi',
-                'join_date'   => Carbon::now()->subYears(3)->format('Y-m-d'),
-                'salary'      => 4500000,
-                'status'      => 'active',
+                'name' => 'Agus Setiawan',
+                'email' => 'agus.setiawan@demo-con.local',
+                'phone' => '0813-4002-6002',
+                'position' => 'Tukang Batu',
+                'department' => 'Konstruksi',
+                'join_date' => Carbon::now()->subYears(3)->format('Y-m-d'),
+                'salary' => 4500000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'CON-EMP-003',
-                'name'        => 'Heri Santoso',
-                'email'       => 'heri.santoso@demo-con.local',
-                'phone'       => '0814-4003-7003',
-                'position'    => 'Tukang Kayu',
-                'department'  => 'Konstruksi',
-                'join_date'   => Carbon::now()->subYears(2)->format('Y-m-d'),
-                'salary'      => 4500000,
-                'status'      => 'active',
+                'name' => 'Heri Santoso',
+                'email' => 'heri.santoso@demo-con.local',
+                'phone' => '0814-4003-7003',
+                'position' => 'Tukang Kayu',
+                'department' => 'Konstruksi',
+                'join_date' => Carbon::now()->subYears(2)->format('Y-m-d'),
+                'salary' => 4500000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'CON-EMP-004',
-                'name'        => 'Ir. Dedi Kurniawan',
-                'email'       => 'dedi.kurniawan@demo-con.local',
-                'phone'       => '0815-4004-8004',
-                'position'    => 'Pengawas Lapangan',
-                'department'  => 'Konstruksi',
-                'join_date'   => Carbon::now()->subYears(4)->format('Y-m-d'),
-                'salary'      => 8000000,
-                'status'      => 'active',
+                'name' => 'Ir. Dedi Kurniawan',
+                'email' => 'dedi.kurniawan@demo-con.local',
+                'phone' => '0815-4004-8004',
+                'position' => 'Pengawas Lapangan',
+                'department' => 'Konstruksi',
+                'join_date' => Carbon::now()->subYears(4)->format('Y-m-d'),
+                'salary' => 8000000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'CON-EMP-005',
-                'name'        => 'Siti Nurhaliza',
-                'email'       => 'siti.nurhaliza@demo-con.local',
-                'phone'       => '0816-4005-9005',
-                'position'    => 'Pengawas Mutu',
-                'department'  => 'Quality Control',
-                'join_date'   => Carbon::now()->subYears(2)->format('Y-m-d'),
-                'salary'      => 7500000,
-                'status'      => 'active',
+                'name' => 'Siti Nurhaliza',
+                'email' => 'siti.nurhaliza@demo-con.local',
+                'phone' => '0816-4005-9005',
+                'position' => 'Pengawas Mutu',
+                'department' => 'Quality Control',
+                'join_date' => Carbon::now()->subYears(2)->format('Y-m-d'),
+                'salary' => 7500000,
+                'status' => 'active',
             ],
         ];
 
@@ -557,18 +562,18 @@ class ConstructionGenerator extends BaseIndustryGenerator
             }
 
             DB::table('employees')->insert([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'employee_id' => $emp['employee_id'],
-                'name'        => $emp['name'],
-                'email'       => $emp['email'],
-                'phone'       => $emp['phone'],
-                'position'    => $emp['position'],
-                'department'  => $emp['department'],
-                'join_date'   => $emp['join_date'],
-                'salary'      => $emp['salary'],
-                'status'      => $emp['status'],
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'name' => $emp['name'],
+                'email' => $emp['email'],
+                'phone' => $emp['phone'],
+                'position' => $emp['position'],
+                'department' => $emp['department'],
+                'join_date' => $emp['join_date'],
+                'salary' => $emp['salary'],
+                'status' => $emp['status'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;

@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -16,14 +16,13 @@ class CustomFieldService
     /**
      * Ambil semua field aktif untuk modul tertentu.
      */
-    public function getFields(int $tenantId, string $module): \Illuminate\Support\Collection
+    public function getFields(int $tenantId, string $module): Collection
     {
-        return Cache::remember("cf_{$tenantId}_{$module}", 60, fn() =>
-            CustomField::where('tenant_id', $tenantId)
-                ->where('module', $module)
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get()
+        return Cache::remember("cf_{$tenantId}_{$module}", 60, fn () => CustomField::where('tenant_id', $tenantId)
+            ->where('module', $module)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
         );
     }
 
@@ -38,8 +37,8 @@ class CustomFieldService
             ->where('model_id', $modelId)
             ->with('customField')
             ->get()
-            ->keyBy(fn($v) => $v->customField->key)
-            ->map(fn($v) => $v->value)
+            ->keyBy(fn ($v) => $v->customField->key)
+            ->map(fn ($v) => $v->value)
             ->toArray();
     }
 
@@ -49,24 +48,28 @@ class CustomFieldService
      */
     public function saveValues(int $tenantId, string $modelClass, int $modelId, array $customData): void
     {
-        if (empty($customData)) return;
+        if (empty($customData)) {
+            return;
+        }
 
         $module = $this->modelClassToModule($modelClass);
         $fields = $this->getFields($tenantId, $module)->keyBy('key');
 
         foreach ($customData as $key => $value) {
             $field = $fields->get($key);
-            if (!$field) continue;
+            if (! $field) {
+                continue;
+            }
 
             CustomFieldValue::updateOrCreate(
                 [
                     'custom_field_id' => $field->id,
-                    'model_type'      => $modelClass,
-                    'model_id'        => $modelId,
+                    'model_type' => $modelClass,
+                    'model_id' => $modelId,
                 ],
                 [
                     'tenant_id' => $tenantId,
-                    'value'     => is_array($value) ? implode(',', $value) : (string) $value,
+                    'value' => is_array($value) ? implode(',', $value) : (string) $value,
                 ]
             );
         }
@@ -102,15 +105,15 @@ class CustomFieldService
     private function modelClassToModule(string $modelClass): string
     {
         return match ($modelClass) {
-            'App\Models\Invoice'       => 'invoice',
-            'App\Models\Product'       => 'product',
-            'App\Models\Customer'      => 'customer',
-            'App\Models\Supplier'      => 'supplier',
-            'App\Models\Employee'      => 'employee',
-            'App\Models\SalesOrder'    => 'sales_order',
+            'App\Models\Invoice' => 'invoice',
+            'App\Models\Product' => 'product',
+            'App\Models\Customer' => 'customer',
+            'App\Models\Supplier' => 'supplier',
+            'App\Models\Employee' => 'employee',
+            'App\Models\SalesOrder' => 'sales_order',
             'App\Models\PurchaseOrder' => 'purchase_order',
-            'App\Models\Expense'       => 'expense',
-            default                    => strtolower(class_basename($modelClass)),
+            'App\Models\Expense' => 'expense',
+            default => strtolower(class_basename($modelClass)),
         };
     }
 }

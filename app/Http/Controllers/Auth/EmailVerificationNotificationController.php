@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class EmailVerificationNotificationController extends Controller
 {
@@ -20,7 +21,8 @@ class EmailVerificationNotificationController extends Controller
         try {
             $request->user()->sendEmailVerificationNotification();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Verification email failed: ' . $e->getMessage());
+            Log::warning('Verification email failed: '.$e->getMessage());
+
             return back()->with('status', 'verification-link-failed');
         }
 

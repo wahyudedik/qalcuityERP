@@ -5,11 +5,9 @@ namespace App\Services\ERP;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use App\Models\Warehouse;
 use Illuminate\Support\Str;
-use App\Services\ERP\ReceivableTools;
 
 class PurchasingTools
 {
@@ -19,39 +17,39 @@ class PurchasingTools
     {
         return [
             [
-                'name'        => 'create_purchase_order',
+                'name' => 'create_purchase_order',
                 'description' => 'Buat Purchase Order (PO) ke supplier untuk produk tertentu.',
-                'parameters'  => [
-                    'type'       => 'object',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'supplier_name' => ['type' => 'string', 'description' => 'Nama supplier'],
-                        'warehouse'     => ['type' => 'string', 'description' => 'Nama gudang tujuan'],
-                        'items'         => [
-                            'type'  => 'array',
+                        'warehouse' => ['type' => 'string', 'description' => 'Nama gudang tujuan'],
+                        'items' => [
+                            'type' => 'array',
                             'items' => [
-                                'type'       => 'object',
+                                'type' => 'object',
                                 'properties' => [
                                     'product_name' => ['type' => 'string'],
-                                    'quantity'     => ['type' => 'integer'],
-                                    'price'        => ['type' => 'number'],
+                                    'quantity' => ['type' => 'integer'],
+                                    'price' => ['type' => 'number'],
                                 ],
                                 'required' => ['product_name', 'quantity'],
                             ],
                             'description' => 'Daftar produk yang dipesan',
                         ],
-                        'notes'         => ['type' => 'string', 'description' => 'Catatan PO'],
+                        'notes' => ['type' => 'string', 'description' => 'Catatan PO'],
                         'expected_date' => ['type' => 'string', 'description' => 'Tanggal estimasi terima (YYYY-MM-DD)'],
-                        'payment_type'  => ['type' => 'string', 'description' => 'cash atau credit (tempo). Default: cash'],
-                        'due_days'      => ['type' => 'integer', 'description' => 'Jatuh tempo pembayaran dalam hari (jika payment_type=credit)'],
+                        'payment_type' => ['type' => 'string', 'description' => 'cash atau credit (tempo). Default: cash'],
+                        'due_days' => ['type' => 'integer', 'description' => 'Jatuh tempo pembayaran dalam hari (jika payment_type=credit)'],
                     ],
                     'required' => ['supplier_name', 'warehouse', 'items'],
                 ],
             ],
             [
-                'name'        => 'get_supplier_info',
+                'name' => 'get_supplier_info',
                 'description' => 'Cari informasi supplier.',
-                'parameters'  => [
-                    'type'       => 'object',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'supplier_name' => ['type' => 'string', 'description' => 'Nama supplier'],
                     ],
@@ -59,17 +57,17 @@ class PurchasingTools
                 ],
             ],
             [
-                'name'        => 'create_supplier',
+                'name' => 'create_supplier',
                 'description' => 'Tambah supplier/pemasok baru. Gunakan untuk: '
-                    . '"tambah supplier PT Sumber Jaya", '
-                    . '"daftarkan pemasok Toko Bahan email toko@email.com", '
-                    . '"buat kontak supplier baru nomor 08123".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'"tambah supplier PT Sumber Jaya", '
+                    .'"daftarkan pemasok Toko Bahan email toko@email.com", '
+                    .'"buat kontak supplier baru nomor 08123".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
-                        'name'    => ['type' => 'string', 'description' => 'Nama supplier'],
-                        'phone'   => ['type' => 'string', 'description' => 'Nomor telepon (opsional)'],
-                        'email'   => ['type' => 'string', 'description' => 'Alamat email (opsional)'],
+                        'name' => ['type' => 'string', 'description' => 'Nama supplier'],
+                        'phone' => ['type' => 'string', 'description' => 'Nomor telepon (opsional)'],
+                        'email' => ['type' => 'string', 'description' => 'Alamat email (opsional)'],
                         'company' => ['type' => 'string', 'description' => 'Nama perusahaan (opsional)'],
                         'address' => ['type' => 'string', 'description' => 'Alamat (opsional)'],
                     ],
@@ -77,41 +75,41 @@ class PurchasingTools
                 ],
             ],
             [
-                'name'        => 'update_supplier',
+                'name' => 'update_supplier',
                 'description' => 'Ubah data supplier yang sudah ada. Gunakan untuk: '
-                    . '"ubah nomor supplier PT Maju", "update email pemasok Toko Bahan", "nonaktifkan supplier".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'"ubah nomor supplier PT Maju", "update email pemasok Toko Bahan", "nonaktifkan supplier".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'supplier_name' => ['type' => 'string', 'description' => 'Nama supplier yang ingin diubah'],
-                        'new_name'      => ['type' => 'string', 'description' => 'Nama baru (opsional)'],
-                        'phone'         => ['type' => 'string', 'description' => 'Nomor baru (opsional)'],
-                        'email'         => ['type' => 'string', 'description' => 'Email baru (opsional)'],
-                        'company'       => ['type' => 'string', 'description' => 'Perusahaan baru (opsional)'],
-                        'address'       => ['type' => 'string', 'description' => 'Alamat baru (opsional)'],
-                        'is_active'     => ['type' => 'boolean', 'description' => 'true = aktif, false = nonaktif'],
+                        'new_name' => ['type' => 'string', 'description' => 'Nama baru (opsional)'],
+                        'phone' => ['type' => 'string', 'description' => 'Nomor baru (opsional)'],
+                        'email' => ['type' => 'string', 'description' => 'Email baru (opsional)'],
+                        'company' => ['type' => 'string', 'description' => 'Perusahaan baru (opsional)'],
+                        'address' => ['type' => 'string', 'description' => 'Alamat baru (opsional)'],
+                        'is_active' => ['type' => 'boolean', 'description' => 'true = aktif, false = nonaktif'],
                     ],
                     'required' => ['supplier_name'],
                 ],
             ],
             [
-                'name'        => 'list_suppliers',
+                'name' => 'list_suppliers',
                 'description' => 'Tampilkan daftar supplier. Gunakan untuk: "daftar supplier", "siapa saja pemasok kita", "cari supplier Maju".',
-                'parameters'  => [
-                    'type'       => 'object',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'search' => ['type' => 'string', 'description' => 'Kata kunci nama/perusahaan (opsional)'],
                     ],
                 ],
             ],
             [
-                'name'        => 'auto_reorder',
+                'name' => 'auto_reorder',
                 'description' => 'Buat PO otomatis untuk semua produk yang stoknya di bawah minimum.',
-                'parameters'  => [
-                    'type'       => 'object',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'supplier_name' => ['type' => 'string', 'description' => 'Nama supplier untuk PO'],
-                        'warehouse'     => ['type' => 'string', 'description' => 'Nama gudang'],
+                        'warehouse' => ['type' => 'string', 'description' => 'Nama gudang'],
                     ],
                     'required' => ['supplier_name', 'warehouse'],
                 ],
@@ -131,18 +129,18 @@ class PurchasingTools
 
         $supplier = Supplier::create([
             'tenant_id' => $this->tenantId,
-            'name'      => $args['name'],
-            'phone'     => $args['phone'] ?? null,
-            'email'     => $args['email'] ?? null,
-            'company'   => $args['company'] ?? null,
-            'address'   => $args['address'] ?? null,
+            'name' => $args['name'],
+            'phone' => $args['phone'] ?? null,
+            'email' => $args['email'] ?? null,
+            'company' => $args['company'] ?? null,
+            'address' => $args['address'] ?? null,
             'is_active' => true,
         ]);
 
         return [
-            'status'  => 'success',
-            'message' => "Supplier **{$supplier->name}** berhasil ditambahkan." .
-                ($supplier->phone ? " Telepon: {$supplier->phone}." : '') .
+            'status' => 'success',
+            'message' => "Supplier **{$supplier->name}** berhasil ditambahkan.".
+                ($supplier->phone ? " Telepon: {$supplier->phone}." : '').
                 ($supplier->email ? " Email: {$supplier->email}." : ''),
         ];
     }
@@ -153,23 +151,23 @@ class PurchasingTools
             ->where('name', 'like', "%{$args['supplier_name']}%")
             ->first();
 
-        if (!$supplier) {
+        if (! $supplier) {
             return ['status' => 'not_found', 'message' => "Supplier '{$args['supplier_name']}' tidak ditemukan."];
         }
 
         $updates = array_filter([
-            'name'      => $args['new_name'] ?? null,
-            'phone'     => $args['phone'] ?? null,
-            'email'     => $args['email'] ?? null,
-            'company'   => $args['company'] ?? null,
-            'address'   => $args['address'] ?? null,
+            'name' => $args['new_name'] ?? null,
+            'phone' => $args['phone'] ?? null,
+            'email' => $args['email'] ?? null,
+            'company' => $args['company'] ?? null,
+            'address' => $args['address'] ?? null,
             'is_active' => $args['is_active'] ?? null,
-        ], fn($v) => $v !== null);
+        ], fn ($v) => $v !== null);
 
         $supplier->update($updates);
 
         return [
-            'status'  => 'success',
+            'status' => 'success',
             'message' => "Data supplier **{$supplier->name}** berhasil diperbarui.",
         ];
     }
@@ -178,9 +176,9 @@ class PurchasingTools
     {
         $query = Supplier::where('tenant_id', $this->tenantId)->where('is_active', true);
 
-        if (!empty($args['search'])) {
+        if (! empty($args['search'])) {
             $s = $args['search'];
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
         }
 
         $suppliers = $query->orderBy('name')->limit(30)->get();
@@ -191,11 +189,11 @@ class PurchasingTools
 
         return [
             'status' => 'success',
-            'data'   => $suppliers->map(fn($s) => [
-                'nama'       => $s->name,
+            'data' => $suppliers->map(fn ($s) => [
+                'nama' => $s->name,
                 'perusahaan' => $s->company ?? '-',
-                'telepon'    => $s->phone ?? '-',
-                'email'      => $s->email ?? '-',
+                'telepon' => $s->phone ?? '-',
+                'email' => $s->email ?? '-',
             ])->toArray(),
         ];
     }
@@ -206,7 +204,7 @@ class PurchasingTools
             ->where('name', 'like', "%{$args['supplier_name']}%")
             ->first();
 
-        if (!$supplier) {
+        if (! $supplier) {
             return ['status' => 'error', 'message' => "Supplier '{$args['supplier_name']}' tidak ditemukan."];
         }
 
@@ -214,7 +212,7 @@ class PurchasingTools
             ->where('name', 'like', "%{$args['warehouse']}%")
             ->first();
 
-        if (!$warehouse) {
+        if (! $warehouse) {
             return ['status' => 'error', 'message' => "Gudang '{$args['warehouse']}' tidak ditemukan."];
         }
 
@@ -223,11 +221,11 @@ class PurchasingTools
 
         foreach ($args['items'] as $item) {
             $product = Product::where('tenant_id', $this->tenantId)
-                ->where(fn($q) => $q->where('name', 'like', "%{$item['product_name']}%")
+                ->where(fn ($q) => $q->where('name', 'like', "%{$item['product_name']}%")
                     ->orWhere('sku', $item['product_name']))
                 ->first();
 
-            if (!$product) {
+            if (! $product) {
                 return ['status' => 'error', 'message' => "Produk '{$item['product_name']}' tidak ditemukan."];
             }
 
@@ -236,37 +234,37 @@ class PurchasingTools
             $subtotal += $total;
 
             $itemsData[] = [
-                'product_id'        => $product->id,
-                'quantity_ordered'  => $item['quantity'],
+                'product_id' => $product->id,
+                'quantity_ordered' => $item['quantity'],
                 'quantity_received' => 0,
-                'price'             => $price,
-                'total'             => $total,
+                'price' => $price,
+                'total' => $total,
             ];
         }
 
         $po = PurchaseOrder::create([
-            'tenant_id'     => $this->tenantId,
-            'supplier_id'   => $supplier->id,
-            'user_id'       => $this->userId,
-            'warehouse_id'  => $warehouse->id,
-            'number'        => 'PO-' . strtoupper(Str::random(8)),
-            'status'        => 'draft',
-            'date'          => today(),
+            'tenant_id' => $this->tenantId,
+            'supplier_id' => $supplier->id,
+            'user_id' => $this->userId,
+            'warehouse_id' => $warehouse->id,
+            'number' => 'PO-'.strtoupper(Str::random(8)),
+            'status' => 'draft',
+            'date' => today(),
             'expected_date' => $args['expected_date'] ?? null,
-            'subtotal'      => $subtotal,
-            'total'         => $subtotal,
-            'payment_type'  => $args['payment_type'] ?? 'cash',
-            'due_date'      => ($args['payment_type'] ?? 'cash') === 'credit' && !empty($args['due_days'])
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
+            'payment_type' => $args['payment_type'] ?? 'cash',
+            'due_date' => ($args['payment_type'] ?? 'cash') === 'credit' && ! empty($args['due_days'])
                 ? today()->addDays($args['due_days'])->toDateString()
                 : null,
-            'notes'         => $args['notes'] ?? null,
+            'notes' => $args['notes'] ?? null,
         ]);
 
         $po->items()->createMany($itemsData);
 
         // Jika kredit, buat Payable otomatis
         $payableMsg = '';
-        if (($args['payment_type'] ?? 'cash') === 'credit' && !empty($args['due_days']) && $po->due_date) {
+        if (($args['payment_type'] ?? 'cash') === 'credit' && ! empty($args['due_days']) && $po->due_date) {
             $payable = ReceivableTools::createPayableFromOrder(
                 $this->tenantId,
                 $po->id,
@@ -280,8 +278,8 @@ class PurchasingTools
         $paymentLabel = ($args['payment_type'] ?? 'cash') === 'credit' ? ' (Tempo)' : ' (Cash)';
 
         return [
-            'status'    => 'success',
-            'message'   => "PO **{$po->number}** berhasil dibuat untuk **{$supplier->name}**. Total: Rp " . number_format($subtotal, 0, ',', '.') . $paymentLabel . $payableMsg,
+            'status' => 'success',
+            'message' => "PO **{$po->number}** berhasil dibuat untuk **{$supplier->name}**. Total: Rp ".number_format($subtotal, 0, ',', '.').$paymentLabel.$payableMsg,
             'po_number' => $po->number,
         ];
     }
@@ -292,21 +290,21 @@ class PurchasingTools
             ->where('name', 'like', "%{$args['supplier_name']}%")
             ->first();
 
-        if (!$supplier) {
+        if (! $supplier) {
             return ['status' => 'not_found', 'message' => "Supplier '{$args['supplier_name']}' tidak ditemukan."];
         }
 
-        $totalPO    = PurchaseOrder::where('supplier_id', $supplier->id)->count();
+        $totalPO = PurchaseOrder::where('supplier_id', $supplier->id)->count();
         $totalSpend = PurchaseOrder::where('supplier_id', $supplier->id)->whereNotIn('status', ['cancelled'])->sum('total');
 
         return [
             'status' => 'success',
-            'data'   => [
-                'name'        => $supplier->name,
-                'email'       => $supplier->email,
-                'phone'       => $supplier->phone,
-                'total_po'    => $totalPO,
-                'total_spend' => 'Rp ' . number_format($totalSpend, 0, ',', '.'),
+            'data' => [
+                'name' => $supplier->name,
+                'email' => $supplier->email,
+                'phone' => $supplier->phone,
+                'total_po' => $totalPO,
+                'total_spend' => 'Rp '.number_format($totalSpend, 0, ',', '.'),
             ],
         ];
     }
@@ -314,8 +312,8 @@ class PurchasingTools
     public function autoReorder(array $args): array
     {
         $lowStocks = ProductStock::with(['product', 'warehouse'])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $this->tenantId))
-            ->whereHas('warehouse', fn($q) => $q->where('name', 'like', "%{$args['warehouse']}%"))
+            ->whereHas('product', fn ($q) => $q->where('tenant_id', $this->tenantId))
+            ->whereHas('warehouse', fn ($q) => $q->where('name', 'like', "%{$args['warehouse']}%"))
             ->whereColumn('quantity', '<=', 'products.stock_min')
             ->join('products', 'product_stocks.product_id', '=', 'products.id')
             ->select('product_stocks.*')
@@ -325,16 +323,16 @@ class PurchasingTools
             return ['status' => 'success', 'message' => 'Tidak ada produk yang perlu di-reorder.'];
         }
 
-        $items = $lowStocks->map(fn($s) => [
+        $items = $lowStocks->map(fn ($s) => [
             'product_name' => $s->product->name,
-            'quantity'     => max(1, $s->product->stock_min * 2 - $s->quantity),
+            'quantity' => max(1, $s->product->stock_min * 2 - $s->quantity),
         ])->toArray();
 
         return $this->createPurchaseOrder([
             'supplier_name' => $args['supplier_name'],
-            'warehouse'     => $args['warehouse'],
-            'items'         => $items,
-            'notes'         => 'Auto-reorder dari sistem',
+            'warehouse' => $args['warehouse'],
+            'items' => $items,
+            'notes' => 'Auto-reorder dari sistem',
         ]);
     }
 }

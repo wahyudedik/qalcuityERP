@@ -3,24 +3,24 @@
 namespace App\Http\Controllers\Fisheries;
 
 use App\Http\Controllers\Controller;
-use App\Models\ColdStorageUnit;
-use App\Models\TemperatureLog;
-use App\Models\ColdChainAlert;
-use App\Models\FishingVessel;
-use App\Models\FishingTrip;
-use App\Models\CatchLog;
 use App\Models\AquaculturePond;
-use App\Models\WaterQualityLog;
-use App\Models\FeedingSchedule;
-use App\Models\FishSpecies;
-use App\Models\QualityGrade;
-use App\Models\ExportPermit;
-use App\Models\HealthCertificate;
+use App\Models\CatchLog;
+use App\Models\ColdChainAlert;
+use App\Models\ColdStorageUnit;
 use App\Models\CustomsDeclaration;
+use App\Models\Employee;
+use App\Models\ExportPermit;
 use App\Models\ExportShipment;
+use App\Models\FeedingSchedule;
+use App\Models\FishingTrip;
+use App\Models\FishingVessel;
 use App\Models\FishingZone;
+use App\Models\FishSpecies;
+use App\Models\HealthCertificate;
+use App\Models\QualityGrade;
+use App\Models\TemperatureLog;
+use App\Models\WaterQualityLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FisheriesViewController extends Controller
 {
@@ -258,8 +258,7 @@ class FisheriesViewController extends Controller
             ->when($request->category, fn($q, $cat) => $q->where('category', $cat))
             ->when(
                 $request->search,
-                fn($q, $search) =>
-                $q->where(function ($q) use ($search) {
+                fn($q, $search) => $q->where(function ($q) use ($search) {
                     $q->where('common_name', 'like', "%{$search}%")
                         ->orWhere('scientific_name', 'like', "%{$search}%");
                 })
@@ -326,8 +325,7 @@ class FisheriesViewController extends Controller
             ->when($request->status, fn($q, $status) => $q->where('status', $status))
             ->when(
                 $request->search,
-                fn($q, $search) =>
-                $q->where('permit_number', 'like', "%{$search}%")
+                fn($q, $search) => $q->where('permit_number', 'like', "%{$search}%")
                     ->orWhere('destination_country', 'like', "%{$search}%")
             )
             ->orderBy('created_at', 'desc')
@@ -355,16 +353,20 @@ class FisheriesViewController extends Controller
 
         // Production Metrics
         $totalCatches = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', $startDate)
+            ->where('catch_logs.created_at', '>=', $startDate)
             ->count();
 
         $totalCatchWeight = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', $startDate)
+            ->where('catch_logs.created_at', '>=', $startDate)
             ->sum('total_weight');
 
-        $totalRevenue = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', $startDate)
-            ->sum('estimated_value');
+        $totalRevenue = CatchLog::withoutGlobalScope('tenant')
+            ->where('catch_logs.tenant_id', $tenantId)
+            ->whereHas('trip', fn($q) => $q->where('fishing_trips.tenant_id', $tenantId))
+            ->where('catch_logs.created_at', '>=', $startDate)
+            ->join('fish_species', 'catch_logs.species_id', '=', 'fish_species.id')
+            ->selectRaw('COALESCE(SUM(catch_logs.total_weight * fish_species.market_price_per_kg), 0) as total')
+            ->value('total') ?? 0;
 
         $completedTrips = FishingTrip::where('tenant_id', $tenantId)
             ->where('status', 'completed')
@@ -373,7 +375,7 @@ class FisheriesViewController extends Controller
 
         // Top Species by Weight
         $topSpecies = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', $startDate)
+            ->where('catch_logs.created_at', '>=', $startDate)
             ->with('species')
             ->selectRaw('species_id, SUM(total_weight) as total_weight, COUNT(*) as catch_count')
             ->groupBy('species_id')
@@ -383,16 +385,19 @@ class FisheriesViewController extends Controller
 
         // Daily Catch Trend (last 30 days)
         $dailyCatchTrend = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', now()->subDays(30))
-            ->selectRaw('DATE(created_at) as date, SUM(total_weight) as total_weight, COUNT(*) as count')
+            ->where('catch_logs.created_at', '>=', now()->subDays(30))
+            ->selectRaw('DATE(catch_logs.created_at) as date, SUM(total_weight) as total_weight, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
         // Revenue by Week
-        $weeklyRevenue = CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', now()->subWeeks(12))
-            ->selectRaw('YEARWEEK(created_at) as week, SUM(estimated_value) as revenue')
+        $weeklyRevenue = CatchLog::withoutGlobalScope('tenant')
+            ->where('catch_logs.tenant_id', $tenantId)
+            ->whereHas('trip', fn($q) => $q->where('fishing_trips.tenant_id', $tenantId))
+            ->where('catch_logs.created_at', '>=', now()->subWeeks(12))
+            ->join('fish_species', 'catch_logs.species_id', '=', 'fish_species.id')
+            ->selectRaw('YEARWEEK(catch_logs.created_at) as week, SUM(catch_logs.total_weight * fish_species.market_price_per_kg) as revenue')
             ->groupBy('week')
             ->orderBy('week')
             ->get();
@@ -404,19 +409,21 @@ class FisheriesViewController extends Controller
 
         $avgPondUtilization = AquaculturePond::where('tenant_id', $tenantId)
             ->where('status', 'active')
-            ->avg('utilization_percentage') ?? 0;
+            ->where('carrying_capacity', '>', 0)
+            ->selectRaw('AVG(current_stock / carrying_capacity * 100) as avg_utilization')
+            ->value('avg_utilization') ?? 0;
 
-        $totalFeedingCost = FeedingSchedule::whereHas('pond', fn($q) => $q->where('tenant_id', $tenantId))
-            ->where('created_at', '>=', $startDate)
-            ->sum('feed_cost');
+        $totalFeedingCost = FeedingSchedule::withTrashed()
+            ->where('feeding_schedules.tenant_id', $tenantId)
+            ->where('feeding_schedules.created_at', '>=', $startDate)
+            ->sum('actual_quantity') ?? 0;
 
         // Cold Chain Performance
         $tempBreaches = ColdChainAlert::where('tenant_id', $tenantId)
             ->where('created_at', '>=', $startDate)
             ->count();
 
-        $avgStorageUtilization = ColdStorageUnit::where('tenant_id', $tenantId)
-            ->avg('utilization_percentage') ?? 0;
+        $avgStorageUtilization = 0; // Cold storage utilization tracking not yet available
 
         // Efficiency Metrics
         $avgCatchPerTrip = $completedTrips > 0 ? $totalCatchWeight / $completedTrips : 0;

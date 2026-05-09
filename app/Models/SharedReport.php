@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class SharedReport extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'report_id',
         'tenant_id',
@@ -79,7 +80,7 @@ class SharedReport extends Model
      */
     public function isAccessible(): bool
     {
-        return $this->is_active && !$this->isExpired();
+        return $this->is_active && ! $this->isExpired();
     }
 
     /**

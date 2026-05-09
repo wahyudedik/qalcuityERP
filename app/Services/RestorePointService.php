@@ -39,7 +39,7 @@ class RestorePointService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Failed to create restore point: ' . $e->getMessage());
+            Log::error('Failed to create restore point: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -59,11 +59,11 @@ class RestorePointService
             ->where('id', $restorePointId)
             ->first();
 
-        if (!$restorePoint) {
+        if (! $restorePoint) {
             return ['success' => false, 'error' => 'Restore point not found'];
         }
 
-        if (!$restorePoint->is_active) {
+        if (! $restorePoint->is_active) {
             return ['success' => false, 'error' => 'Restore point is not active'];
         }
 
@@ -93,7 +93,7 @@ class RestorePointService
 
                     $restoredTables++;
                 } catch (\Throwable $e) {
-                    Log::error("Failed to restore table {$table}: " . $e->getMessage());
+                    Log::error("Failed to restore table {$table}: ".$e->getMessage());
                 }
             }
 
@@ -107,7 +107,7 @@ class RestorePointService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Restore failed: ' . $e->getMessage());
+            Log::error('Restore failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -149,7 +149,7 @@ class RestorePointService
                 $tableName = app($modelClass)::first()->getTable();
                 $snapshot[$tableName] = $data;
             } catch (\Throwable $e) {
-                Log::warning("Failed to snapshot {$modelClass}: " . $e->getMessage());
+                Log::warning("Failed to snapshot {$modelClass}: ".$e->getMessage());
             }
         }
 

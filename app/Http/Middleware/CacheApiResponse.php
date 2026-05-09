@@ -9,10 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * CacheApiResponse Middleware
- * 
+ *
  * Caches GET API responses to improve performance.
  * Reduces database queries by 50-80% for frequently accessed endpoints.
- * 
+ *
  * Usage:
  * Route::get('/api/stats', ...)->middleware('cache.response:60');
  * Route::get('/api/products', ...)->middleware('cache.response:30');
@@ -22,18 +22,18 @@ class CacheApiResponse
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, int $minutes = 30): Response
     {
         // Only cache GET requests
-        if (!$request->isMethod('GET')) {
+        if (! $request->isMethod('GET')) {
             return $next($request);
         }
 
         // Skip if user is authenticated (might have personalized data)
         // Can be customized based on your needs
-        if ($request->user() && !$this->shouldCacheAuthenticated($request)) {
+        if ($request->user() && ! $this->shouldCacheAuthenticated($request)) {
             return $next($request);
         }
 
@@ -84,7 +84,7 @@ class CacheApiResponse
         $url = $request->fullUrl();
         $userAgent = $request->header('User-Agent', '');
 
-        return 'api_cache:' . md5($url . '_' . $userAgent);
+        return 'api_cache:'.md5($url.'_'.$userAgent);
     }
 
     /**

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Auth;
 
 class Document extends Model
 {
@@ -118,11 +119,14 @@ class Document extends Model
     public function getFileSizeHumanAttribute(): string
     {
         $bytes = $this->file_size;
-        if ($bytes < 1024)
-            return $bytes . ' B';
-        if ($bytes < 1048576)
-            return round($bytes / 1024, 1) . ' KB';
-        return round($bytes / 1048576, 1) . ' MB';
+        if ($bytes < 1024) {
+            return $bytes.' B';
+        }
+        if ($bytes < 1048576) {
+            return round($bytes / 1024, 1).' KB';
+        }
+
+        return round($bytes / 1048576, 1).' MB';
     }
 
     /**
@@ -243,7 +247,7 @@ class Document extends Model
             'file_name' => $data['file_name'] ?? $this->file_name,
             'file_path' => $data['file_path'] ?? $this->file_path,
             'file_size' => $data['file_size'] ?? $this->file_size,
-            'changed_by' => $data['changed_by'] ?? \Illuminate\Support\Facades\Auth::id(),
+            'changed_by' => $data['changed_by'] ?? Auth::id(),
             'change_summary' => $data['change_summary'] ?? '',
         ]);
 
@@ -263,7 +267,7 @@ class Document extends Model
      */
     public function daysUntilExpiry(): ?int
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return null;
         }
 

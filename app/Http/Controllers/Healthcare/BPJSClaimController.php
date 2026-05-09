@@ -45,6 +45,7 @@ class BPJSClaimController extends Controller
     public function create()
     {
         $patients = Patient::whereNotNull('bpjs_number')->get();
+
         return view('healthcare.bpjs-claims.create', compact('patients'));
     }
 
@@ -61,7 +62,7 @@ class BPJSClaimController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['claim_number'] = 'BPJS-' . now()->format('Ymd') . '-' . str_pad(BPJSClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['claim_number'] = 'BPJS-'.now()->format('Ymd').'-'.str_pad(BPJSClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'pending';
         $validated['tenant_id'] = $tenantId;
 
@@ -77,6 +78,7 @@ class BPJSClaimController extends Controller
     public function show(BPJSClaim $claim)
     {
         $claim->load(['patient']);
+
         return view('healthcare.bpjs-claims.show', compact('claim'));
     }
 
@@ -124,6 +126,7 @@ class BPJSClaimController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Claim deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/bpjs-claims/{bpjs_claim}/edit
@@ -131,9 +134,10 @@ class BPJSClaimController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.b-p-j-s-claim.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/bpjs-claims/{bpjs_claim}
@@ -141,13 +145,13 @@ class BPJSClaimController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.bpjs-claims.update')
             ->with('success', 'Updated successfully.');
     }

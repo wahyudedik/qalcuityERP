@@ -8,9 +8,10 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\SampleDataGeneratorService;
 use Database\Seeders\SampleDataTemplateSeeder;
-use Eris\TestTrait;
 use Eris\Generators;
+use Eris\TestTrait;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -34,7 +35,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
     {
         parent::setUp();
         // Seed templates so getTemplates() has data to return
-        (new SampleDataTemplateSeeder())->run();
+        (new SampleDataTemplateSeeder)->run();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -44,13 +45,13 @@ class SampleDataGeneratorPropertyTest extends TestCase
     private function makeTenantWithProfile(string $industry = 'retail'): array
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => $industry,
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => $industry,
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
@@ -73,12 +74,12 @@ class SampleDataGeneratorPropertyTest extends TestCase
         $this->limitTo(8)->forAll(
             Generators::elements(...self::SUPPORTED_INDUSTRIES)
         )->then(function (string $industry) {
-            $service   = app(SampleDataGeneratorService::class);
+            $service = app(SampleDataGeneratorService::class);
             $templates = $service->getTemplates($industry);
 
             $this->assertNotEmpty(
                 $templates,
-                "Property 1 failed: getTemplates('$industry') returned empty array. " .
+                "Property 1 failed: getTemplates('$industry') returned empty array. ".
                 "Expected at least one active template for supported industry '$industry'."
             );
         });
@@ -102,12 +103,12 @@ class SampleDataGeneratorPropertyTest extends TestCase
         $this->limitTo(5)->forAll(
             Generators::elements(...$invalidIndustries)
         )->then(function (string $industry) {
-            $service   = app(SampleDataGeneratorService::class);
+            $service = app(SampleDataGeneratorService::class);
             $templates = $service->getTemplates($industry);
 
             $this->assertEmpty(
                 $templates,
-                "Property 2 failed: getTemplates('$industry') returned non-empty array. " .
+                "Property 2 failed: getTemplates('$industry') returned non-empty array. ".
                 "Expected empty array for unsupported industry '$industry'."
             );
         });
@@ -130,7 +131,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
         $this->limitTo(8)->forAll(
             Generators::elements(...self::SUPPORTED_INDUSTRIES)
         )->then(function (string $industry) {
-            $service   = app(SampleDataGeneratorService::class);
+            $service = app(SampleDataGeneratorService::class);
             $templates = $service->getTemplates($industry);
 
             foreach ($templates as $template) {
@@ -183,7 +184,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
             $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
 
             $this->assertTrue($result['success'],
-                "Property 4 failed: generateForIndustry('$industry') returned success=false. Error: " .
+                "Property 4 failed: generateForIndustry('$industry') returned success=false. Error: ".
                 ($result['error'] ?? 'unknown'));
 
             $tenantId = $tenant->id;
@@ -206,7 +207,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
                 ->pluck('type')
                 ->toArray();
             $this->assertCount(5, $coaTypes,
-                "Property 4 failed for '$industry': expected CoA covering all 5 types, got: " .
+                "Property 4 failed for '$industry': expected CoA covering all 5 types, got: ".
                 implode(', ', $coaTypes));
 
             $totalCoa = DB::table('chart_of_accounts')
@@ -361,9 +362,9 @@ class SampleDataGeneratorPropertyTest extends TestCase
             $resultB = $service->generateForIndustry($industry, $tenantB->id, $userB->id);
 
             $this->assertTrue($resultA['success'],
-                "Property 6 setup failed: generate for tenant A failed.");
+                'Property 6 setup failed: generate for tenant A failed.');
             $this->assertTrue($resultB['success'],
-                "Property 6 setup failed: generate for tenant B failed.");
+                'Property 6 setup failed: generate for tenant B failed.');
 
             // Tenant A's products must not appear in tenant B's scope
             $tenantAProductIds = DB::table('products')
@@ -378,8 +379,8 @@ class SampleDataGeneratorPropertyTest extends TestCase
 
             $overlap = array_intersect($tenantAProductIds, $tenantBProductIds);
             $this->assertEmpty($overlap,
-                "Property 6 failed for '$industry': product IDs overlap between tenant A ({$tenantA->id}) " .
-                "and tenant B ({$tenantB->id}). Overlapping IDs: " . implode(', ', $overlap));
+                "Property 6 failed for '$industry': product IDs overlap between tenant A ({$tenantA->id}) ".
+                "and tenant B ({$tenantB->id}). Overlapping IDs: ".implode(', ', $overlap));
 
             // Tenant A's customers must not appear in tenant B's scope
             $tenantACustomerIds = DB::table('customers')
@@ -444,9 +445,9 @@ class SampleDataGeneratorPropertyTest extends TestCase
             $this->assertEquals(
                 $countAfterFirst,
                 $countAfterSecond,
-                "Property 7 failed for '$industry': product count changed after second generate. " .
-                "First: $countAfterFirst, Second: $countAfterSecond. " .
-                "Expected idempotent behavior — no new records on second call."
+                "Property 7 failed for '$industry': product count changed after second generate. ".
+                "First: $countAfterFirst, Second: $countAfterSecond. ".
+                'Expected idempotent behavior — no new records on second call.'
             );
 
             // Also check employees
@@ -467,7 +468,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
             $this->assertEquals(
                 $employeesAfterFirst,
                 $employeesAfterThird,
-                "Property 7 failed for '$industry': employee count changed on repeated generate. " .
+                "Property 7 failed for '$industry': employee count changed on repeated generate. ".
                 "Expected: $employeesAfterFirst, Got: $employeesAfterThird."
             );
         });
@@ -541,7 +542,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
                 ->where('user_id', $user->id)
                 ->first();
             $this->assertFalse((bool) $profileBefore->sample_data_generated,
-                "Property 9 precondition failed: sample_data_generated should be false before generate.");
+                'Property 9 precondition failed: sample_data_generated should be false before generate.');
 
             $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
             $this->assertTrue($result['success'],
@@ -555,8 +556,8 @@ class SampleDataGeneratorPropertyTest extends TestCase
                 "Property 9 failed for '$industry': OnboardingProfile not found after generate.");
 
             $this->assertTrue((bool) $profileAfter->sample_data_generated,
-                "Property 9 failed for '$industry': OnboardingProfile.sample_data_generated is still false " .
-                "after successful generateForIndustry(). Expected true.");
+                "Property 9 failed for '$industry': OnboardingProfile.sample_data_generated is still false ".
+                'after successful generateForIndustry(). Expected true.');
         });
     }
 
@@ -625,7 +626,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
         $this->assertArrayHasKey('success', $result,
             "Property 10 failed: response missing 'success' field for invalid tenant.");
         $this->assertFalse($result['success'],
-            "Property 10 failed: expected success=false for invalid tenant.");
+            'Property 10 failed: expected success=false for invalid tenant.');
         $this->assertArrayHasKey('error', $result,
             "Property 10 failed: failure response missing 'error' field for invalid tenant.");
         $this->assertIsString($result['error'],
@@ -654,20 +655,20 @@ class SampleDataGeneratorPropertyTest extends TestCase
 
             $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
             $this->assertTrue($result['success'],
-                "Property 11 setup failed: generateForIndustry('$industry') returned success=false. " .
-                "Error: " . ($result['error'] ?? 'unknown'));
+                "Property 11 setup failed: generateForIndustry('$industry') returned success=false. ".
+                'Error: '.($result['error'] ?? 'unknown'));
 
             $tenantId = $tenant->id;
 
             match ($industry) {
                 'manufacturing' => $this->assertManufacturingMinimums($tenantId),
-                'retail'        => $this->assertRetailMinimums($tenantId),
-                'hotel'         => $this->assertHotelMinimums($tenantId),
-                'restaurant'    => $this->assertRestaurantMinimums($tenantId),
-                'healthcare'    => $this->assertHealthcareMinimums($tenantId),
-                'services'      => $this->assertServicesMinimums($tenantId),
-                'agriculture'   => $this->assertAgricultureMinimums($tenantId),
-                'construction'  => $this->assertConstructionMinimums($tenantId),
+                'retail' => $this->assertRetailMinimums($tenantId),
+                'hotel' => $this->assertHotelMinimums($tenantId),
+                'restaurant' => $this->assertRestaurantMinimums($tenantId),
+                'healthcare' => $this->assertHealthcareMinimums($tenantId),
+                'services' => $this->assertServicesMinimums($tenantId),
+                'agriculture' => $this->assertAgricultureMinimums($tenantId),
+                'construction' => $this->assertConstructionMinimums($tenantId),
             };
         });
     }
@@ -731,7 +732,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
 
     private function assertHealthcareMinimums(int $tenantId): void
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('doctors')) {
+        if (! Schema::hasTable('doctors')) {
             $this->markTestSkipped('doctors table does not exist in test DB — skipping healthcare minimums check.');
         }
 
@@ -742,7 +743,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
         $this->assertGreaterThanOrEqual(3, $doctorCount,
             "Property 11 (healthcare): expected ≥3 doctors, got $doctorCount.");
 
-        if (!\Illuminate\Support\Facades\Schema::hasTable('appointments')) {
+        if (! Schema::hasTable('appointments')) {
             return;
         }
 
@@ -763,7 +764,7 @@ class SampleDataGeneratorPropertyTest extends TestCase
             "Property 11 (services): expected ≥5 projects, got $projectCount.");
 
         // project_invoices links projects to billing — check that instead of invoices
-        if (\Illuminate\Support\Facades\Schema::hasTable('project_invoices')) {
+        if (Schema::hasTable('project_invoices')) {
             $projectInvoiceCount = DB::table('project_invoices')
                 ->where('tenant_id', $tenantId)
                 ->count();

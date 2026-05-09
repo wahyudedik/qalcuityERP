@@ -13,7 +13,9 @@ class ReportSharedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected SharedReport $sharedReport;
+
     protected string $senderName;
+
     protected string $message;
 
     /**
@@ -47,19 +49,19 @@ class ReportSharedNotification extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject("📊 Report Shared: {$this->sharedReport->name}")
-            ->greeting("Hello!")
+            ->greeting('Hello!')
             ->line("{$this->senderName} has shared a report with you.")
             ->line("**Report Name:** {$this->sharedReport->name}")
-            ->line("**Type:** " . ucfirst(str_replace('_', ' ', $this->sharedReport->type)))
+            ->line('**Type:** '.ucfirst(str_replace('_', ' ', $this->sharedReport->type)))
             ->line("**Access Level:** {$accessLevel}")
             ->line("**Expires:** {$expiresAt}")
             ->when($this->message, function ($mail) {
                 return $mail->line("**Message:** {$this->message}");
             })
             ->action('View Report', $url)
-            ->line('This link will expire on ' . $expiresAt . '.')
+            ->line('This link will expire on '.$expiresAt.'.')
             ->line('If you did not expect to receive this report, please ignore this email.')
-            ->salutation('Best regards, ' . config('app.name'));
+            ->salutation('Best regards, '.config('app.name'));
     }
 
     /**

@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\CosmeticFormula;
 use App\Models\FormulaIngredient;
 use App\Models\FormulaVersion;
-use App\Models\StabilityTest;
 use App\Models\Product;
+use App\Models\StabilityTest;
 use App\Services\CosmeticFormulaService;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FormulaController extends Controller
 {
@@ -20,6 +20,7 @@ class FormulaController extends Controller
     {
         $this->formulaService = $formulaService;
     }
+
     /**
      * Display all cosmetic formulas
      */
@@ -111,7 +112,7 @@ class FormulaController extends Controller
         ]);
 
         try {
-            $formula = new CosmeticFormula();
+            $formula = new CosmeticFormula;
             $formula->tenant_id = Auth::user()->tenant_id;
             $formula->formula_code = CosmeticFormula::getNextFormulaCode();
             $formula->formula_name = $validated['formula_name'];
@@ -127,7 +128,7 @@ class FormulaController extends Controller
 
             // Add ingredients
             foreach ($validated['ingredients'] as $index => $ingredientData) {
-                $ingredient = new FormulaIngredient();
+                $ingredient = new FormulaIngredient;
                 $ingredient->tenant_id = Auth::user()->tenant_id;
                 $ingredient->formula_id = $formula->id;
                 $ingredient->inci_name = $ingredientData['inci_name'];
@@ -149,7 +150,7 @@ class FormulaController extends Controller
             return redirect()->route('cosmetic.formulas.show', $formula)
                 ->with('success', 'Formula created successfully!');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Failed to create formula: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to create formula: '.$e->getMessage());
         }
     }
 
@@ -161,7 +162,7 @@ class FormulaController extends Controller
         $formula = CosmeticFormula::with([
             'ingredients.product',
             'versions.changer',
-            'stabilityTests.tester'
+            'stabilityTests.tester',
         ])
             ->where('tenant_id', Auth::user()->tenant_id)
             ->findOrFail($id);
@@ -209,7 +210,7 @@ class FormulaController extends Controller
 
             // Create version record if status changed to approved
             if ($validated['status'] === 'approved') {
-                $version = new FormulaVersion();
+                $version = new FormulaVersion;
                 $version->tenant_id = Auth::user()->tenant_id;
                 $version->formula_id = $formula->id;
                 $version->version_number = 'v1.0';
@@ -220,7 +221,7 @@ class FormulaController extends Controller
                 $version->save();
             }
 
-            return back()->with('success', 'Formula status updated to ' . $formula->status_label);
+            return back()->with('success', 'Formula status updated to '.$formula->status_label);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -245,7 +246,7 @@ class FormulaController extends Controller
             $formula = CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
-            $test = new StabilityTest();
+            $test = new StabilityTest;
             $test->tenant_id = Auth::user()->tenant_id;
             $test->formula_id = $formula->id;
             $test->test_code = StabilityTest::getNextTestCode();

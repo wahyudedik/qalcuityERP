@@ -13,12 +13,19 @@ class CrmLead extends Model
 
     // Stage constants for type safety
     const STAGE_NEW = 'new';
+
     const STAGE_CONTACTED = 'contacted';
+
     const STAGE_QUALIFIED = 'qualified';
+
     const STAGE_PROPOSAL = 'proposal';
+
     const STAGE_NEGOTIATION = 'negotiation';
+
     const STAGE_WON = 'won';
+
     const STAGE_LOST = 'lost';
+
     const STAGE_CONVERTED = 'converted';
 
     const STAGES = [
@@ -42,9 +49,13 @@ class CrmLead extends Model
 
     // Source constants
     const SOURCE_REFERRAL = 'referral';
+
     const SOURCE_WEBSITE = 'website';
+
     const SOURCE_COLD_CALL = 'cold_call';
+
     const SOURCE_SOCIAL_MEDIA = 'social_media';
+
     const SOURCE_EXHIBITION = 'exhibition';
 
     const SOURCES = [

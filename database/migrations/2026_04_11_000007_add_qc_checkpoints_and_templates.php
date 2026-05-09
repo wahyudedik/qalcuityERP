@@ -4,41 +4,42 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * TASK-2.19: Add QC checkpoint integration to work orders
      */
     public function up(): void
     {
         // Add QC fields to work_orders (with column existence check)
         Schema::table('work_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('work_orders', 'quality_status')) {
+            if (! Schema::hasColumn('work_orders', 'quality_status')) {
                 $table->string('quality_status')->default('pending')->after('notes');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_inspection_required')) {
+            if (! Schema::hasColumn('work_orders', 'quality_inspection_required')) {
                 $table->timestamp('quality_inspection_required')->nullable()->after('quality_status');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_passed_at')) {
+            if (! Schema::hasColumn('work_orders', 'quality_passed_at')) {
                 $table->timestamp('quality_passed_at')->nullable()->after('quality_inspection_required');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_failed_at')) {
+            if (! Schema::hasColumn('work_orders', 'quality_failed_at')) {
                 $table->timestamp('quality_failed_at')->nullable()->after('quality_passed_at');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_grade')) {
+            if (! Schema::hasColumn('work_orders', 'quality_grade')) {
                 $table->string('quality_grade')->nullable()->after('quality_failed_at');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_notes')) {
+            if (! Schema::hasColumn('work_orders', 'quality_notes')) {
                 $table->text('quality_notes')->nullable()->after('quality_grade');
             }
-            if (!Schema::hasColumn('work_orders', 'quality_score')) {
+            if (! Schema::hasColumn('work_orders', 'quality_score')) {
                 $table->decimal('quality_score', 5, 2)->nullable()->after('quality_notes');
             }
         });
 
         // Create QC test templates (with existence check)
-        if (!Schema::hasTable('qc_test_templates')) {
+        if (! Schema::hasTable('qc_test_templates')) {
             Schema::create('qc_test_templates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -57,7 +58,7 @@ return new class extends Migration {
         }
 
         // Create QC inspection records (with existence check)
-        if (!Schema::hasTable('qc_inspections')) {
+        if (! Schema::hasTable('qc_inspections')) {
             Schema::create('qc_inspections', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');

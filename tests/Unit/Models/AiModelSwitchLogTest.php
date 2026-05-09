@@ -17,9 +17,9 @@ class AiModelSwitchLogTest extends TestCase
     private function makeLog(array $attrs = []): AiModelSwitchLog
     {
         return AiModelSwitchLog::create(array_merge([
-            'from_model'  => 'gemini-1.5-pro',
-            'to_model'    => 'gemini-1.5-flash',
-            'reason'      => 'rate_limit',
+            'from_model' => 'gemini-1.5-pro',
+            'to_model' => 'gemini-1.5-flash',
+            'reason' => 'rate_limit',
             'switched_at' => now(),
         ], $attrs));
     }
@@ -29,7 +29,7 @@ class AiModelSwitchLogTest extends TestCase
     #[Test]
     public function recent_scope_returns_records_within_default_7_days(): void
     {
-        $within  = $this->makeLog(['switched_at' => now()->subDays(3)]);
+        $within = $this->makeLog(['switched_at' => now()->subDays(3)]);
         $outside = $this->makeLog(['switched_at' => now()->subDays(10)]);
 
         $results = AiModelSwitchLog::recent()->pluck('id');
@@ -41,7 +41,7 @@ class AiModelSwitchLogTest extends TestCase
     #[Test]
     public function recent_scope_respects_custom_days_parameter(): void
     {
-        $within  = $this->makeLog(['switched_at' => now()->subDays(25)]);
+        $within = $this->makeLog(['switched_at' => now()->subDays(25)]);
         $outside = $this->makeLog(['switched_at' => now()->subDays(35)]);
 
         $results = AiModelSwitchLog::recent(30)->pluck('id');
@@ -77,7 +77,7 @@ class AiModelSwitchLogTest extends TestCase
     public function by_reason_scope_filters_by_rate_limit(): void
     {
         $rateLimit = $this->makeLog(['reason' => 'rate_limit']);
-        $quota     = $this->makeLog(['reason' => 'quota_exceeded']);
+        $quota = $this->makeLog(['reason' => 'quota_exceeded']);
 
         $results = AiModelSwitchLog::byReason('rate_limit')->pluck('id');
 
@@ -88,7 +88,7 @@ class AiModelSwitchLogTest extends TestCase
     #[Test]
     public function by_reason_scope_filters_by_quota_exceeded(): void
     {
-        $quota    = $this->makeLog(['reason' => 'quota_exceeded']);
+        $quota = $this->makeLog(['reason' => 'quota_exceeded']);
         $recovery = $this->makeLog(['reason' => 'recovery']);
 
         $results = AiModelSwitchLog::byReason('quota_exceeded')->pluck('id');
@@ -101,7 +101,7 @@ class AiModelSwitchLogTest extends TestCase
     public function by_reason_scope_filters_by_service_unavailable(): void
     {
         $unavailable = $this->makeLog(['reason' => 'service_unavailable']);
-        $rateLimit   = $this->makeLog(['reason' => 'rate_limit']);
+        $rateLimit = $this->makeLog(['reason' => 'rate_limit']);
 
         $results = AiModelSwitchLog::byReason('service_unavailable')->pluck('id');
 
@@ -112,7 +112,7 @@ class AiModelSwitchLogTest extends TestCase
     #[Test]
     public function by_reason_scope_filters_by_recovery(): void
     {
-        $recovery  = $this->makeLog(['reason' => 'recovery']);
+        $recovery = $this->makeLog(['reason' => 'recovery']);
         $rateLimit = $this->makeLog(['reason' => 'rate_limit']);
 
         $results = AiModelSwitchLog::byReason('recovery')->pluck('id');
@@ -136,9 +136,9 @@ class AiModelSwitchLogTest extends TestCase
     #[Test]
     public function scopes_can_be_chained_together(): void
     {
-        $match    = $this->makeLog(['reason' => 'rate_limit', 'switched_at' => now()->subDays(2)]);
+        $match = $this->makeLog(['reason' => 'rate_limit', 'switched_at' => now()->subDays(2)]);
         $oldMatch = $this->makeLog(['reason' => 'rate_limit', 'switched_at' => now()->subDays(10)]);
-        $recent   = $this->makeLog(['reason' => 'quota_exceeded', 'switched_at' => now()->subDays(2)]);
+        $recent = $this->makeLog(['reason' => 'quota_exceeded', 'switched_at' => now()->subDays(2)]);
 
         $results = AiModelSwitchLog::recent(7)->byReason('rate_limit')->pluck('id');
 

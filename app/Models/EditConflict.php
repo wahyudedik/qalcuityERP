@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EditConflict extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -42,14 +41,17 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function originalUser()
     {
         return $this->belongsTo(User::class, 'original_user_id');
     }
+
     public function conflictingUser()
     {
         return $this->belongsTo(User::class, 'conflicting_user_id');
     }
+
     public function resolvedBy()
     {
         return $this->belongsTo(User::class, 'resolved_by_user_id');

@@ -3,18 +3,18 @@
 namespace App\Models;
 
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\BelongsToTenant;
 
 class Product extends Model
 {
+    use \App\Traits\CacheableModel, AuditsChanges, SoftDeletes;
     use BelongsToTenant, HasFactory;
-    use SoftDeletes, AuditsChanges, \App\Traits\CacheableModel;
 
     protected $cacheModule = 'products';
 
@@ -51,14 +51,17 @@ class Product extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }
+
     public function productStocks(): HasMany
     {
         return $this->hasMany(ProductStock::class);
     }
+
     public function batches(): HasMany
     {
         return $this->hasMany(ProductBatch::class);

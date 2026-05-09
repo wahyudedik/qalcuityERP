@@ -14,13 +14,17 @@ use App\Models\SharedReport;
 use App\Notifications\ReportSharedNotification;
 use App\Services\GeminiService;
 use App\Services\ReportingAnalyticsService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdvancedAnalyticsDashboardController extends Controller
@@ -137,7 +141,7 @@ class AdvancedAnalyticsDashboardController extends Controller
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get()
-                ->map(fn($row) => [
+                ->map(fn ($row) => [
                     'date' => $row->date,
                     'revenue' => (float) $row->revenue,
                     'orders' => (int) $row->count,
@@ -171,7 +175,7 @@ class AdvancedAnalyticsDashboardController extends Controller
                     ->withSum([
                         'salesOrders as total_spent' => function ($q) use ($startDate, $endDate) {
                             $q->whereBetween('order_date', [$startDate, $endDate]);
-                        }
+                        },
                     ], 'total_amount')
                     ->orderByDesc('total_spent')
                     ->limit(10)
@@ -234,7 +238,7 @@ class AdvancedAnalyticsDashboardController extends Controller
             if (config('services.gemini.api_key')) {
                 try {
                     $geminiService = app(GeminiService::class);
-                    $prompt = "Analyze this sales data and provide 3 key insights with actionable recommendations:\n" .
+                    $prompt = "Analyze this sales data and provide 3 key insights with actionable recommendations:\n".
                         json_encode($historicalData->take(30)->toArray());
 
                     $aiInsights = $geminiService->generate($prompt);
@@ -260,7 +264,7 @@ class AdvancedAnalyticsDashboardController extends Controller
     {
         $cacheKey = "inventory_demand_{$tenantId}_{$horizon}";
 
-        return Cache::remember($cacheKey, now()->addHours(6), function () use ($tenantId, $horizon) {
+        return Cache::remember($cacheKey, now()->addHours(6), function () use ($tenantId) {
             // Product demand history
             $productDemand = SalesOrderItem::where('tenant_id', $tenantId)
                 ->where('created_at', '>=', now()->subDays(90)->format('Y-m-d'))
@@ -272,7 +276,7 @@ class AdvancedAnalyticsDashboardController extends Controller
             // Predict demand for next $horizon days
             $predictions = [];
             $topProducts = $productDemand->groupBy('product_id')
-                ->map(fn($items) => $items->sum('demand'))
+                ->map(fn ($items) => $items->sum('demand'))
                 ->sortDesc()
                 ->take(20);
 
@@ -317,12 +321,12 @@ class AdvancedAnalyticsDashboardController extends Controller
                 ->withCount([
                     'salesOrders as order_count_90d' => function ($q) {
                         $q->where('order_date', '>=', now()->subDays(90)->format('Y-m-d'));
-                    }
+                    },
                 ])
                 ->withSum([
                     'salesOrders as total_spent_90d' => function ($q) {
                         $q->where('order_date', '>=', now()->subDays(90)->format('Y-m-d'));
-                    }
+                    },
                 ], 'total_amount')
                 ->get();
 
@@ -338,18 +342,21 @@ class AdvancedAnalyticsDashboardController extends Controller
 
                 // Simple churn risk model
                 $riskScore = 0;
-                if ($daysSinceLastOrder > 60)
+                if ($daysSinceLastOrder > 60) {
                     $riskScore += 40;
-                elseif ($daysSinceLastOrder > 30)
+                } elseif ($daysSinceLastOrder > 30) {
                     $riskScore += 20;
+                }
 
-                if ($customer->order_count_90d == 0)
+                if ($customer->order_count_90d == 0) {
                     $riskScore += 30;
-                elseif ($customer->order_count_90d < 3)
+                } elseif ($customer->order_count_90d < 3) {
                     $riskScore += 15;
+                }
 
-                if ($customer->total_spent_90d < 1000000)
+                if ($customer->total_spent_90d < 1000000) {
                     $riskScore += 20;
+                }
 
                 $riskScore = min(100, $riskScore);
 
@@ -427,13 +434,14 @@ class AdvancedAnalyticsDashboardController extends Controller
     {
         $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $period = $request->get('period', 'this_month');
-        $reportingService = new ReportingAnalyticsService();
+        $reportingService = new ReportingAnalyticsService;
 
         try {
             $dashboard = $reportingService->getExecutiveDashboard($period);
+
             return view('analytics.executive-dashboard', compact('dashboard', 'period'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to load executive dashboard: ' . $e->getMessage());
+            return back()->with('error', 'Failed to load executive dashboard: '.$e->getMessage());
         }
     }
 
@@ -444,9 +452,10 @@ class AdvancedAnalyticsDashboardController extends Controller
     {
         $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $months = $request->get('months', 3);
-        $reportingService = new ReportingAnalyticsService();
+        $reportingService = new ReportingAnalyticsService;
 
         $predictions = $reportingService->getPredictiveAnalytics($tenantId, $months);
+
         return view('analytics.predictive', compact('predictions', 'months'));
     }
 
@@ -457,9 +466,10 @@ class AdvancedAnalyticsDashboardController extends Controller
     {
         $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $comparison = $request->get('comparison', 'yoy'); // yoy, mom, qoq
-        $reportingService = new ReportingAnalyticsService();
+        $reportingService = new ReportingAnalyticsService;
 
         $analysis = $reportingService->getComparativeAnalysis($tenantId, $comparison);
+
         return view('analytics.comparative', compact('analysis', 'comparison'));
     }
 
@@ -469,7 +479,7 @@ class AdvancedAnalyticsDashboardController extends Controller
     public function realTimeMetrics(Request $request)
     {
         $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
-        $reportingService = new ReportingAnalyticsService();
+        $reportingService = new ReportingAnalyticsService;
         $metrics = $reportingService->getRealTimeMetrics($tenantId);
 
         return response()->json([
@@ -518,14 +528,14 @@ class AdvancedAnalyticsDashboardController extends Controller
             ]);
 
             // Send email notifications to recipients
-            if (!empty($validated['recipients'])) {
+            if (! empty($validated['recipients'])) {
                 foreach ($validated['recipients'] as $email) {
                     // Create a notifiable object for email-only recipients
-                    $notifiable = new class ($email) {
-                        use \Illuminate\Notifications\Notifiable;
+                    $notifiable = new class($email)
+                    {
+                        use Notifiable;
 
-                        public function __construct(protected string $email)
-                        {}
+                        public function __construct(protected string $email) {}
 
                         public function routeNotificationForMail(): string
                         {
@@ -543,7 +553,7 @@ class AdvancedAnalyticsDashboardController extends Controller
                     );
                 }
 
-                Log::info("Report shared with " . count($validated['recipients']) . " recipients", [
+                Log::info('Report shared with '.count($validated['recipients']).' recipients', [
                     'report_id' => $sharedReport->report_id,
                     'recipients' => $validated['recipients'],
                 ]);
@@ -563,13 +573,13 @@ class AdvancedAnalyticsDashboardController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to share report: ' . $e->getMessage(), [
+            Log::error('Failed to share report: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to share report: ' . $e->getMessage(),
+                'message' => 'Failed to share report: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -609,8 +619,9 @@ class AdvancedAnalyticsDashboardController extends Controller
     protected function linearRegressionForecast($data, int $horizon): array
     {
         $n = $data->count();
-        if ($n < 2)
+        if ($n < 2) {
             return [];
+        }
 
         $sumX = 0;
         $sumY = 0;
@@ -659,8 +670,9 @@ class AdvancedAnalyticsDashboardController extends Controller
             ->whereBetween('invoice_date', [$previousStart, $previousEnd])
             ->sum('total_amount');
 
-        if ($previousPeriod == 0)
+        if ($previousPeriod == 0) {
             return 0;
+        }
 
         return (($currentPeriod - $previousPeriod) / $previousPeriod) * 100;
     }
@@ -783,7 +795,8 @@ class AdvancedAnalyticsDashboardController extends Controller
     protected function exportToPdf(array $report)
     {
         $pdf = Pdf::loadView('analytics.exports.pdf-report', ['report' => $report]);
-        return $pdf->download('analytics-report-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('analytics-report-'.now()->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -792,7 +805,8 @@ class AdvancedAnalyticsDashboardController extends Controller
     protected function exportToExcel(array $report)
     {
         // Create a simple export class inline
-        $excel = new class ($report) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+        $excel = new class($report) implements FromArray, WithHeadings
+        {
             private $report;
 
             public function __construct($report)
@@ -806,6 +820,7 @@ class AdvancedAnalyticsDashboardController extends Controller
                 foreach ($this->report['data'] ?? [] as $metric => $value) {
                     $data[] = [$metric, $value];
                 }
+
                 return $data;
             }
 
@@ -814,7 +829,8 @@ class AdvancedAnalyticsDashboardController extends Controller
                 return ['Metric', 'Value'];
             }
         };
-        return Excel::download($excel, 'analytics-report-' . now()->format('Y-m-d') . '.xlsx');
+
+        return Excel::download($excel, 'analytics-report-'.now()->format('Y-m-d').'.xlsx');
     }
 
     /**
@@ -822,7 +838,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     protected function exportToCsv(array $report)
     {
-        $filename = 'analytics-report-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'analytics-report-'.now()->format('Y-m-d').'.csv';
         $handle = fopen('php://temp', 'r+');
 
         fputcsv($handle, ['Metric', 'Value']);
@@ -843,7 +859,7 @@ class AdvancedAnalyticsDashboardController extends Controller
     /**
      * Helper: Calculate Next Run Date
      */
-    protected function calculateNextRun(string $frequency): \Carbon\Carbon
+    protected function calculateNextRun(string $frequency): Carbon
     {
         return match ($frequency) {
             'daily' => now()->addDay()->startOfDay(),

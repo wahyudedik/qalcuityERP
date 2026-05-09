@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Prescription extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'visit_id',
@@ -51,9 +51,9 @@ class Prescription extends Model
     public static function generatePrescriptionNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'RX-' . $date;
+        $prefix = 'RX-'.$date;
 
-        $lastPrescription = static::where('prescription_number', 'like', $prefix . '%')
+        $lastPrescription = static::where('prescription_number', 'like', $prefix.'%')
             ->orderBy('prescription_number', 'desc')
             ->first();
 
@@ -64,7 +64,7 @@ class Prescription extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**

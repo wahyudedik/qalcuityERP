@@ -30,7 +30,7 @@ class CheckTrialExpiry implements ShouldQueue
 
         foreach ($expiringSoon as $tenant) {
             $daysLeft = (int) now()->diffInDays($tenant->trial_ends_at, false);
-            $this->notifyTenant($tenant, "trial_expiring", "⏰ Trial Akan Berakhir",
+            $this->notifyTenant($tenant, 'trial_expiring', '⏰ Trial Akan Berakhir',
                 "Trial Anda akan berakhir dalam **{$daysLeft} hari** ({$tenant->trial_ends_at->format('d M Y')}). Upgrade sekarang untuk melanjutkan akses."
             );
         }
@@ -44,7 +44,7 @@ class CheckTrialExpiry implements ShouldQueue
 
         foreach ($paidExpiring as $tenant) {
             $daysLeft = (int) now()->diffInDays($tenant->plan_expires_at, false);
-            $this->notifyTenant($tenant, "plan_expiring", "💳 Langganan Akan Berakhir",
+            $this->notifyTenant($tenant, 'plan_expiring', '💳 Langganan Akan Berakhir',
                 "Langganan **{$tenant->plan}** Anda akan berakhir dalam **{$daysLeft} hari** ({$tenant->plan_expires_at->format('d M Y')}). Perpanjang sekarang."
             );
         }
@@ -60,7 +60,9 @@ class CheckTrialExpiry implements ShouldQueue
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($exists) return;
+        if ($exists) {
+            return;
+        }
 
         $admins = User::where('tenant_id', $tenant->id)
             ->where('role', 'admin')
@@ -72,11 +74,11 @@ class CheckTrialExpiry implements ShouldQueue
             // In-app notification
             ErpNotification::create([
                 'tenant_id' => $tenant->id,
-                'user_id'   => $admin->id,
-                'type'      => $type,
-                'title'     => $title,
-                'body'      => $body,
-                'data'      => ['plan' => $tenant->plan, 'expires_at' => $tenant->trial_ends_at ?? $tenant->plan_expires_at],
+                'user_id' => $admin->id,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'data' => ['plan' => $tenant->plan, 'expires_at' => $tenant->trial_ends_at ?? $tenant->plan_expires_at],
             ]);
 
             // Email notification

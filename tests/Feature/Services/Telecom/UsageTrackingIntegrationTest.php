@@ -3,8 +3,8 @@
 namespace Tests\Feature\Services\Telecom;
 
 use App\Models\Customer;
-use App\Models\NetworkDevice;
 use App\Models\InternetPackage;
+use App\Models\NetworkDevice;
 use App\Models\TelecomSubscription;
 use App\Models\UsageTracking;
 use App\Services\Telecom\UsageTrackingService;
@@ -16,6 +16,7 @@ class UsageTrackingIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected TelecomSubscription $subscription;
+
     protected UsageTrackingService $usageService;
 
     protected function setUp(): void
@@ -62,7 +63,7 @@ class UsageTrackingIntegrationTest extends TestCase
             'next_billing_date' => now()->addMonth(),
         ]);
 
-        $this->usageService = new UsageTrackingService();
+        $this->usageService = new UsageTrackingService;
     }
 
     /** @test */

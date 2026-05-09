@@ -21,13 +21,13 @@ class ErpContext
     public function toSystemPrompt(): string
     {
         $modules = implode(', ', $this->activeModules);
-        $skills  = implode(', ', $this->industrySkills);
-        $period  = $this->accountingPeriod ?? 'tidak tersedia';
+        $skills = implode(', ', $this->industrySkills);
+        $period = $this->accountingPeriod ?? 'tidak tersedia';
 
         $kpi = $this->kpiSummary;
-        $revenue        = $kpi['revenue'] ?? 'N/A';
-        $criticalStock  = $kpi['critical_stock'] ?? 'N/A';
-        $overdueAr      = $kpi['overdue_ar'] ?? 'N/A';
+        $revenue = $kpi['revenue'] ?? 'N/A';
+        $criticalStock = $kpi['critical_stock'] ?? 'N/A';
+        $overdueAr = $kpi['overdue_ar'] ?? 'N/A';
         $activeEmployees = $kpi['active_employees'] ?? 'N/A';
 
         return <<<PROMPT

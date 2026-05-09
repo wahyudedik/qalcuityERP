@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Consignment partners (toko/outlet penerima titipan)
-        if (!Schema::hasTable('consignment_partners')) {
+        if (! Schema::hasTable('consignment_partners')) {
             Schema::create('consignment_partners', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -22,13 +22,13 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Consignment shipments (pengiriman stok titipan)
-        if (!Schema::hasTable('consignment_shipments')) {
+        if (! Schema::hasTable('consignment_shipments')) {
             Schema::create('consignment_shipments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -42,13 +42,13 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'number']);
             });
         }
 
         // Consignment shipment items
-        if (!Schema::hasTable('consignment_shipment_items')) {
+        if (! Schema::hasTable('consignment_shipment_items')) {
             Schema::create('consignment_shipment_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('consignment_shipment_id')->constrained()->cascadeOnDelete();
@@ -63,7 +63,7 @@ return new class extends Migration
         }
 
         // Consignment sales reports (laporan penjualan dari partner)
-        if (!Schema::hasTable('consignment_sales_reports')) {
+        if (! Schema::hasTable('consignment_sales_reports')) {
             Schema::create('consignment_sales_reports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -81,13 +81,13 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'number']);
             });
         }
 
         // Consignment settlements (pembayaran dari partner)
-        if (!Schema::hasTable('consignment_settlements')) {
+        if (! Schema::hasTable('consignment_settlements')) {
             Schema::create('consignment_settlements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

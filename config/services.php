@@ -36,18 +36,18 @@ return [
     ],
 
     'rajaongkir' => [
-        'key'  => env('RAJAONGKIR_API_KEY', ''),
+        'key' => env('RAJAONGKIR_API_KEY', ''),
         'tier' => env('RAJAONGKIR_TIER', 'starter'), // starter, basic, pro
     ],
 
     'midtrans' => [
-        'server_key'    => env('MIDTRANS_SERVER_KEY', ''),
-        'client_key'    => env('MIDTRANS_CLIENT_KEY', ''),
+        'server_key' => env('MIDTRANS_SERVER_KEY', ''),
+        'client_key' => env('MIDTRANS_CLIENT_KEY', ''),
         'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
     ],
 
     'xendit' => [
-        'secret_key'    => env('XENDIT_SECRET_KEY', ''),
+        'secret_key' => env('XENDIT_SECRET_KEY', ''),
         'webhook_token' => env('XENDIT_WEBHOOK_TOKEN', ''),
     ],
 
@@ -57,7 +57,7 @@ return [
 
     'vapid' => [
         // Backward-compatible legacy keys (single pair)
-        'public_key'  => env('VAPID_PUBLIC_KEY', ''),
+        'public_key' => env('VAPID_PUBLIC_KEY', ''),
         'private_key' => env('VAPID_PRIVATE_KEY', ''),
 
         // Environment-specific keys
@@ -72,9 +72,9 @@ return [
     ],
 
     'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID', ''),
+        'client_id' => env('GOOGLE_CLIENT_ID', ''),
         'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
-        'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
 ];

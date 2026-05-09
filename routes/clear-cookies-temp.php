@@ -1,19 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Temporary route to help clear oversized cookies
- * 
+ *
  * Usage: Visit http://qalcuityerp.test/clear-cookies-temp
  * This will clear all cookies and redirect to login
- * 
+ *
  * IMPORTANT: Delete this file after using it!
  */
-
 Route::get('/clear-cookies-temp', function (Request $request) {
     // Get all cookies from the request
     $cookies = $request->cookies->all();
@@ -35,7 +34,7 @@ Route::get('/clear-cookies-temp', function (Request $request) {
 
     foreach ($commonCookies as $cookieName) {
         Cookie::queue(Cookie::forget($cookieName));
-        if (!in_array($cookieName, $cleared)) {
+        if (! in_array($cookieName, $cleared)) {
             $cleared[] = $cookieName;
         }
     }
@@ -61,4 +60,3 @@ Route::get('/clear-cookies-temp', function (Request $request) {
     ])->withCookie(Cookie::forget('laravel_session'))
         ->withCookie(Cookie::forget('XSRF-TOKEN'));
 })->name('clear.cookies.temp');
-

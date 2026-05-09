@@ -16,7 +16,7 @@ trait DispatchesWebhooks
     {
         $tenantId = $tenantId ?? auth()->user()?->tenant_id;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return;
         }
 

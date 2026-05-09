@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\PackagingMaterial;
-use App\Models\LabelVersion;
-use App\Models\LabelComplianceCheck;
 use App\Models\CosmeticFormula;
+use App\Models\LabelComplianceCheck;
+use App\Models\LabelVersion;
+use App\Models\PackagingMaterial;
 use App\Models\ProductRegistration;
 use Illuminate\Http\Request;
 
@@ -22,11 +22,12 @@ class PackagingController extends Controller
             'recyclable' => PackagingMaterial::where('tenant_id', $tenantId)->recyclable()->count(),
         ];
         $materials = PackagingMaterial::where('tenant_id', $tenantId)
-            ->when($request->search, fn($q) => $q->where('material_name', 'like', '%' . $request->search . '%'))
-            ->when($request->type, fn($q) => $q->where('material_type', $request->type))
-            ->when($request->category, fn($q) => $q->where('material_category', $request->category))
+            ->when($request->search, fn ($q) => $q->where('material_name', 'like', '%'.$request->search.'%'))
+            ->when($request->type, fn ($q) => $q->where('material_type', $request->type))
+            ->when($request->category, fn ($q) => $q->where('material_category', $request->category))
             ->with('product')->latest()->paginate(15);
         $formulas = CosmeticFormula::where('tenant_id', $tenantId)->get();
+
         return view('cosmetic.packaging.index', compact('stats', 'materials', 'formulas'));
     }
 
@@ -51,6 +52,7 @@ class PackagingController extends Controller
         $validated['is_recyclable'] = $request->has('is_recyclable');
         $validated['is_active'] = $request->has('is_active');
         PackagingMaterial::create($validated);
+
         return back()->with('success', 'Packaging material created successfully!');
     }
 
@@ -64,12 +66,13 @@ class PackagingController extends Controller
             'draft' => LabelVersion::where('tenant_id', $tenantId)->where('status', 'draft')->count(),
         ];
         $labels = LabelVersion::where('tenant_id', $tenantId)
-            ->when($request->search, fn($q) => $q->where('label_code', 'like', '%' . $request->search . '%'))
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->type, fn($q) => $q->where('label_type', $request->type))
+            ->when($request->search, fn ($q) => $q->where('label_code', 'like', '%'.$request->search.'%'))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->type, fn ($q) => $q->where('label_type', $request->type))
             ->with(['product', 'complianceChecks'])->withCount('compliance_checks')->latest()->paginate(15);
         $formulas = CosmeticFormula::where('tenant_id', $tenantId)->get();
         $registrations = ProductRegistration::where('tenant_id', $tenantId)->approved()->get();
+
         return view('cosmetic.packaging.labels', compact('stats', 'labels', 'formulas', 'registrations'));
     }
 
@@ -90,6 +93,7 @@ class PackagingController extends Controller
         $validated['label_code'] = LabelVersion::getNextLabelCode();
         $validated['status'] = 'draft';
         LabelVersion::create($validated);
+
         return back()->with('success', 'Label version created successfully!');
     }
 
@@ -97,6 +101,7 @@ class PackagingController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
         $label = LabelVersion::where('tenant_id', $tenantId)->with(['product', 'registration', 'complianceChecks'])->findOrFail($id);
+
         return view('cosmetic.packaging.label-show', compact('label'));
     }
 
@@ -106,6 +111,7 @@ class PackagingController extends Controller
         $label = LabelVersion::where('tenant_id', $tenantId)->findOrFail($id);
         $label->status = 'in_review';
         $label->save();
+
         return back()->with('success', 'Label submitted for review!');
     }
 
@@ -115,6 +121,7 @@ class PackagingController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $label = LabelVersion::where('tenant_id', $tenantId)->findOrFail($id);
         $label->approve(auth()->id(), $validated['notes'] ?? '');
+
         return back()->with('success', 'Label approved successfully!');
     }
 
@@ -126,6 +133,7 @@ class PackagingController extends Controller
             return back()->with('error', 'Label must be approved before activation!');
         }
         $label->activate();
+
         return back()->with('success', 'Label activated successfully!');
     }
 
@@ -134,6 +142,7 @@ class PackagingController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $label = LabelVersion::where('tenant_id', $tenantId)->findOrFail($id);
         $label->archive();
+
         return back()->with('success', 'Label archived successfully!');
     }
 
@@ -153,6 +162,7 @@ class PackagingController extends Controller
             'check_category' => $validated['check_category'],
             'requirement' => $validated['requirement'],
         ]);
+
         return back()->with('success', 'Compliance check added!');
     }
 
@@ -170,6 +180,7 @@ class PackagingController extends Controller
         } else {
             $check->markNonCompliant(auth()->id(), $validated['findings'] ?? '', $validated['remarks'] ?? '');
         }
+
         return back()->with('success', 'Compliance check updated!');
     }
 
@@ -178,6 +189,7 @@ class PackagingController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $material = PackagingMaterial::where('tenant_id', $tenantId)->findOrFail($id);
         $material->delete();
+
         return back()->with('success', 'Packaging material deleted!');
     }
 }

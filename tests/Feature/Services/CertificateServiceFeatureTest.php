@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Services;
 
+use App\Models\CertificateVerifyLog;
 use App\Models\Product;
+use App\Models\ProductCertificate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\CertificateService;
@@ -10,8 +12,10 @@ use App\Services\ProductQrService;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
 use Eris\TestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
 use Mockery;
 use Tests\TestCase;
 
@@ -22,8 +26,8 @@ use Tests\TestCase;
  */
 class CertificateServiceFeatureTest extends TestCase
 {
-    use TestTrait;
     use DatabaseTransactions;
+    use TestTrait;
 
     /**
      * Property 7: Single Active Certificate Invariant
@@ -37,7 +41,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 7: Single Active Certificate Invariant
      */
     #[ErisRepeat(repeat: 100)]
-    public function testSingleActiveCertificateInvariant(): void
+    public function test_single_active_certificate_invariant(): void
     {
         Storage::fake('public');
 
@@ -48,15 +52,15 @@ class CertificateServiceFeatureTest extends TestCase
             ->then(function (int $n) {
                 // Create a Tenant, User, and Product
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $issuer = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
-                    'name' => 'Product ' . uniqid(),
-                    'sku'  => 'SKU-' . uniqid(),
+                    'name' => 'Product '.uniqid(),
+                    'sku' => 'SKU-'.uniqid(),
                 ]);
 
                 // Mock ProductQrService to avoid Imagick dependency
@@ -64,10 +68,11 @@ class CertificateServiceFeatureTest extends TestCase
                 $mockQrService->shouldReceive('generate')
                     ->times($n)
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -77,11 +82,11 @@ class CertificateServiceFeatureTest extends TestCase
                 for ($i = 1; $i <= $n; $i++) {
                     $service->issue($product, $issuer);
 
-                    $activeCount = \App\Models\ProductCertificate::where('product_id', $product->id)
+                    $activeCount = ProductCertificate::where('product_id', $product->id)
                         ->where('status', 'active')
                         ->count();
 
-                    $totalCount = \App\Models\ProductCertificate::where('product_id', $product->id)
+                    $totalCount = ProductCertificate::where('product_id', $product->id)
                         ->count();
 
                     // After each issue: exactly 1 active certificate
@@ -100,11 +105,11 @@ class CertificateServiceFeatureTest extends TestCase
                 }
 
                 // Final assertions after all N issues
-                $finalActiveCount = \App\Models\ProductCertificate::where('product_id', $product->id)
+                $finalActiveCount = ProductCertificate::where('product_id', $product->id)
                     ->where('status', 'active')
                     ->count();
 
-                $finalTotalCount = \App\Models\ProductCertificate::where('product_id', $product->id)
+                $finalTotalCount = ProductCertificate::where('product_id', $product->id)
                     ->count();
 
                 $this->assertEquals(
@@ -134,7 +139,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 11: Double-Revoke Error
      */
     #[ErisRepeat(repeat: 100)]
-    public function testDoubleRevokeThrowsException(): void
+    public function test_double_revoke_throws_exception(): void
     {
         // Feature: product-qr-certificate, Property 11: Double-Revoke Error
         Storage::fake('public');
@@ -151,25 +156,26 @@ class CertificateServiceFeatureTest extends TestCase
             )
             ->then(function (string $revokeReason) {
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $revoker = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
-                    'name' => 'Product ' . uniqid(),
-                    'sku'  => 'SKU-' . uniqid(),
+                    'name' => 'Product '.uniqid(),
+                    'sku' => 'SKU-'.uniqid(),
                 ]);
 
                 $mockQrService = Mockery::mock(ProductQrService::class);
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -206,7 +212,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 8: Verification Round-Trip
      */
     #[ErisRepeat(repeat: 100)]
-    public function testVerificationRoundTrip(): void
+    public function test_verification_round_trip(): void
     {
         // Feature: product-qr-certificate, Property 8: Verification Round-Trip
         Storage::fake('public');
@@ -219,15 +225,15 @@ class CertificateServiceFeatureTest extends TestCase
             ->then(function (string $productName, string $skuSuffix) {
                 // Create a Tenant, User, and Product
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $issuer = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
                     'name' => $productName,
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 // Mock ProductQrService to avoid Imagick dependency
@@ -235,10 +241,11 @@ class CertificateServiceFeatureTest extends TestCase
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -253,7 +260,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     'VALID',
                     $result1['status'],
-                    "First verify() call must return VALID for a freshly issued certificate. " .
+                    'First verify() call must return VALID for a freshly issued certificate. '.
                     "product_name={$productName}, sku={$product->sku}, cert={$certificate->certificate_number}"
                 );
 
@@ -263,7 +270,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     'VALID',
                     $result2['status'],
-                    "Second verify() call must also return VALID (idempotent). " .
+                    'Second verify() call must also return VALID (idempotent). '.
                     "product_name={$productName}, sku={$product->sku}, cert={$certificate->certificate_number}"
                 );
 
@@ -271,7 +278,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     $result1['status'],
                     $result2['status'],
-                    "Both verify() calls must return the same status (idempotent). " .
+                    'Both verify() calls must return the same status (idempotent). '.
                     "First={$result1['status']}, Second={$result2['status']}"
                 );
 
@@ -290,7 +297,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 9: Tamper Detection
      */
     #[ErisRepeat(repeat: 100)]
-    public function testTamperDetection(): void
+    public function test_tamper_detection(): void
     {
         // Feature: product-qr-certificate, Property 9: Tamper Detection
         Storage::fake('public');
@@ -303,15 +310,15 @@ class CertificateServiceFeatureTest extends TestCase
             ->then(function (string $productName, string $skuSuffix) {
                 // Create a Tenant, User, and Product
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $issuer = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
                     'name' => $productName,
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 // Mock ProductQrService to avoid Imagick dependency
@@ -319,10 +326,11 @@ class CertificateServiceFeatureTest extends TestCase
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -332,7 +340,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $certificate = $service->issue($product, $issuer);
 
                 // Tamper with the product's SKU after issuance
-                $product->update(['sku' => 'TAMPERED-' . uniqid()]);
+                $product->update(['sku' => 'TAMPERED-'.uniqid()]);
 
                 // Verify the certificate — hash should no longer match
                 $result = $service->verify($certificate->certificate_number, '127.0.0.1');
@@ -340,7 +348,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     'TIDAK VALID',
                     $result['status'],
-                    "verify() must return 'TIDAK VALID' after product SKU is tampered. " .
+                    "verify() must return 'TIDAK VALID' after product SKU is tampered. ".
                     "product_name={$productName}, cert={$certificate->certificate_number}"
                 );
 
@@ -359,7 +367,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 10: Revoked Certificate Verification
      */
     #[ErisRepeat(repeat: 100)]
-    public function testRevokedCertificateVerification(): void
+    public function test_revoked_certificate_verification(): void
     {
         // Feature: product-qr-certificate, Property 10: Revoked Certificate Verification
         Storage::fake('public');
@@ -376,25 +384,26 @@ class CertificateServiceFeatureTest extends TestCase
             )
             ->then(function (string $revokeReason) {
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $user = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
-                    'name' => 'Product ' . uniqid(),
-                    'sku'  => 'SKU-' . uniqid(),
+                    'name' => 'Product '.uniqid(),
+                    'sku' => 'SKU-'.uniqid(),
                 ]);
 
                 $mockQrService = Mockery::mock(ProductQrService::class);
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -412,7 +421,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     'DICABUT',
                     $result['status'],
-                    "verify() must return 'DICABUT' for a revoked certificate. " .
+                    "verify() must return 'DICABUT' for a revoked certificate. ".
                     "cert={$certificate->certificate_number}, reason={$revokeReason}"
                 );
 
@@ -431,7 +440,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 12: Verification Log Recorded
      */
     #[ErisRepeat(repeat: 100)]
-    public function testVerificationLogRecorded(): void
+    public function test_verification_log_recorded(): void
     {
         // Feature: product-qr-certificate, Property 12: Verification Log Recorded
         Storage::fake('public');
@@ -443,25 +452,26 @@ class CertificateServiceFeatureTest extends TestCase
             )
             ->then(function (string $productName, string $skuSuffix) {
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $issuer = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
                     'name' => $productName,
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 $mockQrService = Mockery::mock(ProductQrService::class);
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -471,18 +481,18 @@ class CertificateServiceFeatureTest extends TestCase
                 $certificate = $service->issue($product, $issuer);
 
                 // Count logs before verify
-                $countBefore = \App\Models\CertificateVerifyLog::count();
+                $countBefore = CertificateVerifyLog::count();
 
                 // Call verify
                 $service->verify($certificate->certificate_number, '127.0.0.1');
 
                 // Count logs after verify — must have increased by exactly 1
-                $countAfter = \App\Models\CertificateVerifyLog::count();
+                $countAfter = CertificateVerifyLog::count();
 
                 $this->assertEquals(
                     $countBefore + 1,
                     $countAfter,
-                    "verify() must create exactly 1 new log record in certificate_verify_logs. " .
+                    'verify() must create exactly 1 new log record in certificate_verify_logs. '.
                     "Before={$countBefore}, After={$countAfter}, cert={$certificate->certificate_number}"
                 );
 
@@ -501,7 +511,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 13: Not Found for Unknown Certificate
      */
     #[ErisRepeat(repeat: 100)]
-    public function testNotFoundForUnknownCertificate(): void
+    public function test_not_found_for_unknown_certificate(): void
     {
         // Feature: product-qr-certificate, Property 13: Not Found for Unknown Certificate
         Storage::fake('public');
@@ -525,18 +535,18 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertEquals(
                     'TIDAK DITEMUKAN',
                     $result['status'],
-                    "verify() must return 'TIDAK DITEMUKAN' for an unknown certificate_number. " .
+                    "verify() must return 'TIDAK DITEMUKAN' for an unknown certificate_number. ".
                     "cert_number={$unknownCertNumber}"
                 );
 
                 $this->assertNull(
                     $result['certificate'],
-                    "verify() must return null certificate for an unknown certificate_number."
+                    'verify() must return null certificate for an unknown certificate_number.'
                 );
 
                 $this->assertNull(
                     $result['product'],
-                    "verify() must return null product for an unknown certificate_number."
+                    'verify() must return null product for an unknown certificate_number.'
                 );
 
                 Mockery::close();
@@ -554,7 +564,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 15: 404 for Cross-Tenant Product
      */
     #[ErisRepeat(repeat: 100)]
-    public function testCrossTenantProductThrowsNotFoundException(): void
+    public function test_cross_tenant_product_throws_not_found_exception(): void
     {
         // Feature: product-qr-certificate, Property 15: 404 for Cross-Tenant Product
         Storage::fake('public');
@@ -567,24 +577,24 @@ class CertificateServiceFeatureTest extends TestCase
             ->then(function (string $productName, string $skuSuffix) {
                 // Create two separate tenants
                 $tenantA = $this->createTenant([
-                    'name' => 'Tenant A ' . uniqid(),
-                    'slug' => 'tenant-a-' . uniqid(),
+                    'name' => 'Tenant A '.uniqid(),
+                    'slug' => 'tenant-a-'.uniqid(),
                 ]);
 
                 $tenantB = $this->createTenant([
-                    'name' => 'Tenant B ' . uniqid(),
-                    'slug' => 'tenant-b-' . uniqid(),
+                    'name' => 'Tenant B '.uniqid(),
+                    'slug' => 'tenant-b-'.uniqid(),
                 ]);
 
                 // Create a product belonging to tenant B
                 $productB = $this->createProduct($tenantB->id, [
                     'name' => $productName,
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 // Simulate tenant isolation: try to find tenant B's product scoped to tenant A
                 // This is how the controller enforces cross-tenant isolation
-                $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+                $this->expectException(ModelNotFoundException::class);
 
                 Product::where('tenant_id', $tenantA->id)->findOrFail($productB->id);
             });
@@ -601,7 +611,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 14: Label PDF Contains Required Fields
      */
     #[ErisRepeat(repeat: 100)]
-    public function testLabelPdfContainsRequiredFields(): void
+    public function test_label_pdf_contains_required_fields(): void
     {
         // Feature: product-qr-certificate, Property 14: Label PDF Contains Required Fields
         Storage::fake('public');
@@ -613,25 +623,26 @@ class CertificateServiceFeatureTest extends TestCase
             )
             ->then(function (string $productName, string $skuSuffix) {
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 $issuer = $this->createAdminUser($tenant);
 
                 $product = $this->createProduct($tenant->id, [
-                    'name' => $productName . ' ' . uniqid(),
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'name' => $productName.' '.uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 $mockQrService = Mockery::mock(ProductQrService::class);
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -644,18 +655,18 @@ class CertificateServiceFeatureTest extends TestCase
                 $certificate->loadMissing(['product.tenant']);
 
                 // Render the Blade view directly (same view used by generatePdf)
-                $html = \Illuminate\Support\Facades\View::make('certificates.pdf', [
+                $html = View::make('certificates.pdf', [
                     'certificate' => $certificate,
-                    'product'     => $certificate->product,
-                    'tenant'      => $certificate->product->tenant,
-                    'qrBase64'    => null,
+                    'product' => $certificate->product,
+                    'tenant' => $certificate->product->tenant,
+                    'qrBase64' => null,
                 ])->render();
 
                 // Assert the HTML contains the product name
                 $this->assertStringContainsString(
                     $product->name,
                     $html,
-                    "PDF view HTML must contain the product name. " .
+                    'PDF view HTML must contain the product name. '.
                     "product_name={$product->name}, cert={$certificate->certificate_number}"
                 );
 
@@ -663,7 +674,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertStringContainsString(
                     $product->sku,
                     $html,
-                    "PDF view HTML must contain the product SKU. " .
+                    'PDF view HTML must contain the product SKU. '.
                     "sku={$product->sku}, cert={$certificate->certificate_number}"
                 );
 
@@ -671,7 +682,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $this->assertStringContainsString(
                     $certificate->certificate_number,
                     $html,
-                    "PDF view HTML must contain the certificate_number. " .
+                    'PDF view HTML must contain the certificate_number. '.
                     "cert={$certificate->certificate_number}"
                 );
 
@@ -691,7 +702,7 @@ class CertificateServiceFeatureTest extends TestCase
      * // Feature: product-qr-certificate, Property 6: Certificate Issuance Completeness
      */
     #[ErisRepeat(repeat: 100)]
-    public function testCertificateIssuanceCompleteness(): void
+    public function test_certificate_issuance_completeness(): void
     {
         Storage::fake('public');
 
@@ -703,8 +714,8 @@ class CertificateServiceFeatureTest extends TestCase
             ->then(function (string $productName, string $skuSuffix) {
                 // Create a Tenant record
                 $tenant = $this->createTenant([
-                    'name' => 'Tenant ' . uniqid(),
-                    'slug' => 'tenant-' . uniqid(),
+                    'name' => 'Tenant '.uniqid(),
+                    'slug' => 'tenant-'.uniqid(),
                 ]);
 
                 // Create a User record (the issuer)
@@ -713,7 +724,7 @@ class CertificateServiceFeatureTest extends TestCase
                 // Create a Product record belonging to that tenant
                 $product = $this->createProduct($tenant->id, [
                     'name' => $productName,
-                    'sku'  => $skuSuffix . '-' . uniqid(),
+                    'sku' => $skuSuffix.'-'.uniqid(),
                 ]);
 
                 // Mock ProductQrService to avoid Imagick dependency.
@@ -723,10 +734,11 @@ class CertificateServiceFeatureTest extends TestCase
                 $mockQrService->shouldReceive('generate')
                     ->once()
                     ->andReturnUsing(function (Product $prod, bool $force = false) {
-                        $relativePath = 'qr-codes/' . $prod->tenant_id . '/' . $prod->id . '.png';
+                        $relativePath = 'qr-codes/'.$prod->tenant_id.'/'.$prod->id.'.png';
                         Storage::disk('public')->put($relativePath, 'fake-png-data');
                         $prod->qr_code_path = $relativePath;
                         $prod->save();
+
                         return $relativePath;
                     });
 
@@ -739,21 +751,21 @@ class CertificateServiceFeatureTest extends TestCase
                 // Assert: certificate_hash is not null
                 $this->assertNotNull(
                     $certificate->certificate_hash,
-                    "certificate_hash must not be null after issue(). " .
+                    'certificate_hash must not be null after issue(). '.
                     "product_name={$productName}, sku={$product->sku}"
                 );
 
                 // Assert: issued_by is not null
                 $this->assertNotNull(
                     $certificate->issued_by,
-                    "issued_by must not be null after issue(). " .
+                    'issued_by must not be null after issue(). '.
                     "product_name={$productName}, sku={$product->sku}"
                 );
 
                 // Assert: issued_at is not null
                 $this->assertNotNull(
                     $certificate->issued_at,
-                    "issued_at must not be null after issue(). " .
+                    'issued_at must not be null after issue(). '.
                     "product_name={$productName}, sku={$product->sku}"
                 );
 
@@ -761,7 +773,7 @@ class CertificateServiceFeatureTest extends TestCase
                 $freshProduct = $product->fresh();
                 $this->assertNotNull(
                     $freshProduct->qr_code_path,
-                    "product->qr_code_path must not be null after certificate issuance. " .
+                    'product->qr_code_path must not be null after certificate issuance. '.
                     "product_name={$productName}, sku={$product->sku}"
                 );
 

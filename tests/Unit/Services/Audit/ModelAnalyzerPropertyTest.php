@@ -24,6 +24,7 @@ class ModelAnalyzerPropertyTest extends TestCase
     use TestTrait;
 
     private string $tempDir;
+
     private string $basePath;
 
     protected function setUp(): void
@@ -31,8 +32,8 @@ class ModelAnalyzerPropertyTest extends TestCase
         parent::setUp();
 
         // Create a unique temporary directory for model stubs
-        $this->tempDir = sys_get_temp_dir() . '/model_analyzer_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Models', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/model_analyzer_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Models', 0777, true);
         $this->basePath = $this->tempDir;
     }
 
@@ -76,44 +77,44 @@ class ModelAnalyzerPropertyTest extends TestCase
             ) // className — random model name
         )->then(function (bool $hasTenantId, bool $hasTrait, string $className) {
             // Make class name unique to avoid collisions across iterations
-            $uniqueClass = $className . '_T' . uniqid();
-            $filePath = $this->basePath . '/app/Models/' . $uniqueClass . '.php';
+            $uniqueClass = $className.'_T'.uniqid();
+            $filePath = $this->basePath.'/app/Models/'.$uniqueClass.'.php';
 
             $source = $this->generateTenantModelStub($uniqueClass, $hasTenantId, $hasTrait);
             file_put_contents($filePath, $source);
 
             $analyzer = new ModelAnalyzer(
-                $this->basePath . '/app/Models',
+                $this->basePath.'/app/Models',
                 $this->basePath
             );
 
             $finding = $analyzer->checkTenantTrait(
-                'App\\Models\\' . $uniqueClass,
+                'App\\Models\\'.$uniqueClass,
                 $source,
                 $filePath
             );
 
-            if (!$hasTenantId) {
+            if (! $hasTenantId) {
                 // No tenant_id → should never produce a finding
                 $this->assertNull(
                     $finding,
-                    "Model without tenant_id should NOT be flagged. "
-                        . "class={$uniqueClass}, hasTenantId=false, hasTrait=" . ($hasTrait ? 'true' : 'false')
+                    'Model without tenant_id should NOT be flagged. '
+                        ."class={$uniqueClass}, hasTenantId=false, hasTrait=".($hasTrait ? 'true' : 'false')
                 );
             } elseif ($hasTrait) {
                 // Has tenant_id AND has trait → compliant, no finding
                 $this->assertNull(
                     $finding,
-                    "Model with tenant_id AND BelongsToTenant trait should NOT be flagged. "
-                        . "class={$uniqueClass}"
+                    'Model with tenant_id AND BelongsToTenant trait should NOT be flagged. '
+                        ."class={$uniqueClass}"
                 );
             } else {
                 // Has tenant_id but missing trait → MUST produce a finding
                 $this->assertInstanceOf(
                     AuditFinding::class,
                     $finding,
-                    "Model with tenant_id but WITHOUT BelongsToTenant trait MUST be flagged. "
-                        . "class={$uniqueClass}"
+                    'Model with tenant_id but WITHOUT BelongsToTenant trait MUST be flagged. '
+                        ."class={$uniqueClass}"
                 );
                 $this->assertSame(Severity::Critical, $finding->severity);
                 $this->assertStringContainsString('BelongsToTenant', $finding->title);
@@ -160,19 +161,19 @@ class ModelAnalyzerPropertyTest extends TestCase
                 'Log'
             ) // className
         )->then(function (string $config, string $className) {
-            $uniqueClass = $className . '_M' . uniqid();
-            $filePath = $this->basePath . '/app/Models/' . $uniqueClass . '.php';
+            $uniqueClass = $className.'_M'.uniqid();
+            $filePath = $this->basePath.'/app/Models/'.$uniqueClass.'.php';
 
             $source = $this->generateMassAssignmentModelStub($uniqueClass, $config);
             file_put_contents($filePath, $source);
 
             $analyzer = new ModelAnalyzer(
-                $this->basePath . '/app/Models',
+                $this->basePath.'/app/Models',
                 $this->basePath
             );
 
             $finding = $analyzer->checkMassAssignment(
-                'App\\Models\\' . $uniqueClass,
+                'App\\Models\\'.$uniqueClass,
                 $source,
                 $filePath
             );
@@ -182,8 +183,8 @@ class ModelAnalyzerPropertyTest extends TestCase
                 $this->assertInstanceOf(
                     AuditFinding::class,
                     $finding,
-                    "Model with \$guarded = [] MUST be flagged as a vulnerability. "
-                        . "class={$uniqueClass}, config={$config}"
+                    'Model with $guarded = [] MUST be flagged as a vulnerability. '
+                        ."class={$uniqueClass}, config={$config}"
                 );
                 $this->assertSame(Severity::High, $finding->severity);
                 $this->assertStringContainsString('mass assignment', strtolower($finding->title));
@@ -192,7 +193,7 @@ class ModelAnalyzerPropertyTest extends TestCase
                 $this->assertNull(
                     $finding,
                     "Model with config '{$config}' should NOT be flagged for mass assignment. "
-                        . "class={$uniqueClass}"
+                        ."class={$uniqueClass}"
                 );
             }
 
@@ -244,11 +245,11 @@ class ModelAnalyzerPropertyTest extends TestCase
                 'Upsilon'
             )  // targetName — the referenced model
         )->then(function (string $relType, bool $referencedModelExists, string $ownerName, string $targetName) {
-            $uniqueOwner = $ownerName . '_R' . uniqid();
-            $uniqueTarget = $targetName . '_R' . uniqid();
+            $uniqueOwner = $ownerName.'_R'.uniqid();
+            $uniqueTarget = $targetName.'_R'.uniqid();
 
-            $ownerPath = $this->basePath . '/app/Models/' . $uniqueOwner . '.php';
-            $targetPath = $this->basePath . '/app/Models/' . $uniqueTarget . '.php';
+            $ownerPath = $this->basePath.'/app/Models/'.$uniqueOwner.'.php';
+            $targetPath = $this->basePath.'/app/Models/'.$uniqueTarget.'.php';
 
             // Generate the owner model with a relationship to the target
             $ownerSource = $this->generateRelationshipModelStub(
@@ -265,12 +266,12 @@ class ModelAnalyzerPropertyTest extends TestCase
             }
 
             $analyzer = new ModelAnalyzer(
-                $this->basePath . '/app/Models',
+                $this->basePath.'/app/Models',
                 $this->basePath
             );
 
             $findings = $analyzer->checkRelationships(
-                'App\\Models\\' . $uniqueOwner,
+                'App\\Models\\'.$uniqueOwner,
                 $ownerSource,
                 $ownerPath
             );
@@ -279,15 +280,15 @@ class ModelAnalyzerPropertyTest extends TestCase
                 // Referenced model exists → no findings expected
                 $this->assertEmpty(
                     $findings,
-                    "No relationship findings expected when referenced model exists. "
-                        . "owner={$uniqueOwner}, target={$uniqueTarget}, relType={$relType}"
+                    'No relationship findings expected when referenced model exists. '
+                        ."owner={$uniqueOwner}, target={$uniqueTarget}, relType={$relType}"
                 );
             } else {
                 // Referenced model missing → MUST produce a finding
                 $this->assertNotEmpty(
                     $findings,
-                    "Missing referenced model MUST produce a finding. "
-                        . "owner={$uniqueOwner}, target={$uniqueTarget}, relType={$relType}"
+                    'Missing referenced model MUST produce a finding. '
+                        ."owner={$uniqueOwner}, target={$uniqueTarget}, relType={$relType}"
                 );
 
                 $finding = $findings[0];
@@ -361,23 +362,23 @@ class ModelAnalyzerPropertyTest extends TestCase
 
             // For the file, we use the exact critical name so the analyzer recognizes it
             // We need a unique file but the class name inside must match the critical entity name
-            $filePath = $this->basePath . '/app/Models/' . $baseClassName . '.php';
+            $filePath = $this->basePath.'/app/Models/'.$baseClassName.'.php';
 
             $source = $this->generateSoftDeleteModelStub($baseClassName, $hasSoftDeletes);
             file_put_contents($filePath, $source);
 
             $analyzer = new ModelAnalyzer(
-                $this->basePath . '/app/Models',
+                $this->basePath.'/app/Models',
                 $this->basePath
             );
 
             $finding = $analyzer->checkSoftDeletes(
-                'App\\Models\\' . $baseClassName,
+                'App\\Models\\'.$baseClassName,
                 $source,
                 $filePath
             );
 
-            if (!$isCritical) {
+            if (! $isCritical) {
                 // Non-critical entity → should never be flagged
                 $this->assertNull(
                     $finding,
@@ -442,10 +443,10 @@ PHP;
     {
         $body = match ($config) {
             'fillable_explicit' => "    protected \$fillable = ['name', 'email', 'status'];",
-            'guarded_empty' => "    protected \$guarded = [];",
+            'guarded_empty' => '    protected $guarded = [];',
             'guarded_specific' => "    protected \$guarded = ['id', 'created_at'];",
             'fillable_and_guarded' => "    protected \$fillable = ['name', 'email'];\n    protected \$guarded = ['id'];",
-            'neither' => "    // No mass assignment configuration",
+            'neither' => '    // No mass assignment configuration',
         };
 
         return <<<PHP
@@ -539,7 +540,7 @@ PHP;
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

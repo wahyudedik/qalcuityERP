@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Invoice;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -21,8 +22,8 @@ class InvoiceSentNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $amount = 'Rp ' . number_format($this->invoice->total_amount, 0, ',', '.');
-        $due    = \Carbon\Carbon::parse($this->invoice->due_date)->translatedFormat('d F Y');
+        $amount = 'Rp '.number_format($this->invoice->total_amount, 0, ',', '.');
+        $due = Carbon::parse($this->invoice->due_date)->translatedFormat('d F Y');
 
         return (new MailMessage)
             ->subject("Invoice {$this->invoice->number} dari {$this->invoice->tenant->name}")

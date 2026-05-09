@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Customer;
-use App\Models\PriceList;
 use App\Models\PriceListItem;
 use App\Models\Product;
 
@@ -16,9 +15,8 @@ class PriceListService
      */
     public function getPrice(int $customerId, int $productId, float $qty = 1): array
     {
-        $customer = Customer::with(['priceLists' => fn($q) =>
-            $q->where('is_active', true)
-              ->orderBy('customer_price_lists.priority')
+        $customer = Customer::with(['priceLists' => fn ($q) => $q->where('is_active', true)
+            ->orderBy('customer_price_lists.priority'),
         ])->find($customerId);
 
         if (! $customer) {
@@ -32,8 +30,12 @@ class PriceListService
 
         foreach ($customer->priceLists as $priceList) {
             // Cek validitas tanggal
-            if ($priceList->valid_from && $today->lt($priceList->valid_from)) continue;
-            if ($priceList->valid_until && $today->gt($priceList->valid_until)) continue;
+            if ($priceList->valid_from && $today->lt($priceList->valid_from)) {
+                continue;
+            }
+            if ($priceList->valid_until && $today->gt($priceList->valid_until)) {
+                continue;
+            }
 
             // Cari item yang cocok dengan qty minimum terpenuhi
             $item = PriceListItem::where('price_list_id', $priceList->id)
@@ -42,24 +44,26 @@ class PriceListService
                 ->orderByDesc('min_qty') // ambil tier tertinggi yang terpenuhi
                 ->first();
 
-            if (! $item) continue;
+            if (! $item) {
+                continue;
+            }
 
             $effective = $item->effectivePrice();
 
             if ($bestPrice === null || $effective < $bestPrice) {
-                $bestPrice    = $effective;
+                $bestPrice = $effective;
                 $bestDiscount = (float) $item->discount_percent;
-                $appliedList  = $priceList;
+                $appliedList = $priceList;
             }
         }
 
         if ($bestPrice !== null) {
             return [
-                'price'            => $bestPrice,
+                'price' => $bestPrice,
                 'discount_percent' => $bestDiscount,
-                'price_list_id'    => $appliedList->id,
-                'price_list_name'  => $appliedList->name,
-                'source'           => 'price_list',
+                'price_list_id' => $appliedList->id,
+                'price_list_name' => $appliedList->name,
+                'source' => 'price_list',
             ];
         }
 
@@ -76,18 +80,20 @@ class PriceListService
         foreach ($productIds as $productId) {
             $result[$productId] = $this->getPrice($customerId, $productId);
         }
+
         return $result;
     }
 
     private function defaultPrice(int $productId): array
     {
         $product = Product::find($productId);
+
         return [
-            'price'            => $product ? (float) $product->price : 0,
+            'price' => $product ? (float) $product->price : 0,
             'discount_percent' => 0,
-            'price_list_id'    => null,
-            'price_list_name'  => null,
-            'source'           => 'default',
+            'price_list_id' => null,
+            'price_list_name' => null,
+            'source' => 'default',
         ];
     }
 }

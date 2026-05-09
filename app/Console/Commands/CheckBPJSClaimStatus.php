@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\InsuranceClaim;
+use App\Models\User;
+use App\Notifications\Healthcare\BPJSClaimUpdate;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class CheckBPJSClaimStatus extends Command
@@ -33,14 +37,14 @@ class CheckBPJSClaimStatus extends Command
         $limit = (int) $this->option('limit');
         $dryRun = $this->option('dry-run');
 
-        $this->info("🏥 Checking BPJS claim status...");
+        $this->info('🏥 Checking BPJS claim status...');
 
         if ($dryRun) {
             $this->warn('⚠️ DRY RUN MODE - No claims will be updated');
         }
 
         // Get pending BPJS claims
-        $query = \App\Models\InsuranceClaim::where('insurance_provider', 'BPJS')
+        $query = InsuranceClaim::where('insurance_provider', 'BPJS')
             ->whereIn('status', ['submitted', 'pending']);
 
         if ($tenantId) {
@@ -50,7 +54,8 @@ class CheckBPJSClaimStatus extends Command
         $claims = $query->limit($limit)->get();
 
         if ($claims->isEmpty()) {
-            $this->info("✅ No pending BPJS claims to check");
+            $this->info('✅ No pending BPJS claims to check');
+
             return Command::SUCCESS;
         }
 
@@ -66,14 +71,16 @@ class CheckBPJSClaimStatus extends Command
                 // Query BPJS V-Claim API
                 $bpjsStatus = $this->queryBPJSApi($claim);
 
-                if (!$bpjsStatus) {
-                    $this->warn("  ⚠️ No status update from BPJS");
+                if (! $bpjsStatus) {
+                    $this->warn('  ⚠️ No status update from BPJS');
+
                     continue;
                 }
 
                 if ($dryRun) {
                     $this->line("  Would update status: {$claim->status} → {$bpjsStatus['status']}");
                     $updatedCount++;
+
                     continue;
                 }
 
@@ -132,19 +139,20 @@ class CheckBPJSClaimStatus extends Command
         $consId = config('services.bpjs.cons_id');
         $secretKey = config('services.bpjs.secret_key');
 
-        if (!$consId || !$secretKey) {
+        if (! $consId || ! $secretKey) {
             Log::warning('BPJS credentials not configured');
+
             return null;
         }
 
         try {
             // Generate security token (simplified - implement proper HMAC)
             $timestamp = time();
-            $signature = hash_hmac('sha256', $consId . '&' . $timestamp, $secretKey, true);
+            $signature = hash_hmac('sha256', $consId.'&'.$timestamp, $secretKey, true);
             $encodedSignature = base64_encode($signature);
 
             // Query claim status
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
+            $response = Http::withHeaders([
                 'X-cons-id' => $consId,
                 'X-timestamp' => (string) $timestamp,
                 'X-signature' => $encodedSignature,
@@ -193,14 +201,14 @@ class CheckBPJSClaimStatus extends Command
     {
         try {
             // Notify billing staff and admin
-            $recipients = \App\Models\User::where('tenant_id', $claim->tenant_id)
+            $recipients = User::where('tenant_id', $claim->tenant_id)
                 ->whereHas('roles', function ($q) {
                     $q->whereIn('name', ['admin', 'billing_staff']);
                 })
                 ->get();
 
             if ($recipients->isNotEmpty()) {
-                Notification::send($recipients, new \App\Notifications\Healthcare\BPJSClaimUpdate($claim));
+                Notification::send($recipients, new BPJSClaimUpdate($claim));
             }
         } catch (\Exception $e) {
             Log::warning('Failed to send BPJS claim notification', [

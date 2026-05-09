@@ -2,10 +2,10 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -16,7 +16,7 @@ return new class extends Migration {
             Schema::dropIfExists('housekeeping_task_assignments');
             Schema::dropIfExists('housekeeping_tasks');
 
-            if (!Schema::hasTable('housekeeping_tasks')) {
+            if (! Schema::hasTable('housekeeping_tasks')) {
                 Schema::create('housekeeping_tasks', function (Blueprint $table) {
                     $table->id();
                     $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -32,14 +32,14 @@ return new class extends Migration {
                     $table->timestamp('completed_at')->nullable();
                     $table->timestamps();
                     $table->softDeletes();
-    
+
                     $table->index(['tenant_id', 'status']);
                     $table->index(['room_id', 'scheduled_at']);
                 });
             }
 
             // Recreate task assignments table
-            if (!Schema::hasTable('housekeeping_task_assignments')) {
+            if (! Schema::hasTable('housekeeping_task_assignments')) {
                 Schema::create('housekeeping_task_assignments', function (Blueprint $table) {
                     $table->id();
                     $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -51,7 +51,7 @@ return new class extends Migration {
                     $table->text('completion_notes')->nullable();
                     $table->json('photos')->nullable();
                     $table->timestamps();
-    
+
                     $table->index(['tenant_id', 'assigned_to']);
                     $table->index(['task_id', 'assigned_at']);
                 });

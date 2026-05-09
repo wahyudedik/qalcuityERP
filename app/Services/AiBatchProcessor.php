@@ -2,17 +2,19 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessAiBatch;
 use Illuminate\Support\Facades\Log;
 
 /**
  * AiBatchProcessor
- * 
+ *
  * Menangani multiple AI requests dalam satu batch untuk mengurangi overhead
  * dan mengoptimalkan penggunaan API calls.
  */
 class AiBatchProcessor
 {
     protected GeminiService $gemini;
+
     protected AiResponseCacheService $cacheService;
 
     /**
@@ -30,8 +32,8 @@ class AiBatchProcessor
 
     /**
      * Process multiple messages in batch
-     * 
-     * @param array $messages Array of ['tenant_id', 'user_id', 'message', 'history']
+     *
+     * @param  array  $messages  Array of ['tenant_id', 'user_id', 'message', 'history']
      * @return array Array of responses
      */
     public function processBatch(array $messages): array
@@ -43,6 +45,7 @@ class AiBatchProcessor
         // Limit batch size
         if (count($messages) > self::MAX_BATCH_SIZE) {
             Log::warning('AiBatchProcessor: Batch size exceeded limit, splitting into chunks');
+
             return $this->processInChunks($messages);
         }
 
@@ -67,7 +70,7 @@ class AiBatchProcessor
         }
 
         // Step 2: Process non-cached messages via API
-        if (!empty($apiCallsNeeded)) {
+        if (! empty($apiCallsNeeded)) {
             $apiResponses = $this->processApiCalls($apiCallsNeeded);
 
             foreach ($apiResponses as $index => $response) {
@@ -123,7 +126,7 @@ class AiBatchProcessor
                 $responses[$index] = $response;
 
             } catch (\Throwable $e) {
-                Log::error('AiBatchProcessor: API call failed for message index ' . $index, [
+                Log::error('AiBatchProcessor: API call failed for message index '.$index, [
                     'error' => $e->getMessage(),
                     'message' => substr($msgData['message'], 0, 100),
                 ]);
@@ -166,7 +169,7 @@ class AiBatchProcessor
 
         foreach ($chunks as $chunkIndex => $chunk) {
             // Dispatch job untuk setiap chunk
-            \App\Jobs\ProcessAiBatch::dispatch($chunk, $chunkIndex)
+            ProcessAiBatch::dispatch($chunk, $chunkIndex)
                 ->onQueue($queue)
                 ->delay(now()->addSeconds($chunkIndex * 5)); // Stagger jobs
         }

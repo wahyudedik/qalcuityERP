@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\MedicalBill;
 use App\Models\InsuranceClaim;
-use App\Models\Admission;
+use App\Models\MedicalBill;
 use Illuminate\Http\Request;
 
 // Note: InsuranceClaim model will be created in Fase 3.x remaining models

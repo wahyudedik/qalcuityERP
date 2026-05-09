@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Analytics;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Services\AdvancedAnalyticsService;
 use App\Services\ForecastService;
 use Illuminate\Http\Request;
@@ -10,6 +14,7 @@ use Illuminate\Http\Request;
 class AnalyticsDashboardController extends Controller
 {
     protected $analyticsService;
+
     protected $forecastService;
 
     public function __construct(
@@ -148,28 +153,28 @@ class AnalyticsDashboardController extends Controller
         $thisMonth = now()->format('Y-m');
 
         // Today's revenue
-        $todayRevenue = \App\Models\SalesOrder::where('tenant_id', $tenantId)
+        $todayRevenue = SalesOrder::where('tenant_id', $tenantId)
             ->where('status', 'completed')
             ->whereDate('date', $today)
             ->sum('total');
 
         // Month-to-date revenue
-        $mtdRevenue = \App\Models\SalesOrder::where('tenant_id', $tenantId)
+        $mtdRevenue = SalesOrder::where('tenant_id', $tenantId)
             ->where('status', 'completed')
             ->whereYear('date', now()->year)
             ->whereMonth('date', now()->month)
             ->sum('total');
 
         // Total customers
-        $totalCustomers = \App\Models\Customer::where('tenant_id', $tenantId)->count();
+        $totalCustomers = Customer::where('tenant_id', $tenantId)->count();
 
         // Active products
-        $activeProducts = \App\Models\Product::where('tenant_id', $tenantId)
+        $activeProducts = Product::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->count();
 
         // Outstanding invoices
-        $outstandingInvoices = \App\Models\Invoice::where('tenant_id', $tenantId)
+        $outstandingInvoices = Invoice::where('tenant_id', $tenantId)
             ->whereIn('status', ['unpaid', 'partial'])
             ->sum('remaining_amount');
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fnb;
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
 use App\Models\TableReservation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TableManagementController extends Controller
@@ -22,7 +23,7 @@ class TableManagementController extends Controller
                     $query->whereDate('reservation_date', today())
                         ->whereIn('status', ['confirmed', 'seated'])
                         ->orderBy('reservation_time');
-                }
+                },
             ])
             ->orderBy('table_number')
             ->get();
@@ -31,7 +32,7 @@ class TableManagementController extends Controller
             'total_tables' => $tables->count(),
             'available' => $tables->where('status', 'available')->count(),
             'occupied' => $tables->where('status', 'occupied')->count(),
-            'reserved' => $tables->filter(fn($t) => $t->reservations->isNotEmpty())->count(),
+            'reserved' => $tables->filter(fn ($t) => $t->reservations->isNotEmpty())->count(),
             'today_reservations' => TableReservation::where('tenant_id', $tenantId)
                 ->whereDate('reservation_date', today())
                 ->count(),
@@ -80,10 +81,10 @@ class TableManagementController extends Controller
             ->whereIn('status', ['confirmed', 'seated'])
             ->get()
             ->filter(function ($existing) use ($validated) {
-                $newStart = \Carbon\Carbon::parse($validated['reservation_time']);
+                $newStart = Carbon::parse($validated['reservation_time']);
                 $newEnd = $newStart->copy()->addMinutes($validated['duration_minutes']);
 
-                $existingStart = \Carbon\Carbon::parse($existing->reservation_time);
+                $existingStart = Carbon::parse($existing->reservation_time);
                 $existingEnd = $existingStart->copy()->addMinutes($existing->duration_minutes);
 
                 return $newStart < $existingEnd && $newEnd > $existingStart;
@@ -166,10 +167,10 @@ class TableManagementController extends Controller
             ->whereIn('status', ['confirmed', 'seated'])
             ->get()
             ->filter(function ($reservation) use ($validated) {
-                $newStart = \Carbon\Carbon::parse($validated['time']);
+                $newStart = Carbon::parse($validated['time']);
                 $newEnd = $newStart->copy()->addMinutes($validated['duration']);
 
-                $existingStart = \Carbon\Carbon::parse($reservation->reservation_time);
+                $existingStart = Carbon::parse($reservation->reservation_time);
                 $existingEnd = $existingStart->copy()->addMinutes($reservation->duration_minutes);
 
                 return $newStart < $existingEnd && $newEnd > $existingStart;

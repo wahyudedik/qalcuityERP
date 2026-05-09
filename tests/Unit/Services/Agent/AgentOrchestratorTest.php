@@ -5,7 +5,6 @@ namespace Tests\Unit\Services\Agent;
 use App\DTOs\Agent\AgentPlan;
 use App\DTOs\Agent\AgentStep;
 use App\DTOs\Agent\ErpContext;
-use App\DTOs\Agent\ExecutionContext;
 use App\DTOs\Agent\StepResult;
 use App\Models\ChatSession;
 use App\Services\Agent\AgentContextBuilder;
@@ -14,7 +13,6 @@ use App\Services\Agent\AgentOrchestrator;
 use App\Services\Agent\AgentPlanner;
 use App\Services\Agent\SkillRouter;
 use App\Services\AiMemoryService;
-use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -27,23 +25,28 @@ use Tests\TestCase;
  */
 class AgentOrchestratorTest extends TestCase
 {
-    private AgentPlanner        $planner;
-    private AgentExecutor       $executor;
+    private AgentPlanner $planner;
+
+    private AgentExecutor $executor;
+
     private AgentContextBuilder $contextBuilder;
-    private SkillRouter         $skillRouter;
-    private AiMemoryService     $memory;
-    private GeminiService       $gemini;
+
+    private SkillRouter $skillRouter;
+
+    private AiMemoryService $memory;
+
+    private GeminiService $gemini;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->planner        = $this->createMock(AgentPlanner::class);
-        $this->executor       = $this->createMock(AgentExecutor::class);
+        $this->planner = $this->createMock(AgentPlanner::class);
+        $this->executor = $this->createMock(AgentExecutor::class);
         $this->contextBuilder = $this->createMock(AgentContextBuilder::class);
-        $this->skillRouter    = $this->createMock(SkillRouter::class);
-        $this->memory         = $this->createMock(AiMemoryService::class);
-        $this->gemini         = $this->createMock(GeminiService::class);
+        $this->skillRouter = $this->createMock(SkillRouter::class);
+        $this->memory = $this->createMock(AiMemoryService::class);
+        $this->gemini = $this->createMock(GeminiService::class);
 
         // Default stubs untuk contextBuilder dan skillRouter
         $this->contextBuilder->method('build')->willReturn($this->makeErpContext());
@@ -57,10 +60,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.2, 7.1, 7.3
     // =========================================================================
 
-    public function testHappyPathMultiStepYieldsAllExpectedEvents(): void
+    public function test_happy_path_multi_step_yields_all_expected_events(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [
@@ -82,14 +85,14 @@ class AgentOrchestratorTest extends TestCase
         // Executor selalu berhasil
         $this->executor->method('setUser');
         $this->executor->method('executeStep')
-            ->willReturnCallback(fn($step, $ctx, $reg) => new StepResult(
+            ->willReturnCallback(fn ($step, $ctx, $reg) => new StepResult(
                 stepOrder: $step->order,
                 status: 'success',
                 output: ['data' => 'ok'],
             ));
 
         $orchestrator = $this->makeOrchestrator();
-        $events       = $this->collectEvents($orchestrator->handle('cek stok dan buat laporan', $user, $session));
+        $events = $this->collectEvents($orchestrator->handle('cek stok dan buat laporan', $user, $session));
 
         $eventNames = array_column($events, 'event');
 
@@ -100,8 +103,8 @@ class AgentOrchestratorTest extends TestCase
         $this->assertContains('task_summary', $eventNames);
 
         // Harus ada 2x step_started dan 2x step_completed
-        $this->assertSame(2, count(array_filter($events, fn($e) => $e['event'] === 'step_started')));
-        $this->assertSame(2, count(array_filter($events, fn($e) => $e['event'] === 'step_completed')));
+        $this->assertSame(2, count(array_filter($events, fn ($e) => $e['event'] === 'step_started')));
+        $this->assertSame(2, count(array_filter($events, fn ($e) => $e['event'] === 'step_completed')));
 
         // task_summary harus menunjukkan completed=2, failed=0
         $summary = $this->findEvent($events, 'task_summary');
@@ -114,10 +117,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.5, 7.4
     // =========================================================================
 
-    public function testApprovalGateStopsExecutionWhenWriteOpsWithoutConfirmation(): void
+    public function test_approval_gate_stops_execution_when_write_ops_without_confirmation(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [
@@ -139,7 +142,7 @@ class AgentOrchestratorTest extends TestCase
         $this->executor->expects($this->never())->method('executeStep');
 
         $orchestrator = $this->makeOrchestrator();
-        $events       = $this->collectEvents(
+        $events = $this->collectEvents(
             $orchestrator->handle('buat invoice', $user, $session, confirmed: false)
         );
 
@@ -163,10 +166,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.5
     // =========================================================================
 
-    public function testApprovalGateExecutesStepsWhenConfirmed(): void
+    public function test_approval_gate_executes_steps_when_confirmed(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [
@@ -189,7 +192,7 @@ class AgentOrchestratorTest extends TestCase
             ->willReturn(new StepResult(stepOrder: 1, status: 'success', output: ['invoice_id' => 1]));
 
         $orchestrator = $this->makeOrchestrator();
-        $events       = $this->collectEvents(
+        $events = $this->collectEvents(
             $orchestrator->handle('buat invoice', $user, $session, confirmed: true)
         );
 
@@ -209,10 +212,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 7.4, 7.5
     // =========================================================================
 
-    public function testCancellationStopsExecutionAfterCurrentStep(): void
+    public function test_cancellation_stops_execution_after_current_step(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [
@@ -245,6 +248,7 @@ class AgentOrchestratorTest extends TestCase
                     $session->is_cancelled = true;
                     $session->save();
                 }
+
                 return new StepResult(stepOrder: $step->order, status: 'success', output: ['ok' => true]);
             });
 
@@ -268,10 +272,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.4
     // =========================================================================
 
-    public function testFailFastStopsExecutionAfterFailedStep(): void
+    public function test_fail_fast_stops_execution_after_failed_step(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [
@@ -304,11 +308,12 @@ class AgentOrchestratorTest extends TestCase
                         errorMessage: 'Tool gagal dieksekusi',
                     );
                 }
+
                 return new StepResult(stepOrder: $step->order, status: 'success', output: ['ok' => true]);
             });
 
         $orchestrator = $this->makeOrchestrator();
-        $events       = $this->collectEvents($orchestrator->handle('multi step', $user, $session));
+        $events = $this->collectEvents($orchestrator->handle('multi step', $user, $session));
 
         // Hanya 2 langkah yang dieksekusi (langkah 3 tidak dieksekusi)
         $this->assertSame(2, $callCount, 'Langkah 3 tidak boleh dieksekusi setelah langkah 2 gagal');
@@ -329,10 +334,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.2
     // =========================================================================
 
-    public function testSingleTurnCallsGeminiDirectlyWithoutPlanning(): void
+    public function test_single_turn_calls_gemini_directly_without_planning(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $this->planner->method('requiresPlanning')->willReturn(false);
@@ -375,10 +380,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 7.4
     // =========================================================================
 
-    public function testCancelMethodSetsIsCancelledFlag(): void
+    public function test_cancel_method_sets_is_cancelled_flag(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $this->assertFalse($session->is_cancelled);
@@ -396,10 +401,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 7.6
     // =========================================================================
 
-    public function testAcknowledgmentIsFirstEvent(): void
+    public function test_acknowledgment_is_first_event(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $this->planner->method('requiresPlanning')->willReturn(false);
@@ -429,10 +434,10 @@ class AgentOrchestratorTest extends TestCase
     // Requirements: 1.5
     // =========================================================================
 
-    public function testPlanWithoutWriteOpsDoesNotRequireApproval(): void
+    public function test_plan_without_write_ops_does_not_require_approval(): void
     {
-        $tenant  = $this->createTenant();
-        $user    = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $session = $this->createAgentSession($tenant->id, $user->id);
 
         $steps = [$this->makeStep(1, 'Baca data', 'read_data', false)];
@@ -452,7 +457,7 @@ class AgentOrchestratorTest extends TestCase
             ->willReturn(new StepResult(stepOrder: 1, status: 'success', output: ['data' => []]));
 
         $orchestrator = $this->makeOrchestrator();
-        $events       = $this->collectEvents(
+        $events = $this->collectEvents(
             $orchestrator->handle('baca data', $user, $session, confirmed: false)
         );
 
@@ -487,9 +492,9 @@ class AgentOrchestratorTest extends TestCase
         return new ErpContext(
             tenantId: 1,
             kpiSummary: [
-                'revenue'          => 1000000,
-                'critical_stock'   => 0,
-                'overdue_ar'       => 0,
+                'revenue' => 1000000,
+                'critical_stock' => 0,
+                'overdue_ar' => 0,
                 'active_employees' => 5,
             ],
             activeModules: ['accounting', 'inventory', 'sales'],
@@ -513,13 +518,13 @@ class AgentOrchestratorTest extends TestCase
     private function createAgentSession(int $tenantId, int $userId): ChatSession
     {
         return ChatSession::create([
-            'tenant_id'        => $tenantId,
-            'user_id'          => $userId,
-            'title'            => 'Test Agent Session',
-            'session_type'     => 'agent',
+            'tenant_id' => $tenantId,
+            'user_id' => $userId,
+            'title' => 'Test Agent Session',
+            'session_type' => 'agent',
             'execution_status' => 'planning',
-            'is_cancelled'     => false,
-            'is_active'        => true,
+            'is_cancelled' => false,
+            'is_active' => true,
         ]);
     }
 
@@ -532,6 +537,7 @@ class AgentOrchestratorTest extends TestCase
         foreach ($generator as $event) {
             $events[] = $event;
         }
+
         return $events;
     }
 
@@ -545,6 +551,7 @@ class AgentOrchestratorTest extends TestCase
                 return $event;
             }
         }
+
         return null;
     }
 }

@@ -2,25 +2,26 @@
 
 namespace Tests\Feature\Audit;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Tenant;
+use App\Models\LandedCost;
 use App\Models\Product;
-use App\Models\Warehouse;
+use App\Models\ProductBatch;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
-use App\Models\ProductBatch;
-use App\Models\WarehouseZone;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Models\Warehouse;
 use App\Models\WarehouseBin;
-use App\Models\LandedCost;
-use App\Services\InventoryCostingService;
+use App\Models\WarehouseZone;
 use App\Services\BarcodeService;
+use App\Services\InventoryCostingService;
+use App\Services\LandedCostService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 /**
  * Task 11: Audit & Perbaikan Modul Inventory
- * 
+ *
  * Tests all inventory features:
  * - Real-time stock updates
  * - FIFO and Average Cost costing methods
@@ -36,8 +37,11 @@ class Task11_InventoryAuditTest extends TestCase
     use RefreshDatabase;
 
     private Tenant $tenant;
+
     private User $user;
+
     private Warehouse $warehouse1;
+
     private Warehouse $warehouse2;
 
     protected function setUp(): void
@@ -574,7 +578,7 @@ class Task11_InventoryAuditTest extends TestCase
         ]);
 
         // Allocate landed cost
-        $landedCostService = app(\App\Services\LandedCostService::class);
+        $landedCostService = app(LandedCostService::class);
         $result = $landedCostService->allocate($landedCost);
 
         // Verify allocation

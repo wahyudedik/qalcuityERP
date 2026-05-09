@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\BotConfig;
 use App\Models\BotMessage;
 use App\Services\BotService;
-use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class BotController extends Controller
@@ -17,31 +17,32 @@ class BotController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $telegram = BotConfig::where('tenant_id', $tenantId)->where('platform', 'telegram')->first();
         $whatsapp = BotConfig::where('tenant_id', $tenantId)->where('platform', 'whatsapp')->first();
+
         return view('settings.bot', compact('telegram', 'whatsapp'));
     }
 
     public function saveSettings(Request $request)
     {
         $request->validate([
-            'platform'     => 'required|in:telegram,whatsapp',
-            'token'        => 'required|string',
+            'platform' => 'required|in:telegram,whatsapp',
+            'token' => 'required|string',
             'phone_number' => 'nullable|string|max:30',
-            'chat_id'      => 'nullable|string|max:50',
+            'chat_id' => 'nullable|string|max:50',
         ]);
         $tenantId = auth()->user()->tenant_id;
 
         BotConfig::updateOrCreate(
             ['tenant_id' => $tenantId, 'platform' => $request->platform],
             [
-                'token'               => $request->token,
-                'phone_number'        => $request->phone_number,
-                'chat_id'             => $request->chat_id,
-                'is_active'           => $request->boolean('is_active'),
+                'token' => $request->token,
+                'phone_number' => $request->phone_number,
+                'chat_id' => $request->chat_id,
+                'is_active' => $request->boolean('is_active'),
                 'notification_events' => array_keys(array_filter([
-                    'new_order'  => $request->boolean('notify_new_order'),
-                    'low_stock'  => $request->boolean('notify_low_stock'),
-                    'payment'    => $request->boolean('notify_payment'),
-                    'approval'   => $request->boolean('notify_approval'),
+                    'new_order' => $request->boolean('notify_new_order'),
+                    'low_stock' => $request->boolean('notify_low_stock'),
+                    'payment' => $request->boolean('notify_payment'),
+                    'approval' => $request->boolean('notify_approval'),
                 ])),
             ]
         );
@@ -55,15 +56,17 @@ class BotController extends Controller
     public function telegramWebhook(Request $request)
     {
         $data = $request->all();
-        $chatId  = $data['message']['chat']['id'] ?? null;
-        $text    = $data['message']['text'] ?? '';
-        $sender  = $data['message']['from']['first_name'] ?? 'Unknown';
+        $chatId = $data['message']['chat']['id'] ?? null;
+        $text = $data['message']['text'] ?? '';
+        $sender = $data['message']['from']['first_name'] ?? 'Unknown';
 
-        if (!$chatId) return response()->json(['ok' => true]);
+        if (! $chatId) {
+            return response()->json(['ok' => true]);
+        }
 
         // Match config by bot token from request header or find by chat_id mapping
         // Use the token from the URL path segment (Telegram sends to /webhook/{token})
-        $token  = $request->route('token') ?? $request->header('X-Bot-Token');
+        $token = $request->route('token') ?? $request->header('X-Bot-Token');
         if ($token) {
             $config = BotConfig::where('platform', 'telegram')
                 ->where('token', $token)
@@ -78,17 +81,19 @@ class BotController extends Controller
                 ->first();
         }
 
-        if (!$config) return response()->json(['ok' => true]);
+        if (! $config) {
+            return response()->json(['ok' => true]);
+        }
 
         BotMessage::create([
-            'tenant_id'  => $config->tenant_id,
-            'platform'   => 'telegram',
-            'direction'  => 'inbound',
-            'recipient'  => (string) $chatId,
-            'message'    => $text,
-            'status'     => 'sent',
-            'sent_at'    => now(),
-            'payload'    => ['chat_id' => $chatId, 'sender' => $sender],
+            'tenant_id' => $config->tenant_id,
+            'platform' => 'telegram',
+            'direction' => 'inbound',
+            'recipient' => (string) $chatId,
+            'message' => $text,
+            'status' => 'sent',
+            'sent_at' => now(),
+            'payload' => ['chat_id' => $chatId, 'sender' => $sender],
         ]);
 
         $this->bot->handleTelegram($config, $chatId, $text);
@@ -104,11 +109,13 @@ class BotController extends Controller
             return response($request->hub_challenge, 200);
         }
 
-        $data    = $request->all();
-        $entry   = $data['entry'][0]['changes'][0]['value'] ?? null;
+        $data = $request->all();
+        $entry = $data['entry'][0]['changes'][0]['value'] ?? null;
         $message = $entry['messages'][0] ?? null;
 
-        if (!$message) return response()->json(['ok' => true]);
+        if (! $message) {
+            return response()->json(['ok' => true]);
+        }
 
         // Match config by phone number ID from the webhook payload
         $phoneNumberId = $entry['metadata']['phone_number_id'] ?? null;
@@ -119,27 +126,29 @@ class BotController extends Controller
                 ->first();
         } else {
             // Fallback: match by token in request header set by WhatsApp
-            $token  = $request->header('X-Hub-Signature-256') ?? $request->header('X-Bot-Token');
+            $token = $request->header('X-Hub-Signature-256') ?? $request->header('X-Bot-Token');
             $config = $token
                 ? BotConfig::where('platform', 'whatsapp')->where('token', $token)->where('is_active', true)->first()
                 : null;
         }
 
-        if (!$config) return response()->json(['ok' => true]);
+        if (! $config) {
+            return response()->json(['ok' => true]);
+        }
 
-        $from       = $message['from'];
-        $text       = $message['text']['body'] ?? '';
+        $from = $message['from'];
+        $text = $message['text']['body'] ?? '';
         $senderName = $entry['contacts'][0]['profile']['name'] ?? 'Unknown';
 
         BotMessage::create([
-            'tenant_id'  => $config->tenant_id,
-            'platform'   => 'whatsapp',
-            'direction'  => 'inbound',
-            'recipient'  => $from,
-            'message'    => $text,
-            'status'     => 'sent',
-            'sent_at'    => now(),
-            'payload'    => ['from' => $from, 'sender' => $senderName],
+            'tenant_id' => $config->tenant_id,
+            'platform' => 'whatsapp',
+            'direction' => 'inbound',
+            'recipient' => $from,
+            'message' => $text,
+            'status' => 'sent',
+            'sent_at' => now(),
+            'payload' => ['from' => $from, 'sender' => $senderName],
         ]);
 
         // Process and reply

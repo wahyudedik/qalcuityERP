@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * QC Test Template Controller
- * 
+ *
  * TASK-2.20: Create QC test templates
  */
 class QcTestTemplateController extends Controller
@@ -86,7 +86,7 @@ class QcTestTemplateController extends Controller
         $template->load([
             'inspections' => function ($query) {
                 $query->latest()->limit(10);
-            }
+            },
         ]);
 
         return view('qc.templates.show', compact('template'));
@@ -165,7 +165,7 @@ class QcTestTemplateController extends Controller
     {
         abort_if($template->tenant_id !== Auth::user()->tenant_id, 403);
 
-        $template->update(['is_active' => !$template->is_active]);
+        $template->update(['is_active' => ! $template->is_active]);
 
         return back()->with('success', 'Template status updated');
     }

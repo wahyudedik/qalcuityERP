@@ -12,7 +12,10 @@ use Illuminate\Http\Request;
 
 class RecruitmentController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     // ─── Lowongan ─────────────────────────────────────────────────
 
@@ -21,17 +24,17 @@ class RecruitmentController extends Controller
         $tid = $this->tid();
 
         $postings = JobPosting::where('tenant_id', $tid)
-            ->withCount(['applications', 'applications as hired_count' => fn($q) => $q->where('stage', 'hired')])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->withCount(['applications', 'applications as hired_count' => fn ($q) => $q->where('stage', 'hired')])
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest()
             ->paginate(15)->withQueryString();
 
         $stats = [
-            'open'        => JobPosting::where('tenant_id', $tid)->where('status', 'open')->count(),
-            'applications'=> JobApplication::where('tenant_id', $tid)->count(),
-            'interview'   => JobApplication::where('tenant_id', $tid)->where('stage', 'interview')->count(),
+            'open' => JobPosting::where('tenant_id', $tid)->where('status', 'open')->count(),
+            'applications' => JobApplication::where('tenant_id', $tid)->count(),
+            'interview' => JobApplication::where('tenant_id', $tid)->where('stage', 'interview')->count(),
             'hired_month' => JobApplication::where('tenant_id', $tid)->where('stage', 'hired')
-                                ->whereMonth('updated_at', now()->month)->count(),
+                ->whereMonth('updated_at', now()->month)->count(),
         ];
 
         $onboardings = EmployeeOnboarding::where('tenant_id', $tid)
@@ -45,25 +48,26 @@ class RecruitmentController extends Controller
     public function storePosting(Request $request)
     {
         $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'department'  => 'nullable|string|max:100',
-            'location'    => 'nullable|string|max:100',
-            'type'        => 'required|in:full_time,part_time,contract,internship',
+            'title' => 'required|string|max:255',
+            'department' => 'nullable|string|max:100',
+            'location' => 'nullable|string|max:100',
+            'type' => 'required|in:full_time,part_time,contract,internship',
             'description' => 'nullable|string',
-            'requirements'=> 'nullable|string',
-            'salary_min'  => 'nullable|integer|min:0',
-            'salary_max'  => 'nullable|integer|min:0',
-            'quota'       => 'required|integer|min:1',
-            'deadline'    => 'nullable|date',
-            'status'      => 'required|in:draft,open,closed',
+            'requirements' => 'nullable|string',
+            'salary_min' => 'nullable|integer|min:0',
+            'salary_max' => 'nullable|integer|min:0',
+            'quota' => 'required|integer|min:1',
+            'deadline' => 'nullable|date',
+            'status' => 'required|in:draft,open,closed',
         ]);
 
         $posting = JobPosting::create(array_merge($data, [
-            'tenant_id'  => $this->tid(),
+            'tenant_id' => $this->tid(),
             'created_by' => auth()->id(),
         ]));
 
         ActivityLog::record('job_posting_created', "Lowongan dibuat: {$posting->title}", $posting);
+
         return back()->with('success', "Lowongan \"{$posting->title}\" berhasil dibuat.");
     }
 
@@ -72,28 +76,30 @@ class RecruitmentController extends Controller
         abort_unless($posting->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'department'  => 'nullable|string|max:100',
-            'location'    => 'nullable|string|max:100',
-            'type'        => 'required|in:full_time,part_time,contract,internship',
+            'title' => 'required|string|max:255',
+            'department' => 'nullable|string|max:100',
+            'location' => 'nullable|string|max:100',
+            'type' => 'required|in:full_time,part_time,contract,internship',
             'description' => 'nullable|string',
-            'requirements'=> 'nullable|string',
-            'salary_min'  => 'nullable|integer|min:0',
-            'salary_max'  => 'nullable|integer|min:0',
-            'quota'       => 'required|integer|min:1',
-            'deadline'    => 'nullable|date',
-            'status'      => 'required|in:draft,open,closed',
+            'requirements' => 'nullable|string',
+            'salary_min' => 'nullable|integer|min:0',
+            'salary_max' => 'nullable|integer|min:0',
+            'quota' => 'required|integer|min:1',
+            'deadline' => 'nullable|date',
+            'status' => 'required|in:draft,open,closed',
         ]);
 
         $posting->update($data);
-        return back()->with('success', "Lowongan diperbarui.");
+
+        return back()->with('success', 'Lowongan diperbarui.');
     }
 
     public function destroyPosting(JobPosting $posting)
     {
         abort_unless($posting->tenant_id === $this->tid(), 403);
         $posting->delete();
-        return back()->with('success', "Lowongan dihapus.");
+
+        return back()->with('success', 'Lowongan dihapus.');
     }
 
     // ─── Lamaran ──────────────────────────────────────────────────
@@ -103,7 +109,7 @@ class RecruitmentController extends Controller
         abort_unless($posting->tenant_id === $this->tid(), 403);
 
         $apps = JobApplication::where('job_posting_id', $posting->id)
-            ->when($request->stage, fn($q) => $q->where('stage', $request->stage))
+            ->when($request->stage, fn ($q) => $q->where('stage', $request->stage))
             ->latest()
             ->paginate(20)->withQueryString();
 
@@ -120,18 +126,18 @@ class RecruitmentController extends Controller
         abort_unless($posting->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'applicant_name'  => 'required|string|max:255',
+            'applicant_name' => 'required|string|max:255',
             'applicant_email' => 'nullable|email|max:255',
             'applicant_phone' => 'nullable|string|max:20',
-            'cover_letter'    => 'nullable|string',
-            'notes'           => 'nullable|string|max:500',
+            'cover_letter' => 'nullable|string',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         JobApplication::create(array_merge($data, [
-            'tenant_id'      => $this->tid(),
+            'tenant_id' => $this->tid(),
             'job_posting_id' => $posting->id,
-            'stage'          => 'applied',
-            'reviewed_by'    => auth()->id(),
+            'stage' => 'applied',
+            'reviewed_by' => auth()->id(),
         ]));
 
         return back()->with('success', "Lamaran {$data['applicant_name']} berhasil ditambahkan.");
@@ -142,18 +148,18 @@ class RecruitmentController extends Controller
         abort_unless($application->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'stage'              => 'required|in:applied,screening,interview,offer,hired,rejected',
-            'notes'              => 'nullable|string|max:1000',
-            'interview_date'     => 'nullable|date',
+            'stage' => 'required|in:applied,screening,interview,offer,hired,rejected',
+            'notes' => 'nullable|string|max:1000',
+            'interview_date' => 'nullable|date',
             'interview_location' => 'nullable|string|max:255',
-            'offered_salary'     => 'nullable|integer|min:0',
+            'offered_salary' => 'nullable|integer|min:0',
             'expected_join_date' => 'nullable|date',
         ]);
 
         $application->update(array_merge($data, ['reviewed_by' => auth()->id()]));
 
         // Jika diterima → buat karyawan baru + mulai onboarding
-        if ($data['stage'] === 'hired' && !$application->employee_id) {
+        if ($data['stage'] === 'hired' && ! $application->employee_id) {
             $this->hireApplicant($application);
         }
 
@@ -165,32 +171,32 @@ class RecruitmentController extends Controller
      */
     private function hireApplicant(JobApplication $application): void
     {
-        $tid     = $this->tid();
+        $tid = $this->tid();
         $posting = $application->jobPosting;
-        $count   = Employee::where('tenant_id', $tid)->count() + 1;
+        $count = Employee::where('tenant_id', $tid)->count() + 1;
 
         $employee = Employee::create([
-            'tenant_id'   => $tid,
-            'employee_id' => 'EMP-' . now()->format('Ym') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT),
-            'name'        => $application->applicant_name,
-            'email'       => $application->applicant_email,
-            'phone'       => $application->applicant_phone,
-            'position'    => $posting?->title,
-            'department'  => $posting?->department,
-            'salary'      => $application->offered_salary,
-            'join_date'   => $application->expected_join_date ?? today(),
-            'status'      => 'active',
+            'tenant_id' => $tid,
+            'employee_id' => 'EMP-'.now()->format('Ym').'-'.str_pad($count, 4, '0', STR_PAD_LEFT),
+            'name' => $application->applicant_name,
+            'email' => $application->applicant_email,
+            'phone' => $application->applicant_phone,
+            'position' => $posting?->title,
+            'department' => $posting?->department,
+            'salary' => $application->offered_salary,
+            'join_date' => $application->expected_join_date ?? today(),
+            'status' => 'active',
         ]);
 
         $application->update(['employee_id' => $employee->id]);
 
         // Buat onboarding dengan default tasks
         $onboarding = EmployeeOnboarding::create([
-            'tenant_id'          => $tid,
-            'employee_id'        => $employee->id,
+            'tenant_id' => $tid,
+            'employee_id' => $employee->id,
             'job_application_id' => $application->id,
-            'status'             => 'in_progress',
-            'start_date'         => $employee->join_date,
+            'status' => 'in_progress',
+            'start_date' => $employee->join_date,
         ]);
 
         $this->seedDefaultOnboardingTasks($onboarding);
@@ -217,21 +223,21 @@ class RecruitmentController extends Controller
             ['task' => 'Pemberian laptop / perangkat kerja',  'category' => 'IT & Akses',   'due_day' => 1,  'required' => false],
             // Orientasi
             ['task' => 'Perkenalan dengan tim & manajemen',   'category' => 'Orientasi',    'due_day' => 1,  'required' => true],
-            ['task' => 'Penjelasan visi, misi & budaya kerja','category' => 'Orientasi',    'due_day' => 2,  'required' => true],
-            ['task' => 'Penjelasan SOP & peraturan perusahaan','category' => 'Orientasi',   'due_day' => 2,  'required' => true],
+            ['task' => 'Penjelasan visi, misi & budaya kerja', 'category' => 'Orientasi',    'due_day' => 2,  'required' => true],
+            ['task' => 'Penjelasan SOP & peraturan perusahaan', 'category' => 'Orientasi',   'due_day' => 2,  'required' => true],
             ['task' => 'Tour fasilitas kantor',               'category' => 'Orientasi',    'due_day' => 1,  'required' => false],
             // Pelatihan
             ['task' => 'Pelatihan penggunaan sistem ERP',     'category' => 'Pelatihan',    'due_day' => 5,  'required' => true],
             ['task' => 'Pelatihan K3 / keselamatan kerja',    'category' => 'Pelatihan',    'due_day' => 7,  'required' => false],
             // Evaluasi
-            ['task' => 'Check-in minggu pertama dengan atasan','category' => 'Evaluasi',    'due_day' => 7,  'required' => true],
-            ['task' => 'Evaluasi akhir masa probasi (30 hari)','category' => 'Evaluasi',    'due_day' => 30, 'required' => true],
+            ['task' => 'Check-in minggu pertama dengan atasan', 'category' => 'Evaluasi',    'due_day' => 7,  'required' => true],
+            ['task' => 'Evaluasi akhir masa probasi (30 hari)', 'category' => 'Evaluasi',    'due_day' => 30, 'required' => true],
         ];
 
         foreach ($defaults as $i => $task) {
             EmployeeOnboardingTask::create(array_merge($task, [
                 'employee_onboarding_id' => $onboarding->id,
-                'sort_order'             => $i,
+                'sort_order' => $i,
             ]));
         }
     }
@@ -244,7 +250,7 @@ class RecruitmentController extends Controller
 
         $onboardings = EmployeeOnboarding::where('tenant_id', $tid)
             ->with(['employee', 'tasks'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest()
             ->paginate(15)->withQueryString();
 
@@ -254,7 +260,8 @@ class RecruitmentController extends Controller
     public function onboardingDetail(EmployeeOnboarding $onboarding)
     {
         abort_unless($onboarding->tenant_id === $this->tid(), 403);
-        $onboarding->load(['employee', 'tasks' => fn($q) => $q->orderBy('sort_order')]);
+        $onboarding->load(['employee', 'tasks' => fn ($q) => $q->orderBy('sort_order')]);
+
         return view('hrm.onboarding-detail', compact('onboarding'));
     }
 
@@ -262,26 +269,26 @@ class RecruitmentController extends Controller
     {
         abort_unless($task->onboarding->tenant_id === $this->tid(), 403);
 
-        $isDone = !$task->is_done;
+        $isDone = ! $task->is_done;
         $task->update([
             'is_done' => $isDone,
             'done_at' => $isDone ? now() : null,
             'done_by' => $isDone ? auth()->id() : null,
-            'notes'   => $request->notes ?? $task->notes,
+            'notes' => $request->notes ?? $task->notes,
         ]);
 
         // Cek apakah semua required task selesai → auto complete onboarding
         $onboarding = $task->onboarding;
         if ($isDone && $onboarding->requiredPendingCount() === 0) {
             $onboarding->update(['status' => 'completed', 'completed_at' => now()]);
-        } elseif (!$isDone && $onboarding->status === 'completed') {
+        } elseif (! $isDone && $onboarding->status === 'completed') {
             $onboarding->update(['status' => 'in_progress', 'completed_at' => null]);
         }
 
         return response()->json([
-            'is_done'  => $isDone,
+            'is_done' => $isDone,
             'progress' => $onboarding->fresh()->progressPercent(),
-            'status'   => $onboarding->fresh()->status,
+            'status' => $onboarding->fresh()->status,
         ]);
     }
 
@@ -289,7 +296,7 @@ class RecruitmentController extends Controller
     {
         $data = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'start_date'  => 'required|date',
+            'start_date' => 'required|date',
         ]);
 
         $tid = $this->tid();
@@ -301,9 +308,9 @@ class RecruitmentController extends Controller
         }
 
         $onboarding = EmployeeOnboarding::create([
-            'tenant_id'  => $tid,
-            'employee_id'=> $data['employee_id'],
-            'status'     => 'in_progress',
+            'tenant_id' => $tid,
+            'employee_id' => $data['employee_id'],
+            'status' => 'in_progress',
             'start_date' => $data['start_date'],
         ]);
 

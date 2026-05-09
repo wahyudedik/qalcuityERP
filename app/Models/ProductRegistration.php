@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductRegistration extends Model
 {
@@ -52,7 +51,7 @@ class ProductRegistration extends Model
     // Check if registration is active
     public function isActive(): bool
     {
-        return $this->status === 'approved' && (!$this->expiry_date || $this->expiry_date->isFuture());
+        return $this->status === 'approved' && (! $this->expiry_date || $this->expiry_date->isFuture());
     }
 
     // Check if expired
@@ -64,18 +63,20 @@ class ProductRegistration extends Model
     // Check if expiring soon (within 90 days)
     public function isExpiringSoon(): bool
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return false;
         }
+
         return $this->expiry_date->isFuture() && $this->expiry_date->diffInDays(now()) <= 90;
     }
 
     // Get days until expiry
     public function getDaysUntilExpiryAttribute(): ?int
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return null;
         }
+
         return $this->expiry_date->diffInDays(now(), false);
     }
 
@@ -107,7 +108,7 @@ class ProductRegistration extends Model
     {
         $this->status = 'rejected';
         if ($notes) {
-            $this->notes = ($this->notes ? $this->notes . "\n\n" : '') . 'Rejection: ' . $notes;
+            $this->notes = ($this->notes ? $this->notes."\n\n" : '').'Rejection: '.$notes;
         }
         $this->save();
     }
@@ -122,7 +123,7 @@ class ProductRegistration extends Model
     // Check formula for restricted ingredients
     public function checkIngredientCompliance(): array
     {
-        if (!$this->formula_id) {
+        if (! $this->formula_id) {
             return ['compliant' => true, 'issues' => []];
         }
 
@@ -138,14 +139,14 @@ class ProductRegistration extends Model
                     $issues[] = [
                         'ingredient' => $ingredient->inci_name,
                         'issue' => 'Banned ingredient',
-                        'severity' => 'critical'
+                        'severity' => 'critical',
                     ];
                 } elseif ($restriction->restriction_type === 'restricted' && $ingredient->percentage) {
                     if ($ingredient->percentage > $restriction->max_limit) {
                         $issues[] = [
                             'ingredient' => $ingredient->inci_name,
                             'issue' => "Exceeds maximum limit ({$restriction->max_limit}%)",
-                            'severity' => 'high'
+                            'severity' => 'high',
                         ];
                     }
                 }
@@ -154,7 +155,7 @@ class ProductRegistration extends Model
 
         return [
             'compliant' => empty($issues),
-            'issues' => $issues
+            'issues' => $issues,
         ];
     }
 

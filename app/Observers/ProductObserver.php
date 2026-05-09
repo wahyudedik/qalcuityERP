@@ -2,11 +2,11 @@
 
 namespace App\Observers;
 
+use App\Jobs\SyncMarketplacePrices;
+use App\Models\EcommerceOrder;
+use App\Models\EcommerceProductMapping;
 use App\Models\Product;
 use App\Models\ProductPriceHistory;
-use App\Models\EcommerceProductMapping;
-use App\Models\EcommerceOrder;
-use App\Jobs\SyncMarketplacePrices;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -15,7 +15,7 @@ class ProductObserver
     public function updated(Product $product): void
     {
         // Only trigger if price_sell changed
-        if (!$product->isDirty('price_sell')) {
+        if (! $product->isDirty('price_sell')) {
             return;
         }
 

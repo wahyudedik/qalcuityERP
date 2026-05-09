@@ -26,7 +26,9 @@ class LoyaltyService
     public function getBalance(int $tenantId, int $customerId): int
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) return 0;
+        if (! $program) {
+            return 0;
+        }
 
         $loyaltyPoint = LoyaltyPoint::where('tenant_id', $tenantId)
             ->where('customer_id', $customerId)
@@ -42,7 +44,9 @@ class LoyaltyService
     public function calculateEarnPoints(int $tenantId, float $amount): int
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) return 0;
+        if (! $program) {
+            return 0;
+        }
 
         return $program->calculatePoints($amount);
     }
@@ -54,7 +58,9 @@ class LoyaltyService
     public function calculateRedeemValue(int $tenantId, int $points): float
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) return 0.0;
+        if (! $program) {
+            return 0.0;
+        }
 
         return $points * $program->idr_per_point;
     }
@@ -65,10 +71,14 @@ class LoyaltyService
     public function awardPoints(int $tenantId, int $customerId, float $transactionAmount, string $reference): ?LoyaltyTransaction
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) return null;
+        if (! $program) {
+            return null;
+        }
 
         $points = $program->calculatePoints($transactionAmount);
-        if ($points <= 0) return null;
+        if ($points <= 0) {
+            return null;
+        }
 
         return DB::transaction(function () use ($tenantId, $customerId, $program, $points, $transactionAmount, $reference) {
             // Upsert loyalty_points record
@@ -81,7 +91,7 @@ class LoyaltyService
             $newLifetime = $loyaltyPoint->lifetime_points + $points;
 
             $loyaltyPoint->update([
-                'total_points'    => $newTotal,
+                'total_points' => $newTotal,
                 'lifetime_points' => $newLifetime,
             ]);
 
@@ -92,16 +102,16 @@ class LoyaltyService
 
             // Catat transaksi earn
             $txn = LoyaltyTransaction::create([
-                'tenant_id'          => $tenantId,
-                'customer_id'        => $customerId,
-                'program_id'         => $program->id,
-                'type'               => 'earn',
-                'points'             => $points,
-                'balance_after'      => $newTotal,
+                'tenant_id' => $tenantId,
+                'customer_id' => $customerId,
+                'program_id' => $program->id,
+                'type' => 'earn',
+                'points' => $points,
+                'balance_after' => $newTotal,
                 'transaction_amount' => $transactionAmount,
-                'reference'          => $reference,
-                'notes'              => "Poin dari transaksi POS #{$reference}",
-                'expires_at'         => $expiresAt,
+                'reference' => $reference,
+                'notes' => "Poin dari transaksi POS #{$reference}",
+                'expires_at' => $expiresAt,
             ]);
 
             Log::info("LoyaltyService: awarded {$points} points to customer {$customerId} for order {$reference}");
@@ -117,7 +127,9 @@ class LoyaltyService
     public function redeemPoints(int $tenantId, int $customerId, int $points, float $transactionTotal, string $reference): float
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) return 0.0;
+        if (! $program) {
+            return 0.0;
+        }
 
         if ($points < $program->min_redeem_points) {
             throw new \InvalidArgumentException(
@@ -130,9 +142,9 @@ class LoyaltyService
             ->where('program_id', $program->id)
             ->first();
 
-        if (!$loyaltyPoint || $loyaltyPoint->total_points < $points) {
+        if (! $loyaltyPoint || $loyaltyPoint->total_points < $points) {
             throw new \InvalidArgumentException(
-                "Poin tidak mencukupi. Saldo: " . ($loyaltyPoint?->total_points ?? 0) . " poin."
+                'Poin tidak mencukupi. Saldo: '.($loyaltyPoint?->total_points ?? 0).' poin.'
             );
         }
 
@@ -140,7 +152,7 @@ class LoyaltyService
 
         if ($discountValue > $transactionTotal) {
             throw new \InvalidArgumentException(
-                "Nilai penukaran poin (Rp " . number_format($discountValue, 0, ',', '.') . ") melebihi total transaksi."
+                'Nilai penukaran poin (Rp '.number_format($discountValue, 0, ',', '.').') melebihi total transaksi.'
             );
         }
 
@@ -149,15 +161,15 @@ class LoyaltyService
             $loyaltyPoint->update(['total_points' => $newTotal]);
 
             LoyaltyTransaction::create([
-                'tenant_id'          => $tenantId,
-                'customer_id'        => $customerId,
-                'program_id'         => $program->id,
-                'type'               => 'redeem',
-                'points'             => -$points,
-                'balance_after'      => $newTotal,
+                'tenant_id' => $tenantId,
+                'customer_id' => $customerId,
+                'program_id' => $program->id,
+                'type' => 'redeem',
+                'points' => -$points,
+                'balance_after' => $newTotal,
                 'transaction_amount' => $transactionTotal,
-                'reference'          => $reference,
-                'notes'              => "Penukaran {$points} poin sebagai diskon Rp " . number_format($discountValue, 0, ',', '.'),
+                'reference' => $reference,
+                'notes' => "Penukaran {$points} poin sebagai diskon Rp ".number_format($discountValue, 0, ',', '.'),
             ]);
 
             Log::info("LoyaltyService: redeemed {$points} points for customer {$customerId}, discount Rp {$discountValue}");
@@ -173,14 +185,14 @@ class LoyaltyService
     public function validateRedeem(int $tenantId, int $customerId, int $points, float $transactionTotal): array
     {
         $program = $this->getActiveProgram($tenantId);
-        if (!$program) {
+        if (! $program) {
             return ['valid' => false, 'message' => 'Program loyalty tidak aktif.', 'discount' => 0];
         }
 
         if ($points < $program->min_redeem_points) {
             return [
-                'valid'    => false,
-                'message'  => "Minimum penukaran adalah {$program->min_redeem_points} poin.",
+                'valid' => false,
+                'message' => "Minimum penukaran adalah {$program->min_redeem_points} poin.",
                 'discount' => 0,
             ];
         }
@@ -188,8 +200,8 @@ class LoyaltyService
         $balance = $this->getBalance($tenantId, $customerId);
         if ($balance < $points) {
             return [
-                'valid'    => false,
-                'message'  => "Poin tidak mencukupi. Saldo: {$balance} poin.",
+                'valid' => false,
+                'message' => "Poin tidak mencukupi. Saldo: {$balance} poin.",
                 'discount' => 0,
             ];
         }
@@ -197,8 +209,8 @@ class LoyaltyService
         $discountValue = $this->calculateRedeemValue($tenantId, $points);
         if ($discountValue > $transactionTotal) {
             return [
-                'valid'    => false,
-                'message'  => "Nilai penukaran melebihi total transaksi.",
+                'valid' => false,
+                'message' => 'Nilai penukaran melebihi total transaksi.',
                 'discount' => 0,
             ];
         }

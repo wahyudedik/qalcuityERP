@@ -2,8 +2,7 @@
     <x-slot name="header">⚓ Fishing Operations</x-slot>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
@@ -54,8 +53,7 @@
 
     {{-- Trips List --}}
     @if (empty($trips) || count($trips) === 0)
-        <div
-            class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+        <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p class="text-4xl mb-3">⚓</p>
             <p class="text-sm text-gray-500">Belum ada trip penangkapan. Buat trip pertama Anda.</p>
         </div>
@@ -86,14 +84,12 @@
                     x-data="{ showCatchForm: false }">
 
                     {{-- Header --}}
-                    <div
-                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
+                    <div class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
                         <div class="flex-1">
                             <div class="flex items-center gap-3">
+                                <span class="text-lg font-bold text-gray-900">{{ $trip->trip_number }}</span>
                                 <span
-                                    class="text-lg font-bold text-gray-900">{{ $trip->trip_number }}</span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                     {{ $label }}
                                 </span>
                             </div>
@@ -152,34 +148,32 @@
                         <div x-show="showCatchForm" x-transition
                             class="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                             <h4 class="text-sm font-semibold text-gray-900 mb-3">🐟 Catat Tangkapan</h4>
-                            <form :action="'{{ route('fisheries.operations.record-catch', $trip->id) }}'"
+                            <form :action="'{{ route('fisheries.api.operations.trips.catch', $trip->id) }}'"
                                 method="POST" class="space-y-3">
                                 @csrf
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Spesies
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Spesies
                                             *</label>
                                         <select name="species_id" required
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                             <option value="">Pilih Spesies</option>
                                             @foreach ($species_list ?? [] as $sp)
                                                 <option value="{{ $sp->id }}">{{ $sp->common_name }}
-                                                    ({{ $sp->scientific_name }})</option>
+                                                    ({{ $sp->scientific_name }})
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Jumlah
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah
                                             (ekor)</label>
                                         <input type="number" name="quantity" required step="1" min="0"
                                             placeholder="100"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Berat
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Berat
                                             Total (kg) *</label>
                                         <input type="number" name="total_weight" required step="0.01" min="0"
                                             placeholder="250.5"
@@ -188,8 +182,7 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Grade
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Grade
                                             Kualitas</label>
                                         <select name="grade_id"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
@@ -201,8 +194,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Skor
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Skor
                                             Kesegaran (0-10)</label>
                                         <input type="number" name="freshness_score" step="0.1" min="0"
                                             max="10" placeholder="8.5"
@@ -224,11 +216,10 @@
                     </div>
 
                     {{-- Footer Actions --}}
-                    <div
-                        class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                    <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                         <div class="flex gap-2">
                             @if ($trip->status === 'planned')
-                                <form :action="'{{ route('fisheries.operations.depart-trip', $trip->id) }}'"
+                                <form :action="'{{ route('fisheries.api.operations.trips.start', $trip->id) }}'"
                                     method="POST" class="inline">
                                     @csrf
                                     <button type="submit"
@@ -246,7 +237,7 @@
                             @endif
 
                             @if (in_array($trip->status, ['fishing', 'returning']))
-                                <form :action="'{{ route('fisheries.operations.complete-trip', $trip->id) }}'"
+                                <form :action="'{{ route('fisheries.api.operations.trips.complete', $trip->id) }}'"
                                     method="POST" class="inline">
                                     @csrf
                                     <button type="submit"
@@ -270,14 +261,13 @@
     {{-- New Trip Modal --}}
     <div id="newTripModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-base font-semibold text-gray-900">🚢 Buat Trip Penangkapan Baru</h3>
                 <button onclick="document.getElementById('newTripModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.operations.plan-trip') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.operations.trips.plan') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 
@@ -288,7 +278,8 @@
                             <option value="">Pilih Kapal</option>
                             @foreach ($vessels ?? [] as $vessel)
                                 <option value="{{ $vessel->id }}">{{ $vessel->name }}
-                                    ({{ $vessel->registration_number }})</option>
+                                    ({{ $vessel->registration_number }})
+                                </option>
                             @endforeach
                         </select>
                     </div>

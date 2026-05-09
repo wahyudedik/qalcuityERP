@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpaBooking extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -151,7 +150,7 @@ class SpaBooking extends Model
     /**
      * Cancel the booking
      */
-    public function cancel(string $reason = null): void
+    public function cancel(?string $reason = null): void
     {
         $this->update([
             'status' => 'cancelled',
@@ -202,7 +201,7 @@ class SpaBooking extends Model
      */
     public function calculateCommission(): float
     {
-        if (!$this->therapist) {
+        if (! $this->therapist) {
             return 0;
         }
 

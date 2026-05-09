@@ -3,16 +3,16 @@
 namespace App\Services;
 
 use App\Models\Document;
-use App\Models\DocumentApprovalWorkflow;
 use App\Models\DocumentApprovalRequest;
+use App\Models\DocumentApprovalWorkflow;
+use App\Models\User;
 use App\Notifications\DocumentApprovalNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Document Approval Service
- * 
+ *
  * Manages document approval workflows, approval requests, and notifications.
  */
 class DocumentApprovalService
@@ -26,7 +26,7 @@ class DocumentApprovalService
             // Determine workflow
             $workflow = $workflow ?? $this->getApplicableWorkflow($document);
 
-            if (!$workflow) {
+            if (! $workflow) {
                 throw new \Exception('No applicable approval workflow found');
             }
 
@@ -117,7 +117,7 @@ class DocumentApprovalService
             ->where(function ($query) use ($userId) {
                 $query->where('approver_id', $userId)
                     ->orWhere('approver_role', function ($q) use ($userId) {
-                        $user = \App\Models\User::find($userId);
+                        $user = User::find($userId);
                         $q->whereIn('id', $user?->roles()->pluck('id') ?? []);
                     });
             })
@@ -233,7 +233,7 @@ class DocumentApprovalService
             ->first();
 
         if ($approvalRequest && $approvalRequest->approver_id) {
-            $approver = \App\Models\User::find($approvalRequest->approver_id);
+            $approver = User::find($approvalRequest->approver_id);
             if ($approver) {
                 $approver->notify(new DocumentApprovalNotification($document, 'pending_approval'));
             }
@@ -245,7 +245,7 @@ class DocumentApprovalService
      */
     protected function notifyOwner(Document $document, string $status, string $comments = ''): void
     {
-        $owner = \App\Models\User::find($document->uploaded_by);
+        $owner = User::find($document->uploaded_by);
         if ($owner) {
             $owner->notify(new DocumentApprovalNotification($document, $status, $comments));
         }
@@ -258,12 +258,15 @@ class DocumentApprovalService
     {
         $daysWaiting = $approval->created_at->diffInDays(now());
 
-        if ($daysWaiting > 7)
+        if ($daysWaiting > 7) {
             return 'urgent';
-        if ($daysWaiting > 3)
+        }
+        if ($daysWaiting > 3) {
             return 'high';
-        if ($daysWaiting > 1)
+        }
+        if ($daysWaiting > 1) {
             return 'medium';
+        }
 
         return 'normal';
     }
@@ -308,9 +311,9 @@ class DocumentApprovalService
         $avgHours = $totalHours / $completedRequests->count();
 
         if ($avgHours < 24) {
-            return round($avgHours, 1) . ' hours';
+            return round($avgHours, 1).' hours';
         }
 
-        return round($avgHours / 24, 1) . ' days';
+        return round($avgHours / 24, 1).' days';
     }
 }

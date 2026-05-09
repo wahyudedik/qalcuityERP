@@ -33,20 +33,20 @@ class ReminderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'     => 'required|string|max:255',
-            'notes'     => 'nullable|string|max:1000',
+            'title' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
             'remind_at' => 'required|date|after:now',
-            'channel'   => 'nullable|in:app,email',
+            'channel' => 'nullable|in:app,email',
         ]);
 
         Reminder::create([
             'tenant_id' => auth()->user()->tenant_id,
-            'user_id'   => auth()->id(),
-            'title'     => $data['title'],
-            'notes'     => $data['notes'] ?? null,
+            'user_id' => auth()->id(),
+            'title' => $data['title'],
+            'notes' => $data['notes'] ?? null,
             'remind_at' => $data['remind_at'],
-            'channel'   => $data['channel'] ?? 'app',
-            'status'    => 'pending',
+            'channel' => $data['channel'] ?? 'app',
+            'status' => 'pending',
         ]);
 
         return back()->with('success', 'Pengingat berhasil dibuat.');

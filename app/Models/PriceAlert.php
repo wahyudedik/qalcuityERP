@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class PriceAlert extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -37,7 +37,7 @@ use HasFactory, BelongsToTenant;
 
     public function checkAndTrigger(float $currentPrice): bool
     {
-        if (!$this->is_active || $this->has_triggered) {
+        if (! $this->is_active || $this->has_triggered) {
             return false;
         }
 
@@ -75,13 +75,13 @@ use HasFactory, BelongsToTenant;
     protected function sendEmailNotification(float $currentPrice): void
     {
         // Implementation for email notification
-        \Illuminate\Support\Facades\Log::info("Price alert email sent for {$this->commodity}");
+        Log::info("Price alert email sent for {$this->commodity}");
     }
 
     protected function sendSmsNotification(float $currentPrice): void
     {
         // Implementation for SMS notification
-        \Illuminate\Support\Facades\Log::info("Price alert SMS sent for {$this->commodity}");
+        Log::info("Price alert SMS sent for {$this->commodity}");
     }
 
     public function reset(): void

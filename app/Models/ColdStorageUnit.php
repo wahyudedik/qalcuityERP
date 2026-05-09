@@ -95,6 +95,7 @@ class ColdStorageUnit extends Model
     public static function generateCode(int $tenantId): string
     {
         $count = self::where('tenant_id', $tenantId)->count() + 1;
-        return 'CSU-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        return 'CSU-'.str_pad($count, 3, '0', STR_PAD_LEFT);
     }
 }

@@ -8,7 +8,10 @@ use Illuminate\Http\Request;
 
 class ZeroInputController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function __construct(protected ZeroInputService $service) {}
 
@@ -39,10 +42,10 @@ class ZeroInputController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'success'        => $log->status === 'mapped',
-                'log_id'         => $log->id,
-                'status'         => $log->status,
-                'mapped_module'  => $log->mapped_module,
+                'success' => $log->status === 'mapped',
+                'log_id' => $log->id,
+                'status' => $log->status,
+                'mapped_module' => $log->mapped_module,
                 'extracted_data' => $log->extracted_data,
             ]);
         }
@@ -58,7 +61,7 @@ class ZeroInputController extends Controller
     public function processText(Request $request)
     {
         $request->validate([
-            'text'    => 'required|string|max:2000',
+            'text' => 'required|string|max:2000',
             'channel' => 'nullable|in:voice,whatsapp,manual',
         ]);
 
@@ -71,10 +74,10 @@ class ZeroInputController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'success'        => $log->status === 'mapped',
-                'log_id'         => $log->id,
-                'status'         => $log->status,
-                'mapped_module'  => $log->mapped_module,
+                'success' => $log->status === 'mapped',
+                'log_id' => $log->id,
+                'status' => $log->status,
+                'mapped_module' => $log->mapped_module,
                 'extracted_data' => $log->extracted_data,
             ]);
         }
@@ -85,6 +88,7 @@ class ZeroInputController extends Controller
     public function show(ZeroInputLog $zeroInputLog)
     {
         abort_if($zeroInputLog->tenant_id !== $this->tid(), 403);
+
         return view('zero-input.show', ['log' => $zeroInputLog]);
     }
 
@@ -98,15 +102,15 @@ class ZeroInputController extends Controller
 
         // Compare original extracted_data with user-submitted data to detect corrections
         $originalData = $zeroInputLog->extracted_data ?? [];
-        $userData     = $request->input('extracted_data', $originalData);
+        $userData = $request->input('extracted_data', $originalData);
         $wasCorrected = $this->detectCorrections($originalData, $userData);
 
         // Save user corrections separately (preserve original AI output for training)
         $zeroInputLog->update([
             'user_corrected_data' => $wasCorrected ? $userData : null,
-            'was_corrected'       => $wasCorrected,
-            'feedback'            => $wasCorrected ? 'corrected' : 'accurate',
-            'extracted_data'      => $userData, // use corrected data for record creation
+            'was_corrected' => $wasCorrected,
+            'feedback' => $wasCorrected ? 'corrected' : 'accurate',
+            'extracted_data' => $userData, // use corrected data for record creation
         ]);
 
         $result = $this->service->createRecord($zeroInputLog);
@@ -129,9 +133,9 @@ class ZeroInputController extends Controller
         abort_if($zeroInputLog->tenant_id !== $this->tid(), 403);
 
         $zeroInputLog->update([
-            'feedback'      => 'rejected',
+            'feedback' => 'rejected',
             'was_corrected' => true,
-            'status'        => 'rejected',
+            'status' => 'rejected',
             'error_message' => $request->input('reason', 'Ditolak oleh user'),
         ]);
 
@@ -147,15 +151,21 @@ class ZeroInputController extends Controller
         $skip = ['module', 'confidence', 'raw'];
 
         foreach ($corrected as $key => $value) {
-            if (in_array($key, $skip)) continue;
+            if (in_array($key, $skip)) {
+                continue;
+            }
             $origVal = $original[$key] ?? null;
 
             // Normalize for comparison
             if (is_numeric($value) && is_numeric($origVal)) {
-                if (abs((float)$value - (float)$origVal) > 0.01) return true;
+                if (abs((float) $value - (float) $origVal) > 0.01) {
+                    return true;
+                }
             } elseif (is_array($value) || is_array($origVal)) {
-                if (json_encode($value) !== json_encode($origVal)) return true;
-            } elseif ((string)$value !== (string)$origVal) {
+                if (json_encode($value) !== json_encode($origVal)) {
+                    return true;
+                }
+            } elseif ((string) $value !== (string) $origVal) {
                 return true;
             }
         }

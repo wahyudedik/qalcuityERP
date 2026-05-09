@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // End-of-Day Audit Batches
-        if (!Schema::hasTable('night_audit_batches')) {
+        if (! Schema::hasTable('night_audit_batches')) {
             Schema::create('night_audit_batches', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -34,14 +35,14 @@ return new class extends Migration {
                 $table->decimal('revpar', 15, 2)->default(0); // Revenue Per Available Room
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'audit_date']);
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Automated Revenue Postings
-        if (!Schema::hasTable('revenue_postings')) {
+        if (! Schema::hasTable('revenue_postings')) {
             Schema::create('revenue_postings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -61,7 +62,7 @@ return new class extends Migration {
                     'telephone',
                     'parking',
                     'spa',
-                    'other'
+                    'other',
                 ]);
                 $table->string('description');
                 $table->decimal('amount', 15, 2);
@@ -74,7 +75,7 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'posting_date']);
                 $table->index(['tenant_id', 'revenue_type']);
                 $table->index(['tenant_id', 'status']);
@@ -82,7 +83,7 @@ return new class extends Migration {
         }
 
         // Daily Occupancy Statistics
-        if (!Schema::hasTable('daily_occupancy_stats')) {
+        if (! Schema::hasTable('daily_occupancy_stats')) {
             Schema::create('daily_occupancy_stats', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -100,13 +101,13 @@ return new class extends Migration {
                 $table->decimal('average_length_of_stay', 5, 2)->default(0);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->unique(['tenant_id', 'stat_date']);
             });
         }
 
         // ADR (Average Daily Rate) Tracking
-        if (!Schema::hasTable('daily_rate_stats')) {
+        if (! Schema::hasTable('daily_rate_stats')) {
             Schema::create('daily_rate_stats', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -120,13 +121,13 @@ return new class extends Migration {
                 $table->json('rate_breakdown')->nullable(); // Breakdown by room type
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->unique(['tenant_id', 'stat_date']);
             });
         }
 
         // Audit Log for Night Audit Operations
-        if (!Schema::hasTable('night_audit_logs')) {
+        if (! Schema::hasTable('night_audit_logs')) {
             Schema::create('night_audit_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -138,7 +139,7 @@ return new class extends Migration {
                 $table->foreignId('performed_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamp('performed_at')->useCurrent();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'performed_at']);
             });
         }

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Multi-level BOM (replaces flat Recipe for complex products)
-        if (!Schema::hasTable('boms')) {
+        if (! Schema::hasTable('boms')) {
             Schema::create('boms', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -20,14 +20,15 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'product_id']);
             });
         }
 
-        if (!Schema::hasTable('bom_lines')) {
+        if (! Schema::hasTable('bom_lines')) {
             Schema::create('bom_lines', function (Blueprint $table) {
                 $table->id();
+                $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('bom_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('product_id')->constrained()->cascadeOnDelete(); // raw material or sub-assembly
                 $table->decimal('quantity_per_batch', 12, 3);
@@ -40,7 +41,7 @@ return new class extends Migration
         }
 
         // Work Centers (mesin / stasiun kerja)
-        if (!Schema::hasTable('work_centers')) {
+        if (! Schema::hasTable('work_centers')) {
             Schema::create('work_centers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -51,13 +52,13 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'code']);
             });
         }
 
         // Work Order Operations (routing steps)
-        if (!Schema::hasTable('work_order_operations')) {
+        if (! Schema::hasTable('work_order_operations')) {
             Schema::create('work_order_operations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('work_order_id')->constrained()->cascadeOnDelete();
@@ -71,22 +72,22 @@ return new class extends Migration
                 $table->timestamp('completed_at')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['work_order_id', 'sequence']);
             });
         }
 
         // Add bom_id to work_orders + material_consumed flag
         Schema::table('work_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('work_orders', 'bom_id')) {
+            if (! Schema::hasColumn('work_orders', 'bom_id')) {
                 $table->foreignId('bom_id')->nullable()->after('recipe_id')->constrained()->nullOnDelete();
             }
-            if (!Schema::hasColumn('work_orders', 'materials_consumed')) {
+            if (! Schema::hasColumn('work_orders', 'materials_consumed')) {
                 $table->boolean('materials_consumed')->default(false)->after('overhead_cost');
             }
-            if (!Schema::hasColumn('work_orders', 'journal_entry_id')) {
+            if (! Schema::hasColumn('work_orders', 'journal_entry_id')) {
                 $table->foreignId('journal_entry_id')->nullable()->after('materials_consumed')
-                      ->constrained('journal_entries')->nullOnDelete();
+                    ->constrained('journal_entries')->nullOnDelete();
             }
         });
     }

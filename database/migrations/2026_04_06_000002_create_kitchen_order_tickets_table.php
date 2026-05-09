@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('kitchen_order_tickets')) {
+        if (! Schema::hasTable('kitchen_order_tickets')) {
             Schema::create('kitchen_order_tickets', function (Blueprint $table) {
                 $table->id();
                 $table->timestamps();

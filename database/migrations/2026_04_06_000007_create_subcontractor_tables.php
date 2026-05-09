@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('subcontractors')) {
+        if (! Schema::hasTable('subcontractors')) {
             Schema::create('subcontractors', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -27,13 +28,13 @@ return new class extends Migration {
                 $table->integer('total_projects')->default(0);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'specialization']);
             });
         }
 
-        if (!Schema::hasTable('subcontractor_contracts')) {
+        if (! Schema::hasTable('subcontractor_contracts')) {
             Schema::create('subcontractor_contracts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -51,14 +52,14 @@ return new class extends Migration {
                 $table->decimal('performance_rating', 3, 1)->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['subcontractor_id', 'status']);
                 $table->index(['project_id', 'status']);
             });
         }
 
-        if (!Schema::hasTable('subcontractor_payments')) {
+        if (! Schema::hasTable('subcontractor_payments')) {
             Schema::create('subcontractor_payments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -74,7 +75,7 @@ return new class extends Migration {
                 $table->enum('status', ['pending', 'approved', 'paid', 'rejected'])->default('pending');
                 $table->text('remarks')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['contract_id', 'status']);
             });

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Template shift (Pagi, Siang, Malam, dll)
-        if (!Schema::hasTable('work_shifts')) {
+        if (! Schema::hasTable('work_shifts')) {
             Schema::create('work_shifts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -22,13 +22,13 @@ return new class extends Migration
                 $table->text('description')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Jadwal shift per karyawan per hari
-        if (!Schema::hasTable('shift_schedules')) {
+        if (! Schema::hasTable('shift_schedules')) {
             Schema::create('shift_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -37,7 +37,7 @@ return new class extends Migration
                 $table->date('date');
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['employee_id', 'date']);
                 $table->index(['tenant_id', 'date']);
                 $table->index(['tenant_id', 'employee_id']);
@@ -46,12 +46,12 @@ return new class extends Migration
 
         // Tambah kolom shift ke tabel attendances
         Schema::table('attendances', function (Blueprint $table) {
-            if (!Schema::hasColumn('attendances', 'shift_id')) {
+            if (! Schema::hasColumn('attendances', 'shift_id')) {
                 $table->foreignId('shift_id')->nullable()->after('employee_id')
-                      ->constrained('work_shifts')->nullOnDelete();
+                    ->constrained('work_shifts')->nullOnDelete();
             }
             $table->unsignedSmallInteger('work_minutes')->nullable()->after('check_out');
-            if (!Schema::hasColumn('attendances', 'overtime_minutes')) {
+            if (! Schema::hasColumn('attendances', 'overtime_minutes')) {
                 $table->smallInteger('overtime_minutes')->nullable()->after('work_minutes'); // bisa negatif (pulang cepat)
                 $table->enum('status', ['present', 'absent', 'late', 'leave', 'sick', 'holiday'])->default('present')->change();
             }

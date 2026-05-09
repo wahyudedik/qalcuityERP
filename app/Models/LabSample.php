@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LabSample extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'sample_number',
@@ -56,9 +56,9 @@ class LabSample extends Model
     public static function generateSampleNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'SAMPLE-' . $date;
+        $prefix = 'SAMPLE-'.$date;
 
-        $lastSample = static::where('sample_number', 'like', $prefix . '%')
+        $lastSample = static::where('sample_number', 'like', $prefix.'%')
             ->orderBy('sample_number', 'desc')
             ->first();
 
@@ -69,7 +69,7 @@ class LabSample extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**

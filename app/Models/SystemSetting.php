@@ -17,6 +17,7 @@ class SystemSetting extends Model
 
     // Cache TTL: 60 minutes
     const CACHE_TTL = 3600;
+
     const CACHE_KEY = 'system_settings_all';
 
     /**
@@ -27,7 +28,7 @@ class SystemSetting extends Model
     {
         $settings = static::getCached();
 
-        if (!isset($settings[$key])) {
+        if (! isset($settings[$key])) {
             return $default;
         }
 
@@ -55,7 +56,7 @@ class SystemSetting extends Model
     {
         $storedValue = $value;
 
-        if ($encrypt && !empty($value)) {
+        if ($encrypt && ! empty($value)) {
             $storedValue = Crypt::encryptString((string) $value);
         }
 
@@ -101,7 +102,7 @@ class SystemSetting extends Model
             $settings = static::getCached();
 
             foreach ($map as $settingKey => $configPath) {
-                if (!isset($settings[$settingKey])) {
+                if (! isset($settings[$settingKey])) {
                     continue;
                 }
 
@@ -125,7 +126,7 @@ class SystemSetting extends Model
             }
         } catch (\Throwable $e) {
             // DB not ready yet (first deploy) — silently fall back to .env
-            Log::debug('SystemSetting::loadIntoConfig skipped: ' . $e->getMessage());
+            Log::debug('SystemSetting::loadIntoConfig skipped: '.$e->getMessage());
         }
     }
 
@@ -138,7 +139,7 @@ class SystemSetting extends Model
             try {
                 return static::all()
                     ->keyBy('key')
-                    ->map(fn($s) => ['value' => $s->value, 'is_encrypted' => $s->is_encrypted])
+                    ->map(fn ($s) => ['value' => $s->value, 'is_encrypted' => $s->is_encrypted])
                     ->toArray();
             } catch (\Throwable) {
                 return [];
@@ -155,7 +156,7 @@ class SystemSetting extends Model
         try {
             return static::all()
                 ->groupBy('group')
-                ->map(fn($items) => $items->keyBy('key'))
+                ->map(fn ($items) => $items->keyBy('key'))
                 ->toArray();
         } catch (\Throwable) {
             return [];
@@ -176,6 +177,7 @@ class SystemSetting extends Model
     public static function has(string $key): bool
     {
         $settings = static::getCached();
-        return isset($settings[$key]) && !empty($settings[$key]['value']);
+
+        return isset($settings[$key]) && ! empty($settings[$key]['value']);
     }
 }

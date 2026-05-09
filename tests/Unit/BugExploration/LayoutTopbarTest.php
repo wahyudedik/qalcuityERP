@@ -38,9 +38,9 @@ class LayoutTopbarTest extends TestCase
         // Test ini AKAN GAGAL karena $topbarActions ada di dalam <header>
         $this->assertFalse(
             (bool) $isInHeader,
-            "Bug 1.11: \$topbarActions slot ditemukan di dalam <header> navbar. " .
-            "Tombol aksi seharusnya berada di page content area (page header section), " .
-            "bukan di topbar global yang bisa overflow di layar kecil."
+            'Bug 1.11: $topbarActions slot ditemukan di dalam <header> navbar. '.
+            'Tombol aksi seharusnya berada di page content area (page header section), '.
+            'bukan di topbar global yang bisa overflow di layar kecil.'
         );
     }
 
@@ -63,9 +63,9 @@ class LayoutTopbarTest extends TestCase
         // Test ini AKAN GAGAL karena $pageHeader slot belum ada
         $this->assertTrue(
             $hasPageHeaderSlot,
-            "Bug 1.11: Tidak ditemukan \$pageHeader slot di layout. " .
-            "Seharusnya ada slot 'pageHeader' di dalam area konten halaman " .
-            "untuk menempatkan tombol aksi halaman."
+            'Bug 1.11: Tidak ditemukan $pageHeader slot di layout. '.
+            "Seharusnya ada slot 'pageHeader' di dalam area konten halaman ".
+            'untuk menempatkan tombol aksi halaman.'
         );
     }
 
@@ -88,9 +88,9 @@ class LayoutTopbarTest extends TestCase
         // Test ini AKAN GAGAL karena $topbarActions masih ada di topbar
         $this->assertFalse(
             $topbarActionsInHeader,
-            "Bug 1.11: \$topbarActions masih ada di topbar/navbar. " .
-            "Ini menyebabkan topbar overflow di layar kecil ketika ada banyak tombol aksi. " .
-            "Pindahkan ke page content area menggunakan \$pageHeader slot."
+            'Bug 1.11: $topbarActions masih ada di topbar/navbar. '.
+            'Ini menyebabkan topbar overflow di layar kecil ketika ada banyak tombol aksi. '.
+            'Pindahkan ke page content area menggunakan $pageHeader slot.'
         );
     }
 }

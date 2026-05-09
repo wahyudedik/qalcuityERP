@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\TourPackage;
-use App\Models\TourBooking;
-use App\Models\ItineraryDay;
 use App\Models\FleetVehicle;
+use App\Models\ItineraryDay;
+use App\Models\TourBooking;
+use App\Models\TourPackage;
 use Illuminate\Http\Request;
 
 class TourTravelApiController extends ApiBaseController
@@ -25,6 +24,7 @@ class TourTravelApiController extends ApiBaseController
         }
 
         $packages = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($packages);
     }
 
@@ -33,6 +33,7 @@ class TourTravelApiController extends ApiBaseController
         $package = TourPackage::where('tenant_id', $this->getTenantId())
             ->with(['itineraryDays', 'bookings'])
             ->findOrFail($id);
+
         return $this->success($package);
     }
 
@@ -51,7 +52,7 @@ class TourTravelApiController extends ApiBaseController
         $package = TourPackage::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
             'status' => 'draft',
-            'package_code' => 'TOUR-' . now()->format('Y') . '-' . str_pad(TourPackage::count() + 1, 4, '0', STR_PAD_LEFT),
+            'package_code' => 'TOUR-'.now()->format('Y').'-'.str_pad(TourPackage::count() + 1, 4, '0', STR_PAD_LEFT),
         ]));
 
         return $this->success($package, 'Tour package created successfully', 201);
@@ -71,6 +72,7 @@ class TourTravelApiController extends ApiBaseController
         }
 
         $bookings = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($bookings);
     }
 
@@ -79,6 +81,7 @@ class TourTravelApiController extends ApiBaseController
         $booking = TourBooking::where('tenant_id', $this->getTenantId())
             ->with(['tourPackage', 'customer'])
             ->findOrFail($id);
+
         return $this->success($booking);
     }
 
@@ -104,7 +107,7 @@ class TourTravelApiController extends ApiBaseController
 
         $booking = TourBooking::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'booking_number' => 'TB-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'booking_number' => 'TB-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => 'pending',
             'payment_status' => 'unpaid',
             'unit_price' => $package->price_per_person,
@@ -144,6 +147,7 @@ class TourTravelApiController extends ApiBaseController
         });
 
         $itineraries = $query->orderBy('day_number')->paginate($request->get('per_page', 20));
+
         return $this->success($itineraries);
     }
 
@@ -179,6 +183,7 @@ class TourTravelApiController extends ApiBaseController
         }
 
         $vehicles = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($vehicles);
     }
 

@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Integration;
 
+use App\Exceptions\MarketplaceApiException;
 use App\Exceptions\RateLimitException;
 use App\Http\Middleware\RateLimitAiRequests;
 use App\Jobs\SyncMarketplaceStock;
 use App\Models\EcommerceChannel;
 use App\Services\MarketplaceSyncService;
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -26,6 +28,7 @@ use Tests\TestCase;
 class PerformanceIntegrationTest extends TestCase
 {
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -33,7 +36,7 @@ class PerformanceIntegrationTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant(['onboarding_completed' => true]);
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->actingAs($this->user);
     }
 
@@ -119,7 +122,7 @@ class PerformanceIntegrationTest extends TestCase
     public function test_rate_limit_is_per_tenant_not_global(): void
     {
         $tenantA = $this->tenant;
-        $tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-' . uniqid()]);
+        $tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-'.uniqid()]);
 
         $keyA = "ai_requests:{$tenantA->id}";
         $keyB = "ai_requests:{$tenantB->id}";
@@ -244,7 +247,7 @@ class PerformanceIntegrationTest extends TestCase
     {
         $tenantId = $this->tenant->id;
         $role = $this->user->role;
-        $cachePrefix = "dashboard:{$tenantId}:{$role}:" . now()->format('Y-m-d-H');
+        $cachePrefix = "dashboard:{$tenantId}:{$role}:".now()->format('Y-m-d-H');
 
         // Pastikan cache kosong
         Cache::forget("{$cachePrefix}_sales");
@@ -286,7 +289,7 @@ class PerformanceIntegrationTest extends TestCase
         $role = $this->user->role;
 
         // Format cache key yang diharapkan: "dashboard:{tenantId}:{role}:{Y-m-d-H}"
-        $expectedCachePrefix = "dashboard:{$tenantId}:{$role}:" . now()->format('Y-m-d-H');
+        $expectedCachePrefix = "dashboard:{$tenantId}:{$role}:".now()->format('Y-m-d-H');
 
         // Verifikasi bahwa cache key menggunakan tenant_id (isolasi per tenant)
         $this->assertStringContainsString(
@@ -328,11 +331,11 @@ class PerformanceIntegrationTest extends TestCase
 
         // Buat channel aktif dengan stock sync enabled
         $channel = EcommerceChannel::withoutGlobalScope('tenant')->create([
-            'tenant_id'          => $this->tenant->id,
-            'platform'           => 'tokopedia',
-            'shop_name'          => 'Test Shop',
-            'shop_id'            => 'shop-' . uniqid(),
-            'is_active'          => true,
+            'tenant_id' => $this->tenant->id,
+            'platform' => 'tokopedia',
+            'shop_name' => 'Test Shop',
+            'shop_id' => 'shop-'.uniqid(),
+            'is_active' => true,
             'stock_sync_enabled' => true,
         ]);
 
@@ -420,21 +423,21 @@ class PerformanceIntegrationTest extends TestCase
     {
         $this->mock(MarketplaceSyncService::class, function ($mock) {
             $mock->shouldReceive('syncStock')
-                ->andThrow(new \App\Exceptions\MarketplaceApiException('API error'));
+                ->andThrow(new MarketplaceApiException('API error'));
         });
 
         $channel = EcommerceChannel::withoutGlobalScope('tenant')->create([
-            'tenant_id'          => $this->tenant->id,
-            'platform'           => 'shopee',
-            'shop_name'          => 'Test Shop 2',
-            'shop_id'            => 'shop2-' . uniqid(),
-            'is_active'          => true,
+            'tenant_id' => $this->tenant->id,
+            'platform' => 'shopee',
+            'shop_name' => 'Test Shop 2',
+            'shop_id' => 'shop2-'.uniqid(),
+            'is_active' => true,
             'stock_sync_enabled' => true,
         ]);
 
         $job = new SyncMarketplaceStock($this->tenant->id);
 
-        $this->expectException(\App\Exceptions\MarketplaceApiException::class);
+        $this->expectException(MarketplaceApiException::class);
 
         // MarketplaceApiException harus dilempar ulang (tidak di-swallow)
         $this->runJobWithReleaseMock($job);
@@ -449,7 +452,7 @@ class PerformanceIntegrationTest extends TestCase
     private function runJobWithReleaseMock(SyncMarketplaceStock $job): void
     {
         // Buat mock queue job instance
-        $queueJob = $this->createMock(\Illuminate\Contracts\Queue\Job::class);
+        $queueJob = $this->createMock(Job::class);
         $queueJob->method('attempts')->willReturn(1);
         $queueJob->method('release')->willReturn(null);
         $queueJob->method('isReleased')->willReturn(false);

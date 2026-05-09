@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Telecom;
 
 use App\Http\Controllers\Controller;
+use App\Models\HotspotUser;
+use App\Models\InternetPackage;
+use App\Models\NetworkAlert;
 use App\Models\NetworkDevice;
 use App\Models\TelecomSubscription;
-use App\Models\HotspotUser;
 use App\Models\UsageTracking;
-use App\Models\NetworkAlert;
-use App\Models\InternetPackage;
+use App\Services\Telecom\BandwidthMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,7 +64,7 @@ class DashboardController extends Controller
                 $deviceCounts->get('offline', 0),
                 $deviceCounts->get('maintenance', 0),
                 $deviceCounts->get('pending', 0),
-            ]
+            ],
         ];
 
         // Subscription Status Distribution — reuse $subscriptionCounts already fetched above
@@ -74,13 +75,13 @@ class DashboardController extends Controller
                 $subscriptionCounts->get('suspended', 0),
                 $subscriptionCounts->get('cancelled', 0),
                 $subscriptionCounts->get('expired', 0),
-            ]
+            ],
         ];
 
         // Top Devices by Bandwidth Usage
         $topDevices = $this->getTopDevicesByBandwidth($tenantId, 5);
 
-                        // Recent Alerts
+        // Recent Alerts
         $recentAlerts = NetworkAlert::where('tenant_id', $tenantId)
             ->with(['device', 'subscription.customer'])
             ->orderBy('created_at', 'desc')
@@ -152,7 +153,7 @@ class DashboardController extends Controller
                 'subscriptions as active_subs' => function ($q) {
                     $q->where('status', 'active');
                 },
-                'hotspotUsers as hotspot_users_count'
+                'hotspotUsers as hotspot_users_count',
             ])
             ->orderBy('active_subs', 'desc')
             ->limit($limit)
@@ -213,14 +214,16 @@ class DashboardController extends Controller
      */
     protected function getRevenueSummary(int $tenantId): array
     {
-        $currentMonth = TelecomSubscription::where('tenant_id', $tenantId)
-            ->where('status', 'active')
+        $currentMonth = TelecomSubscription::withoutGlobalScopes()
+            ->where('telecom_subscriptions.tenant_id', $tenantId)
+            ->where('telecom_subscriptions.status', 'active')
             ->join('internet_packages', 'telecom_subscriptions.package_id', '=', 'internet_packages.id')
             ->sum('internet_packages.price');
 
-        $lastMonth = TelecomSubscription::where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->whereMonth('started_at', now()->subMonth()->month)
+        $lastMonth = TelecomSubscription::withoutGlobalScopes()
+            ->where('telecom_subscriptions.tenant_id', $tenantId)
+            ->where('telecom_subscriptions.status', 'active')
+            ->whereMonth('telecom_subscriptions.created_at', now()->subMonth()->month)
             ->join('internet_packages', 'telecom_subscriptions.package_id', '=', 'internet_packages.id')
             ->sum('internet_packages.price');
 
@@ -274,7 +277,7 @@ class DashboardController extends Controller
 
         if ($deviceId) {
             $device = NetworkDevice::where('tenant_id', $tenantId)->findOrFail($deviceId);
-            $monitoringService = new \App\Services\Telecom\BandwidthMonitoringService();
+            $monitoringService = new BandwidthMonitoringService;
             $bandwidth = $monitoringService->getDeviceBandwidthUsage($device);
 
             return response()->json([

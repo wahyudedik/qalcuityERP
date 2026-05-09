@@ -4,7 +4,6 @@ namespace Tests\Feature\BugExploration;
 
 use App\Models\Bom;
 use App\Models\BomLine;
-use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Manufacturing\BomExplosionService;
@@ -27,6 +26,7 @@ class ManufacturingBomExplosionTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -140,7 +140,7 @@ class ManufacturingBomExplosionTest extends TestCase
         $result = $service->explodeBom($bomMeja, 1, $this->tenant->id, false);
 
         // Assert: Harus berhasil
-        $this->assertTrue($result['success'], "BOM explosion gagal: " . ($result['error'] ?? 'unknown'));
+        $this->assertTrue($result['success'], 'BOM explosion gagal: '.($result['error'] ?? 'unknown'));
 
         // Assert: Harus ada komponen level 3 (Baut M8)
         $materials = $result['materials'] ?? [];
@@ -150,9 +150,9 @@ class ManufacturingBomExplosionTest extends TestCase
         $this->assertContains(
             $productBaut->id,
             $productIds,
-            "Bug 1.19: BOM explosion tidak menyertakan komponen level 3 (Baut M8). " .
-            "Komponen yang ditemukan: " . implode(', ', array_column($materials, 'product_name')) . ". " .
-            "BOM explosion seharusnya recursive untuk semua level sub-assembly."
+            'Bug 1.19: BOM explosion tidak menyertakan komponen level 3 (Baut M8). '.
+            'Komponen yang ditemukan: '.implode(', ', array_column($materials, 'product_name')).'. '.
+            'BOM explosion seharusnya recursive untuk semua level sub-assembly.'
         );
 
         // Assert: Max level harus >= 2 (level 3 = index 2)
@@ -160,8 +160,8 @@ class ManufacturingBomExplosionTest extends TestCase
         $this->assertGreaterThanOrEqual(
             2,
             $maxLevel,
-            "Bug 1.19: Max level BOM explosion adalah {$maxLevel}, seharusnya >= 2 " .
-            "untuk BOM dengan 3 level sub-assembly."
+            "Bug 1.19: Max level BOM explosion adalah {$maxLevel}, seharusnya >= 2 ".
+            'untuk BOM dengan 3 level sub-assembly.'
         );
     }
 }

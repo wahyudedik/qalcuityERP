@@ -2,14 +2,11 @@
 
 use App\Helpers\NumberHelper;
 
-if (!function_exists('format_number_id')) {
+if (! function_exists('format_number_id')) {
     /**
      * Format angka dengan format Indonesia (titik ribuan, koma desimal)
-     * 
-     * @param float|int|string|null $number
-     * @param int $decimals
-     * @param bool $showZero
-     * @return string
+     *
+     * @param  float|int|string|null  $number
      */
     function format_number_id($number, int $decimals = 0, bool $showZero = true): string
     {
@@ -17,13 +14,11 @@ if (!function_exists('format_number_id')) {
     }
 }
 
-if (!function_exists('format_currency_id')) {
+if (! function_exists('format_currency_id')) {
     /**
      * Format mata uang Rupiah
-     * 
-     * @param float|int|string|null $amount
-     * @param bool $showSymbol
-     * @return string
+     *
+     * @param  float|int|string|null  $amount
      */
     function format_currency_id($amount, bool $showSymbol = true): string
     {
@@ -31,13 +26,11 @@ if (!function_exists('format_currency_id')) {
     }
 }
 
-if (!function_exists('format_percentage_id')) {
+if (! function_exists('format_percentage_id')) {
     /**
      * Format persentase
-     * 
-     * @param float|int|string|null $number
-     * @param int $decimals
-     * @return string
+     *
+     * @param  float|int|string|null  $number
      */
     function format_percentage_id($number, int $decimals = 2): string
     {
@@ -45,13 +38,11 @@ if (!function_exists('format_percentage_id')) {
     }
 }
 
-if (!function_exists('abbreviate_number_id')) {
+if (! function_exists('abbreviate_number_id')) {
     /**
      * Format angka dengan suffix (Rb, Jt, M)
-     * 
-     * @param float|int|string|null $number
-     * @param int $decimals
-     * @return string
+     *
+     * @param  float|int|string|null  $number
      */
     function abbreviate_number_id($number, int $decimals = 1): string
     {
@@ -59,39 +50,38 @@ if (!function_exists('abbreviate_number_id')) {
     }
 }
 
-if (!function_exists('get_tenant_subscription_status')) {
+if (! function_exists('get_tenant_subscription_status')) {
     /**
      * Get tenant subscription status from cached object
-     * 
-     * @param object $tenant
-     * @return string
+     *
+     * @param  object  $tenant
      */
     function get_tenant_subscription_status($tenant): string
     {
-        if (!$tenant->is_active) {
+        if (! $tenant->is_active) {
             return 'nonaktif';
         }
-        
+
         // Check trial expired
-        if ($tenant->plan === 'trial' 
-            && isset($tenant->trial_ends_at) 
-            && $tenant->trial_ends_at 
+        if ($tenant->plan === 'trial'
+            && isset($tenant->trial_ends_at)
+            && $tenant->trial_ends_at
             && $tenant->trial_ends_at->isPast()) {
             return 'trial_expired';
         }
-        
+
         // Check plan expired
-        if ($tenant->plan !== 'trial' 
-            && isset($tenant->plan_expires_at) 
-            && $tenant->plan_expires_at 
+        if ($tenant->plan !== 'trial'
+            && isset($tenant->plan_expires_at)
+            && $tenant->plan_expires_at
             && $tenant->plan_expires_at->isPast()) {
             return 'expired';
         }
-        
+
         if ($tenant->plan === 'trial') {
             return 'trial';
         }
-        
+
         return 'active';
     }
 }

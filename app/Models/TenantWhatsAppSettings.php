@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TenantWhatsAppSettings extends Model
 {
     use BelongsToTenant;
+
     protected $table = 'tenant_whatsapp_settings';
 
     protected $fillable = [
@@ -61,7 +62,8 @@ class TenantWhatsAppSettings extends Model
     public static function isConfigured(int $tenantId): bool
     {
         $settings = self::getForTenant($tenantId);
-        return $settings && $settings->is_active && !empty($settings->api_key);
+
+        return $settings && $settings->is_active && ! empty($settings->api_key);
     }
 
     /**
@@ -69,7 +71,7 @@ class TenantWhatsAppSettings extends Model
      */
     public function resetDailyCounter(): void
     {
-        if (!$this->last_reset_date || $this->last_reset_date->isToday()) {
+        if (! $this->last_reset_date || $this->last_reset_date->isToday()) {
             return;
         }
 
@@ -85,6 +87,7 @@ class TenantWhatsAppSettings extends Model
     public function canSendMessages(): bool
     {
         $this->resetDailyCounter();
+
         return $this->current_messages_today < $this->max_messages_per_day;
     }
 

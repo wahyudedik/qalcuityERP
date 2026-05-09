@@ -51,7 +51,8 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
-            Log::warning('Google OAuth failed: ' . $e->getMessage());
+            Log::warning('Google OAuth failed: '.$e->getMessage());
+
             return redirect()->route('login')->with('error', 'Login Google gagal. Silakan coba lagi.');
         }
 
@@ -59,7 +60,7 @@ class GoogleController extends Controller
         $user = User::where('google_id', $googleUser->getId())->first();
 
         // 2. Find by email (link existing account)
-        if (!$user) {
+        if (! $user) {
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
@@ -73,16 +74,16 @@ class GoogleController extends Controller
         }
 
         // 3. New user — create Tenant + User
-        if (!$user) {
+        if (! $user) {
             $user = $this->createNewUser($googleUser);
         }
 
         // Check if user/tenant is active
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return redirect()->route('login')->with('error', 'Akun Anda dinonaktifkan. Hubungi admin.');
         }
 
-        if ($user->tenant && !$user->tenant->canAccess()) {
+        if ($user->tenant && ! $user->tenant->canAccess()) {
             return redirect()->route('subscription.expired');
         }
 
@@ -91,11 +92,11 @@ class GoogleController extends Controller
         session()->regenerate();
 
         // Record login activity
-        ActivityLog::record('login', 'User ' . $user->name . ' login via Google');
+        ActivityLog::record('login', 'User '.$user->name.' login via Google');
         GamificationService::onLogin($user);
 
         // Redirect: new user → onboarding, existing → dashboard
-        if ($user->wasRecentlyCreated || ($user->tenant && !$user->tenant->onboarding_completed)) {
+        if ($user->wasRecentlyCreated || ($user->tenant && ! $user->tenant->onboarding_completed)) {
             return redirect()->route('onboarding.index');
         }
 
@@ -116,7 +117,7 @@ class GoogleController extends Controller
             $originalSlug = $slug;
             $i = 1;
             while (Tenant::where('slug', $slug)->exists()) {
-                $slug = $originalSlug . '-' . $i++;
+                $slug = $originalSlug.'-'.$i++;
             }
 
             $tenant = Tenant::create([
@@ -147,7 +148,7 @@ class GoogleController extends Controller
                     'user_id' => $user->id,
                     'type' => 'welcome',
                     'title' => '🎉 Selamat datang di Qalcuity ERP!',
-                    'body' => "Akun trial 14 hari Anda aktif via Google. Mulai dengan mengatur profil perusahaan.",
+                    'body' => 'Akun trial 14 hari Anda aktif via Google. Mulai dengan mengatur profil perusahaan.',
                     'data' => ['tenant_id' => $tenant->id, 'source' => 'google'],
                 ]);
             } catch (\Throwable) {

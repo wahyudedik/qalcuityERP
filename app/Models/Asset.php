@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 
 class Asset extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
-    const STATUS_ACTIVE    = 'active';
-    const STATUS_INACTIVE  = 'inactive';
-    const STATUS_DISPOSED  = 'disposed';
-    const STATUS_SOLD      = 'sold';
+    const STATUS_ACTIVE = 'active';
+
+    const STATUS_INACTIVE = 'inactive';
+
+    const STATUS_DISPOSED = 'disposed';
+
+    const STATUS_SOLD = 'sold';
 
     const STATUSES = [
         self::STATUS_ACTIVE,
@@ -54,6 +56,7 @@ class Asset extends Model
     {
         return $this->hasMany(AssetMaintenance::class);
     }
+
     public function depreciations()
     {
         return $this->hasMany(AssetDepreciation::class);
@@ -66,6 +69,7 @@ class Asset extends Model
         }
         // Declining balance: 2/useful_life per year / 12
         $annualRate = 2 / max(1, $this->useful_life_years);
+
         return $this->current_value * $annualRate / 12;
     }
 }

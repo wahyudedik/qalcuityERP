@@ -3,18 +3,20 @@
 namespace App\Services;
 
 use App\Models\Document;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Document OCR Service
- * 
+ *
  * Extracts text from documents using OCR (Tesseract or cloud-based OCR APIs).
  */
 class DocumentOcrService
 {
     protected string $ocrProvider;
+
     protected string $apiKey;
 
     public function __construct()
@@ -88,20 +90,21 @@ class DocumentOcrService
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post("https://vision.googleapis.com/v1/images:annotate?key={$this->apiKey}", [
-                    'requests' => [
-                        [
-                            'image' => [
-                                'content' => base64_encode($fileContent),
-                            ],
-                            'features' => [
-                                ['type' => 'TEXT_DETECTION'],
-                            ],
-                        ],
+            'requests' => [
+                [
+                    'image' => [
+                        'content' => base64_encode($fileContent),
                     ],
-                ]);
+                    'features' => [
+                        ['type' => 'TEXT_DETECTION'],
+                    ],
+                ],
+            ],
+        ]);
 
         if ($response->successful()) {
             $data = $response->json();
+
             return $data['responses'][0]['fullTextAnnotation']['text'] ?? '';
         }
 
@@ -121,13 +124,14 @@ class DocumentOcrService
             'Content-Type' => 'application/x-amz-json-1.1',
             'X-Amz-Target' => 'Textract.DetectDocumentText',
         ])->post("https://textract.{$this->getAwsRegion()}.amazonaws.com/", [
-                    'Document' => [
-                        'Bytes' => base64_encode($fileContent),
-                    ],
-                ]);
+            'Document' => [
+                'Bytes' => base64_encode($fileContent),
+            ],
+        ]);
 
         if ($response->successful()) {
             $data = $response->json();
+
             return $this->extractTextFromTextractResponse($data);
         }
 
@@ -187,7 +191,7 @@ class DocumentOcrService
             'ocr_coverage' => $totalDocuments > 0 ? round(($documentsWithOcr / $totalDocuments) * 100, 2) : 0,
             'total_text_extracted' => Document::where('tenant_id', $tenantId)
                 ->where('has_ocr', true)
-                ->sum(\Illuminate\Support\Str::length('ocr_text')),
+                ->sum(Str::length('ocr_text')),
         ];
     }
 
@@ -266,7 +270,7 @@ class DocumentOcrService
         if (isset($data['Blocks'])) {
             foreach ($data['Blocks'] as $block) {
                 if ($block['BlockType'] === 'LINE' && isset($block['Text'])) {
-                    $text .= $block['Text'] . "\n";
+                    $text .= $block['Text']."\n";
                 }
             }
         }

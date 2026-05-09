@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\Bed;
 use App\Models\Ward;
-use App\Models\Admission;
 use Illuminate\Http\Request;
 
 class BedManagementController extends Controller
@@ -33,7 +32,7 @@ class BedManagementController extends Controller
             'available' => Bed::where('status', 'available')->count(),
             'occupied' => Bed::where('status', 'occupied')->count(),
             'maintenance' => Bed::where('status', 'maintenance')->count(),
-            'occupancy_rate' => Bed::count() > 0 
+            'occupancy_rate' => Bed::count() > 0
                 ? round((Bed::where('status', 'occupied')->count() / Bed::count()) * 100, 2)
                 : 0,
         ];
@@ -82,7 +81,7 @@ class BedManagementController extends Controller
         $occupancyData = $wards->map(function ($ward) {
             $totalBeds = $ward->beds()->count();
             $occupiedBeds = $ward->beds()->where('status', 'occupied')->count();
-            
+
             return [
                 'ward' => $ward,
                 'total_beds' => $totalBeds,

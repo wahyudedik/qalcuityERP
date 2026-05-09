@@ -4,10 +4,16 @@ namespace Tests\Feature\BugExploration;
 
 use App\Http\Middleware\RateLimitAiRequests;
 use App\Models\Concerns\BelongsToTenant as ConcernsBelongsToTenant;
+use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
+use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\Scopes\TenantScope;
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Task 12.5 — Verifikasi Fix Keamanan & Performa (Bug 1.24–1.28)
@@ -33,14 +39,14 @@ class VerifyFix1224To1228Test extends BaseTestCase
     {
         $this->assertTrue(
             class_exists(TenantScope::class),
-            "TenantScope class harus ada di app/Models/Scopes/TenantScope.php"
+            'TenantScope class harus ada di app/Models/Scopes/TenantScope.php'
         );
 
         $interfaces = class_implements(TenantScope::class);
         $this->assertContains(
-            \Illuminate\Database\Eloquent\Scope::class,
+            Scope::class,
             $interfaces,
-            "TenantScope harus mengimplementasikan Illuminate\\Database\\Eloquent\\Scope interface"
+            'TenantScope harus mengimplementasikan Illuminate\\Database\\Eloquent\\Scope interface'
         );
     }
 
@@ -54,7 +60,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     {
         $this->assertTrue(
             method_exists(TenantScope::class, 'apply'),
-            "TenantScope harus memiliki method apply(Builder \$builder, Model \$model)"
+            'TenantScope harus memiliki method apply(Builder $builder, Model $model)'
         );
     }
 
@@ -68,13 +74,13 @@ class VerifyFix1224To1228Test extends BaseTestCase
     {
         $this->assertTrue(
             trait_exists(BelongsToTenant::class),
-            "App\\Traits\\BelongsToTenant trait harus ada"
+            'App\\Traits\\BelongsToTenant trait harus ada'
         );
 
         // Verifikasi trait memiliki bootBelongsToTenant method
         $this->assertTrue(
             method_exists(BelongsToTenant::class, 'bootBelongsToTenant'),
-            "BelongsToTenant trait harus memiliki bootBelongsToTenant() method"
+            'BelongsToTenant trait harus memiliki bootBelongsToTenant() method'
         );
     }
 
@@ -87,18 +93,18 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_critical_models_use_belongs_to_tenant_trait(): void
     {
         $criticalModels = [
-            \App\Models\Customer::class,
-            \App\Models\Product::class,
-            \App\Models\SalesOrder::class,
-            \App\Models\Invoice::class,
-            \App\Models\JournalEntry::class,
-            \App\Models\Employee::class,
+            Customer::class,
+            Product::class,
+            SalesOrder::class,
+            Invoice::class,
+            JournalEntry::class,
+            Employee::class,
         ];
 
         $missingTrait = [];
 
         foreach ($criticalModels as $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
@@ -106,14 +112,14 @@ class VerifyFix1224To1228Test extends BaseTestCase
             $hasTrait = in_array(BelongsToTenant::class, $traits)
                 || in_array(ConcernsBelongsToTenant::class, $traits);
 
-            if (!$hasTrait) {
+            if (! $hasTrait) {
                 $missingTrait[] = $modelClass;
             }
         }
 
         $this->assertEmpty(
             $missingTrait,
-            "Bug 1.24 FIX: Model-model berikut tidak menggunakan BelongsToTenant trait:\n" .
+            "Bug 1.24 FIX: Model-model berikut tidak menggunakan BelongsToTenant trait:\n".
             implode("\n", $missingTrait)
         );
     }
@@ -127,7 +133,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_belongs_to_tenant_trait_has_tenant_filter_in_scope(): void
     {
         $traitFile = base_path('app/Traits/BelongsToTenant.php');
-        $this->assertFileExists($traitFile, "app/Traits/BelongsToTenant.php harus ada");
+        $this->assertFileExists($traitFile, 'app/Traits/BelongsToTenant.php harus ada');
 
         $content = file_get_contents($traitFile);
 
@@ -136,13 +142,13 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $hasGlobalScope,
-            "BelongsToTenant trait harus mendaftarkan global scope (addGlobalScope atau TenantScope)"
+            'BelongsToTenant trait harus mendaftarkan global scope (addGlobalScope atau TenantScope)'
         );
 
         $hasTenantFilter = str_contains($content, 'tenant_id');
         $this->assertTrue(
             $hasTenantFilter,
-            "BelongsToTenant trait harus memfilter berdasarkan tenant_id"
+            'BelongsToTenant trait harus memfilter berdasarkan tenant_id'
         );
     }
 
@@ -157,14 +163,14 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_chat_controller_has_sanitize_user_input_method(): void
     {
         $chatControllerFile = base_path('app/Http/Controllers/ChatController.php');
-        $this->assertFileExists($chatControllerFile, "ChatController.php harus ada");
+        $this->assertFileExists($chatControllerFile, 'ChatController.php harus ada');
 
         $content = file_get_contents($chatControllerFile);
 
         $this->assertStringContainsString(
             'sanitizeUserInput',
             $content,
-            "Bug 1.25 FIX: ChatController harus memiliki method sanitizeUserInput()"
+            'Bug 1.25 FIX: ChatController harus memiliki method sanitizeUserInput()'
         );
     }
 
@@ -183,7 +189,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             '[FILTERED]',
             $content,
-            "Bug 1.25 FIX: sanitizeUserInput harus mengganti pola injection dengan [FILTERED]"
+            'Bug 1.25 FIX: sanitizeUserInput harus mengganti pola injection dengan [FILTERED]'
         );
 
         // Cari pola injection yang difilter
@@ -208,13 +214,13 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             'mb_substr',
             $content,
-            "Bug 1.25 FIX: Input AI harus dibatasi panjangnya menggunakan mb_substr()"
+            'Bug 1.25 FIX: Input AI harus dibatasi panjangnya menggunakan mb_substr()'
         );
 
         $this->assertStringContainsString(
             '2000',
             $content,
-            "Bug 1.25 FIX: Batas panjang input AI harus 2000 karakter"
+            'Bug 1.25 FIX: Batas panjang input AI harus 2000 karakter'
         );
     }
 
@@ -233,14 +239,14 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             'sanitizeUserInput',
             $content,
-            "Bug 1.25 FIX: sanitizeUserInput harus dipanggil sebelum prompt dikirim ke AI"
+            'Bug 1.25 FIX: sanitizeUserInput harus dipanggil sebelum prompt dikirim ke AI'
         );
 
         // Verifikasi strip_tags juga digunakan
         $this->assertStringContainsString(
             'strip_tags',
             $content,
-            "Bug 1.25 FIX: strip_tags harus digunakan untuk menghapus HTML dari input"
+            'Bug 1.25 FIX: strip_tags harus digunakan untuk menghapus HTML dari input'
         );
     }
 
@@ -255,7 +261,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_export_service_validates_tenant_ownership(): void
     {
         $exportServiceFile = base_path('app/Services/ExportService.php');
-        $this->assertFileExists($exportServiceFile, "ExportService.php harus ada");
+        $this->assertFileExists($exportServiceFile, 'ExportService.php harus ada');
 
         $content = file_get_contents($exportServiceFile);
 
@@ -263,7 +269,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             'downloadExport',
             $content,
-            "ExportService harus memiliki method downloadExport()"
+            'ExportService harus memiliki method downloadExport()'
         );
 
         // Cari validasi tenant_id
@@ -275,8 +281,8 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $hasTenantValidation,
-            "Bug 1.26 FIX: ExportService.downloadExport() harus memvalidasi tenant_id " .
-            "dari user yang sedang login"
+            'Bug 1.26 FIX: ExportService.downloadExport() harus memvalidasi tenant_id '.
+            'dari user yang sedang login'
         );
     }
 
@@ -295,14 +301,14 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             'tenant_id',
             $content,
-            "Bug 1.26 FIX: downloadExport harus memfilter berdasarkan tenant_id"
+            'Bug 1.26 FIX: downloadExport harus memfilter berdasarkan tenant_id'
         );
 
         // Cari abort(404) untuk akses tidak sah
         $this->assertStringContainsString(
             '404',
             $content,
-            "Bug 1.26 FIX: downloadExport harus mengembalikan 404 jika tenant tidak cocok"
+            'Bug 1.26 FIX: downloadExport harus mengembalikan 404 jika tenant tidak cocok'
         );
     }
 
@@ -317,7 +323,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_dashboard_controller_uses_cache(): void
     {
         $dashboardFile = base_path('app/Http/Controllers/DashboardController.php');
-        $this->assertFileExists($dashboardFile, "DashboardController.php harus ada");
+        $this->assertFileExists($dashboardFile, 'DashboardController.php harus ada');
 
         $content = file_get_contents($dashboardFile);
 
@@ -327,7 +333,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $usesCache,
-            "Bug 1.27 FIX: DashboardController harus menggunakan cache untuk query agregat"
+            'Bug 1.27 FIX: DashboardController harus menggunakan cache untuk query agregat'
         );
     }
 
@@ -348,7 +354,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $usesEagerLoading,
-            "Bug 1.27 FIX: DashboardController harus menggunakan eager loading untuk relasi"
+            'Bug 1.27 FIX: DashboardController harus menggunakan eager loading untuk relasi'
         );
     }
 
@@ -370,7 +376,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $usesAggregates,
-            "Bug 1.27 FIX: DashboardController harus menggunakan aggregate queries"
+            'Bug 1.27 FIX: DashboardController harus menggunakan aggregate queries'
         );
     }
 
@@ -387,12 +393,12 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         // Cache key harus mengandung tenant_id
         $hasTenantCacheKey = str_contains($content, 'dashboard:{$tenantId}') ||
-            str_contains($content, '"dashboard:' . '{$tenantId}') ||
+            str_contains($content, '"dashboard:'.'{$tenantId}') ||
             (str_contains($content, 'tenantId') && str_contains($content, 'cachePrefix'));
 
         $this->assertTrue(
             $hasTenantCacheKey,
-            "Bug 1.27 FIX: Cache key dashboard harus berbasis tenant_id untuk isolasi data antar tenant"
+            'Bug 1.27 FIX: Cache key dashboard harus berbasis tenant_id untuk isolasi data antar tenant'
         );
     }
 
@@ -408,7 +414,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     {
         $this->assertTrue(
             class_exists(RateLimitAiRequests::class),
-            "Bug 1.28 FIX: RateLimitAiRequests middleware harus ada"
+            'Bug 1.28 FIX: RateLimitAiRequests middleware harus ada'
         );
     }
 
@@ -421,7 +427,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_rate_limit_key_uses_tenant_id(): void
     {
         $middlewareFile = base_path('app/Http/Middleware/RateLimitAiRequests.php');
-        $this->assertFileExists($middlewareFile, "RateLimitAiRequests.php harus ada");
+        $this->assertFileExists($middlewareFile, 'RateLimitAiRequests.php harus ada');
 
         $content = file_get_contents($middlewareFile);
 
@@ -435,8 +441,8 @@ class VerifyFix1224To1228Test extends BaseTestCase
 
         $this->assertTrue(
             $usesTenantId,
-            "Bug 1.28 FIX: Rate limit key harus menggunakan tenant_id, bukan user_id. " .
-            "Konten file: " . substr($content, 0, 500)
+            'Bug 1.28 FIX: Rate limit key harus menggunakan tenant_id, bukan user_id. '.
+            'Konten file: '.substr($content, 0, 500)
         );
     }
 
@@ -454,13 +460,13 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             '429',
             $content,
-            "Bug 1.28 FIX: Middleware harus mengembalikan HTTP 429 saat limit tercapai"
+            'Bug 1.28 FIX: Middleware harus mengembalikan HTTP 429 saat limit tercapai'
         );
 
         $this->assertStringContainsString(
             'tooManyAttempts',
             $content,
-            "Bug 1.28 FIX: Middleware harus menggunakan tooManyAttempts() untuk cek limit"
+            'Bug 1.28 FIX: Middleware harus menggunakan tooManyAttempts() untuk cek limit'
         );
     }
 
@@ -478,7 +484,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             '60',
             $content,
-            "Bug 1.28 FIX: Middleware harus membatasi 60 request per menit per tenant"
+            'Bug 1.28 FIX: Middleware harus membatasi 60 request per menit per tenant'
         );
     }
 
@@ -491,7 +497,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_middleware_registered_as_ai_rate(): void
     {
         $bootstrapFile = base_path('bootstrap/app.php');
-        $this->assertFileExists($bootstrapFile, "bootstrap/app.php harus ada");
+        $this->assertFileExists($bootstrapFile, 'bootstrap/app.php harus ada');
 
         $content = file_get_contents($bootstrapFile);
 
@@ -504,7 +510,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
         $this->assertStringContainsString(
             'RateLimitAiRequests',
             $content,
-            "Bug 1.28 FIX: RateLimitAiRequests harus terdaftar di bootstrap/app.php"
+            'Bug 1.28 FIX: RateLimitAiRequests harus terdaftar di bootstrap/app.php'
         );
     }
 
@@ -517,7 +523,7 @@ class VerifyFix1224To1228Test extends BaseTestCase
     public function test_middleware_applied_to_ai_chat_routes(): void
     {
         $routesFile = base_path('routes/web.php');
-        $this->assertFileExists($routesFile, "routes/web.php harus ada");
+        $this->assertFileExists($routesFile, 'routes/web.php harus ada');
 
         $content = file_get_contents($routesFile);
 

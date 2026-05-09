@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
+use App\Models\Product;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +21,7 @@ class BulkActionsController extends Controller
         $request->validate([
             'action' => 'required|string|in:delete,update_status,export,assign',
             'ids' => 'required|array|min:1',
-            'ids.*' => 'required|integer|exists:' . $this->getModelTable($request->model) . ',id',
+            'ids.*' => 'required|integer|exists:'.$this->getModelTable($request->model).',id',
             'model' => 'required|string|in:products,customers,invoices,sales_orders,journal_entries',
             'options' => 'nullable|array',
         ]);
@@ -42,7 +47,7 @@ class BulkActionsController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Bulk {$action} completed successfully",
-                'data' => $result
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -54,7 +59,7 @@ class BulkActionsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => "Bulk action failed: {$e->getMessage()}"
+                'message' => "Bulk action failed: {$e->getMessage()}",
             ], 500);
         }
     }
@@ -80,7 +85,7 @@ class BulkActionsController extends Controller
      */
     private function bulkUpdateStatus($model, $ids, $tenantId, $options)
     {
-        if (!isset($options['status'])) {
+        if (! isset($options['status'])) {
             throw new \Exception('Status is required for update_status action');
         }
 
@@ -111,7 +116,7 @@ class BulkActionsController extends Controller
             'count' => $records->count(),
             'download_url' => route('bulk-actions.export-download', [
                 'model' => $model,
-                'ids' => implode(',', $ids)
+                'ids' => implode(',', $ids),
             ]),
         ];
     }
@@ -121,7 +126,7 @@ class BulkActionsController extends Controller
      */
     private function bulkAssign($model, $ids, $tenantId, $options)
     {
-        if (!isset($options['field']) || !isset($options['value'])) {
+        if (! isset($options['field']) || ! isset($options['value'])) {
             throw new \Exception('Field and value are required for assign action');
         }
 
@@ -144,14 +149,14 @@ class BulkActionsController extends Controller
     private function getModelClass($model)
     {
         $models = [
-            'products' => \App\Models\Product::class,
-            'customers' => \App\Models\Customer::class,
-            'invoices' => \App\Models\Invoice::class,
-            'sales_orders' => \App\Models\SalesOrder::class,
-            'journal_entries' => \App\Models\JournalEntry::class,
+            'products' => Product::class,
+            'customers' => Customer::class,
+            'invoices' => Invoice::class,
+            'sales_orders' => SalesOrder::class,
+            'journal_entries' => JournalEntry::class,
         ];
 
-        if (!isset($models[$model])) {
+        if (! isset($models[$model])) {
             throw new \Exception("Invalid model: {$model}");
         }
 

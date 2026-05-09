@@ -30,27 +30,28 @@ class PriceListController extends Controller
 
     public function create()
     {
-        $products  = Product::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
         $customers = Customer::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
+
         return view('price-lists.create', compact('products', 'customers'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'code'        => 'nullable|string|max:30',
-            'type'        => 'required|in:tier,contract,promo',
+            'name' => 'required|string|max:100',
+            'code' => 'nullable|string|max:30',
+            'type' => 'required|in:tier,contract,promo',
             'description' => 'nullable|string|max:500',
-            'valid_from'  => 'nullable|date',
+            'valid_from' => 'nullable|date',
             'valid_until' => 'nullable|date|after_or_equal:valid_from',
-            'items'       => 'required|array|min:1',
-            'items.*.product_id'       => 'required|exists:products,id',
-            'items.*.price'            => 'required|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.price' => 'required|numeric|min:0',
             'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',
-            'items.*.min_qty'          => 'nullable|numeric|min:1',
-            'customer_ids'             => 'nullable|array',
-            'customer_ids.*'           => 'exists:customers,id',
+            'items.*.min_qty' => 'nullable|numeric|min:1',
+            'customer_ids' => 'nullable|array',
+            'customer_ids.*' => 'exists:customers,id',
         ]);
 
         $tid = $this->tid();
@@ -62,25 +63,25 @@ class PriceListController extends Controller
             }
         }
 
-        DB::transaction(function () use ($data, $tid, $request) {
+        DB::transaction(function () use ($data, $tid) {
             $priceList = PriceList::create([
-                'tenant_id'   => $tid,
-                'name'        => $data['name'],
-                'code'        => $data['code'] ?? null,
-                'type'        => $data['type'],
+                'tenant_id' => $tid,
+                'name' => $data['name'],
+                'code' => $data['code'] ?? null,
+                'type' => $data['type'],
                 'description' => $data['description'] ?? null,
-                'valid_from'  => $data['valid_from'] ?? null,
+                'valid_from' => $data['valid_from'] ?? null,
                 'valid_until' => $data['valid_until'] ?? null,
-                'is_active'   => true,
+                'is_active' => true,
             ]);
 
             foreach ($data['items'] as $item) {
                 PriceListItem::create([
-                    'price_list_id'    => $priceList->id,
-                    'product_id'       => $item['product_id'],
-                    'price'            => $item['price'],
+                    'price_list_id' => $priceList->id,
+                    'product_id' => $item['product_id'],
+                    'price' => $item['price'],
                     'discount_percent' => $item['discount_percent'] ?? 0,
-                    'min_qty'          => $item['min_qty'] ?? 1,
+                    'min_qty' => $item['min_qty'] ?? 1,
                 ]);
             }
 
@@ -101,6 +102,7 @@ class PriceListController extends Controller
     {
         abort_if($priceList->tenant_id !== $this->tid(), 403);
         $priceList->load(['items.product', 'customers']);
+
         return view('price-lists.show', compact('priceList'));
     }
 
@@ -109,11 +111,11 @@ class PriceListController extends Controller
         abort_if($priceList->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:500',
-            'valid_from'  => 'nullable|date',
+            'valid_from' => 'nullable|date',
             'valid_until' => 'nullable|date|after_or_equal:valid_from',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $priceList->update($data);
@@ -125,6 +127,7 @@ class PriceListController extends Controller
     {
         abort_if($priceList->tenant_id !== $this->tid(), 403);
         $priceList->delete();
+
         return back()->with('success', 'Price list dihapus.');
     }
 
@@ -134,7 +137,7 @@ class PriceListController extends Controller
 
         $data = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'priority'    => 'nullable|integer|min:1',
+            'priority' => 'nullable|integer|min:1',
         ]);
 
         $priceList->customers()->syncWithoutDetaching([
@@ -148,6 +151,7 @@ class PriceListController extends Controller
     {
         abort_if($priceList->tenant_id !== $this->tid(), 403);
         $priceList->customers()->detach($customer->id);
+
         return back()->with('success', 'Customer dihapus dari price list.');
     }
 
@@ -158,13 +162,15 @@ class PriceListController extends Controller
     {
         $data = $request->validate([
             'customer_id' => 'required|integer',
-            'product_id'  => 'required|integer',
-            'qty'         => 'nullable|numeric|min:1',
+            'product_id' => 'required|integer',
+            'qty' => 'nullable|numeric|min:1',
         ]);
 
         // Pastikan customer milik tenant ini
         $customer = Customer::where('tenant_id', $this->tid())->find($data['customer_id']);
-        if (! $customer) return response()->json(['error' => 'Customer tidak ditemukan'], 404);
+        if (! $customer) {
+            return response()->json(['error' => 'Customer tidak ditemukan'], 404);
+        }
 
         $result = $service->getPrice($data['customer_id'], $data['product_id'], $data['qty'] ?? 1);
 

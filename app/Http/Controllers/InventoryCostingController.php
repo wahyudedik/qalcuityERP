@@ -17,6 +17,7 @@ class InventoryCostingController extends Controller
     {
         $report = $this->costing->valuationReport($this->tenantId());
         $tenant = Tenant::find($this->tenantId());
+
         return view('inventory.costing.valuation', compact('report', 'tenant'));
     }
 
@@ -24,9 +25,10 @@ class InventoryCostingController extends Controller
     public function cogs(Request $request)
     {
         $from = $request->from ?? now()->startOfMonth()->toDateString();
-        $to   = $request->to   ?? now()->toDateString();
+        $to = $request->to ?? now()->toDateString();
         $report = $this->costing->cogsReport($this->tenantId(), $from, $to);
         $tenant = Tenant::find($this->tenantId());
+
         return view('inventory.costing.cogs', compact('report', 'tenant', 'from', 'to'));
     }
 
@@ -35,6 +37,7 @@ class InventoryCostingController extends Controller
     {
         $request->validate(['costing_method' => 'required|in:simple,avco,fifo']);
         Tenant::find($this->tenantId())->update(['costing_method' => $request->costing_method]);
+
         return back()->with('success', 'Metode kalkulasi biaya berhasil diperbarui.');
     }
 
@@ -42,7 +45,7 @@ class InventoryCostingController extends Controller
     public function currentCost(Request $request)
     {
         $request->validate([
-            'product_id'   => 'required|integer',
+            'product_id' => 'required|integer',
             'warehouse_id' => 'required|integer',
         ]);
         $cost = $this->costing->getCurrentCost(
@@ -50,6 +53,7 @@ class InventoryCostingController extends Controller
             $request->product_id,
             $request->warehouse_id,
         );
+
         return response()->json(['cost' => $cost]);
     }
 }

@@ -2,11 +2,10 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
 use App\Models\HotspotUser;
-use App\Models\TelecomSubscription;
-use Illuminate\Support\Str;
+use App\Models\NetworkDevice;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Service for managing hotspot users.
@@ -17,14 +16,13 @@ class HotspotManagementService
 
     public function __construct()
     {
-        $this->integrationService = new RouterIntegrationService();
+        $this->integrationService = new RouterIntegrationService;
     }
 
     /**
      * Create a new hotspot user.
-     * 
-     * @param NetworkDevice $device
-     * @param array $data User data
+     *
+     * @param  array  $data  User data
      * @return array Result with user object or error
      */
     public function createUser(NetworkDevice $device, array $data): array
@@ -51,9 +49,8 @@ class HotspotManagementService
 
     /**
      * Update hotspot user.
-     * 
-     * @param HotspotUser $user
-     * @param array $updates Fields to update
+     *
+     * @param  array  $updates  Fields to update
      * @return array Result
      */
     public function updateUser(HotspotUser $user, array $updates): array
@@ -80,7 +77,7 @@ class HotspotManagementService
                 $routerUpdates['profile'] = $profileName;
             }
 
-            if (!empty($routerUpdates)) {
+            if (! empty($routerUpdates)) {
                 $adapter->updateHotspotUser($user->username, $routerUpdates);
             }
 
@@ -102,8 +99,7 @@ class HotspotManagementService
 
     /**
      * Delete hotspot user.
-     * 
-     * @param HotspotUser $user
+     *
      * @return array Result
      */
     public function deleteUser(HotspotUser $user): array
@@ -113,8 +109,7 @@ class HotspotManagementService
 
     /**
      * Suspend user temporarily.
-     * 
-     * @param HotspotUser $user
+     *
      * @return bool Success status
      */
     public function suspendUser(HotspotUser $user): bool
@@ -136,18 +131,18 @@ class HotspotManagementService
             return true;
 
         } catch (\Exception $e) {
-            Log::error("Failed to suspend user", [
+            Log::error('Failed to suspend user', [
                 'username' => $user->username,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Reactivate suspended user.
-     * 
-     * @param HotspotUser $user
+     *
      * @return bool Success status
      */
     public function reactivateUser(HotspotUser $user): bool
@@ -164,18 +159,18 @@ class HotspotManagementService
             return true;
 
         } catch (\Exception $e) {
-            Log::error("Failed to reactivate user", [
+            Log::error('Failed to reactivate user', [
                 'username' => $user->username,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Get user statistics.
-     * 
-     * @param HotspotUser $user
+     *
      * @return array User stats
      */
     public function getUserStats(HotspotUser $user): array
@@ -225,6 +220,6 @@ class HotspotManagementService
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 }

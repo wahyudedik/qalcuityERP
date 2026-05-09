@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class HrmReportExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $startDate,
         protected string $endDate,
     ) {}
@@ -21,7 +21,7 @@ class HrmReportExport implements FromQuery, WithHeadings, WithMapping, WithStyle
     public function query()
     {
         return Attendance::with(['employee'])
-            ->whereHas('employee', fn($q) => $q->where('tenant_id', $this->tenantId))
+            ->whereHas('employee', fn ($q) => $q->where('tenant_id', $this->tenantId))
             ->whereBetween('date', [$this->startDate, $this->endDate])
             ->orderBy('date');
     }
@@ -51,5 +51,8 @@ class HrmReportExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         ];
     }
 
-    public function title(): string { return 'Laporan Kehadiran'; }
+    public function title(): string
+    {
+        return 'Laporan Kehadiran';
+    }
 }

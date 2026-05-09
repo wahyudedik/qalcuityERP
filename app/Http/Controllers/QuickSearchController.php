@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Invoice;
 use App\Models\Customer;
-use App\Models\SalesOrder;
+use App\Models\Invoice;
 use App\Models\JournalEntry;
+use App\Models\Product;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -43,26 +43,26 @@ class QuickSearchController extends Controller
                     ->where('is_active', true);
 
                 // Apply filters if provided
-                if (!empty($filters['min_price'])) {
+                if (! empty($filters['min_price'])) {
                     $productQuery->where('price', '>=', $filters['min_price']);
                 }
-                if (!empty($filters['max_price'])) {
+                if (! empty($filters['max_price'])) {
                     $productQuery->where('price', '<=', $filters['max_price']);
                 }
-                if (!empty($filters['category_id'])) {
+                if (! empty($filters['category_id'])) {
                     $productQuery->where('category_id', $filters['category_id']);
                 }
 
                 return $productQuery->limit(8)
                     ->get()
-                    ->map(fn($p) => [
+                    ->map(fn ($p) => [
                         'type' => 'product',
                         'id' => $p->id,
                         'title' => $p->name,
                         'subtitle' => $p->sku ? "SKU: {$p->sku}" : 'Product',
                         'icon' => 'fas fa-box',
                         'url' => route('products.show', $p->id),
-                        'badge' => 'Product'
+                        'badge' => 'Product',
                     ]);
             });
         }
@@ -79,14 +79,14 @@ class QuickSearchController extends Controller
                     })
                     ->limit(8)
                     ->get()
-                    ->map(fn($i) => [
+                    ->map(fn ($i) => [
                         'type' => 'invoice',
                         'id' => $i->id,
                         'title' => $i->number,
                         'subtitle' => $i->customer ? $i->customer->name : 'Invoice',
                         'icon' => 'fas fa-file-invoice-dollar',
                         'url' => route('invoices.show', $i->id),
-                        'badge' => ucfirst($i->status ?? 'Draft')
+                        'badge' => ucfirst($i->status ?? 'Draft'),
                     ]);
             });
         }
@@ -102,14 +102,14 @@ class QuickSearchController extends Controller
                     })
                     ->limit(8)
                     ->get()
-                    ->map(fn($c) => [
+                    ->map(fn ($c) => [
                         'type' => 'customer',
                         'id' => $c->id,
                         'title' => $c->name,
                         'subtitle' => $c->email ?: 'Customer',
                         'icon' => 'fas fa-user',
                         'url' => route('customers.show', $c->id),
-                        'badge' => 'Customer'
+                        'badge' => 'Customer',
                     ]);
             });
         }
@@ -121,14 +121,14 @@ class QuickSearchController extends Controller
                     ->where('number', 'like', "%{$query}%")
                     ->limit(5)
                     ->get()
-                    ->map(fn($o) => [
+                    ->map(fn ($o) => [
                         'type' => 'order',
                         'id' => $o->id,
                         'title' => $o->number,
                         'subtitle' => $o->customer ? $o->customer->name : 'Sales Order',
                         'icon' => 'fas fa-shopping-cart',
                         'url' => route('sales-orders.show', $o->id),
-                        'badge' => ucfirst($o->status ?? 'Draft')
+                        'badge' => ucfirst($o->status ?? 'Draft'),
                     ]);
             });
         }
@@ -140,14 +140,14 @@ class QuickSearchController extends Controller
                     ->where('reference', 'like', "%{$query}%")
                     ->limit(5)
                     ->get()
-                    ->map(fn($j) => [
+                    ->map(fn ($j) => [
                         'type' => 'journal',
                         'id' => $j->id,
                         'title' => $j->reference ?: $j->number,
                         'subtitle' => $j->description ?: 'Journal Entry',
                         'icon' => 'fas fa-book',
                         'url' => route('journal-entries.show', $j->id),
-                        'badge' => 'Journal'
+                        'badge' => 'Journal',
                     ]);
             });
         }
@@ -164,7 +164,7 @@ class QuickSearchController extends Controller
             'query' => $query,
             'total' => $allResults->count(),
             'results' => $allResults,
-            'categories' => array_map(fn($r) => collect($r)->values(), $results)
+            'categories' => array_map(fn ($r) => collect($r)->values(), $results),
         ]);
     }
 
@@ -182,7 +182,7 @@ class QuickSearchController extends Controller
                 'icon' => 'fas fa-plus-circle',
                 'url' => route('invoices.create'),
                 'badge' => 'Action',
-                'keywords' => ['invoice', 'create', 'new', 'bill']
+                'keywords' => ['invoice', 'create', 'new', 'bill'],
             ],
             [
                 'type' => 'action',
@@ -192,7 +192,7 @@ class QuickSearchController extends Controller
                 'icon' => 'fas fa-box-open',
                 'url' => route('products.create'),
                 'badge' => 'Action',
-                'keywords' => ['product', 'create', 'new', 'item']
+                'keywords' => ['product', 'create', 'new', 'item'],
             ],
             [
                 'type' => 'action',
@@ -202,7 +202,7 @@ class QuickSearchController extends Controller
                 'icon' => 'fas fa-user-plus',
                 'url' => route('customers.create'),
                 'badge' => 'Action',
-                'keywords' => ['customer', 'create', 'new', 'client']
+                'keywords' => ['customer', 'create', 'new', 'client'],
             ],
             [
                 'type' => 'action',
@@ -212,7 +212,7 @@ class QuickSearchController extends Controller
                 'icon' => 'fas fa-chart-line',
                 'url' => route('dashboard'),
                 'badge' => 'Navigation',
-                'keywords' => ['dashboard', 'home', 'main']
+                'keywords' => ['dashboard', 'home', 'main'],
             ],
             [
                 'type' => 'action',
@@ -223,14 +223,15 @@ class QuickSearchController extends Controller
                 'url' => '#',
                 'badge' => 'Settings',
                 'keywords' => ['theme', 'dark', 'light', 'mode'],
-                'action' => 'toggle-theme'
+                'action' => 'toggle-theme',
             ],
         ];
 
         // Filter actions based on query
         if ($query) {
             $actions = array_filter($actions, function ($action) use ($query) {
-                $searchable = strtolower($action['title'] . ' ' . $action['subtitle'] . ' ' . implode(' ', $action['keywords']));
+                $searchable = strtolower($action['title'].' '.$action['subtitle'].' '.implode(' ', $action['keywords']));
+
                 return str_contains($searchable, strtolower($query));
             });
         }

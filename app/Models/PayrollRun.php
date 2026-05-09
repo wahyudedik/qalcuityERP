@@ -3,16 +3,18 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 
 class PayrollRun extends Model
 {
     use BelongsToTenant;
 
-    const STATUS_DRAFT     = 'draft';
+    const STATUS_DRAFT = 'draft';
+
     const STATUS_PROCESSED = 'processed';
-    const STATUS_PAID      = 'paid';
+
+    const STATUS_PAID = 'paid';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
@@ -30,13 +32,24 @@ class PayrollRun extends Model
 
     protected $casts = [
         'processed_at' => 'datetime',
-        'paid_at'      => 'datetime',
-        'total_gross'  => 'float',
+        'paid_at' => 'datetime',
+        'total_gross' => 'float',
         'total_deductions' => 'float',
-        'total_net'    => 'float',
+        'total_net' => 'float',
     ];
 
-    public function items() { return $this->hasMany(PayrollItem::class, 'payroll_run_id'); }
-    public function journalEntry() { return $this->belongsTo(\App\Models\JournalEntry::class); }
-    public function paymentJournalEntry() { return $this->belongsTo(\App\Models\JournalEntry::class, 'payment_journal_entry_id'); }
+    public function items()
+    {
+        return $this->hasMany(PayrollItem::class, 'payroll_run_id');
+    }
+
+    public function journalEntry()
+    {
+        return $this->belongsTo(JournalEntry::class);
+    }
+
+    public function paymentJournalEntry()
+    {
+        return $this->belongsTo(JournalEntry::class, 'payment_journal_entry_id');
+    }
 }

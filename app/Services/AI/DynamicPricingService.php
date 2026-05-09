@@ -2,8 +2,8 @@
 
 namespace App\Services\AI;
 
-use App\Models\DynamicPricingRule;
 use App\Models\DynamicPricingHistory;
+use App\Models\DynamicPricingRule;
 use App\Models\Product;
 use Illuminate\Support\Facades\Log;
 
@@ -63,11 +63,11 @@ class DynamicPricingService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Dynamic pricing calculation failed: ' . $e->getMessage());
+            Log::error('Dynamic pricing calculation failed: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -237,11 +237,11 @@ class DynamicPricingService
         }
 
         if ($factors['seasonality']['is_peak_season']) {
-            $reasons[] = "Peak season";
+            $reasons[] = 'Peak season';
         }
 
         if ($factors['time']['is_weekend']) {
-            $reasons[] = "Weekend pricing";
+            $reasons[] = 'Weekend pricing';
         }
 
         return empty($reasons) ? 'Standard pricing' : implode(', ', $reasons);
@@ -255,14 +255,14 @@ class DynamicPricingService
         $product = Product::find($productId);
         $rule = DynamicPricingRule::find($ruleId);
 
-        if (!$product || !$rule) {
+        if (! $product || ! $rule) {
             return ['success' => false, 'error' => 'Product or rule not found'];
         }
 
         // Calculate price
         $calculation = $this->calculatePrice($product);
 
-        if (!$calculation['success']) {
+        if (! $calculation['success']) {
             return $calculation;
         }
 
@@ -289,7 +289,7 @@ class DynamicPricingService
             'history_id' => $history->id,
             'old_price' => $calculation['base_price'],
             'new_price' => $calculation['recommended_price'],
-            'change_percentage' => round((($calculation['recommended_price'] - $calculation['base_price']) / $calculation['base_price']) * 100, 2) . '%',
+            'change_percentage' => round((($calculation['recommended_price'] - $calculation['base_price']) / $calculation['base_price']) * 100, 2).'%',
         ];
     }
 

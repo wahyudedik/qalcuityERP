@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Health Check Controller
- * 
+ *
  * Provides system health monitoring endpoint
- * 
+ *
  * BUG-015: Tidak Ada Health Check Endpoint untuk Monitoring
- * 
+ *
  * Usage:
  * GET /api/health - Basic health check
  * GET /api/health/detailed - Detailed health check with all services
@@ -26,8 +26,8 @@ class HealthCheckController extends Controller
 {
     /**
      * Basic health check
-     * 
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
     public function health()
     {
@@ -41,8 +41,8 @@ class HealthCheckController extends Controller
 
     /**
      * Detailed health check with all services
-     * 
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
     public function detailed()
     {
@@ -74,8 +74,8 @@ class HealthCheckController extends Controller
 
     /**
      * Kubernetes readiness probe
-     * 
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
     public function ready()
     {
@@ -105,8 +105,8 @@ class HealthCheckController extends Controller
 
     /**
      * Kubernetes liveness probe
-     * 
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
     public function live()
     {
@@ -139,7 +139,7 @@ class HealthCheckController extends Controller
                 'status' => 'unhealthy',
                 'driver' => config('database.default'),
                 'response_time_ms' => null,
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
             ];
         }
     }
@@ -151,7 +151,7 @@ class HealthCheckController extends Controller
     {
         try {
             $start = microtime(true);
-            $key = 'health_check_' . time();
+            $key = 'health_check_'.time();
             Cache::put($key, 'test', 10);
             $value = Cache::get($key);
             Cache::forget($key);
@@ -177,7 +177,7 @@ class HealthCheckController extends Controller
                 'status' => 'unhealthy',
                 'driver' => config('cache.default'),
                 'response_time_ms' => null,
-                'message' => 'Cache failed: ' . $e->getMessage(),
+                'message' => 'Cache failed: '.$e->getMessage(),
             ];
         }
     }
@@ -218,7 +218,7 @@ class HealthCheckController extends Controller
                 'status' => 'degraded',
                 'driver' => config('queue.default'),
                 'response_time_ms' => null,
-                'message' => 'Queue check failed: ' . $e->getMessage(),
+                'message' => 'Queue check failed: '.$e->getMessage(),
                 'impact' => 'Background jobs may not process',
             ];
         }
@@ -232,14 +232,14 @@ class HealthCheckController extends Controller
         try {
             $start = microtime(true);
             $disk = Storage::disk('local');
-            $testFile = 'health_check_' . time() . '.txt';
+            $testFile = 'health_check_'.time().'.txt';
 
             $disk->put($testFile, 'test');
             $exists = $disk->exists($testFile);
             $disk->delete($testFile);
             $duration = (microtime(true) - $start) * 1000;
 
-            if (!$exists) {
+            if (! $exists) {
                 return [
                     'status' => 'unhealthy',
                     'disk' => 'local',
@@ -259,7 +259,7 @@ class HealthCheckController extends Controller
                 'status' => 'unhealthy',
                 'disk' => 'local',
                 'response_time_ms' => null,
-                'message' => 'Storage failed: ' . $e->getMessage(),
+                'message' => 'Storage failed: '.$e->getMessage(),
             ];
         }
     }
@@ -271,7 +271,7 @@ class HealthCheckController extends Controller
     {
         try {
             // Check if Redis is configured
-            if (!class_exists('Redis') && !extension_loaded('redis')) {
+            if (! class_exists('Redis') && ! extension_loaded('redis')) {
                 return [
                     'status' => 'not_configured',
                     'message' => 'Redis extension not installed',
@@ -291,7 +291,7 @@ class HealthCheckController extends Controller
             return [
                 'status' => 'degraded',
                 'response_time_ms' => null,
-                'message' => 'Redis failed: ' . $e->getMessage(),
+                'message' => 'Redis failed: '.$e->getMessage(),
                 'impact' => 'Cache/sessions may fallback to database',
             ];
         }
@@ -333,7 +333,7 @@ class HealthCheckController extends Controller
         } catch (\Exception $e) {
             return [
                 'status' => 'unhealthy',
-                'message' => 'Email check failed: ' . $e->getMessage(),
+                'message' => 'Email check failed: '.$e->getMessage(),
             ];
         }
     }

@@ -40,17 +40,18 @@ class CrmService
                 'converted_to_customer_id' => $existing->id,
                 'stage' => CrmLead::STAGE_CONVERTED,
             ]);
+
             return $existing;
         }
 
         // Tidak ada duplikat — buat customer baru
         $customer = Customer::create([
             'tenant_id' => $lead->tenant_id,
-            'name'      => $lead->name,
-            'email'     => $lead->email,
-            'phone'     => $lead->phone,
-            'company'   => $lead->company,
-            'address'   => $lead->address ?? null,
+            'name' => $lead->name,
+            'email' => $lead->email,
+            'phone' => $lead->phone,
+            'company' => $lead->company,
+            'address' => $lead->address ?? null,
             'is_active' => true,
         ]);
 

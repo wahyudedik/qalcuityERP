@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,8 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MenuItem extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -83,7 +82,7 @@ class MenuItem extends Model
      * Get recipe ingredients through recipes
      * Note: RecipeIngredient no longer has menu_item_id; use recipes()->ingredients instead
      */
-    public function recipeIngredients(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    public function recipeIngredients(): HasManyThrough
     {
         return $this->hasManyThrough(RecipeIngredient::class, Recipe::class);
     }
@@ -96,6 +95,7 @@ class MenuItem extends Model
         if ($this->price == 0) {
             return 0;
         }
+
         return (($this->price - $this->cost) / $this->price) * 100;
     }
 
@@ -104,7 +104,7 @@ class MenuItem extends Model
      */
     public function canBeOrderedToday(): bool
     {
-        if (!$this->is_available) {
+        if (! $this->is_available) {
             return false;
         }
 
@@ -168,6 +168,7 @@ class MenuItem extends Model
         if ($this->price == 0) {
             return 0;
         }
+
         return (($this->price - $this->cost) / $this->price) * 100;
     }
 

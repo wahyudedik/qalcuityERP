@@ -28,6 +28,7 @@ class AkuntansiBalanceSheetTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -111,15 +112,15 @@ class AkuntansiBalanceSheetTest extends TestCase
         $this->assertArrayHasKey(
             'balance_warning',
             $result,
-            "Bug 1.22: Balance sheet result tidak memiliki key 'balance_warning'. " .
-            "Seharusnya ada 'balance_warning' dengan detail: is_balanced, difference, message. " .
-            "Keys yang ada: " . implode(', ', array_keys($result))
+            "Bug 1.22: Balance sheet result tidak memiliki key 'balance_warning'. ".
+            "Seharusnya ada 'balance_warning' dengan detail: is_balanced, difference, message. ".
+            'Keys yang ada: '.implode(', ', array_keys($result))
         );
 
         if (isset($result['balance_warning'])) {
             $this->assertFalse(
                 $result['balance_warning']['is_balanced'],
-                "Bug 1.22: balance_warning.is_balanced seharusnya false untuk data yang tidak balance."
+                'Bug 1.22: balance_warning.is_balanced seharusnya false untuk data yang tidak balance.'
             );
         }
     }
@@ -134,8 +135,8 @@ class AkuntansiBalanceSheetTest extends TestCase
     {
         $serviceFile = 'app/Services/FinancialStatementService.php';
 
-        if (!file_exists($serviceFile)) {
-            $this->markTestSkipped("FinancialStatementService tidak ditemukan");
+        if (! file_exists($serviceFile)) {
+            $this->markTestSkipped('FinancialStatementService tidak ditemukan');
         }
 
         $content = file_get_contents($serviceFile);
@@ -146,8 +147,8 @@ class AkuntansiBalanceSheetTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada 'balance_warning' key
         $this->assertTrue(
             $hasBalanceWarning,
-            "Bug 1.22: FinancialStatementService tidak memiliki 'balance_warning' key " .
-            "di return value balanceSheet(). " .
+            "Bug 1.22: FinancialStatementService tidak memiliki 'balance_warning' key ".
+            'di return value balanceSheet(). '.
             "Hanya ada 'is_balanced' yang tidak cukup untuk menampilkan warning detail."
         );
     }

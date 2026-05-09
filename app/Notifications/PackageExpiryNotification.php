@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\TelecomSubscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class PackageExpiryNotification extends Notification implements ShouldQueue
@@ -21,17 +22,17 @@ class PackageExpiryNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'package_expiry', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 

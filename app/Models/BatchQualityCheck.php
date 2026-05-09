@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BatchQualityCheck extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'batch_id',
@@ -114,7 +114,7 @@ class BatchQualityCheck extends Model
      */
     public function isWithinLimits(): bool
     {
-        if (!$this->actual_value || !$this->lower_limit || !$this->upper_limit) {
+        if (! $this->actual_value || ! $this->lower_limit || ! $this->upper_limit) {
             return true; // No limits set
         }
 
@@ -127,7 +127,7 @@ class BatchQualityCheck extends Model
      */
     public function getDeviationAttribute(): ?float
     {
-        if (!$this->target_value || !$this->actual_value) {
+        if (! $this->target_value || ! $this->actual_value) {
             return null;
         }
 
@@ -139,7 +139,7 @@ class BatchQualityCheck extends Model
      */
     public function getDeviationPercentageAttribute(): ?float
     {
-        if (!$this->target_value || $this->target_value == 0) {
+        if (! $this->target_value || $this->target_value == 0) {
             return null;
         }
 

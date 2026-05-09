@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,18 +33,22 @@ class Rfq extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
     public function requisition(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequisition::class, 'purchase_requisition_id');
     }
+
     public function items(): HasMany
     {
         return $this->hasMany(RfqItem::class);
     }
+
     public function responses(): HasMany
     {
         return $this->hasMany(RfqResponse::class);
     }
+
     public function purchaseOrders(): HasMany
     {
         return $this->hasMany(PurchaseOrder::class);

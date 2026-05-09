@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,9 +13,12 @@ class SalesReturn extends Model
     use BelongsToTenant;
     use SoftDeletes;
 
-    const STATUS_DRAFT     = 'draft';
-    const STATUS_APPROVED  = 'approved';
+    const STATUS_DRAFT = 'draft';
+
+    const STATUS_APPROVED = 'approved';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
@@ -59,26 +61,32 @@ class SalesReturn extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
     }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
     public function items(): HasMany
     {
         return $this->hasMany(SalesReturnItem::class);

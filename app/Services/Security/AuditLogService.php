@@ -110,27 +110,27 @@ class AuditLogService
         $query = AuditLogEnhanced::where('tenant_id', $tenantId);
 
         // Apply filters
-        if (!empty($filters['event_type'])) {
+        if (! empty($filters['event_type'])) {
             $query->where('event_type', $filters['event_type']);
         }
 
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
 
-        if (!empty($filters['start_date'])) {
+        if (! empty($filters['start_date'])) {
             $query->whereDate('created_at', '>=', $filters['start_date']);
         }
 
-        if (!empty($filters['end_date'])) {
+        if (! empty($filters['end_date'])) {
             $query->whereDate('created_at', '<=', $filters['end_date']);
         }
 
-        if (!empty($filters['model_type'])) {
+        if (! empty($filters['model_type'])) {
             $query->where('model_type', $filters['model_type']);
         }
 
-        if (!empty($filters['model_id'])) {
+        if (! empty($filters['model_id'])) {
             $query->where('model_id', $filters['model_id']);
         }
 
@@ -172,7 +172,7 @@ class AuditLogService
     {
         $userAgent = Request::userAgent();
 
-        if (!$userAgent) {
+        if (! $userAgent) {
             return 'desktop';
         }
 

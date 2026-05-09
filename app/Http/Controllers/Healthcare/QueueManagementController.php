@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\QueueTicket;
-use App\Models\Doctor;
 use App\Models\Department;
+use App\Models\Doctor;
 use App\Models\Patient;
+use App\Models\QueueTicket;
 use Illuminate\Http\Request;
 
 class QueueManagementController extends Controller
@@ -41,7 +41,7 @@ class QueueManagementController extends Controller
             'completed' => QueueTicket::where('status', 'completed')->whereDate('created_at', today())->count(),
             'no_show' => QueueTicket::where('status', 'no_show')->whereDate('created_at', today())->count(),
             'avg_wait_time' => QueueTicket::where('status', 'completed')->whereNotNull('served_at')
-                ->avg(fn($q) => $q->whereRaw('TIMESTAMPDIFF(MINUTE, created_at, served_at)')) ?? 0,
+                ->avg(fn ($q) => $q->whereRaw('TIMESTAMPDIFF(MINUTE, created_at, served_at)')) ?? 0,
         ];
 
         return view('healthcare.queue.index', compact('tickets', 'departments', 'statistics'));
@@ -86,7 +86,7 @@ class QueueManagementController extends Controller
         $ticket = QueueTicket::create($validated);
 
         return redirect()->route('healthcare.queue.show', $ticket)
-            ->with('success', 'Queue ticket created: ' . $ticket->queue_number);
+            ->with('success', 'Queue ticket created: '.$ticket->queue_number);
     }
 
     /**
@@ -125,7 +125,7 @@ class QueueManagementController extends Controller
 
         $nextTicket = $query->first();
 
-        if (!$nextTicket) {
+        if (! $nextTicket) {
             return response()->json([
                 'success' => false,
                 'message' => 'No patients in queue',
@@ -140,7 +140,7 @@ class QueueManagementController extends Controller
         return response()->json([
             'success' => true,
             'data' => $nextTicket,
-            'message' => 'Calling patient: ' . $nextTicket->queue_number,
+            'message' => 'Calling patient: '.$nextTicket->queue_number,
         ]);
     }
 
@@ -194,7 +194,7 @@ class QueueManagementController extends Controller
             'avg_wait_time_minutes' => QueueTicket::where('status', 'completed')
                 ->whereDate('created_at', $today)
                 ->whereNotNull('served_at')
-                ->avg(fn($q) => $q->whereRaw('TIMESTAMPDIFF(MINUTE, created_at, served_at)')) ?? 0,
+                ->avg(fn ($q) => $q->whereRaw('TIMESTAMPDIFF(MINUTE, created_at, served_at)')) ?? 0,
         ];
 
         return response()->json([
@@ -219,7 +219,7 @@ class QueueManagementController extends Controller
 
         $sequence = $lastTicket ? (intval(substr($lastTicket->queue_number, -4)) + 1) : 1;
 
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.$date.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -241,6 +241,7 @@ class QueueManagementController extends Controller
             'message' => 'Queue ticket deleted successfully',
         ]);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/queue-management/{queue_management}/edit
@@ -248,9 +249,10 @@ class QueueManagementController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.queue-management.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/queue-management/{queue_management}
@@ -258,13 +260,13 @@ class QueueManagementController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.queue-management.update')
             ->with('success', 'Updated successfully.');
     }

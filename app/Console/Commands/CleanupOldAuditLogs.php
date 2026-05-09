@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AuditLog;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CleanupOldAuditLogs extends Command
 {
@@ -41,15 +42,16 @@ class CleanupOldAuditLogs extends Command
         $this->info("🧹 Cleaning up audit logs older than {$days} days...");
         $this->info("Cutoff date: {$cutoffDate->format('Y-m-d H:i:s')}");
 
-        if (!$force) {
-            if (!$this->confirm('Do you want to proceed?', true)) {
+        if (! $force) {
+            if (! $this->confirm('Do you want to proceed?', true)) {
                 $this->info('Operation cancelled.');
+
                 return Command::FAILURE;
             }
         }
 
         // Get old audit logs
-        $query = \App\Models\AuditLog::where('created_at', '<', $cutoffDate);
+        $query = AuditLog::where('created_at', '<', $cutoffDate);
 
         if ($tenantId) {
             $query->where('tenant_id', $tenantId);
@@ -58,7 +60,8 @@ class CleanupOldAuditLogs extends Command
         $totalLogs = $query->count();
 
         if ($totalLogs === 0) {
-            $this->info("✅ No audit logs to cleanup");
+            $this->info('✅ No audit logs to cleanup');
+
             return Command::SUCCESS;
         }
 
@@ -82,7 +85,7 @@ class CleanupOldAuditLogs extends Command
                 break;
             }
 
-            $deleted = \App\Models\AuditLog::whereIn('id', $ids)->delete();
+            $deleted = AuditLog::whereIn('id', $ids)->delete();
             $deletedCount += $deleted;
 
             $this->line("   Deleted {$deleted} logs (Total: {$deletedCount})");
@@ -120,7 +123,7 @@ class CleanupOldAuditLogs extends Command
         $archiveJson = json_encode($archiveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $compressed = gzencode($archiveJson, 9);
 
-        \Illuminate\Support\Facades\Storage::disk('local')->put(
+        Storage::disk('local')->put(
             "{$archiveFile}.gz",
             $compressed
         );
@@ -142,7 +145,7 @@ class CleanupOldAuditLogs extends Command
         ];
 
         foreach ($logFiles as $logFile) {
-            if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($logFile)) {
+            if (! Storage::disk('local')->exists($logFile)) {
                 continue;
             }
 
@@ -151,13 +154,13 @@ class CleanupOldAuditLogs extends Command
             $logBase = basename($logFile, '.log');
 
             $pattern = str_replace('.log', '-*', $logFile);
-            $files = \Illuminate\Support\Facades\Storage::disk('local')->files(dirname($pattern));
+            $files = Storage::disk('local')->files(dirname($pattern));
 
             $deletedCount = 0;
             $cutoffDate = now()->subDays($days);
 
             foreach ($files as $file) {
-                if (!str_contains($file, $logBase)) {
+                if (! str_contains($file, $logBase)) {
                     continue;
                 }
 
@@ -166,7 +169,7 @@ class CleanupOldAuditLogs extends Command
                     $fileDate = now()->parse($matches[1]);
 
                     if ($fileDate < $cutoffDate) {
-                        \Illuminate\Support\Facades\Storage::disk('local')->delete($file);
+                        Storage::disk('local')->delete($file);
                         $deletedCount++;
                     }
                 }

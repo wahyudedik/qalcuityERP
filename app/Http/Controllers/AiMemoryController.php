@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\AiLearnedPattern;
 use App\Models\AiMemory;
 use App\Services\AiMemoryService;
-use Illuminate\Http\Request;
 
 class AiMemoryController extends Controller
 {
@@ -40,12 +39,12 @@ class AiMemoryController extends Controller
 
         $groupedMemories = [];
         foreach ($categories as $category => $keys) {
-            $groupedMemories[$category] = $memories->filter(fn($m) => in_array($m->key, $keys));
+            $groupedMemories[$category] = $memories->filter(fn ($m) => in_array($m->key, $keys));
         }
 
         // Uncategorized memories
         $allKeys = array_merge(...array_values($categories));
-        $groupedMemories['lainnya'] = $memories->filter(fn($m) => !in_array($m->key, $allKeys));
+        $groupedMemories['lainnya'] = $memories->filter(fn ($m) => ! in_array($m->key, $allKeys));
 
         $suggestions = $this->service->getSuggestions($this->tid(), auth()->id());
 
@@ -55,6 +54,7 @@ class AiMemoryController extends Controller
     public function reset()
     {
         $deleted = $this->service->resetMemory($this->tid(), auth()->id());
+
         return back()->with('success', "Memori AI direset. {$deleted} preferensi dihapus.");
     }
 
@@ -62,20 +62,25 @@ class AiMemoryController extends Controller
     {
         abort_if($aiMemory->tenant_id !== $this->tid() || $aiMemory->user_id !== auth()->id(), 403);
         $aiMemory->delete();
+
         return back()->with('success', 'Preferensi dihapus.');
     }
 
     public function lock(AiMemory $memory)
     {
         // Verify tenant ownership
-        if ($memory->tenant_id !== auth()->user()->tenant_id) abort(403);
+        if ($memory->tenant_id !== auth()->user()->tenant_id) {
+            abort(403);
+        }
         $memory->update(['confidence_score' => 1.0]);
+
         return back()->with('success', 'Preferensi dikonfirmasi.');
     }
 
     public function pruneStale()
     {
         $count = AiMemoryService::pruneStaleMemories(auth()->user()->tenant_id, auth()->id());
+
         return back()->with('success', "Berhasil menghapus {$count} memori usang.");
     }
 }

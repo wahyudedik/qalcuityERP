@@ -132,7 +132,7 @@ class SupplierPerformance extends Model
      */
     private function calculateDeliveryScore(): float
     {
-        if (!$this->expected_delivery_date || !$this->actual_delivery_date) {
+        if (! $this->expected_delivery_date || ! $this->actual_delivery_date) {
             return 50; // Default if no data
         }
 
@@ -203,26 +203,37 @@ class SupplierPerformance extends Model
      */
     private function getRatingGrade(float $score): string
     {
-        if ($score >= 90)
+        if ($score >= 90) {
             return 'A+';
-        if ($score >= 85)
+        }
+        if ($score >= 85) {
             return 'A';
-        if ($score >= 80)
+        }
+        if ($score >= 80) {
             return 'A-';
-        if ($score >= 75)
+        }
+        if ($score >= 75) {
             return 'B+';
-        if ($score >= 70)
+        }
+        if ($score >= 70) {
             return 'B';
-        if ($score >= 65)
+        }
+        if ($score >= 65) {
             return 'B-';
-        if ($score >= 60)
+        }
+        if ($score >= 60) {
             return 'C+';
-        if ($score >= 55)
+        }
+        if ($score >= 55) {
             return 'C';
-        if ($score >= 50)
+        }
+        if ($score >= 50) {
             return 'C-';
-        if ($score >= 40)
+        }
+        if ($score >= 40) {
             return 'D';
+        }
+
         return 'F';
     }
 
@@ -270,10 +281,11 @@ class SupplierPerformance extends Model
             $prevAvg = $prev30Days->avg('overall_score');
             $diff = $currentAvg - $prevAvg;
 
-            if ($diff > 5)
+            if ($diff > 5) {
                 $trend = 'improving';
-            elseif ($diff < -5)
+            } elseif ($diff < -5) {
                 $trend = 'declining';
+            }
         }
 
         return [
@@ -355,6 +367,7 @@ class SupplierPerformance extends Model
                     ? round(($item->on_time_count / $item->evaluation_count) * 100, 1)
                     : 0;
                 $item->grade = self::getGradeFromScore($item->avg_score);
+
                 return $item;
             });
 
@@ -366,26 +379,37 @@ class SupplierPerformance extends Model
      */
     private static function getGradeFromScore(float $score): string
     {
-        if ($score >= 90)
+        if ($score >= 90) {
             return 'A+';
-        if ($score >= 85)
+        }
+        if ($score >= 85) {
             return 'A';
-        if ($score >= 80)
+        }
+        if ($score >= 80) {
             return 'A-';
-        if ($score >= 75)
+        }
+        if ($score >= 75) {
             return 'B+';
-        if ($score >= 70)
+        }
+        if ($score >= 70) {
             return 'B';
-        if ($score >= 65)
+        }
+        if ($score >= 65) {
             return 'B-';
-        if ($score >= 60)
+        }
+        if ($score >= 60) {
             return 'C+';
-        if ($score >= 55)
+        }
+        if ($score >= 55) {
             return 'C';
-        if ($score >= 50)
+        }
+        if ($score >= 50) {
             return 'C-';
-        if ($score >= 40)
+        }
+        if ($score >= 40) {
             return 'D';
+        }
+
         return 'F';
     }
 }

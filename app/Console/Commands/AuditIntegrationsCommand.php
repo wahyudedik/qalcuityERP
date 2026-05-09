@@ -12,22 +12,23 @@ class AuditIntegrationsCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:integrations {--service=} {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run integration audit (payment, ecommerce, messaging, AI, HTTP patterns).';
 
     public function handle(IntegrationAnalyzer $analyzer): int
     {
         $service = strtolower((string) $this->option('service'));
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         foreach ($analyzer->analyze() as $finding) {
-            if ($service !== '' && !str_contains(strtolower($finding->title . ' ' . $finding->description), $service)) {
+            if ($service !== '' && ! str_contains(strtolower($finding->title.' '.$finding->description), $service)) {
                 continue;
             }
             $report->add($finding);
         }
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

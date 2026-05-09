@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\ProductStock;
+use App\Models\SalesOrderItem;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
-use App\Models\ActivityLog;
+use App\Traits\DispatchesWebhooks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class InventoryController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     // Remove duplicate tenantId() - already defined in parent Controller
 
@@ -28,12 +31,12 @@ class InventoryController extends Controller
             ->with([
                 'productStocks' => function ($q) {
                     $q->select('id', 'product_id', 'warehouse_id', 'quantity');
-                }
+                },
             ]);
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('sku', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('sku', 'like', "%$s%"));
         }
         if ($request->category) {
             $query->where('category', $request->category);
@@ -43,14 +46,14 @@ class InventoryController extends Controller
         } elseif ($request->status === 'inactive') {
             $query->where('is_active', false);
         } elseif ($request->status === 'low') {
-            $query->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
+            $query->whereHas('productStocks', fn ($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
         }
 
         $products = $query->orderBy('name')->paginate(20)->withQueryString();
         $categories = Product::where('tenant_id', $tid)->whereNotNull('category')->distinct()->pluck('category');
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
         $lowCount = Product::where('tenant_id', $tid)
-            ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
+            ->whereHas('productStocks', fn ($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
             ->count();
 
         return view('inventory.index', compact('products', 'categories', 'warehouses', 'lowCount'));
@@ -74,7 +77,7 @@ class InventoryController extends Controller
             'initial_stock' => 'nullable|integer|min:0',
             // FIX BUG-004: warehouse_id harus divalidasi dengan filter tenant_id
             // agar user tidak bisa menggunakan warehouse milik tenant lain
-            'warehouse_id' => ['nullable', \Illuminate\Validation\Rule::exists('warehouses', 'id')->where('tenant_id', $tid)],
+            'warehouse_id' => ['nullable', Rule::exists('warehouses', 'id')->where('tenant_id', $tid)],
             'batch_number' => 'nullable|string|max:100',
             'expiry_date' => 'nullable|date|after:today',
             'manufacture_date' => 'nullable|date',
@@ -85,7 +88,7 @@ class InventoryController extends Controller
             return back()->withErrors(['name' => 'Produk dengan nama ini sudah ada.'])->withInput();
         }
 
-        $sku = $data['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)) . '-' . rand(100, 999);
+        $sku = $data['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)).'-'.rand(100, 999);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -110,7 +113,7 @@ class InventoryController extends Controller
 
         ActivityLog::record('product_created', "Produk baru: {$product->name} (SKU: {$product->sku})", $product, [], $product->toArray());
 
-        if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
+        if (! empty($data['initial_stock']) && $data['initial_stock'] > 0 && ! empty($data['warehouse_id'])) {
             ProductStock::create([
                 'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
@@ -129,12 +132,12 @@ class InventoryController extends Controller
             ]);
 
             // Buat batch jika produk has_expiry dan expiry_date diisi
-            if ($product->has_expiry && !empty($data['expiry_date'])) {
+            if ($product->has_expiry && ! empty($data['expiry_date'])) {
                 ProductBatch::create([
                     'tenant_id' => $tid,
                     'product_id' => $product->id,
                     'warehouse_id' => $data['warehouse_id'],
-                    'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
+                    'batch_number' => $data['batch_number'] ?? 'BATCH-'.strtoupper(substr($sku, 0, 4)).'-'.now()->format('ymd'),
                     'quantity' => $data['initial_stock'],
                     'manufacture_date' => $data['manufacture_date'] ?? null,
                     'expiry_date' => $data['expiry_date'],
@@ -186,11 +189,12 @@ class InventoryController extends Controller
     {
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
-        $hasSales = \App\Models\SalesOrderItem::where('product_id', $product->id)->exists();
+        $hasSales = SalesOrderItem::where('product_id', $product->id)->exists();
         if ($hasSales) {
             $product->update(['is_active' => false]);
             ActivityLog::record('product_deactivated', "Produk dinonaktifkan (sudah pernah terjual): {$product->name}", $product);
-            return back()->with('success', "Produk dinonaktifkan (sudah pernah terjual).");
+
+            return back()->with('success', 'Produk dinonaktifkan (sudah pernah terjual).');
         }
 
         ActivityLog::record('product_deleted', "Produk dihapus: {$product->name} (SKU: {$product->sku})", $product, $product->toArray());
@@ -227,7 +231,7 @@ class InventoryController extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                if (!$stock) {
+                if (! $stock) {
                     // Create new stock record
                     $stock = ProductStock::create([
                         'product_id' => $product->id,
@@ -243,7 +247,7 @@ class InventoryController extends Controller
                     ->where('quantity', '=', $before)  // Ensure no concurrent modification
                     ->increment('quantity', $data['quantity']);
 
-                if (!$updated) {
+                if (! $updated) {
                     throw new \Exception('Gagal menambah stok. Silakan coba lagi.');
                 }
 
@@ -260,12 +264,12 @@ class InventoryController extends Controller
                 ]);
 
                 // Buat batch jika produk has_expiry
-                if ($product->has_expiry && !empty($data['expiry_date'])) {
+                if ($product->has_expiry && ! empty($data['expiry_date'])) {
                     ProductBatch::create([
                         'tenant_id' => $this->tenantId(),
                         'product_id' => $product->id,
                         'warehouse_id' => $data['warehouse_id'],
-                        'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($product->sku, 0, 4)) . '-' . now()->format('ymd') . '-' . rand(10, 99),
+                        'batch_number' => $data['batch_number'] ?? 'BATCH-'.strtoupper(substr($product->sku, 0, 4)).'-'.now()->format('ymd').'-'.rand(10, 99),
                         'quantity' => $data['quantity'],
                         'manufacture_date' => $data['manufacture_date'] ?? null,
                         'expiry_date' => $data['expiry_date'],
@@ -273,7 +277,7 @@ class InventoryController extends Controller
                     ]);
                 }
 
-                ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → " . ($before + $data['quantity']) . ")", $product);
+                ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → ".($before + $data['quantity']).')', $product);
 
                 $this->fireWebhook('inventory.adjusted', [
                     'product_id' => $product->id,
@@ -334,7 +338,7 @@ class InventoryController extends Controller
         ]);
 
         $tid = $this->tenantId();
-        $code = $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 4)) . '-' . rand(10, 99);
+        $code = $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 4)).'-'.rand(10, 99);
 
         Warehouse::create([
             'tenant_id' => $tid,

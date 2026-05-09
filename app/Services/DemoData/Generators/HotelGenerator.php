@@ -16,9 +16,9 @@ class HotelGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId       = $ctx->tenantId;
+        $tenantId = $ctx->tenantId;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // 1. Room Types (3: Standard, Deluxe, Suite)
         $roomTypeIds = [];
@@ -29,7 +29,7 @@ class HotelGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HotelGenerator: failed to seed room types', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['room_types'] = 0;
         }
@@ -43,7 +43,7 @@ class HotelGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HotelGenerator: failed to seed rooms', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['rooms'] = 0;
         }
@@ -57,7 +57,7 @@ class HotelGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HotelGenerator: failed to seed guests', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['guests'] = 0;
         }
@@ -70,7 +70,7 @@ class HotelGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HotelGenerator: failed to seed reservations', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['reservations'] = 0;
         }
@@ -83,14 +83,14 @@ class HotelGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('HotelGenerator: failed to seed housekeeping tasks', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['housekeeping_tasks'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -102,31 +102,31 @@ class HotelGenerator extends BaseIndustryGenerator
     {
         $types = [
             [
-                'name'           => 'Standard',
-                'code'           => 'STD',
-                'description'    => 'Kamar standar dengan fasilitas lengkap dan nyaman',
+                'name' => 'Standard',
+                'code' => 'STD',
+                'description' => 'Kamar standar dengan fasilitas lengkap dan nyaman',
                 'base_occupancy' => 2,
-                'max_occupancy'  => 2,
-                'base_rate'      => 350000,
-                'amenities'      => json_encode(['AC', 'TV', 'WiFi', 'Kamar Mandi Dalam']),
+                'max_occupancy' => 2,
+                'base_rate' => 350000,
+                'amenities' => json_encode(['AC', 'TV', 'WiFi', 'Kamar Mandi Dalam']),
             ],
             [
-                'name'           => 'Deluxe',
-                'code'           => 'DLX',
-                'description'    => 'Kamar deluxe dengan pemandangan indah dan fasilitas premium',
+                'name' => 'Deluxe',
+                'code' => 'DLX',
+                'description' => 'Kamar deluxe dengan pemandangan indah dan fasilitas premium',
                 'base_occupancy' => 2,
-                'max_occupancy'  => 3,
-                'base_rate'      => 550000,
-                'amenities'      => json_encode(['AC', 'TV LED', 'WiFi', 'Bathtub', 'Mini Bar', 'City View']),
+                'max_occupancy' => 3,
+                'base_rate' => 550000,
+                'amenities' => json_encode(['AC', 'TV LED', 'WiFi', 'Bathtub', 'Mini Bar', 'City View']),
             ],
             [
-                'name'           => 'Suite',
-                'code'           => 'STE',
-                'description'    => 'Suite mewah dengan ruang tamu terpisah dan fasilitas eksklusif',
+                'name' => 'Suite',
+                'code' => 'STE',
+                'description' => 'Suite mewah dengan ruang tamu terpisah dan fasilitas eksklusif',
                 'base_occupancy' => 2,
-                'max_occupancy'  => 4,
-                'base_rate'      => 850000,
-                'amenities'      => json_encode(['AC', 'Smart TV', 'WiFi', 'Jacuzzi', 'Mini Bar', 'Ruang Tamu', 'Panoramic View']),
+                'max_occupancy' => 4,
+                'base_rate' => 850000,
+                'amenities' => json_encode(['AC', 'Smart TV', 'WiFi', 'Jacuzzi', 'Mini Bar', 'Ruang Tamu', 'Panoramic View']),
             ],
         ];
 
@@ -141,13 +141,14 @@ class HotelGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $ids[$type['code']] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('room_types')->insertGetId(array_merge($type, [
-                'tenant_id'  => $tenantId,
-                'is_active'  => true,
-                'images'     => json_encode([]),
+                'tenant_id' => $tenantId,
+                'is_active' => true,
+                'images' => json_encode([]),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
@@ -168,6 +169,7 @@ class HotelGenerator extends BaseIndustryGenerator
             $this->logWarning('HotelGenerator: no room type IDs available, skipping rooms', [
                 'tenant_id' => $tenantId,
             ]);
+
             return [];
         }
 
@@ -205,20 +207,21 @@ class HotelGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $ids[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('rooms')->insertGetId([
-                'tenant_id'    => $tenantId,
+                'tenant_id' => $tenantId,
                 'room_type_id' => $room['room_type_id'],
-                'number'       => $room['number'],
-                'floor'        => $room['floor'],
-                'building'     => 'Main Building',
-                'status'       => $room['status'],
-                'is_active'    => true,
-                'notes'        => null,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'number' => $room['number'],
+                'floor' => $room['floor'],
+                'building' => 'Main Building',
+                'status' => $room['status'],
+                'is_active' => true,
+                'notes' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $ids[] = (int) $id;
@@ -249,7 +252,7 @@ class HotelGenerator extends BaseIndustryGenerator
         $ids = [];
 
         foreach ($guests as $i => $g) {
-            $guestCode = 'GST-HTL-' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT);
+            $guestCode = 'GST-HTL-'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT);
 
             $existing = DB::table('guests')
                 ->where('tenant_id', $tenantId)
@@ -259,30 +262,31 @@ class HotelGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $ids[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('guests')->insertGetId([
-                'tenant_id'                => $tenantId,
-                'guest_code'               => $guestCode,
-                'name'                     => $g['name'],
-                'email'                    => $g['email'],
-                'phone'                    => $g['phone'],
-                'id_type'                  => $g['id_type'],
-                'id_number'                => $g['id_number'],
-                'address'                  => 'Jl. Demo No. ' . ($i + 1),
-                'city'                     => $g['city'],
-                'country'                  => $g['country'],
-                'nationality'              => $g['nationality'],
-                'date_of_birth'            => $g['dob'],
-                'preferred_language'       => 'id',
+                'tenant_id' => $tenantId,
+                'guest_code' => $guestCode,
+                'name' => $g['name'],
+                'email' => $g['email'],
+                'phone' => $g['phone'],
+                'id_type' => $g['id_type'],
+                'id_number' => $g['id_number'],
+                'address' => 'Jl. Demo No. '.($i + 1),
+                'city' => $g['city'],
+                'country' => $g['country'],
+                'nationality' => $g['nationality'],
+                'date_of_birth' => $g['dob'],
+                'preferred_language' => 'id',
                 'communication_preference' => 'email',
-                'vip_level'                => ($i < 2) ? 'gold' : 'none',
-                'loyalty_points'           => ($i < 2) ? rand(500, 2000) : 0,
-                'total_stays'              => rand(1, 10),
-                'membership_since'         => Carbon::now()->subMonths(rand(3, 24))->format('Y-m-d'),
-                'created_at'               => now(),
-                'updated_at'               => now(),
+                'vip_level' => ($i < 2) ? 'gold' : 'none',
+                'loyalty_points' => ($i < 2) ? rand(500, 2000) : 0,
+                'total_stays' => rand(1, 10),
+                'membership_since' => Carbon::now()->subMonths(rand(3, 24))->format('Y-m-d'),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $ids[] = (int) $id;
@@ -301,11 +305,12 @@ class HotelGenerator extends BaseIndustryGenerator
             $this->logWarning('HotelGenerator: missing guests or room types, skipping reservations', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $roomTypeIdList = array_values($roomTypeIds);
-        $roomIdList     = array_values($roomIds);
+        $roomIdList = array_values($roomIds);
 
         $reservations = [
             // 4 confirmed (future check-in)
@@ -327,7 +332,7 @@ class HotelGenerator extends BaseIndustryGenerator
         $count = 0;
 
         foreach ($reservations as $i => $res) {
-            $resNumber = 'RES-HTL-' . $tenantId . '-' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT);
+            $resNumber = 'RES-HTL-'.$tenantId.'-'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT);
 
             $exists = DB::table('reservations')
                 ->where('tenant_id', $tenantId)
@@ -339,48 +344,48 @@ class HotelGenerator extends BaseIndustryGenerator
                 continue;
             }
 
-            $guestId    = $guestIds[$i % count($guestIds)];
-            $typeIndex  = $i % count($roomTypeIdList);
+            $guestId = $guestIds[$i % count($guestIds)];
+            $typeIndex = $i % count($roomTypeIdList);
             $roomTypeId = $roomTypeIdList[$typeIndex];
-            $roomId     = !empty($roomIdList) ? $roomIdList[$i % count($roomIdList)] : null;
-            $rate       = $rates[$typeIndex] ?? 350000;
+            $roomId = ! empty($roomIdList) ? $roomIdList[$i % count($roomIdList)] : null;
+            $rate = $rates[$typeIndex] ?? 350000;
 
-            $checkInDate  = Carbon::today()->addDays($res['check_in_offset']);
+            $checkInDate = Carbon::today()->addDays($res['check_in_offset']);
             $checkOutDate = $checkInDate->copy()->addDays($res['nights']);
-            $totalAmount  = $rate * $res['nights'];
-            $tax          = round($totalAmount * 0.10, 2);
-            $grandTotal   = $totalAmount + $tax;
+            $totalAmount = $rate * $res['nights'];
+            $tax = round($totalAmount * 0.10, 2);
+            $grandTotal = $totalAmount + $tax;
 
-            $cancelledAt  = null;
+            $cancelledAt = null;
             $cancelReason = null;
 
             if ($res['status'] === 'cancelled') {
-                $cancelledAt  = $checkInDate->copy()->subDays(1)->toDateTimeString();
+                $cancelledAt = $checkInDate->copy()->subDays(1)->toDateTimeString();
                 $cancelReason = 'Pasien tidak dapat hadir';
             }
 
             DB::table('reservations')->insert([
-                'tenant_id'          => $tenantId,
-                'guest_id'           => $guestId,
-                'room_type_id'       => $roomTypeId,
-                'room_id'            => $roomId,
+                'tenant_id' => $tenantId,
+                'guest_id' => $guestId,
+                'room_type_id' => $roomTypeId,
+                'room_id' => $roomId,
                 'reservation_number' => $resNumber,
-                'status'             => $res['status'],
-                'check_in_date'      => $checkInDate->format('Y-m-d'),
-                'check_out_date'     => $checkOutDate->format('Y-m-d'),
-                'adults'             => $res['adults'],
-                'children'           => $res['children'],
-                'nights'             => $res['nights'],
-                'rate_per_night'     => $rate,
-                'total_amount'       => $totalAmount,
-                'discount'           => 0,
-                'tax'                => $tax,
-                'grand_total'        => $grandTotal,
-                'source'             => 'direct',
-                'cancelled_at'       => $cancelledAt,
-                'cancel_reason'      => $cancelReason,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'status' => $res['status'],
+                'check_in_date' => $checkInDate->format('Y-m-d'),
+                'check_out_date' => $checkOutDate->format('Y-m-d'),
+                'adults' => $res['adults'],
+                'children' => $res['children'],
+                'nights' => $res['nights'],
+                'rate_per_night' => $rate,
+                'total_amount' => $totalAmount,
+                'discount' => 0,
+                'tax' => $tax,
+                'grand_total' => $grandTotal,
+                'source' => 'direct',
+                'cancelled_at' => $cancelledAt,
+                'cancel_reason' => $cancelReason,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -399,6 +404,7 @@ class HotelGenerator extends BaseIndustryGenerator
             $this->logWarning('HotelGenerator: no room IDs available, skipping housekeeping tasks', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
@@ -427,35 +433,35 @@ class HotelGenerator extends BaseIndustryGenerator
             }
 
             $scheduledAt = Carbon::today()->addHours(8 + ($idx % 8));
-            $startedAt   = null;
+            $startedAt = null;
             $completedAt = null;
 
             if ($taskDef['status'] === 'in_progress') {
                 $startedAt = $scheduledAt->copy()->addMinutes(5);
             } elseif ($taskDef['status'] === 'completed') {
-                $startedAt   = $scheduledAt->copy()->addMinutes(5);
+                $startedAt = $scheduledAt->copy()->addMinutes(5);
                 $completedAt = $startedAt->copy()->addMinutes($taskDef['duration']);
             }
 
             $rows[] = [
-                'tenant_id'          => $tenantId,
-                'room_id'            => $roomId,
-                'assigned_to'        => null,
-                'type'               => $taskDef['type'],
-                'status'             => $taskDef['status'],
-                'priority'           => $taskDef['priority'],
+                'tenant_id' => $tenantId,
+                'room_id' => $roomId,
+                'assigned_to' => null,
+                'type' => $taskDef['type'],
+                'status' => $taskDef['status'],
+                'priority' => $taskDef['priority'],
                 'estimated_duration' => $taskDef['duration'],
-                'scheduled_at'       => $scheduledAt->format('Y-m-d H:i:s'),
-                'started_at'         => $startedAt?->format('Y-m-d H:i:s'),
-                'completed_at'       => $completedAt?->format('Y-m-d H:i:s'),
-                'actual_duration'    => $completedAt ? $taskDef['duration'] : null,
-                'notes'              => null,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'scheduled_at' => $scheduledAt->format('Y-m-d H:i:s'),
+                'started_at' => $startedAt?->format('Y-m-d H:i:s'),
+                'completed_at' => $completedAt?->format('Y-m-d H:i:s'),
+                'actual_duration' => $completedAt ? $taskDef['duration'] : null,
+                'notes' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             $this->bulkInsert('housekeeping_tasks', $rows);
         }
 

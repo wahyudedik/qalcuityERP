@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -106,7 +105,7 @@ class HotspotUser extends Model
      */
     public function getDecryptedPasswordAttribute(): ?string
     {
-        if (!$this->password_encrypted) {
+        if (! $this->password_encrypted) {
             return null;
         }
 
@@ -126,7 +125,7 @@ class HotspotUser extends Model
      */
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -176,7 +175,7 @@ class HotspotUser extends Model
             $i++;
         }
 
-        return round($remaining, 2) . ' ' . $units[$i];
+        return round($remaining, 2).' '.$units[$i];
     }
 
     /**

@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Tour Packages - Main tour products
-        if (!Schema::hasTable('tour_packages')) {
+        if (! Schema::hasTable('tour_packages')) {
             Schema::create('tour_packages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -46,7 +47,7 @@ return new class extends Migration {
         }
 
         // Itinerary Days - Day-by-day activities
-        if (!Schema::hasTable('itinerary_days')) {
+        if (! Schema::hasTable('itinerary_days')) {
             Schema::create('itinerary_days', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tour_package_id')->constrained()->onDelete('cascade');
@@ -66,7 +67,7 @@ return new class extends Migration {
         }
 
         // Tour Bookings - Customer bookings
-        if (!Schema::hasTable('tour_bookings')) {
+        if (! Schema::hasTable('tour_bookings')) {
             Schema::create('tour_bookings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -108,7 +109,7 @@ return new class extends Migration {
         }
 
         // Booking Passengers - Individual passenger details
-        if (!Schema::hasTable('booking_passengers')) {
+        if (! Schema::hasTable('booking_passengers')) {
             Schema::create('booking_passengers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tour_booking_id')->constrained()->onDelete('cascade');
@@ -131,7 +132,7 @@ return new class extends Migration {
         }
 
         // Tour Suppliers - Hotels, transport, activity providers
-        if (!Schema::hasTable('tour_suppliers')) {
+        if (! Schema::hasTable('tour_suppliers')) {
             Schema::create('tour_suppliers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -159,7 +160,7 @@ return new class extends Migration {
         }
 
         // Package Supplier Allocations - Link packages to suppliers
-        if (!Schema::hasTable('package_supplier_allocations')) {
+        if (! Schema::hasTable('package_supplier_allocations')) {
             Schema::create('package_supplier_allocations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tour_package_id')->constrained()->onDelete('cascade');
@@ -178,7 +179,7 @@ return new class extends Migration {
         }
 
         // Visa & Documentation Tracking
-        if (!Schema::hasTable('visa_applications')) {
+        if (! Schema::hasTable('visa_applications')) {
             Schema::create('visa_applications', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -210,7 +211,7 @@ return new class extends Migration {
         }
 
         // Travel Documents Storage
-        if (!Schema::hasTable('travel_documents')) {
+        if (! Schema::hasTable('travel_documents')) {
             Schema::create('travel_documents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

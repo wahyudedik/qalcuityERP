@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Uses a 30-second cache to reduce DB hits on rapid requests.
  * Cache is busted immediately after each tracked call.
- * 
+ *
  * BUG-AI-004 FIX: Implements fail-safe mechanism when cache is down.
  * If cache fails, falls back to direct DB query instead of bypassing quota check.
  */
@@ -29,7 +29,7 @@ class AiQuotaService
     /**
      * Check if tenant has quota remaining.
      * Returns true if allowed, false if exceeded.
-     * 
+     *
      * BUG-AI-004 FIX: Fail-safe - if cache is down, use DB query directly
      * to prevent quota bypass.
      */
@@ -37,8 +37,9 @@ class AiQuotaService
     {
         try {
             $limit = $this->getLimit($tenantId);
-            if ($limit === -1)
+            if ($limit === -1) {
                 return true;
+            }
 
             return $this->getUsed($tenantId) < $limit;
         } catch (\Throwable $e) {
@@ -55,7 +56,7 @@ class AiQuotaService
     /**
      * Track one AI call and return updated usage info.
      * Call this AFTER a successful AI response.
-     * 
+     *
      * BUG-AI-004 FIX: Handle cache failure gracefully when busting cache
      */
     public function track(int $tenantId, int $userId, int $tokens = 0): array
@@ -85,7 +86,7 @@ class AiQuotaService
 
     /**
      * Get current usage for tenant this month (cached).
-     * 
+     *
      * BUG-AI-004 FIX: Fallback to DB if cache fails
      */
     public function getUsed(int $tenantId): int
@@ -94,7 +95,7 @@ class AiQuotaService
             return Cache::remember(
                 $this->cacheKey($tenantId),
                 self::CACHE_TTL,
-                fn() => AiUsageLog::tenantMonthlyCount($tenantId)
+                fn () => AiUsageLog::tenantMonthlyCount($tenantId)
             );
         } catch (\Throwable $e) {
             // BUG-AI-004 FIX: Cache failed, query DB directly
@@ -110,7 +111,7 @@ class AiQuotaService
     /**
      * Get monthly limit for tenant based on their plan.
      * Returns -1 for unlimited.
-     * 
+     *
      * BUG-AI-004 FIX: Fallback to DB if cache fails
      */
     public function getLimit(int $tenantId): int
@@ -121,6 +122,7 @@ class AiQuotaService
                 300, // cache plan limit 5 minutes
                 function () use ($tenantId) {
                     $tenant = Tenant::with('subscriptionPlan')->find($tenantId);
+
                     return $tenant?->maxAiMessages() ?? 20;
                 }
             );
@@ -132,13 +134,14 @@ class AiQuotaService
             ]);
 
             $tenant = Tenant::with('subscriptionPlan')->find($tenantId);
+
             return $tenant?->maxAiMessages() ?? 20;
         }
     }
 
     /**
      * Get full quota status for a tenant.
-     * 
+     *
      * BUG-AI-004 FIX: Wrapped in try-catch for cache failures
      */
     public function status(int $tenantId): array
@@ -179,7 +182,7 @@ class AiQuotaService
 
     /**
      * Bust the plan limit cache (call when tenant upgrades plan).
-     * 
+     *
      * BUG-AI-004 FIX: Handle cache failure gracefully
      */
     public function bustLimitCache(int $tenantId): void
@@ -197,7 +200,7 @@ class AiQuotaService
 
     /**
      * BUG-AI-004 FIX: Direct database quota check (fallback when cache is down)
-     * 
+     *
      * This method bypasses cache entirely and queries the database directly.
      * Used as a fail-safe when Redis/cache service is unavailable.
      */
@@ -205,10 +208,12 @@ class AiQuotaService
     {
         try {
             $limit = $this->getLimitFromDatabase($tenantId);
-            if ($limit === -1)
+            if ($limit === -1) {
                 return true;
+            }
 
             $used = AiUsageLog::tenantMonthlyCount($tenantId);
+
             return $used < $limit;
         } catch (\Throwable $e) {
             // BUG-AI-004 FIX: Both cache AND DB failed
@@ -230,11 +235,12 @@ class AiQuotaService
     protected function getLimitFromDatabase(int $tenantId): int
     {
         $tenant = Tenant::with('subscriptionPlan')->find($tenantId);
+
         return $tenant?->maxAiMessages() ?? 20;
     }
 
     private function cacheKey(int $tenantId): string
     {
-        return "ai_quota_{$tenantId}_" . now()->format('Y-m');
+        return "ai_quota_{$tenantId}_".now()->format('Y-m');
     }
 }

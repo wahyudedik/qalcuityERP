@@ -2,18 +2,17 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
-use App\Models\SalesOrder as Order;
-use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Product;
+use App\Models\SalesOrder as Order;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Enhanced Reporting & Analytics Service
- * 
+ *
  * Features:
  * - Executive KPI Dashboard
  * - Comparative Analysis (YoY, MoM, QoQ)
@@ -29,7 +28,7 @@ class ReportingAnalyticsService
     public function getExecutiveDashboard(string $period = 'this_month'): array
     {
         $tenantId = Auth::user()->tenant_id ?? null;
-        if (!$tenantId) {
+        if (! $tenantId) {
             throw new \Exception('Tenant context required');
         }
 
@@ -196,8 +195,8 @@ class ReportingAnalyticsService
                 'customer_satisfaction' => round(mt_rand(85, 98), 2),
             ],
             'time_metrics' => [
-                'avg_response_time' => mt_rand(2, 8) . ' hours',
-                'avg_resolution_time' => mt_rand(24, 72) . ' hours',
+                'avg_response_time' => mt_rand(2, 8).' hours',
+                'avg_resolution_time' => mt_rand(24, 72).' hours',
             ],
         ];
     }
@@ -451,13 +450,13 @@ class ReportingAnalyticsService
     public function prepareSharedReport(array $reportData, array $config): array
     {
         return [
-            'report_id' => 'RPT-' . time(),
+            'report_id' => 'RPT-'.time(),
             'generated_at' => now(),
             'generated_by' => Auth::user()->name ?? 'System',
             'expires_at' => now()->addDays($config['expiry_days'] ?? 7),
             'access_level' => $config['access_level'] ?? 'view', // view, download, edit
             'data' => $reportData,
-            'share_url' => route('reports.shared', ['id' => 'RPT-' . time()]), // Placeholder
+            'share_url' => route('reports.shared', ['id' => 'RPT-'.time()]), // Placeholder
             'permissions' => [
                 'can_view' => true,
                 'can_download' => in_array($config['access_level'] ?? 'view', ['view', 'download']),

@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\PharmacyItem;
+use App\Models\User;
+use App\Notifications\Healthcare\SupplyExpiryAlert;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -36,7 +39,7 @@ class CheckExpiringSupplies extends Command
 
         $this->info("🔍 Checking medical supplies expiring within {$days} days...");
 
-        $query = \App\Models\PharmacyItem::whereNotNull('expiry_date')
+        $query = PharmacyItem::whereNotNull('expiry_date')
             ->where('expiry_date', '<=', now()->addDays($days))
             ->where('expiry_date', '>=', now());
 
@@ -48,6 +51,7 @@ class CheckExpiringSupplies extends Command
 
         if ($expiringSupplies->isEmpty()) {
             $this->info("✅ No supplies expiring within {$days} days");
+
             return Command::SUCCESS;
         }
 
@@ -62,6 +66,7 @@ class CheckExpiringSupplies extends Command
                 ['SKU', 'Name', 'Stock', 'Expiry Date', 'Days Left'],
                 $supplies->map(function ($item) {
                     $daysLeft = now()->diffInDays($item->expiry_date, false);
+
                     return [
                         $item->sku ?? '-',
                         $item->name,
@@ -79,7 +84,7 @@ class CheckExpiringSupplies extends Command
         }
 
         // Auto-mark expired supplies
-        $expiredCount = \App\Models\PharmacyItem::whereNotNull('expiry_date')
+        $expiredCount = PharmacyItem::whereNotNull('expiry_date')
             ->where('expiry_date', '<', now())
             ->where('status', '!=', 'expired')
             ->update(['status' => 'expired']);
@@ -99,7 +104,7 @@ class CheckExpiringSupplies extends Command
         $tenantId = $supplies->first()->tenant_id;
 
         // Get pharmacy managers and admins
-        $recipients = \App\Models\User::where('tenant_id', $tenantId)
+        $recipients = User::where('tenant_id', $tenantId)
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['admin', 'pharmacist']);
             })
@@ -110,7 +115,7 @@ class CheckExpiringSupplies extends Command
         }
 
         try {
-            Notification::send($recipients, new \App\Notifications\Healthcare\SupplyExpiryAlert($supplies));
+            Notification::send($recipients, new SupplyExpiryAlert($supplies));
 
             Log::info('Supply expiry alerts sent', [
                 'tenant_id' => $tenantId,

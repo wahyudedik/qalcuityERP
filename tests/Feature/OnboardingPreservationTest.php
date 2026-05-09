@@ -21,6 +21,7 @@ use Tests\TestCase;
 class OnboardingPreservationTest extends TestCase
 {
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -28,7 +29,7 @@ class OnboardingPreservationTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
     }
 
     /**
@@ -45,14 +46,14 @@ class OnboardingPreservationTest extends TestCase
 
         // 'mining' is not in the allowed enum
         $response = $this->postJson('/onboarding/save-industry', [
-            'industry'      => 'mining',
+            'industry' => 'mining',
             'business_size' => 'small',
         ]);
         $response->assertStatus(422);
 
         // 'xyz' is also not valid
         $response2 = $this->postJson('/onboarding/save-industry', [
-            'industry'      => 'xyz',
+            'industry' => 'xyz',
             'business_size' => 'small',
         ]);
         $response2->assertStatus(422);
@@ -70,7 +71,7 @@ class OnboardingPreservationTest extends TestCase
     {
         // No actingAs — unauthenticated
         $response = $this->postJson('/onboarding/save-industry', [
-            'industry'      => 'retail',
+            'industry' => 'retail',
             'business_size' => 'small',
         ]);
 
@@ -94,11 +95,11 @@ class OnboardingPreservationTest extends TestCase
 
         // Also create a profile with completed_at set
         OnboardingProfile::create([
-            'tenant_id'     => $this->tenant->id,
-            'user_id'       => $this->user->id,
-            'industry'      => 'retail',
+            'tenant_id' => $this->tenant->id,
+            'user_id' => $this->user->id,
+            'industry' => 'retail',
             'business_size' => 'small',
-            'completed_at'  => now(),
+            'completed_at' => now(),
         ]);
 
         $this->actingAs($this->user);
@@ -143,7 +144,7 @@ class OnboardingPreservationTest extends TestCase
 
         $this->assertTrue(
             $result['success'],
-            'generateForIndustry(retail) should return success: true. Got: ' . json_encode($result)
+            'generateForIndustry(retail) should return success: true. Got: '.json_encode($result)
         );
 
         $this->assertGreaterThan(

@@ -2,8 +2,9 @@
 
 namespace App\Services\AI;
 
-use App\Models\PredictiveMaintenance;
 use App\Models\Asset;
+use App\Models\PredictiveMaintenance;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class PredictiveMaintenanceService
@@ -69,7 +70,7 @@ class PredictiveMaintenanceService
                 'prediction_id' => $prediction->id,
                 'asset_id' => $asset->id,
                 'asset_name' => $asset->name,
-                'failure_probability' => round($failureProbability * 100, 2) . '%',
+                'failure_probability' => round($failureProbability * 100, 2).'%',
                 'predicted_date' => $maintenanceDueDate,
                 'severity' => $severity,
                 'remaining_lifespan_months' => $remainingLifespan,
@@ -77,7 +78,8 @@ class PredictiveMaintenanceService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Predictive maintenance failed for asset ' . $asset->id . ': ' . $e->getMessage());
+            Log::error('Predictive maintenance failed for asset '.$asset->id.': '.$e->getMessage());
+
             return null;
         }
     }
@@ -116,7 +118,7 @@ class PredictiveMaintenanceService
     /**
      * Predict when maintenance is due
      */
-    protected function predictMaintenanceDate(Asset $asset): ?\Carbon\Carbon
+    protected function predictMaintenanceDate(Asset $asset): ?Carbon
     {
         $lastMaintenance = $asset->last_maintenance_date;
         $interval = $asset->maintenance_interval_days ?? 90;
@@ -185,7 +187,7 @@ class PredictiveMaintenanceService
                 'action' => 'Immediate inspection required',
                 'priority' => 'urgent',
                 'estimated_cost' => $asset->replacement_cost ?? 0,
-                'timeline' => 'Within 24 hours'
+                'timeline' => 'Within 24 hours',
             ];
         }
 
@@ -194,7 +196,7 @@ class PredictiveMaintenanceService
                 'action' => 'Schedule preventive maintenance',
                 'priority' => 'high',
                 'estimated_cost' => ($asset->replacement_cost ?? 0) * 0.1,
-                'timeline' => 'Within 1 week'
+                'timeline' => 'Within 1 week',
             ];
         }
 
@@ -202,14 +204,14 @@ class PredictiveMaintenanceService
             'action' => 'Check lubrication and wear parts',
             'priority' => 'medium',
             'estimated_cost' => 500000,
-            'timeline' => 'Within 2 weeks'
+            'timeline' => 'Within 2 weeks',
         ];
 
         $recommendations[] = [
             'action' => 'Update maintenance log',
             'priority' => 'low',
             'estimated_cost' => 0,
-            'timeline' => 'Within 1 month'
+            'timeline' => 'Within 1 month',
         ];
 
         return $recommendations;
@@ -232,11 +234,11 @@ class PredictiveMaintenanceService
     /**
      * Schedule maintenance from prediction
      */
-    public function scheduleMaintenance(int $predictionId, \Carbon\Carbon $scheduledDate, int $userId): bool
+    public function scheduleMaintenance(int $predictionId, Carbon $scheduledDate, int $userId): bool
     {
         $prediction = PredictiveMaintenance::find($predictionId);
 
-        if (!$prediction) {
+        if (! $prediction) {
             return false;
         }
 
@@ -256,7 +258,7 @@ class PredictiveMaintenanceService
     {
         $prediction = PredictiveMaintenance::find($predictionId);
 
-        if (!$prediction) {
+        if (! $prediction) {
             return false;
         }
 
@@ -279,7 +281,7 @@ class PredictiveMaintenanceService
     /**
      * Get pending predictions
      */
-    public function getPendingPredictions(int $tenantId, string $severity = null): array
+    public function getPendingPredictions(int $tenantId, ?string $severity = null): array
     {
         $query = PredictiveMaintenance::where('tenant_id', $tenantId)
             ->where('status', 'pending');
@@ -340,7 +342,7 @@ class PredictiveMaintenanceService
     {
         $prediction = PredictiveMaintenance::find($predictionId);
 
-        if (!$prediction) {
+        if (! $prediction) {
             return false;
         }
 

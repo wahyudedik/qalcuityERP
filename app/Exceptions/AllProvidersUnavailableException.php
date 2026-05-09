@@ -11,7 +11,7 @@ namespace App\Exceptions;
 class AllProvidersUnavailableException extends \RuntimeException
 {
     /**
-     * @param array $unavailableProviders List of provider names that are currently unavailable
+     * @param  array  $unavailableProviders  List of provider names that are currently unavailable
      */
     public function __construct(array $unavailableProviders = [])
     {

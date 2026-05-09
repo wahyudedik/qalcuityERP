@@ -15,7 +15,9 @@ class RetryWebhookDeliveriesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 120;
+
     public $tries = 2;
+
     public $backoff = 300; // 5 minutes
 
     public function __construct()

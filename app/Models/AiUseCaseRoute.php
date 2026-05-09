@@ -35,7 +35,7 @@ class AiUseCaseRoute extends Model
 
     protected $casts = [
         'fallback_chain' => 'array',
-        'is_active'      => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     // -------------------------------------------------------------------------

@@ -17,7 +17,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('ai_use_case_routes')) {
+        if (! Schema::hasTable('ai_use_case_routes')) {
             Schema::create('ai_use_case_routes', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('tenant_id')->nullable(); // NULL = global rule
@@ -29,17 +29,17 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('description')->nullable();
                 $table->timestamps();
-    
+
                 // Unique key: kombinasi use_case + tenant_id.
                 // MySQL treats NULL as distinct in unique indexes, sehingga:
                 // - (use_case, NULL) = satu global rule per use case
                 // - (use_case, tenant_id) = satu override per tenant per use case
                 $table->unique(['use_case', 'tenant_id']);
-    
+
                 // Index untuk query performa
                 $table->index('tenant_id');
                 $table->index('use_case');
-    
+
                 // Foreign key ke tenants dengan CASCADE delete
                 $table->foreign('tenant_id')
                     ->references('id')

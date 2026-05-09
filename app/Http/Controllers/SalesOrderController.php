@@ -12,8 +12,12 @@ use App\Models\SalesOrder;
 use App\Models\StockMovement;
 use App\Models\TaxRate;
 use App\Models\Warehouse;
+use App\Services\CurrencyService;
 use App\Services\GlPostingService;
+use App\Services\PeriodLockService;
+use App\Services\TaxCalculationService;
 use App\Services\TransactionStateMachine;
+use App\Traits\DispatchesWebhooks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +26,7 @@ use Illuminate\Validation\Rule;
 
 class SalesOrderController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     protected TransactionStateMachine $stateMachine;
 
@@ -46,8 +50,8 @@ class SalesOrderController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%$s%")));
         }
         if ($request->filled('date_from')) {
             $query->whereDate('date', '>=', $request->date_from);
@@ -79,7 +83,7 @@ class SalesOrderController extends Controller
         $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
         $taxRates = TaxRate::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
-        $currencies = (new \App\Services\CurrencyService())->activeCurrencies($tid);
+        $currencies = (new CurrencyService)->activeCurrencies($tid);
 
         return view('sales.create', compact('customers', 'products', 'warehouses', 'taxRates', 'currencies'));
     }
@@ -111,16 +115,17 @@ class SalesOrderController extends Controller
         $tid = $this->tid();
 
         // Cek period lock
-        app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Sales Order');
+        app(PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Sales Order');
 
         // Cek credit limit customer
         $customer = Customer::find($data['customer_id']);
         if ($customer && $data['payment_type'] === 'credit') {
-            $subtotalEstimate = collect($data['items'])->sum(fn($i) => ($i['quantity'] * $i['price']) - ($i['discount'] ?? 0));
+            $subtotalEstimate = collect($data['items'])->sum(fn ($i) => ($i['quantity'] * $i['price']) - ($i['discount'] ?? 0));
             if ($customer->wouldExceedCreditLimit($subtotalEstimate)) {
                 $available = number_format($customer->availableCredit(), 0, ',', '.');
+
                 return back()->withErrors([
-                    'customer_id' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}."
+                    'customer_id' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}.",
                 ])->withInput();
             }
         }
@@ -134,14 +139,14 @@ class SalesOrderController extends Controller
             $product = Product::find($item['product_id']);
             if ($stock < $item['quantity']) {
                 return back()->withErrors([
-                    'items' => "Stok {$product->name} tidak cukup. Tersedia: {$stock} {$product->unit}."
+                    'items' => "Stok {$product->name} tidak cukup. Tersedia: {$stock} {$product->unit}.",
                 ])->withInput();
             }
         }
 
         $salesOrder = null;
 
-        DB::transaction(function () use ($data, $tid, $request, &$salesOrder) {
+        DB::transaction(function () use ($data, $tid, &$salesOrder) {
             $subtotal = 0;
             $itemsData = [];
 
@@ -161,14 +166,14 @@ class SalesOrderController extends Controller
             $discount = $data['discount'] ?? 0;
 
             // BUG-FIN-004 FIX: Use comprehensive tax calculation service
-            $taxService = new \App\Services\TaxCalculationService();
+            $taxService = new TaxCalculationService;
 
             // Support multiple tax rates (e.g., PPN + PPh 23)
             $taxRateIds = [];
-            if (!empty($data['tax_rate_id'])) {
+            if (! empty($data['tax_rate_id'])) {
                 // Single tax rate (backward compatibility)
                 $taxRateIds = [(int) $data['tax_rate_id']];
-            } elseif (!empty($data['tax_rate_ids'])) {
+            } elseif (! empty($data['tax_rate_ids'])) {
                 // Multiple tax rates (new feature)
                 $taxRateIds = array_map('intval', (array) $data['tax_rate_ids']);
             }
@@ -186,13 +191,13 @@ class SalesOrderController extends Controller
 
             // Multi-currency: resolve rate to IDR
             $currCode = $data['currency_code'] ?? 'IDR';
-            $currRate = (new \App\Services\CurrencyService())->getRate($currCode);
+            $currRate = (new CurrencyService)->getRate($currCode);
 
             $salesOrder = SalesOrder::create([
                 'tenant_id' => $tid,
                 'customer_id' => $data['customer_id'],
                 'user_id' => Auth::id(),
-                'number' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+                'number' => 'SO-'.date('Ymd').'-'.strtoupper(Str::random(4)),
                 'status' => 'confirmed',
                 'date' => $data['date'],
                 'delivery_date' => $data['delivery_date'] ?? null,
@@ -238,7 +243,7 @@ class SalesOrderController extends Controller
                 ]);
             }
 
-            ActivityLog::record('sales_order_created', "SO dibuat: {$salesOrder->number} ({$currCode} " . number_format($total, 0, ',', '.') . ")", $salesOrder);
+            ActivityLog::record('sales_order_created', "SO dibuat: {$salesOrder->number} ({$currCode} ".number_format($total, 0, ',', '.').')', $salesOrder);
 
             // GL Auto-Posting — always in IDR (convert if foreign currency)
             $glSubtotal = ($subtotal - $discount) * $currRate;
@@ -261,7 +266,7 @@ class SalesOrderController extends Controller
             $GLOBALS['_gl_result'] = $glResult;
         });
 
-        if (!$salesOrder) {
+        if (! $salesOrder) {
             return redirect()->route('sales.index')->with('error', 'Gagal membuat Sales Order.');
         }
 
@@ -271,6 +276,7 @@ class SalesOrderController extends Controller
         if (isset($GLOBALS['_gl_result']) && $GLOBALS['_gl_result']->isFailed()) {
             $warning = $GLOBALS['_gl_result']->warningMessage();
             unset($GLOBALS['_gl_result']);
+
             return redirect()->route('sales.index')
                 ->with('success', $successMsg)
                 ->with('warning', $warning);
@@ -284,6 +290,7 @@ class SalesOrderController extends Controller
     {
         abort_if($salesOrder->tenant_id !== $this->tid(), 403);
         $salesOrder->load(['customer', 'items.product', 'user', 'invoices', 'quotation']);
+
         return view('sales.show', compact('salesOrder'));
     }
 
@@ -314,7 +321,7 @@ class SalesOrderController extends Controller
                 'user_id' => Auth::id(),
                 'type' => 'so_completed',
                 'title' => '✅ Sales Order Selesai',
-                'body' => "SO {$salesOrder->number} telah selesai. Total: Rp " . number_format((float) $salesOrder->total, 0, ',', '.'),
+                'body' => "SO {$salesOrder->number} telah selesai. Total: Rp ".number_format((float) $salesOrder->total, 0, ',', '.'),
                 'data' => ['so_id' => $salesOrder->id],
             ]);
         }
@@ -324,11 +331,11 @@ class SalesOrderController extends Controller
 
     /**
      * BUG-SALES-001 FIX: Validate Sales Order status transition
-     * 
+     *
      * Valid flow:
      * pending → confirmed → processing → shipped → completed
      * Any status → cancelled (with restrictions)
-     * 
+     *
      * Invalid transitions:
      * - cancelled → anything (terminal state)
      * - completed → anything (terminal state)
@@ -350,7 +357,7 @@ class SalesOrderController extends Controller
         $currentStatus = $order->status;
 
         // Check if current status is known
-        if (!isset($validTransitions[$currentStatus])) {
+        if (! isset($validTransitions[$currentStatus])) {
             throw new \RuntimeException("Status saat ini tidak valid: {$currentStatus}");
         }
 
@@ -363,10 +370,10 @@ class SalesOrderController extends Controller
             );
         }
 
-        if (!in_array($newStatus, $allowedTransitions)) {
+        if (! in_array($newStatus, $allowedTransitions)) {
             $allowedList = implode(', ', $allowedTransitions);
             throw new \RuntimeException(
-                "Transisi status dari '{$currentStatus}' ke '{$newStatus}' tidak diizinkan. " .
+                "Transisi status dari '{$currentStatus}' ke '{$newStatus}' tidak diizinkan. ".
                 "Transisi yang valid: {$allowedList}"
             );
         }
@@ -376,14 +383,14 @@ class SalesOrderController extends Controller
             // Check if already has invoice
             if ($order->invoices()->where('status', '!=', 'cancelled')->exists()) {
                 throw new \RuntimeException(
-                    "Sales Order tidak bisa dibatalkan karena sudah memiliki invoice aktif."
+                    'Sales Order tidak bisa dibatalkan karena sudah memiliki invoice aktif.'
                 );
             }
 
             // Check if already delivered/shipped
             if (in_array($order->status, ['shipped', 'delivered', 'completed'])) {
                 throw new \RuntimeException(
-                    "Sales Order yang sudah dikirim/selesai tidak bisa dibatalkan."
+                    'Sales Order yang sudah dikirim/selesai tidak bisa dibatalkan.'
                 );
             }
         }
@@ -397,7 +404,7 @@ class SalesOrderController extends Controller
             return back()->with('error', 'Invoice untuk SO ini sudah ada.');
         }
 
-        $number = 'INV-' . date('Ymd') . '-' . str_pad(
+        $number = 'INV-'.date('Ymd').'-'.str_pad(
             Invoice::where('tenant_id', $this->tid())->whereDate('created_at', today())->count() + 1,
             3,
             '0',

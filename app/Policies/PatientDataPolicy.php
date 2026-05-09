@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
 class PatientDataPolicy
@@ -73,9 +73,9 @@ class PatientDataPolicy
 
         // Only specific roles can view sensitive data
         $allowedRoles = ['admin', 'doctor', 'billing_staff'];
-        $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
+        $hasRole = collect($allowedRoles)->some(fn ($role) => $user->hasRole($role));
 
-        if (!$hasRole && !$user->isSuperAdmin()) {
+        if (! $hasRole && ! $user->isSuperAdmin()) {
             return Response::deny('You do not have permission to view sensitive patient data.');
         }
 
@@ -92,9 +92,9 @@ class PatientDataPolicy
         }
 
         $allowedRoles = ['admin', 'doctor', 'receptionist'];
-        $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
+        $hasRole = collect($allowedRoles)->some(fn ($role) => $user->hasRole($role));
 
-        if (!$hasRole) {
+        if (! $hasRole) {
             return Response::deny('You do not have permission to create patients.');
         }
 
@@ -119,9 +119,9 @@ class PatientDataPolicy
 
         // Only admin, doctors, and receptionists can update
         $allowedRoles = ['admin', 'doctor', 'receptionist'];
-        $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
+        $hasRole = collect($allowedRoles)->some(fn ($role) => $user->hasRole($role));
 
-        if (!$hasRole && !$user->isSuperAdmin()) {
+        if (! $hasRole && ! $user->isSuperAdmin()) {
             return Response::deny('You do not have permission to update patient data.');
         }
 
@@ -158,9 +158,9 @@ class PatientDataPolicy
 
         // Only admin and doctors can export
         if (
-            !$user->hasRole('admin') &&
-            !$user->hasRole('doctor') &&
-            !$user->isSuperAdmin()
+            ! $user->hasRole('admin') &&
+            ! $user->hasRole('doctor') &&
+            ! $user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to export patient data.');
         }
@@ -181,9 +181,9 @@ class PatientDataPolicy
 
         // Only billing staff, admin, and doctors can view financial data
         $allowedRoles = ['admin', 'doctor', 'billing_staff'];
-        $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
+        $hasRole = collect($allowedRoles)->some(fn ($role) => $user->hasRole($role));
 
-        if (!$hasRole && !$user->isSuperAdmin()) {
+        if (! $hasRole && ! $user->isSuperAdmin()) {
             return Response::deny('You do not have permission to view patient financial data.');
         }
 
@@ -211,9 +211,9 @@ class PatientDataPolicy
     {
         // Only doctors and admins can share patient data
         if (
-            !$user->hasRole('doctor') &&
-            !$user->hasRole('admin') &&
-            !$user->isSuperAdmin()
+            ! $user->hasRole('doctor') &&
+            ! $user->hasRole('admin') &&
+            ! $user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to share patient data.');
         }
@@ -229,9 +229,9 @@ class PatientDataPolicy
     {
         // Only superadmin and researchers can anonymize
         if (
-            !$user->isSuperAdmin() &&
-            !$user->hasRole('admin') &&
-            !$user->hasRole('researcher')
+            ! $user->isSuperAdmin() &&
+            ! $user->hasRole('admin') &&
+            ! $user->hasRole('researcher')
         ) {
             return Response::deny('You do not have permission to anonymize patient data.');
         }
@@ -264,8 +264,8 @@ class PatientDataPolicy
     {
         // Only admin and superadmin can view audit trails
         if (
-            !$user->hasRole('admin') &&
-            !$user->isSuperAdmin()
+            ! $user->hasRole('admin') &&
+            ! $user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to view audit trails.');
         }

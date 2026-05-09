@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 class TrainingController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     // ── Main page ─────────────────────────────────────────────────
 
@@ -46,21 +49,21 @@ class TrainingController extends Controller
                 ->where('status', 'active');
         } elseif ($request->cert_filter === 'expired') {
             $certQuery->where('status', 'expired')
-                ->orWhere(fn($q) => $q->whereNotNull('expiry_date')->where('expiry_date', '<', today()));
+                ->orWhere(fn ($q) => $q->whereNotNull('expiry_date')->where('expiry_date', '<', today()));
         }
 
         $certifications = $certQuery->paginate(20, ['*'], 'cp')->withQueryString();
 
         // Summary stats
         $summary = [
-            'total_programs'    => TrainingProgram::where('tenant_id', $tid)->where('is_active', true)->count(),
-            'sessions_this_year'=> TrainingSession::where('tenant_id', $tid)->whereYear('start_date', now()->year)->count(),
-            'certs_expiring'    => EmployeeCertification::where('tenant_id', $tid)
+            'total_programs' => TrainingProgram::where('tenant_id', $tid)->where('is_active', true)->count(),
+            'sessions_this_year' => TrainingSession::where('tenant_id', $tid)->whereYear('start_date', now()->year)->count(),
+            'certs_expiring' => EmployeeCertification::where('tenant_id', $tid)
                 ->where('status', 'active')->whereNotNull('expiry_date')
                 ->where('expiry_date', '<=', now()->addDays(90))->count(),
-            'certs_expired'     => EmployeeCertification::where('tenant_id', $tid)
-                ->where(fn($q) => $q->where('status', 'expired')
-                    ->orWhere(fn($q2) => $q2->whereNotNull('expiry_date')->where('expiry_date', '<', today()))
+            'certs_expired' => EmployeeCertification::where('tenant_id', $tid)
+                ->where(fn ($q) => $q->where('status', 'expired')
+                    ->orWhere(fn ($q2) => $q2->whereNotNull('expiry_date')->where('expiry_date', '<', today()))
                 )->count(),
         ];
 
@@ -78,15 +81,16 @@ class TrainingController extends Controller
     public function storeProgram(Request $request)
     {
         $data = $request->validate([
-            'name'           => 'required|string|max:200',
-            'category'       => 'nullable|string|max:100',
-            'description'    => 'nullable|string|max:1000',
-            'provider'       => 'nullable|string|max:200',
+            'name' => 'required|string|max:200',
+            'category' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:1000',
+            'provider' => 'nullable|string|max:200',
             'duration_hours' => 'required|integer|min:1|max:9999',
-            'cost'           => 'required|numeric|min:0',
+            'cost' => 'required|numeric|min:0',
         ]);
 
         TrainingProgram::create(array_merge($data, ['tenant_id' => $this->tid()]));
+
         return back()->with('success', "Program \"{$data['name']}\" berhasil ditambahkan.");
     }
 
@@ -94,15 +98,16 @@ class TrainingController extends Controller
     {
         abort_unless($program->tenant_id === $this->tid(), 403);
         $data = $request->validate([
-            'name'           => 'required|string|max:200',
-            'category'       => 'nullable|string|max:100',
-            'description'    => 'nullable|string|max:1000',
-            'provider'       => 'nullable|string|max:200',
+            'name' => 'required|string|max:200',
+            'category' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:1000',
+            'provider' => 'nullable|string|max:200',
             'duration_hours' => 'required|integer|min:1|max:9999',
-            'cost'           => 'required|numeric|min:0',
-            'is_active'      => 'boolean',
+            'cost' => 'required|numeric|min:0',
+            'is_active' => 'boolean',
         ]);
         $program->update($data);
+
         return back()->with('success', 'Program pelatihan diperbarui.');
     }
 
@@ -110,6 +115,7 @@ class TrainingController extends Controller
     {
         abort_unless($program->tenant_id === $this->tid(), 403);
         $program->update(['is_active' => false]);
+
         return back()->with('success', 'Program dinonaktifkan.');
     }
 
@@ -119,15 +125,16 @@ class TrainingController extends Controller
     {
         $data = $request->validate([
             'training_program_id' => 'required|exists:training_programs,id',
-            'start_date'          => 'required|date',
-            'end_date'            => 'required|date|after_or_equal:start_date',
-            'location'            => 'nullable|string|max:200',
-            'trainer'             => 'nullable|string|max:200',
-            'max_participants'    => 'required|integer|min:0',
-            'notes'               => 'nullable|string|max:500',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'nullable|string|max:200',
+            'trainer' => 'nullable|string|max:200',
+            'max_participants' => 'required|integer|min:0',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $session = TrainingSession::create(array_merge($data, ['tenant_id' => $this->tid()]));
+
         return back()->with('success', 'Sesi pelatihan berhasil dijadwalkan.');
     }
 
@@ -136,6 +143,7 @@ class TrainingController extends Controller
         abort_unless($session->tenant_id === $this->tid(), 403);
         $data = $request->validate(['status' => 'required|in:scheduled,ongoing,completed,cancelled']);
         $session->update($data);
+
         return back()->with('success', 'Status sesi diperbarui.');
     }
 
@@ -143,6 +151,7 @@ class TrainingController extends Controller
     {
         abort_unless($session->tenant_id === $this->tid(), 403);
         $session->delete();
+
         return back()->with('success', 'Sesi pelatihan dihapus.');
     }
 
@@ -173,7 +182,7 @@ class TrainingController extends Controller
 
         TrainingParticipant::firstOrCreate([
             'training_session_id' => $session->id,
-            'employee_id'         => $data['employee_id'],
+            'employee_id' => $data['employee_id'],
         ], ['tenant_id' => $this->tid(), 'status' => 'registered']);
 
         return back()->with('success', 'Peserta berhasil didaftarkan.');
@@ -184,10 +193,11 @@ class TrainingController extends Controller
         abort_unless($participant->tenant_id === $this->tid(), 403);
         $data = $request->validate([
             'status' => 'required|in:registered,attended,passed,failed,absent',
-            'score'  => 'nullable|integer|min:0|max:100',
-            'notes'  => 'nullable|string|max:255',
+            'score' => 'nullable|integer|min:0|max:100',
+            'notes' => 'nullable|string|max:255',
         ]);
         $participant->update($data);
+
         return back()->with('success', 'Data peserta diperbarui.');
     }
 
@@ -195,6 +205,7 @@ class TrainingController extends Controller
     {
         abort_unless($participant->tenant_id === $this->tid(), 403);
         $participant->delete();
+
         return back()->with('success', 'Peserta dihapus dari sesi.');
     }
 
@@ -203,14 +214,14 @@ class TrainingController extends Controller
     public function storeCertification(Request $request)
     {
         $data = $request->validate([
-            'employee_id'        => 'required|exists:employees,id',
-            'name'               => 'required|string|max:200',
-            'issuer'             => 'nullable|string|max:200',
+            'employee_id' => 'required|exists:employees,id',
+            'name' => 'required|string|max:200',
+            'issuer' => 'nullable|string|max:200',
             'certificate_number' => 'nullable|string|max:100',
-            'issued_date'        => 'required|date',
-            'expiry_date'        => 'nullable|date|after:issued_date',
-            'notes'              => 'nullable|string|max:500',
-            'file'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'issued_date' => 'required|date',
+            'expiry_date' => 'nullable|date|after:issued_date',
+            'notes' => 'nullable|string|max:500',
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $tid = $this->tid();
@@ -227,7 +238,7 @@ class TrainingController extends Controller
         EmployeeCertification::create(array_merge($data, [
             'tenant_id' => $tid,
             'file_path' => $filePath,
-            'status'    => $status,
+            'status' => $status,
         ]));
 
         return back()->with('success', "Sertifikat \"{$data['name']}\" berhasil ditambahkan.");
@@ -240,6 +251,7 @@ class TrainingController extends Controller
             Storage::disk('public')->delete($certification->file_path);
         }
         $certification->delete();
+
         return back()->with('success', 'Sertifikat dihapus.');
     }
 

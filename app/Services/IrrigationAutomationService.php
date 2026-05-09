@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\IrrigationSchedule;
 use App\Models\IrrigationLog;
-use App\Models\CropCycle;
+use App\Models\IrrigationSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 

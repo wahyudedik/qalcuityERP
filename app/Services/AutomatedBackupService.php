@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Models\AutomatedBackup;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AutomatedBackupService
 {
@@ -45,12 +46,12 @@ class AutomatedBackupService
                     $backupData[$table] = $data;
                     $totalRecords += count($data);
                 } catch (\Throwable $e) {
-                    Log::warning("Failed to backup table {$table}: " . $e->getMessage());
+                    Log::warning("Failed to backup table {$table}: ".$e->getMessage());
                 }
             }
 
             // Save backup file
-            $fileName = "backups/tenant_{$tenantId}_{$type}_" . now()->format('Y-m-d_H-i-s') . '.json';
+            $fileName = "backups/tenant_{$tenantId}_{$type}_".now()->format('Y-m-d_H-i-s').'.json';
             Storage::put($fileName, json_encode($backupData, JSON_PRETTY_PRINT));
 
             $fileSize = Storage::size($fileName) / 1024 / 1024; // MB
@@ -74,7 +75,7 @@ class AutomatedBackupService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Backup creation failed: ' . $e->getMessage());
+            Log::error('Backup creation failed: '.$e->getMessage());
 
             if (isset($backup)) {
                 $backup->update([
@@ -102,7 +103,7 @@ class AutomatedBackupService
             ->where('id', $backupId)
             ->first();
 
-        if (!$backup) {
+        if (! $backup) {
             return ['success' => false, 'error' => 'Backup not found'];
         }
 
@@ -114,7 +115,7 @@ class AutomatedBackupService
             // Read backup file
             $backupData = json_decode(Storage::get($backup->file_path), true);
 
-            if (!$backupData) {
+            if (! $backupData) {
                 return ['success' => false, 'error' => 'Invalid backup file'];
             }
 
@@ -136,7 +137,7 @@ class AutomatedBackupService
 
                     $restoredTables++;
                 } catch (\Throwable $e) {
-                    Log::error("Failed to restore table {$table}: " . $e->getMessage());
+                    Log::error("Failed to restore table {$table}: ".$e->getMessage());
                 }
             }
 
@@ -147,7 +148,7 @@ class AutomatedBackupService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Restore failed: ' . $e->getMessage());
+            Log::error('Restore failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -211,7 +212,7 @@ class AutomatedBackupService
     /**
      * Get expiry date based on backup type
      */
-    protected function getExpiryDate(string $type): \Carbon\Carbon
+    protected function getExpiryDate(string $type): Carbon
     {
         return match ($type) {
             'daily' => now()->addDays(7),

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Timesheet;
 use App\Models\Project;
+use App\Models\Timesheet;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class TimesheetController extends Controller
@@ -21,7 +22,7 @@ class TimesheetController extends Controller
         }
         if ($request->filled('user_id') && auth()->user()->hasRole(['admin', 'manager'])) {
             $query->where('user_id', $request->user_id);
-        } elseif (!auth()->user()->hasRole(['admin', 'manager'])) {
+        } elseif (! auth()->user()->hasRole(['admin', 'manager'])) {
             $query->where('user_id', auth()->id());
         }
         if ($request->filled('month')) {
@@ -36,12 +37,12 @@ class TimesheetController extends Controller
             ->get();
 
         $users = auth()->user()->hasRole(['admin', 'manager'])
-            ? \App\Models\User::where('tenant_id', $tenantId)->where('is_active', true)->orderBy('name')->get()
+            ? User::where('tenant_id', $tenantId)->where('is_active', true)->orderBy('name')->get()
             : collect();
 
         $totalHours = $query->sum('hours');
-        $totalCost  = Timesheet::where('tenant_id', $tenantId)
-            ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id))
+        $totalCost = Timesheet::where('tenant_id', $tenantId)
+            ->when($request->project_id, fn ($q) => $q->where('project_id', $request->project_id))
             ->selectRaw('SUM(hours * hourly_rate) as total')
             ->value('total') ?? 0;
 
@@ -51,9 +52,9 @@ class TimesheetController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'project_id'  => 'required|exists:projects,id',
-            'date'        => 'required|date|before_or_equal:today',
-            'hours'       => 'required|numeric|min:0.25|max:24',
+            'project_id' => 'required|exists:projects,id',
+            'date' => 'required|date|before_or_equal:today',
+            'hours' => 'required|numeric|min:0.25|max:24',
             'description' => 'required|string|max:500',
             'hourly_rate' => 'nullable|numeric|min:0',
         ]);
@@ -64,11 +65,11 @@ class TimesheetController extends Controller
         $project = Project::where('tenant_id', $tenantId)->findOrFail($data['project_id']);
 
         Timesheet::create([
-            'tenant_id'   => $tenantId,
-            'user_id'     => auth()->id(),
-            'project_id'  => $project->id,
-            'date'        => $data['date'],
-            'hours'       => $data['hours'],
+            'tenant_id' => $tenantId,
+            'user_id' => auth()->id(),
+            'project_id' => $project->id,
+            'date' => $data['date'],
+            'hours' => $data['hours'],
             'description' => $data['description'],
             'hourly_rate' => $data['hourly_rate'] ?? 0,
         ]);
@@ -82,7 +83,7 @@ class TimesheetController extends Controller
         abort_if($timesheet->tenant_id !== $tenantId, 403);
 
         // Staff hanya bisa hapus milik sendiri
-        if (!auth()->user()->hasRole(['admin', 'manager'])) {
+        if (! auth()->user()->hasRole(['admin', 'manager'])) {
             abort_if($timesheet->user_id !== auth()->id(), 403);
         }
 

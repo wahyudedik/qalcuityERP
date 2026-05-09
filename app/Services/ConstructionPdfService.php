@@ -3,7 +3,11 @@
 namespace App\Services;
 
 use App\Models\DailySiteReport;
+use App\Models\MaterialDelivery;
+use App\Models\Project;
+use App\Models\SubcontractorContract;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 
 /**
  * PDF Export Service untuk Construction Reports
@@ -13,7 +17,7 @@ class ConstructionPdfService
     /**
      * Generate PDF for daily site report
      */
-    public function generateDailyReportPdf(int $reportId, int $tenantId): \Illuminate\Http\Response
+    public function generateDailyReportPdf(int $reportId, int $tenantId): Response
     {
         $report = DailySiteReport::where('id', $reportId)
             ->where('tenant_id', $tenantId)
@@ -30,7 +34,7 @@ class ConstructionPdfService
             ]);
 
         return response()->streamDownload(
-            fn() => print ($pdf->output()),
+            fn () => print ($pdf->output()),
             "daily-report-{$report->report_date->format('Y-m-d')}.pdf"
         );
     }
@@ -38,9 +42,9 @@ class ConstructionPdfService
     /**
      * Generate PDF for subcontractor contract
      */
-    public function generateContractPdf(int $contractId, int $tenantId): \Illuminate\Http\Response
+    public function generateContractPdf(int $contractId, int $tenantId): Response
     {
-        $contract = \App\Models\SubcontractorContract::where('id', $contractId)
+        $contract = SubcontractorContract::where('id', $contractId)
             ->where('tenant_id', $tenantId)
             ->with(['subcontractor', 'project', 'payments'])
             ->firstOrFail();
@@ -53,7 +57,7 @@ class ConstructionPdfService
             ]);
 
         return response()->streamDownload(
-            fn() => print ($pdf->output()),
+            fn () => print ($pdf->output()),
             "contract-{$contract->contract_number}.pdf"
         );
     }
@@ -61,9 +65,9 @@ class ConstructionPdfService
     /**
      * Generate PDF summary report for project
      */
-    public function generateProjectSummaryPdf(int $projectId, int $tenantId): \Illuminate\Http\Response
+    public function generateProjectSummaryPdf(int $projectId, int $tenantId): Response
     {
-        $project = \App\Models\Project::where('id', $projectId)
+        $project = Project::where('id', $projectId)
             ->where('tenant_id', $tenantId)
             ->with(['tasks', 'rabItems'])
             ->firstOrFail();
@@ -74,7 +78,7 @@ class ConstructionPdfService
             ->orderByDesc('report_date')
             ->get();
 
-        $deliveries = \App\Models\MaterialDelivery::where('project_id', $projectId)
+        $deliveries = MaterialDelivery::where('project_id', $projectId)
             ->where('tenant_id', $tenantId)
             ->get();
 
@@ -86,7 +90,7 @@ class ConstructionPdfService
             ]);
 
         return response()->streamDownload(
-            fn() => print ($pdf->output()),
+            fn () => print ($pdf->output()),
             "project-summary-{$project->number}.pdf"
         );
     }

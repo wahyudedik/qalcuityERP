@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TelemedicineSetting extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -89,7 +89,7 @@ use HasFactory, BelongsToTenant;
      */
     public function isConfigured(): bool
     {
-        return !empty($this->jitsi_server_url);
+        return ! empty($this->jitsi_server_url);
     }
 
     /**

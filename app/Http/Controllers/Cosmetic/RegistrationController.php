@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProductRegistration;
-use App\Models\RegistrationDocument;
-use App\Models\IngredientRestriction;
-use App\Models\SafetyDataSheet;
 use App\Models\CosmeticFormula;
+use App\Models\IngredientRestriction;
+use App\Models\ProductRegistration;
+use App\Models\SafetyDataSheet;
 use Illuminate\Http\Request;
 
 class RegistrationController extends Controller
@@ -32,8 +31,8 @@ class RegistrationController extends Controller
         // Registrations with filters
         $registrations = ProductRegistration::where('tenant_id', $tenantId)
             ->with(['formula', 'submitter'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->category, fn($q) => $q->where('product_category', $request->category))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->category, fn ($q) => $q->where('product_category', $request->category))
             ->latest()
             ->paginate(20);
 
@@ -82,8 +81,8 @@ class RegistrationController extends Controller
         $compliance = $registration->checkIngredientCompliance();
 
         $message = 'Registration created successfully!';
-        if (!$compliance['compliant']) {
-            $message .= ' Warning: ' . count($compliance['issues']) . ' compliance issue(s) found.';
+        if (! $compliance['compliant']) {
+            $message .= ' Warning: '.count($compliance['issues']).' compliance issue(s) found.';
         }
 
         return redirect()->route('cosmetic.registrations.index')
@@ -179,7 +178,7 @@ class RegistrationController extends Controller
 
         $sdsList = SafetyDataSheet::where('tenant_id', $tenantId)
             ->with(['formula', 'registration'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest('issue_date')
             ->paginate(20);
 
@@ -245,6 +244,6 @@ class RegistrationController extends Controller
 
         $newSds = $sds->createNewVersion();
 
-        return redirect()->back()->with('success', 'New SDS version created: ' . $newSds->sds_number);
+        return redirect()->back()->with('success', 'New SDS version created: '.$newSds->sds_number);
     }
 }

@@ -4,22 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * BUG-FIN-004 FIX: Add columns for withholding tax and tax-inclusive pricing
      */
     public function up(): void
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             // BUG-FIN-004: Store withholding tax amount (PPh 23, PPh 21)
-            if (!Schema::hasColumn('sales_orders', 'withholding_tax_amount')) {
+            if (! Schema::hasColumn('sales_orders', 'withholding_tax_amount')) {
                 $table->decimal('withholding_tax_amount', 18, 2)->default(0)->after('tax_amount');
             }
 
             // BUG-FIN-004: Flag for tax-inclusive pricing
-            if (!Schema::hasColumn('sales_orders', 'tax_inclusive')) {
+            if (! Schema::hasColumn('sales_orders', 'tax_inclusive')) {
                 $table->boolean('tax_inclusive')->default(false)->after('withholding_tax_amount');
             }
 

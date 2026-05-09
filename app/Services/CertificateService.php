@@ -6,7 +6,9 @@ use App\Models\CertificateVerifyLog;
 use App\Models\Product;
 use App\Models\ProductCertificate;
 use App\Models\User;
+use Barryvdh\DomPDF\PDF;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class CertificateService
 {
@@ -24,26 +26,26 @@ class CertificateService
         $existing = $product->certificates()->where('status', 'active')->first();
         if ($existing !== null) {
             $existing->update([
-                'status'        => 'revoked',
-                'revoked_at'    => now(),
-                'revoked_by'    => $issuedBy->id,
+                'status' => 'revoked',
+                'revoked_at' => now(),
+                'revoked_by' => $issuedBy->id,
                 'revoke_reason' => 'Superseded by new certificate',
             ]);
         }
 
         $certificateNumber = $this->generateCertificateNumber($product->tenant_id);
-        $issuedAt          = now();
-        $hash              = $this->computeHash($product, $certificateNumber, $issuedAt);
+        $issuedAt = now();
+        $hash = $this->computeHash($product, $certificateNumber, $issuedAt);
 
         $certificate = ProductCertificate::create([
-            'tenant_id'          => $product->tenant_id,
-            'product_id'         => $product->id,
+            'tenant_id' => $product->tenant_id,
+            'product_id' => $product->id,
             'certificate_number' => $certificateNumber,
-            'certificate_hash'   => $hash,
-            'status'             => 'active',
-            'issued_by'          => $issuedBy->id,
-            'issued_at'          => $issuedAt,
-            'expires_at'         => $expiresAt,
+            'certificate_hash' => $hash,
+            'status' => 'active',
+            'issued_by' => $issuedBy->id,
+            'issued_at' => $issuedAt,
+            'expires_at' => $expiresAt,
         ]);
 
         // Refresh product so activeCertificate relation picks up the new cert
@@ -76,7 +78,7 @@ class CertificateService
      * Mencari sertifikat, menangani not found / revoked, menghitung ulang hash,
      * dan mencatat log ke certificate_verify_logs setiap kali dipanggil.
      *
-     * @return array{status: string, certificate: ProductCertificate|null, product: \App\Models\Product|null}
+     * @return array{status: string, certificate: ProductCertificate|null, product: Product|null}
      */
     public function verify(string $certificateNumber, string $ipAddress): array
     {
@@ -87,9 +89,9 @@ class CertificateService
         if ($certificate === null) {
             CertificateVerifyLog::create([
                 'certificate_number' => $certificateNumber,
-                'ip_address'         => $ipAddress,
-                'result'             => 'not_found',
-                'verified_at'        => now(),
+                'ip_address' => $ipAddress,
+                'result' => 'not_found',
+                'verified_at' => now(),
             ]);
 
             return ['status' => 'TIDAK DITEMUKAN', 'certificate' => null, 'product' => null];
@@ -98,28 +100,28 @@ class CertificateService
         if ($certificate->isRevoked()) {
             CertificateVerifyLog::create([
                 'certificate_number' => $certificateNumber,
-                'ip_address'         => $ipAddress,
-                'result'             => 'revoked',
-                'verified_at'        => now(),
+                'ip_address' => $ipAddress,
+                'result' => 'revoked',
+                'verified_at' => now(),
             ]);
 
             return ['status' => 'DICABUT', 'certificate' => $certificate, 'product' => $certificate->product];
         }
 
         $computedHash = $this->computeHash($certificate->product, $certificateNumber, $certificate->issued_at);
-        $isValid      = hash_equals($certificate->certificate_hash, $computedHash);
+        $isValid = hash_equals($certificate->certificate_hash, $computedHash);
 
         CertificateVerifyLog::create([
             'certificate_number' => $certificateNumber,
-            'ip_address'         => $ipAddress,
-            'result'             => $isValid ? 'valid' : 'invalid',
-            'verified_at'        => now(),
+            'ip_address' => $ipAddress,
+            'result' => $isValid ? 'valid' : 'invalid',
+            'verified_at' => now(),
         ]);
 
         return [
-            'status'      => $isValid ? 'VALID' : 'TIDAK VALID',
+            'status' => $isValid ? 'VALID' : 'TIDAK VALID',
             'certificate' => $certificate,
-            'product'     => $certificate->product,
+            'product' => $certificate->product,
         ];
     }
 
@@ -135,9 +137,9 @@ class CertificateService
         }
 
         $certificate->update([
-            'status'        => 'revoked',
-            'revoked_by'    => $revokedBy->id,
-            'revoked_at'    => now(),
+            'status' => 'revoked',
+            'revoked_by' => $revokedBy->id,
+            'revoked_at' => now(),
             'revoke_reason' => $reason,
         ]);
     }
@@ -148,23 +150,23 @@ class CertificateService
      * Memuat relasi product.tenant, embed QR Code sebagai base64 PNG,
      * dan render view certificates.pdf via DomPDF.
      */
-    public function generatePdf(ProductCertificate $certificate): \Barryvdh\DomPDF\PDF
+    public function generatePdf(ProductCertificate $certificate): PDF
     {
         $certificate->loadMissing(['product.tenant']);
 
         $qrBase64 = null;
         if ($certificate->product->qr_code_path) {
-            $qrData = \Illuminate\Support\Facades\Storage::disk('public')->get($certificate->product->qr_code_path);
+            $qrData = Storage::disk('public')->get($certificate->product->qr_code_path);
             if ($qrData) {
-                $qrBase64 = 'data:image/png;base64,' . base64_encode($qrData);
+                $qrBase64 = 'data:image/png;base64,'.base64_encode($qrData);
             }
         }
 
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('certificates.pdf', [
             'certificate' => $certificate,
-            'product'     => $certificate->product,
-            'tenant'      => $certificate->product->tenant,
-            'qrBase64'    => $qrBase64,
+            'product' => $certificate->product,
+            'tenant' => $certificate->product->tenant,
+            'qrBase64' => $qrBase64,
         ]);
     }
 

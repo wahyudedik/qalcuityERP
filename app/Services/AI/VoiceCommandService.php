@@ -18,10 +18,10 @@ class VoiceCommandService
             // Step 1: Speech-to-Text
             $transcribedText = $this->speechToText($audioPath);
 
-            if (!$transcribedText) {
+            if (! $transcribedText) {
                 return [
                     'success' => false,
-                    'error' => 'Failed to transcribe audio'
+                    'error' => 'Failed to transcribe audio',
                 ];
             }
 
@@ -54,11 +54,11 @@ class VoiceCommandService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Voice command processing failed: ' . $e->getMessage());
+            Log::error('Voice command processing failed: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -87,7 +87,8 @@ class VoiceCommandService
             return $this->mockSpeechToText($audioPath);
 
         } catch (\Throwable $e) {
-            Log::error('Speech-to-text failed: ' . $e->getMessage());
+            Log::error('Speech-to-text failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -102,19 +103,20 @@ class VoiceCommandService
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post("https://speech.googleapis.com/v1/speech:recognize?key={$apiKey}", [
-                    'config' => [
-                        'encoding' => 'LINEAR16',
-                        'sampleRateHertz' => 16000,
-                        'languageCode' => 'id-ID', // Indonesian
-                        'enableAutomaticPunctuation' => true,
-                    ],
-                    'audio' => [
-                        'content' => $audioContent,
-                    ],
-                ]);
+            'config' => [
+                'encoding' => 'LINEAR16',
+                'sampleRateHertz' => 16000,
+                'languageCode' => 'id-ID', // Indonesian
+                'enableAutomaticPunctuation' => true,
+            ],
+            'audio' => [
+                'content' => $audioContent,
+            ],
+        ]);
 
         if ($response->successful()) {
             $results = $response->json('results');
+
             return $results[0]['alternatives'][0]['transcript'] ?? null;
         }
 
@@ -129,7 +131,7 @@ class VoiceCommandService
         $response = Http::withToken($apiKey)
             ->asMultipart()
             ->post('https://api.openai.com/v1/audio/transcriptions', [
-                'file' => fopen(storage_path('app/' . $audioPath), 'r'),
+                'file' => fopen(storage_path('app/'.$audioPath), 'r'),
                 'model' => 'whisper-1',
                 'language' => 'id', // Indonesian
             ]);
@@ -147,7 +149,7 @@ class VoiceCommandService
     protected function mockSpeechToText(string $audioPath): string
     {
         // For testing without API keys
-        return "Buat invoice untuk pelanggan John Doe sebesar 500000 rupiah";
+        return 'Buat invoice untuk pelanggan John Doe sebesar 500000 rupiah';
     }
 
     /**
@@ -223,13 +225,13 @@ class VoiceCommandService
                 default:
                     return [
                         'success' => false,
-                        'error' => 'Unknown intent: ' . $intentData['intent']
+                        'error' => 'Unknown intent: '.$intentData['intent'],
                     ];
             }
         } catch (\Throwable $e) {
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -242,7 +244,7 @@ class VoiceCommandService
         // Implementation would create actual invoice
         return [
             'success' => true,
-            'message' => "Invoice created for {$entities['customer_name']} with amount Rp " . number_format($entities['amount'] ?? 0),
+            'message' => "Invoice created for {$entities['customer_name']} with amount Rp ".number_format($entities['amount'] ?? 0),
             'action' => 'invoice_created',
         ];
     }
@@ -267,7 +269,7 @@ class VoiceCommandService
     {
         return [
             'success' => true,
-            'message' => "Product creation initiated",
+            'message' => 'Product creation initiated',
             'action' => 'product_creation_started',
         ];
     }

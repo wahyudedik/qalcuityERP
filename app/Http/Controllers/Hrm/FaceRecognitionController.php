@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Hrm;
 
 use App\Http\Controllers\Controller;
-use App\Services\FaceRecognitionService;
 use App\Models\Employee;
+use App\Services\FaceRecognitionService;
 use Illuminate\Http\Request;
 
 class FaceRecognitionController extends Controller
@@ -38,7 +38,7 @@ class FaceRecognitionController extends Controller
         ]);
 
         $imagePath = $request->file('image')->store('face-recognition', 'public');
-        $fullPath = storage_path('app/public/' . $imagePath);
+        $fullPath = storage_path('app/public/'.$imagePath);
 
         $result = $this->faceService->registerFace($employee->id, $fullPath);
 
@@ -56,7 +56,7 @@ class FaceRecognitionController extends Controller
         ]);
 
         $imagePath = $request->file('image')->store('face-scans', 'public');
-        $fullPath = storage_path('app/public/' . $imagePath);
+        $fullPath = storage_path('app/public/'.$imagePath);
 
         $scanType = $request->input('scan_type', 'check_in');
         $result = $this->faceService->processAttendance($fullPath, $scanType);

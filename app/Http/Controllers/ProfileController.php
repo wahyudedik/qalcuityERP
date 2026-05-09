@@ -23,10 +23,10 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'name'   => ['required', 'string', 'max:255'],
-            'email'  => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone'  => ['nullable', 'string', 'max:20'],
-            'bio'    => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'bio' => ['nullable', 'string', 'max:500'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
@@ -53,7 +53,7 @@ class ProfileController extends Controller
     {
         $data = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
-            'password'         => ['required', 'min:8', 'confirmed'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ]);
 
         $request->user()->update(['password' => Hash::make($data['password'])]);
@@ -68,6 +68,7 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($user->avatar);
             $user->update(['avatar' => null]);
         }
+
         return Redirect::route('profile.edit')->with('status', 'avatar-removed');
     }
 

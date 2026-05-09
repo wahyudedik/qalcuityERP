@@ -9,19 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('sales_orders', 'payment_type')) {
+            if (! Schema::hasColumn('sales_orders', 'payment_type')) {
                 $table->enum('payment_type', ['cash', 'credit'])->default('cash')->after('notes');
             }
-            if (!Schema::hasColumn('sales_orders', 'due_date')) {
+            if (! Schema::hasColumn('sales_orders', 'due_date')) {
                 $table->date('due_date')->nullable()->after('payment_type');
             }
         });
 
         Schema::table('purchase_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('purchase_orders', 'payment_type')) {
+            if (! Schema::hasColumn('purchase_orders', 'payment_type')) {
                 $table->enum('payment_type', ['cash', 'credit'])->default('cash')->after('notes');
             }
-            if (!Schema::hasColumn('purchase_orders', 'due_date')) {
+            if (! Schema::hasColumn('purchase_orders', 'due_date')) {
                 $table->date('due_date')->nullable()->after('payment_type');
             }
         });

@@ -10,17 +10,17 @@ return new class extends Migration
     {
         // Tambah flag has_expiry ke products (opsional per produk)
         Schema::table('products', function (Blueprint $table) {
-            if (!Schema::hasColumn('products', 'has_expiry')) {
+            if (! Schema::hasColumn('products', 'has_expiry')) {
                 $table->boolean('has_expiry')->default(false)->after('is_active');
             }
-            if (!Schema::hasColumn('products', 'expiry_alert_days')) {
+            if (! Schema::hasColumn('products', 'expiry_alert_days')) {
                 $table->integer('expiry_alert_days')->default(2)->after('has_expiry')
                     ->comment('Berapa hari sebelum expired untuk kirim notifikasi');
             }
         });
 
         // Tabel batch/lot untuk tracking expired per batch
-        if (!Schema::hasTable('product_batches')) {
+        if (! Schema::hasTable('product_batches')) {
             Schema::create('product_batches', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -33,7 +33,7 @@ return new class extends Migration
                 $table->enum('status', ['active', 'expired', 'recalled', 'consumed'])->default('active');
                 $table->string('notes', 500)->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'expiry_date', 'status']);
                 $table->index(['product_id', 'warehouse_id']);
             });

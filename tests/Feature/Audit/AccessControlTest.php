@@ -2,17 +2,19 @@
 
 namespace Tests\Feature\Audit;
 
+use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Task 24.6: Verify RBAC and module access control
- * 
+ *
  * Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.8
- * 
+ *
  * This test ensures that:
  * - Role-based access control works correctly
  * - Module access is restricted by subscription plan
@@ -22,8 +24,11 @@ use Tests\TestCase;
 class AccessControlTest extends TestCase
 {
     protected Tenant $tenant;
+
     protected User $adminUser;
+
     protected User $staffUser;
+
     protected User $kasirUser;
 
     protected function setUp(): void
@@ -63,7 +68,7 @@ class AccessControlTest extends TestCase
         $response->assertStatus(200);
 
         // Admin should be able to access settings
-        if (\Illuminate\Support\Facades\Route::has('settings.index')) {
+        if (Route::has('settings.index')) {
             $response = $this->get(route('settings.index'));
             $this->assertContains($response->status(), [200, 302]);
         }
@@ -75,7 +80,7 @@ class AccessControlTest extends TestCase
         $this->actingAs($this->staffUser);
 
         // Staff should not be able to access settings
-        if (\Illuminate\Support\Facades\Route::has('settings.company')) {
+        if (Route::has('settings.company')) {
             $response = $this->get(route('settings.company'));
             // Should redirect or show 403
             $this->assertContains($response->status(), [302, 403]);
@@ -88,13 +93,13 @@ class AccessControlTest extends TestCase
         $this->actingAs($this->kasirUser);
 
         // Kasir should be able to access POS
-        if (\Illuminate\Support\Facades\Route::has('pos.index')) {
+        if (Route::has('pos.index')) {
             $response = $this->get(route('pos.index'));
             $this->assertContains($response->status(), [200, 302]);
         }
 
         // Kasir should NOT be able to access accounting
-        if (\Illuminate\Support\Facades\Route::has('accounting.index')) {
+        if (Route::has('accounting.index')) {
             $response = $this->get(route('accounting.index'));
             $this->assertContains($response->status(), [302, 403]);
         }
@@ -125,7 +130,7 @@ class AccessControlTest extends TestCase
         $customer2 = $this->createCustomer($tenant2->id, ['name' => 'Customer T2']);
 
         // Super admin query should return all customers
-        $customers = \App\Models\Customer::withoutTenantScope()->get();
+        $customers = Customer::withoutTenantScope()->get();
         $this->assertGreaterThanOrEqual(2, $customers->count());
     }
 
@@ -174,14 +179,14 @@ class AccessControlTest extends TestCase
         // Login as tenant 1 user
         $this->actingAs($this->adminUser);
 
-        $customers = \App\Models\Customer::all();
+        $customers = Customer::all();
         $this->assertCount(1, $customers);
         $this->assertEquals($customer1->id, $customers->first()->id);
 
         // Login as tenant 2 user
         $this->actingAs($user2);
 
-        $customers = \App\Models\Customer::all();
+        $customers = Customer::all();
         $this->assertCount(1, $customers);
         $this->assertEquals($customer2->id, $customers->first()->id);
     }
@@ -193,7 +198,7 @@ class AccessControlTest extends TestCase
 
         // Create invoice for tenant 2
         $customer2 = $this->createCustomer($tenant2->id);
-        $invoice2 = \App\Models\Invoice::create([
+        $invoice2 = Invoice::create([
             'tenant_id' => $tenant2->id,
             'customer_id' => $customer2->id,
             'number' => 'INV-T2-001',
@@ -210,7 +215,7 @@ class AccessControlTest extends TestCase
         $this->actingAs($this->adminUser);
 
         // Try to access tenant 2's invoice
-        if (\Illuminate\Support\Facades\Route::has('sales.invoices.show')) {
+        if (Route::has('sales.invoices.show')) {
             $response = $this->get(route('sales.invoices.show', $invoice2->id));
             // Should be 404 or 403 (not found due to tenant scope)
             $this->assertContains($response->status(), [302, 403, 404]);
@@ -290,6 +295,3 @@ class AccessControlTest extends TestCase
         $this->assertEquals('professional', $this->tenant->plan);
     }
 }
-
-
-

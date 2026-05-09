@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CogsEntry;
+use App\Models\Product;
 use App\Models\ProductAvgCost;
 use App\Models\ProductBatch;
 use App\Models\StockMovement;
@@ -34,7 +35,9 @@ class InventoryCostingService
         ?string $batchNumber = null,
     ): void {
         $method = $this->method($movement->tenant_id);
-        if ($method === 'simple') return;
+        if ($method === 'simple') {
+            return;
+        }
 
         $qty = abs($movement->quantity);
 
@@ -61,8 +64,8 @@ class InventoryCostingService
         StockMovement $movement,
         ?string $reference = null,
     ): float {
-        $method   = $this->method($movement->tenant_id);
-        $qty      = abs($movement->quantity);
+        $method = $this->method($movement->tenant_id);
+        $qty = abs($movement->quantity);
         $unitCost = 0.0;
 
         if ($method === 'simple') {
@@ -82,16 +85,16 @@ class InventoryCostingService
         ]);
 
         CogsEntry::create([
-            'tenant_id'         => $movement->tenant_id,
-            'product_id'        => $movement->product_id,
-            'warehouse_id'      => $movement->warehouse_id,
+            'tenant_id' => $movement->tenant_id,
+            'product_id' => $movement->product_id,
+            'warehouse_id' => $movement->warehouse_id,
             'stock_movement_id' => $movement->id,
-            'costing_method'    => $method,
-            'quantity'          => $qty,
-            'unit_cost'         => $unitCost,
-            'total_cost'        => $totalCost,
-            'reference'         => $reference,
-            'date'              => $movement->created_at?->toDateString() ?? today()->toDateString(),
+            'costing_method' => $method,
+            'quantity' => $qty,
+            'unit_cost' => $unitCost,
+            'total_cost' => $totalCost,
+            'reference' => $reference,
+            'date' => $movement->created_at?->toDateString() ?? today()->toDateString(),
         ]);
 
         return $unitCost;
@@ -105,7 +108,7 @@ class InventoryCostingService
         $method = $this->method($tenantId);
 
         if ($method === 'simple') {
-            return (float) \App\Models\Product::find($productId)?->price_buy ?? 0;
+            return (float) Product::find($productId)?->price_buy ?? 0;
         }
 
         if ($method === 'avco') {
@@ -121,7 +124,7 @@ class InventoryCostingService
             ->orderBy('created_at')
             ->first();
 
-        return $oldest ? (float) $oldest->cost_price : (float) \App\Models\Product::find($productId)?->price_buy ?? 0;
+        return $oldest ? (float) $oldest->cost_price : (float) Product::find($productId)?->price_buy ?? 0;
     }
 
     /**
@@ -143,28 +146,28 @@ class InventoryCostingService
         $rows = [];
         foreach ($stocks as $s) {
             $unitCost = match ($method) {
-                'avco'  => $this->getAvgCost($tenantId, $s->product_id, $s->warehouse_id),
-                'fifo'  => $this->getFifoLayerCost($tenantId, $s->product_id, $s->warehouse_id),
+                'avco' => $this->getAvgCost($tenantId, $s->product_id, $s->warehouse_id),
+                'fifo' => $this->getFifoLayerCost($tenantId, $s->product_id, $s->warehouse_id),
                 default => (float) $s->price_buy,
             };
 
             $rows[] = [
-                'product_id'     => $s->product_id,
-                'product_name'   => $s->product_name,
-                'sku'            => $s->sku,
+                'product_id' => $s->product_id,
+                'product_name' => $s->product_name,
+                'sku' => $s->sku,
                 'warehouse_name' => $s->warehouse_name,
-                'quantity'       => (int) $s->quantity,
-                'unit_cost'      => $unitCost,
-                'total_value'    => $unitCost * $s->quantity,
-                'price_buy'      => (float) $s->price_buy,
+                'quantity' => (int) $s->quantity,
+                'unit_cost' => $unitCost,
+                'total_value' => $unitCost * $s->quantity,
+                'price_buy' => (float) $s->price_buy,
                 'costing_method' => $method,
             ];
         }
 
         return [
             'method' => $method,
-            'rows'   => $rows,
-            'total'  => array_sum(array_column($rows, 'total_value')),
+            'rows' => $rows,
+            'total' => array_sum(array_column($rows, 'total_value')),
         ];
     }
 
@@ -180,23 +183,24 @@ class InventoryCostingService
 
         $byProduct = $entries->groupBy('product_id')->map(function ($group) {
             $first = $group->first();
+
             return [
-                'product_id'   => $first->product_id,
+                'product_id' => $first->product_id,
                 'product_name' => $first->product?->name ?? '—',
-                'sku'          => $first->product?->sku ?? '',
-                'qty_sold'     => $group->sum('quantity'),
-                'total_cogs'   => $group->sum('total_cost'),
-                'avg_unit_cost'=> $group->sum('quantity') > 0
+                'sku' => $first->product?->sku ?? '',
+                'qty_sold' => $group->sum('quantity'),
+                'total_cogs' => $group->sum('total_cost'),
+                'avg_unit_cost' => $group->sum('quantity') > 0
                     ? $group->sum('total_cost') / $group->sum('quantity')
                     : 0,
             ];
         })->values()->toArray();
 
         return [
-            'from'       => $from,
-            'to'         => $to,
-            'method'     => $this->method($tenantId),
-            'rows'       => $byProduct,
+            'from' => $from,
+            'to' => $to,
+            'method' => $this->method($tenantId),
+            'rows' => $byProduct,
             'total_cogs' => array_sum(array_column($byProduct, 'total_cogs')),
         ];
     }
@@ -206,18 +210,18 @@ class InventoryCostingService
     private function updateAvgCost(int $tenantId, int $productId, int $warehouseId, float $qty, float $costPrice): void
     {
         $record = ProductAvgCost::firstOrNew([
-            'product_id'  => $productId,
-            'warehouse_id'=> $warehouseId,
+            'product_id' => $productId,
+            'warehouse_id' => $warehouseId,
         ]);
 
-        $newTotalQty   = $record->total_qty + $qty;
+        $newTotalQty = $record->total_qty + $qty;
         $newTotalValue = $record->total_value + ($qty * $costPrice);
-        $newAvg        = $newTotalQty > 0 ? $newTotalValue / $newTotalQty : $costPrice;
+        $newAvg = $newTotalQty > 0 ? $newTotalValue / $newTotalQty : $costPrice;
 
         $record->fill([
-            'tenant_id'   => $tenantId,
-            'avg_cost'    => $newAvg,
-            'total_qty'   => $newTotalQty,
+            'tenant_id' => $tenantId,
+            'avg_cost' => $newAvg,
+            'total_qty' => $newTotalQty,
             'total_value' => $newTotalValue,
         ])->save();
     }
@@ -228,13 +232,15 @@ class InventoryCostingService
             ->where('warehouse_id', $warehouseId)
             ->first();
 
-        if (!$record || $record->total_qty <= 0) return;
+        if (! $record || $record->total_qty <= 0) {
+            return;
+        }
 
-        $newTotalQty   = max(0, $record->total_qty - $qty);
+        $newTotalQty = max(0, $record->total_qty - $qty);
         $newTotalValue = $record->avg_cost * $newTotalQty;
 
         $record->update([
-            'total_qty'   => $newTotalQty,
+            'total_qty' => $newTotalQty,
             'total_value' => $newTotalValue,
         ]);
     }
@@ -245,7 +251,9 @@ class InventoryCostingService
             ->where('warehouse_id', $warehouseId)
             ->first();
 
-        if ($record && $record->avg_cost > 0) return (float) $record->avg_cost;
+        if ($record && $record->avg_cost > 0) {
+            return (float) $record->avg_cost;
+        }
 
         // Fallback: compute from existing movements
         $movements = StockMovement::where('tenant_id', $tenantId)
@@ -256,11 +264,12 @@ class InventoryCostingService
             ->get();
 
         if ($movements->isEmpty()) {
-            return (float) \App\Models\Product::find($productId)?->price_buy ?? 0;
+            return (float) Product::find($productId)?->price_buy ?? 0;
         }
 
-        $totalQty   = $movements->sum('quantity');
+        $totalQty = $movements->sum('quantity');
         $totalValue = $movements->sum('cost_total');
+
         return $totalQty > 0 ? $totalValue / $totalQty : 0;
     }
 
@@ -275,23 +284,24 @@ class InventoryCostingService
                 ->where('warehouse_id', $movement->warehouse_id)
                 ->where('batch_number', $batchNumber)
                 ->update([
-                    'cost_price'         => $costPrice,
+                    'cost_price' => $costPrice,
                     'quantity_remaining' => DB::raw('quantity'),
                 ]);
+
             return;
         }
 
         // Create a synthetic FIFO layer batch
         ProductBatch::create([
-            'tenant_id'          => $movement->tenant_id,
-            'product_id'         => $movement->product_id,
-            'warehouse_id'       => $movement->warehouse_id,
-            'batch_number'       => 'FIFO-' . $movement->id,
-            'quantity'           => $qty,
+            'tenant_id' => $movement->tenant_id,
+            'product_id' => $movement->product_id,
+            'warehouse_id' => $movement->warehouse_id,
+            'batch_number' => 'FIFO-'.$movement->id,
+            'quantity' => $qty,
             'quantity_remaining' => $qty,
-            'cost_price'         => $costPrice,
-            'status'             => 'active',
-            'expiry_date'        => now()->addYears(10)->toDateString(), // synthetic batch, far future
+            'cost_price' => $costPrice,
+            'status' => 'active',
+            'expiry_date' => now()->addYears(10)->toDateString(), // synthetic batch, far future
         ]);
     }
 
@@ -311,22 +321,24 @@ class InventoryCostingService
             ->get();
 
         foreach ($batches as $batch) {
-            if ($remaining <= 0) break;
+            if ($remaining <= 0) {
+                break;
+            }
 
-            $take       = min($remaining, (float) $batch->quantity_remaining);
+            $take = min($remaining, (float) $batch->quantity_remaining);
             $totalCost += $take * (float) $batch->cost_price;
             $remaining -= $take;
 
             $newRemaining = (float) $batch->quantity_remaining - $take;
             $batch->update([
                 'quantity_remaining' => $newRemaining,
-                'status'             => $newRemaining <= 0 ? 'consumed' : 'active',
+                'status' => $newRemaining <= 0 ? 'consumed' : 'active',
             ]);
         }
 
         // If batches ran out (shouldn't happen in normal flow), fallback to price_buy
         if ($remaining > 0) {
-            $fallback   = (float) $movement->product->price_buy ?? 0;
+            $fallback = (float) $movement->product->price_buy ?? 0;
             $totalCost += $remaining * $fallback;
         }
 
@@ -345,11 +357,12 @@ class InventoryCostingService
             ->get();
 
         if ($batches->isEmpty()) {
-            return (float) \App\Models\Product::find($productId)?->price_buy ?? 0;
+            return (float) Product::find($productId)?->price_buy ?? 0;
         }
 
-        $totalQty   = $batches->sum('quantity_remaining');
-        $totalValue = $batches->sum(fn($b) => $b->quantity_remaining * $b->cost_price);
+        $totalQty = $batches->sum('quantity_remaining');
+        $totalValue = $batches->sum(fn ($b) => $b->quantity_remaining * $b->cost_price);
+
         return $totalQty > 0 ? $totalValue / $totalQty : 0;
     }
 

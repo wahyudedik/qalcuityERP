@@ -16,5 +16,8 @@ class LandedCostComponent extends Model
         return ['amount' => 'decimal:2'];
     }
 
-    public function landedCost(): BelongsTo { return $this->belongsTo(LandedCost::class); }
+    public function landedCost(): BelongsTo
+    {
+        return $this->belongsTo(LandedCost::class);
+    }
 }

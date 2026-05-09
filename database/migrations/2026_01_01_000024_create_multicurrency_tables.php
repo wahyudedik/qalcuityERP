@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('currencies')) {
+        if (! Schema::hasTable('currencies')) {
             Schema::create('currencies', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -23,7 +24,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('currency_rate_history')) {
+        if (! Schema::hasTable('currency_rate_history')) {
             Schema::create('currency_rate_history', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');

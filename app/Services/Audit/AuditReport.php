@@ -28,7 +28,7 @@ class AuditReport
     /**
      * Add multiple findings to the report.
      *
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      */
     public function addAll(array $findings): void
     {
@@ -49,14 +49,14 @@ class AuditReport
         if ($category !== null) {
             $results = array_values(array_filter(
                 $results,
-                fn(AuditFinding $f) => $f->category === $category
+                fn (AuditFinding $f) => $f->category === $category
             ));
         }
 
         if ($severity !== null) {
             $results = array_values(array_filter(
                 $results,
-                fn(AuditFinding $f) => $f->severity === $severity
+                fn (AuditFinding $f) => $f->severity === $severity
             ));
         }
 
@@ -80,7 +80,7 @@ class AuditReport
         foreach ($this->findings as $finding) {
             $bySeverity[$finding->severity->value]++;
 
-            if (!isset($byCategory[$finding->category])) {
+            if (! isset($byCategory[$finding->category])) {
                 $byCategory[$finding->category] = 0;
             }
             $byCategory[$finding->category]++;
@@ -100,7 +100,7 @@ class AuditReport
     {
         $summary = $this->getSummary();
 
-        $findingsArray = array_map(fn(AuditFinding $f) => [
+        $findingsArray = array_map(fn (AuditFinding $f) => [
             'category' => $f->category,
             'severity' => $f->severity->value,
             'title' => $f->title,
@@ -129,7 +129,7 @@ class AuditReport
 
         $lines[] = '# ERP Audit Report';
         $lines[] = '';
-        $lines[] = '**Generated at:** ' . Carbon::now()->toIso8601String();
+        $lines[] = '**Generated at:** '.Carbon::now()->toIso8601String();
         $lines[] = '';
 
         // Summary section
@@ -137,7 +137,7 @@ class AuditReport
         $lines[] = '';
         $lines[] = '| Metric | Count |';
         $lines[] = '|--------|-------|';
-        $lines[] = '| Total Findings | ' . $summary['total_findings'] . ' |';
+        $lines[] = '| Total Findings | '.$summary['total_findings'].' |';
 
         foreach ($summary['by_severity'] as $severity => $count) {
             $badge = $this->severityBadge($severity);
@@ -150,7 +150,7 @@ class AuditReport
         $grouped = $this->groupByCategory();
 
         foreach ($grouped as $category => $findings) {
-            $lines[] = '## ' . ucfirst($category);
+            $lines[] = '## '.ucfirst($category);
             $lines[] = '';
 
             foreach ($findings as $finding) {
@@ -163,14 +163,14 @@ class AuditReport
                 if ($finding->file) {
                     $location = $finding->file;
                     if ($finding->line) {
-                        $location .= ':' . $finding->line;
+                        $location .= ':'.$finding->line;
                     }
-                    $lines[] = '**File:** `' . $location . '`';
+                    $lines[] = '**File:** `'.$location.'`';
                     $lines[] = '';
                 }
 
                 if ($finding->recommendation) {
-                    $lines[] = '**Recommendation:** ' . $finding->recommendation;
+                    $lines[] = '**Recommendation:** '.$finding->recommendation;
                     $lines[] = '';
                 }
             }

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Lowongan kerja
-        if (!Schema::hasTable('job_postings')) {
+        if (! Schema::hasTable('job_postings')) {
             Schema::create('job_postings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -26,13 +26,13 @@ return new class extends Migration
                 $table->enum('status', ['draft', 'open', 'closed'])->default('open');
                 $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Lamaran masuk
-        if (!Schema::hasTable('job_applications')) {
+        if (! Schema::hasTable('job_applications')) {
             Schema::create('job_applications', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -58,13 +58,13 @@ return new class extends Migration
                 $table->foreignId('employee_id')->nullable()->constrained()->nullOnDelete(); // setelah hired
                 $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'job_posting_id', 'stage']);
             });
         }
 
         // Template checklist onboarding per tenant
-        if (!Schema::hasTable('onboarding_checklists')) {
+        if (! Schema::hasTable('onboarding_checklists')) {
             Schema::create('onboarding_checklists', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -76,7 +76,7 @@ return new class extends Migration
         }
 
         // Item tugas dalam template checklist
-        if (!Schema::hasTable('onboarding_checklist_items')) {
+        if (! Schema::hasTable('onboarding_checklist_items')) {
             Schema::create('onboarding_checklist_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('onboarding_checklist_id')->constrained()->cascadeOnDelete();
@@ -90,7 +90,7 @@ return new class extends Migration
         }
 
         // Progress onboarding per karyawan baru
-        if (!Schema::hasTable('employee_onboardings')) {
+        if (! Schema::hasTable('employee_onboardings')) {
             Schema::create('employee_onboardings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -100,13 +100,13 @@ return new class extends Migration
                 $table->date('start_date');
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['employee_id']);
             });
         }
 
         // Progress per task onboarding karyawan
-        if (!Schema::hasTable('employee_onboarding_tasks')) {
+        if (! Schema::hasTable('employee_onboarding_tasks')) {
             Schema::create('employee_onboarding_tasks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('employee_onboarding_id')->constrained()->cascadeOnDelete();

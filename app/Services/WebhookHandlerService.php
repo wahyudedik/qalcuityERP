@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\PaymentTransaction;
 use App\Models\PaymentCallback;
+use App\Models\PaymentTransaction;
+use App\Models\ProductStock;
 use App\Models\SalesOrder;
+use App\Models\StockMovement;
 use App\Models\TenantPaymentGateway;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +27,7 @@ class WebhookHandlerService
     {
         try {
             // BUG-API-001 FIX: Check idempotency BEFORE processing
-            $idempotencyResult = app(\App\Services\WebhookIdempotencyService::class)
+            $idempotencyResult = app(WebhookIdempotencyService::class)
                 ->checkIdempotency('midtrans', $payload);
             $idempotencyKey = $idempotencyResult['idempotency_key'];
 
@@ -59,8 +61,9 @@ class WebhookHandlerService
                 ->first();
 
             if ($gateway && $gateway->webhook_secret) {
-                if (!$this->verifyMidtransSignature($payload, $signature, $gateway->webhook_secret)) {
+                if (! $this->verifyMidtransSignature($payload, $signature, $gateway->webhook_secret)) {
                     $callback->update(['error_message' => 'Invalid signature']);
+
                     return ['success' => false, 'error' => 'Invalid signature'];
                 }
             }
@@ -72,8 +75,9 @@ class WebhookHandlerService
             $grossAmount = $payload['gross_amount'] ?? 0;
             $transactionId = $payload['transaction_id'] ?? null;
 
-            if (!$orderId || !$transactionStatus) {
+            if (! $orderId || ! $transactionStatus) {
                 $callback->update(['error_message' => 'Missing required fields']);
+
                 return ['success' => false, 'error' => 'Missing required fields'];
             }
 
@@ -82,8 +86,9 @@ class WebhookHandlerService
                 ->where('transaction_number', $orderId)
                 ->first();
 
-            if (!$paymentTransaction) {
+            if (! $paymentTransaction) {
                 $callback->update(['error_message' => 'Transaction not found']);
+
                 return ['success' => false, 'error' => 'Transaction not found'];
             }
 
@@ -114,7 +119,7 @@ class WebhookHandlerService
                         ]);
 
                         // Trigger stock deduction if not already done
-                        if (!$salesOrder->stock_deducted_at) {
+                        if (! $salesOrder->stock_deducted_at) {
                             $this->deductStockForOrder($salesOrder);
                         }
                     }
@@ -127,10 +132,10 @@ class WebhookHandlerService
                 ]);
 
                 // BUG-API-001 FIX: Mark as processed in idempotency service
-                app(\App\Services\WebhookIdempotencyService::class)
+                app(WebhookIdempotencyService::class)
                     ->markAsProcessed($idempotencyKey, $callback);
 
-                Log::info("Midtrans webhook processed", [
+                Log::info('Midtrans webhook processed', [
                     'order_id' => $orderId,
                     'status' => $newStatus,
                     'amount' => $grossAmount,
@@ -171,8 +176,9 @@ class WebhookHandlerService
                 ->first();
 
             if ($gateway && $gateway->webhook_secret) {
-                if (!$this->verifyXenditSignature($payload, $signature, $gateway->webhook_secret)) {
+                if (! $this->verifyXenditSignature($payload, $signature, $gateway->webhook_secret)) {
                     $callback->update(['error_message' => 'Invalid signature']);
+
                     return ['success' => false, 'error' => 'Invalid signature'];
                 }
             }
@@ -184,8 +190,9 @@ class WebhookHandlerService
             $paymentId = $payload['id'] ?? null;
             $paidAt = $payload['paid_at'] ?? null;
 
-            if (!$externalId || !$status) {
+            if (! $externalId || ! $status) {
                 $callback->update(['error_message' => 'Missing required fields']);
+
                 return ['success' => false, 'error' => 'Missing required fields'];
             }
 
@@ -194,8 +201,9 @@ class WebhookHandlerService
                 ->where('transaction_number', $externalId)
                 ->first();
 
-            if (!$paymentTransaction) {
+            if (! $paymentTransaction) {
                 $callback->update(['error_message' => 'Transaction not found']);
+
                 return ['success' => false, 'error' => 'Transaction not found'];
             }
 
@@ -231,7 +239,7 @@ class WebhookHandlerService
                         ]);
 
                         // Trigger stock deduction if not already done
-                        if (!$salesOrder->stock_deducted_at) {
+                        if (! $salesOrder->stock_deducted_at) {
                             $this->deductStockForOrder($salesOrder);
                         }
                     }
@@ -243,7 +251,7 @@ class WebhookHandlerService
                     'processed_at' => now(),
                 ]);
 
-                Log::info("Xendit webhook processed", [
+                Log::info('Xendit webhook processed', [
                     'external_id' => $externalId,
                     'status' => $newStatus,
                     'amount' => $paidAmount,
@@ -267,12 +275,12 @@ class WebhookHandlerService
      */
     private function verifyMidtransSignature(array $payload, ?string $signature, string $secret): bool
     {
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
         // Create hash from payload
-        $hashInput = $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . $secret;
+        $hashInput = $payload['order_id'].$payload['status_code'].$payload['gross_amount'].$secret;
         $expectedSignature = hash('sha512', $hashInput);
 
         return hash_equals($expectedSignature, $signature);
@@ -284,7 +292,7 @@ class WebhookHandlerService
      */
     private function verifyXenditSignature(array $payload, ?string $signature, string $secret): bool
     {
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
@@ -354,8 +362,9 @@ class WebhookHandlerService
                 ->first();
 
             if ($gateway && $gateway->webhook_secret) {
-                if (!$this->verifyDuitkuSignature($payload, $gateway->webhook_secret)) {
+                if (! $this->verifyDuitkuSignature($payload, $gateway->webhook_secret)) {
                     $callback->update(['error_message' => 'Invalid signature']);
+
                     return ['success' => false, 'error' => 'Invalid signature'];
                 }
             }
@@ -366,8 +375,9 @@ class WebhookHandlerService
             $amount = $payload['amount'] ?? 0;
             $reference = $payload['reference'] ?? null;
 
-            if (!$merchantOrderId || !$resultCode) {
+            if (! $merchantOrderId || ! $resultCode) {
                 $callback->update(['error_message' => 'Missing required fields']);
+
                 return ['success' => false, 'error' => 'Missing required fields'];
             }
 
@@ -376,8 +386,9 @@ class WebhookHandlerService
                 ->where('transaction_number', $merchantOrderId)
                 ->first();
 
-            if (!$paymentTransaction) {
+            if (! $paymentTransaction) {
                 $callback->update(['error_message' => 'Transaction not found']);
+
                 return ['success' => false, 'error' => 'Transaction not found'];
             }
 
@@ -411,7 +422,7 @@ class WebhookHandlerService
                             'completed_at' => now(),
                         ]);
 
-                        if (!$salesOrder->stock_deducted_at) {
+                        if (! $salesOrder->stock_deducted_at) {
                             $this->deductStockForOrder($salesOrder);
                         }
                     }
@@ -422,7 +433,7 @@ class WebhookHandlerService
                     'processed_at' => now(),
                 ]);
 
-                Log::info("Duitku webhook processed", [
+                Log::info('Duitku webhook processed', [
                     'merchant_order_id' => $paymentTransaction->transaction_number,
                     'status' => $newStatus,
                     'result_code' => $resultCode,
@@ -451,7 +462,7 @@ class WebhookHandlerService
         $amount = $payload['amount'] ?? '';
         $merchantOrderId = $payload['merchantOrderId'] ?? '';
 
-        $expectedSignature = md5($merchantCode . $amount . $merchantOrderId . $merchantKey);
+        $expectedSignature = md5($merchantCode.$amount.$merchantOrderId.$merchantKey);
 
         return hash_equals($expectedSignature, $payload['signature'] ?? '');
     }
@@ -477,7 +488,7 @@ class WebhookHandlerService
     {
         foreach ($order->items as $item) {
             // BUG-INV-001 FIX: Lock ALL stock rows and use atomic conditional update
-            $stocks = \App\Models\ProductStock::where('product_id', $item->product_id)
+            $stocks = ProductStock::where('product_id', $item->product_id)
                 ->where('quantity', '>', 0)
                 ->orderBy('quantity', 'desc')
                 ->lockForUpdate()
@@ -485,34 +496,37 @@ class WebhookHandlerService
 
             if ($stocks->isEmpty()) {
                 Log::warning("Insufficient stock for product {$item->product_id}");
+
                 continue;
             }
 
             $totalAvailable = $stocks->sum('quantity');
             if ($totalAvailable < $item->quantity) {
                 Log::warning("Insufficient stock for product {$item->product_id}: need {$item->quantity}, have {$totalAvailable}");
+
                 continue;
             }
 
             // Deduct stock across warehouses atomically
             $remainingToDeduct = $item->quantity;
             foreach ($stocks as $stock) {
-                if ($remainingToDeduct <= 0)
+                if ($remainingToDeduct <= 0) {
                     break;
+                }
 
                 $deductFromThis = min($remainingToDeduct, $stock->quantity);
                 $before = $stock->quantity;
 
                 // BUG-INV-001 FIX: Atomic update with condition
-                $updated = \App\Models\ProductStock::where('id', $stock->id)
+                $updated = ProductStock::where('id', $stock->id)
                     ->where('quantity', '>=', $deductFromThis)
                     ->decrement('quantity', $deductFromThis);
 
-                if (!$updated) {
+                if (! $updated) {
                     throw new \Exception("Failed to deduct stock for product {$item->product_id}");
                 }
 
-                \App\Models\StockMovement::create([
+                StockMovement::create([
                     'tenant_id' => $order->tenant_id,
                     'product_id' => $item->product_id,
                     'warehouse_id' => $stock->warehouse_id,

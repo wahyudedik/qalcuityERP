@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,13 +11,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
+    use BelongsToTenant;
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_PARTIAL = 'partial';
+
     const STATUS_RECEIVED = 'received';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
@@ -83,6 +86,7 @@ class PurchaseOrder extends Model
     {
         return $this->posting_status === 'posted';
     }
+
     public function isDraft(): bool
     {
         return ($this->posting_status ?? 'draft') === 'draft';
@@ -112,42 +116,52 @@ class PurchaseOrder extends Model
     {
         return $this->belongsTo(TaxRate::class);
     }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
+
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class);
     }
+
     public function payable(): HasMany
     {
         return $this->hasMany(Payable::class);
     }
+
     public function requisition(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequisition::class, 'purchase_requisition_id');
     }
+
     public function rfq(): BelongsTo
     {
         return $this->belongsTo(Rfq::class);
     }
+
     public function goodsReceipts(): HasMany
     {
         return $this->hasMany(GoodsReceipt::class);
     }
+
     public function purchaseReturns(): HasMany
     {
         return $this->hasMany(PurchaseReturn::class);

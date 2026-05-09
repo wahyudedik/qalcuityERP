@@ -4,24 +4,25 @@ namespace App\Services;
 
 use App\Models\TenantApiSetting;
 use App\Models\WeatherData;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WeatherIntegrationService
 {
     protected string $apiKey;
+
     protected string $baseUrl;
 
     /**
      * Constructor - Pastikan selalu mendapat tenant_id
-     * 
-     * @param int|null $tenantId Tenant ID (opsional, akan fallback ke auth user jika null)
+     *
+     * @param  int|null  $tenantId  Tenant ID (opsional, akan fallback ke auth user jika null)
      */
     public function __construct(protected ?int $tenantId = null)
     {
         // Jika tenant_id tidak dipassing, coba ambil dari user yang login
-        if (!$this->tenantId) {
+        if (! $this->tenantId) {
             $this->tenantId = auth()->user()?->tenant_id;
         }
 
@@ -49,8 +50,9 @@ class WeatherIntegrationService
                     'units' => 'metric',
                 ]);
 
-                if (!$response->ok()) {
-                    Log::error('Weather API error: ' . $response->status());
+                if (! $response->ok()) {
+                    Log::error('Weather API error: '.$response->status());
+
                     return null;
                 }
 
@@ -79,7 +81,8 @@ class WeatherIntegrationService
                 ]);
             });
         } catch (\Throwable $e) {
-            Log::error('WeatherIntegrationService::getCurrentWeather failed: ' . $e->getMessage());
+            Log::error('WeatherIntegrationService::getCurrentWeather failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -101,7 +104,7 @@ class WeatherIntegrationService
                     'cnt' => 40, // 5 days * 8 (3-hour intervals)
                 ]);
 
-                if (!$response->ok()) {
+                if (! $response->ok()) {
                     return [];
                 }
 
@@ -133,7 +136,8 @@ class WeatherIntegrationService
                 return $forecasts;
             });
         } catch (\Throwable $e) {
-            Log::error('WeatherIntegrationService::getForecast failed: ' . $e->getMessage());
+            Log::error('WeatherIntegrationService::getForecast failed: '.$e->getMessage());
+
             return [];
         }
     }
@@ -145,7 +149,7 @@ class WeatherIntegrationService
     {
         $weather = $this->getCurrentWeather($lat, $lng, $tenantId);
 
-        if (!$weather) {
+        if (! $weather) {
             return [];
         }
 
@@ -159,7 +163,7 @@ class WeatherIntegrationService
     {
         $weather = $this->getCurrentWeather($lat, $lng, $tenantId);
 
-        if (!$weather) {
+        if (! $weather) {
             return [
                 'readiness_percentage' => 0,
                 'estimated_days_to_harvest' => 0,
@@ -179,7 +183,7 @@ class WeatherIntegrationService
         $tenantId = $this->tenantId ?? auth()->user()?->tenant_id;
         $weather = $this->getCurrentWeather($lat, $lng, $tenantId ?? 0);
 
-        if (!$weather) {
+        if (! $weather) {
             return [];
         }
 

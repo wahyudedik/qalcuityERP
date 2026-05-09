@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\LabResult;
 use App\Models\LabOrder;
-use App\Models\LabTestCatalog;
+use App\Models\LabResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -170,6 +169,7 @@ class LabResultController extends Controller
         // Implementation for critical result notification
         // Could send SMS, email, or push notification
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/lab-results/{lab_result}/edit
@@ -177,9 +177,10 @@ class LabResultController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.lab-result.edit', compact('model'));
     }
+
     /**
      * Remove the specified resource.
      * Route: healthcare/lab-results/{lab_result}
@@ -187,11 +188,12 @@ class LabResultController extends Controller
     public function destroy($model)
     {
         $this->authorize('delete', $model);
-        
+
         $model->delete();
-        
+
         return back()->with('success', 'Deleted successfully.');
     }
+
     /**
      * FlagCritical.
      * Route: healthcare/lab-results/{result}/flag-critical
@@ -199,13 +201,13 @@ class LabResultController extends Controller
     public function flagCritical(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement FlagCritical logic
-        
+
         return back()->with('success', 'FlagCritical completed successfully.');
     }
 }

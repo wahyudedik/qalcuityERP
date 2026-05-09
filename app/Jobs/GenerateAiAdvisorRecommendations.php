@@ -15,11 +15,12 @@ class GenerateAiAdvisorRecommendations implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 180; // Gemini call can be slow
 
     public function __construct(
-        public readonly int    $tenantId,
+        public readonly int $tenantId,
         public readonly string $period = 'weekly',
     ) {
         $this->queue = 'ai';
@@ -28,13 +29,17 @@ class GenerateAiAdvisorRecommendations implements ShouldQueue
     public function handle(AiFinancialAdvisorService $service): void
     {
         $tenant = Tenant::find($this->tenantId);
-        if (!$tenant || !$tenant->canAccess()) return;
+        if (! $tenant || ! $tenant->canAccess()) {
+            return;
+        }
 
         // Only for paid plans (not trial with < 7 days data)
-        if ($tenant->plan === 'trial' && $tenant->created_at->diffInDays(now()) < 7) return;
+        if ($tenant->plan === 'trial' && $tenant->created_at->diffInDays(now()) < 7) {
+            return;
+        }
 
         $recommendations = $service->generateRecommendations($this->tenantId, $this->period);
 
-        Log::info("AiAdvisor: tenant={$this->tenantId} period={$this->period} recommendations=" . count($recommendations));
+        Log::info("AiAdvisor: tenant={$this->tenantId} period={$this->period} recommendations=".count($recommendations));
     }
 }

@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Models\AnomalyAlert;
-use App\Models\JournalEntry;
 use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
@@ -33,14 +31,16 @@ class AnomalyDetectionService
         $saved = 0;
         foreach ($anomalies as $anomaly) {
             // Hindari duplikat: cek apakah anomali tipe+hash yang sama sudah ada hari ini
-            $hash = md5($anomaly['type'] . json_encode($anomaly['data'] ?? []));
+            $hash = md5($anomaly['type'].json_encode($anomaly['data'] ?? []));
             $exists = AnomalyAlert::where('tenant_id', $tenantId)
                 ->where('type', $anomaly['type'])
                 ->whereDate('created_at', today())
                 ->where('status', 'open')
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             AnomalyAlert::create(array_merge($anomaly, ['tenant_id' => $tenantId]));
             $saved++;
@@ -77,7 +77,9 @@ class AnomalyDetectionService
             ->whereBetween('date', [now()->subDays(30)->toDateString(), now()->subDays(1)->toDateString()])
             ->avg('amount') ?? 0;
 
-        if ($avg <= 0) return [];
+        if ($avg <= 0) {
+            return [];
+        }
 
         $threshold = $avg * 3;
 
@@ -88,14 +90,16 @@ class AnomalyDetectionService
             ->with('category')
             ->get();
 
-        if ($unusual->isEmpty()) return [];
+        if ($unusual->isEmpty()) {
+            return [];
+        }
 
-        $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
+        $fmt = fn ($n) => 'Rp '.number_format($n, 0, ',', '.');
 
-        return $unusual->map(fn($t) => [
-            'type'        => 'unusual_transaction',
-            'severity'    => 'warning',
-            'title'       => '⚠️ Transaksi Tidak Wajar Terdeteksi',
+        return $unusual->map(fn ($t) => [
+            'type' => 'unusual_transaction',
+            'severity' => 'warning',
+            'title' => '⚠️ Transaksi Tidak Wajar Terdeteksi',
             'description' => sprintf(
                 'Transaksi %s senilai %s melebihi 3x rata-rata harian (%s). Kategori: %s.',
                 $t->reference ?? "#{$t->id}",
@@ -118,14 +122,16 @@ class AnomalyDetectionService
             ->where('date', '<', now()->subDays(7)->toDateString())
             ->count();
 
-        if ($count === 0) return [];
+        if ($count === 0) {
+            return [];
+        }
 
         return [[
-            'type'        => 'unbalanced_journal',
-            'severity'    => 'warning',
-            'title'       => "📋 {$count} Jurnal Draft Belum Di-post",
+            'type' => 'unbalanced_journal',
+            'severity' => 'warning',
+            'title' => "📋 {$count} Jurnal Draft Belum Di-post",
             'description' => "{$count} jurnal masih berstatus draft lebih dari 7 hari. Segera review dan posting untuk menjaga akurasi laporan keuangan.",
-            'data'        => ['count' => $count],
+            'data' => ['count' => $count],
         ]];
     }
 
@@ -137,8 +143,8 @@ class AnomalyDetectionService
         $duplicates = DB::table('transactions as t1')
             ->join('transactions as t2', function ($join) {
                 $join->on('t1.amount', '=', 't2.amount')
-                     ->on('t1.id', '<', 't2.id')
-                     ->whereRaw('ABS(TIMESTAMPDIFF(HOUR, t1.created_at, t2.created_at)) <= 24');
+                    ->on('t1.id', '<', 't2.id')
+                    ->whereRaw('ABS(TIMESTAMPDIFF(HOUR, t1.created_at, t2.created_at)) <= 24');
             })
             ->where('t1.tenant_id', $tenantId)
             ->where('t2.tenant_id', $tenantId)
@@ -147,14 +153,16 @@ class AnomalyDetectionService
             ->limit(5)
             ->get();
 
-        if ($duplicates->isEmpty()) return [];
+        if ($duplicates->isEmpty()) {
+            return [];
+        }
 
-        $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
+        $fmt = fn ($n) => 'Rp '.number_format($n, 0, ',', '.');
 
         return [[
-            'type'        => 'duplicate_transaction',
-            'severity'    => 'warning',
-            'title'       => '🔁 Kemungkinan Transaksi Duplikat',
+            'type' => 'duplicate_transaction',
+            'severity' => 'warning',
+            'title' => '🔁 Kemungkinan Transaksi Duplikat',
             'description' => sprintf(
                 '%d pasang transaksi dengan nominal sama ditemukan dalam 24 jam terakhir. Contoh: %s senilai %s.',
                 $duplicates->count(),
@@ -177,14 +185,16 @@ class AnomalyDetectionService
             ->whereDate('created_at', '>=', now()->subDays(7)->toDateString())
             ->count();
 
-        if ($suspicious === 0) return [];
+        if ($suspicious === 0) {
+            return [];
+        }
 
         return [[
-            'type'        => 'fraud_pattern',
-            'severity'    => 'critical',
-            'title'       => '🚨 Pola Transaksi Mencurigakan',
+            'type' => 'fraud_pattern',
+            'severity' => 'critical',
+            'title' => '🚨 Pola Transaksi Mencurigakan',
             'description' => "{$suspicious} transaksi dengan nominal bulat besar dilakukan di luar jam kerja (sebelum 07:00 atau setelah 22:00) dalam 7 hari terakhir. Segera verifikasi.",
-            'data'        => ['count' => $suspicious],
+            'data' => ['count' => $suspicious],
         ]];
     }
 
@@ -205,14 +215,16 @@ class AnomalyDetectionService
             ->limit(5)
             ->get();
 
-        if ($belowCost->isEmpty()) return [];
+        if ($belowCost->isEmpty()) {
+            return [];
+        }
 
-        $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
+        $fmt = fn ($n) => 'Rp '.number_format($n, 0, ',', '.');
 
         return [[
-            'type'        => 'price_anomaly',
-            'severity'    => 'warning',
-            'title'       => "💸 {$belowCost->count()} Produk Dijual di Bawah HPP",
+            'type' => 'price_anomaly',
+            'severity' => 'warning',
+            'title' => "💸 {$belowCost->count()} Produk Dijual di Bawah HPP",
             'description' => sprintf(
                 'Ditemukan penjualan di bawah harga pokok dalam 7 hari terakhir. Contoh: %s dijual %s (HPP: %s).',
                 $belowCost->first()->name,
@@ -238,7 +250,9 @@ class AnomalyDetectionService
             ->groupBy('sales_order_items.product_id')
             ->pluck('sold_qty', 'product_id');
 
-        if ($sold->isEmpty()) return [];
+        if ($sold->isEmpty()) {
+            return [];
+        }
 
         // Hitung pergerakan stok keluar dari stock_movements
         $moved = DB::table('stock_movements')
@@ -253,27 +267,29 @@ class AnomalyDetectionService
         $mismatches = [];
         foreach ($sold as $productId => $soldQty) {
             $movedQty = $moved[$productId] ?? 0;
-            $diff     = abs($soldQty - $movedQty);
+            $diff = abs($soldQty - $movedQty);
             // Mismatch signifikan jika selisih > 10% dari qty terjual
             if ($soldQty > 0 && $diff / $soldQty > 0.1) {
                 $product = Product::find($productId);
                 if ($product) {
                     $mismatches[] = [
                         'product' => $product->name,
-                        'sold'    => $soldQty,
-                        'moved'   => $movedQty,
-                        'diff'    => $diff,
+                        'sold' => $soldQty,
+                        'moved' => $movedQty,
+                        'diff' => $diff,
                     ];
                 }
             }
         }
 
-        if (empty($mismatches)) return [];
+        if (empty($mismatches)) {
+            return [];
+        }
 
         return [[
-            'type'        => 'stock_mismatch',
-            'severity'    => 'warning',
-            'title'       => count($mismatches) . ' Produk: Stok Tidak Cocok dengan Penjualan',
+            'type' => 'stock_mismatch',
+            'severity' => 'warning',
+            'title' => count($mismatches).' Produk: Stok Tidak Cocok dengan Penjualan',
             'description' => sprintf(
                 'Pergerakan stok tidak sesuai dengan data penjualan 7 hari terakhir. Contoh: %s terjual %d unit tapi stok keluar hanya %d unit.',
                 $mismatches[0]['product'],

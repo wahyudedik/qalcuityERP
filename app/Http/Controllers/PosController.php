@@ -3,64 +3,160 @@
 namespace App\Http\Controllers;
 
 use App\Mail\PosReceiptMail;
+use App\Models\ActivityLog;
+use App\Models\CashierSession;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductStock;
-use App\Models\Customer;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
-use App\Models\ActivityLog;
 use App\Models\StockMovement;
-use App\Models\CashierSession;
 use App\Services\LoyaltyService;
 use App\Services\WhatsAppService;
+use App\Traits\DispatchesWebhooks;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class PosController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     public function index()
     {
         $tenantId = auth()->user()->tenant_id;
-        $userId   = auth()->id();
+        $userId = auth()->id();
 
         // Cek sesi kasir yang sedang aktif
         $activeSession = CashierSession::where('user_id', $userId)
             ->where('status', CashierSession::STATUS_OPEN)
             ->first();
 
-        $products = Product::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image')
-            ->withSum('productStocks', 'quantity')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($p) {
-                $p->total_stock = (int) ($p->product_stocks_sum_quantity ?? 0);
-                return $p;
-            });
+        // Cache produk sebagai plain array untuk menghindari serialization issues
+        $products = collect(Cache::remember("pos_products_{$tenantId}", 120, function () use ($tenantId) {
+            return Product::where('tenant_id', $tenantId)
+                ->where('is_active', true)
+                ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image')
+                ->withSum('productStocks', 'quantity')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'sku' => $p->sku,
+                        'barcode' => $p->barcode,
+                        'price_sell' => $p->price_sell,
+                        'stock_min' => $p->stock_min,
+                        'category' => $p->category,
+                        'image' => $p->image,
+                        'total_stock' => (int) ($p->product_stocks_sum_quantity ?? 0),
+                    ];
+                })
+                ->toArray();
+        }));
 
+        // Hanya load 10 customer teratas untuk dropdown awal, sisanya via AJAX search
         $customers = Customer::where('tenant_id', $tenantId)
             ->select('id', 'name', 'phone')
             ->orderBy('name')
+            ->limit(10)
             ->get();
 
-        return view('pos.index', compact('products', 'customers', 'activeSession'));
+        // Kategori untuk filter tabs
+        $categories = $products->pluck('category')->filter()->unique()->values();
+
+        // Batasi produk awal yang di-render di server (30 item), sisanya lazy load via JS
+        $initialProducts = $products->take(30);
+        $totalProducts = $products->count();
+
+        return view('pos.index', compact('initialProducts', 'customers', 'activeSession', 'categories', 'totalProducts'));
+    }
+
+    /**
+     * API endpoint untuk lazy load produk (infinite scroll / load more)
+     */
+    public function loadProducts(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $offset = (int) ($request->get('offset', 0));
+        $limit = (int) ($request->get('limit', 30));
+        $category = $request->get('category', '');
+
+        $products = collect(Cache::remember("pos_products_{$tenantId}", 120, function () use ($tenantId) {
+            return Product::where('tenant_id', $tenantId)
+                ->where('is_active', true)
+                ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image')
+                ->withSum('productStocks', 'quantity')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'sku' => $p->sku,
+                        'barcode' => $p->barcode,
+                        'price_sell' => $p->price_sell,
+                        'stock_min' => $p->stock_min,
+                        'category' => $p->category,
+                        'image' => $p->image,
+                        'total_stock' => (int) ($p->product_stocks_sum_quantity ?? 0),
+                    ];
+                })
+                ->toArray();
+        }));
+
+        // Filter by category jika ada
+        if ($category) {
+            $products = $products->where('category', $category);
+        }
+
+        $total = $products->count();
+        $items = $products->slice($offset, $limit)->values();
+
+        return response()->json([
+            'products' => $items,
+            'total' => $total,
+            'has_more' => ($offset + $limit) < $total,
+        ]);
+    }
+
+    /**
+     * AJAX search customer untuk dropdown POS
+     */
+    public function searchCustomers(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $query = trim($request->get('q', ''));
+
+        $customers = Customer::where('tenant_id', $tenantId)
+            ->select('id', 'name', 'phone')
+            ->when($query, function ($q) use ($query) {
+                $q->where(function ($sub) use ($query) {
+                    $sub->where('name', 'like', "%{$query}%")
+                        ->orWhere('phone', 'like', "%{$query}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get();
+
+        return response()->json($customers);
     }
 
     public function checkout(Request $request)
     {
         $request->validate([
-            'items'                   => 'required|array|min:1',
-            'items.*.id'              => 'required|integer',
-            'items.*.qty'             => 'required|integer|min:1',
-            'items.*.price'           => 'required|numeric|min:0',
-            'payment_method'          => 'required|string|in:cash,card,credit,qris,transfer,bank_transfer,split',
-            'paid_amount'             => 'required|numeric|min:0',
-            'split_payments'          => 'nullable|array',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|integer',
+            'items.*.qty' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:cash,card,credit,qris,transfer,bank_transfer,split',
+            'paid_amount' => 'required|numeric|min:0',
+            'split_payments' => 'nullable|array',
             'split_payments.*.method' => 'required_with:split_payments|string|in:cash,card,credit,qris,transfer,bank_transfer',
             'split_payments.*.amount' => 'required_with:split_payments|numeric|min:0',
             'loyalty_points_redeemed' => 'nullable|integer|min:0',
@@ -69,7 +165,7 @@ class PosController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $subtotal = collect($request->items)->sum(fn($i) => $i['qty'] * $i['price']);
         $discount = $request->discount ?? 0;
-        $tax      = $request->tax ?? 0;
+        $tax = $request->tax ?? 0;
 
         // Loyalty: hitung diskon dari penukaran poin
         $loyaltyPointsRedeemed = (int) ($request->loyalty_points_redeemed ?? 0);
@@ -84,7 +180,7 @@ class PosController extends Controller
                 $loyaltyPointsRedeemed,
                 $subtotalForLoyalty
             );
-            if (!$validation['valid']) {
+            if (! $validation['valid']) {
                 return response()->json([
                     'success' => false,
                     'message' => $validation['message'],
@@ -128,9 +224,10 @@ class PosController extends Controller
 
         // BUG-SALES-004 FIX: Check credit limit if payment type is credit/transfer
         if (in_array($paymentType, ['credit', 'transfer']) && $request->customer_id) {
-            $customer = \App\Models\Customer::find($request->customer_id);
+            $customer = Customer::find($request->customer_id);
             if ($customer && $customer->wouldExceedCreditLimit($total)) {
                 $available = number_format($customer->availableCredit(), 0, ',', '.');
+
                 return response()->json([
                     'success' => false,
                     'message' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}.",
@@ -140,36 +237,36 @@ class PosController extends Controller
         }
 
         try {
-            $order = DB::transaction(function () use ($request, $tenantId, $total, $subtotal, $discount, $tax, $paymentType, $loyaltyPointsRedeemed, $loyaltyDiscount) {
+            $order = DB::transaction(function () use ($request, $tenantId, $total, $subtotal, $discount, $tax, $paymentType, $loyaltyDiscount) {
                 // Cari sesi kasir aktif
                 $activeSession = CashierSession::where('user_id', auth()->id())
                     ->where('status', CashierSession::STATUS_OPEN)
                     ->first();
 
                 // Calculate paid_amount and change_amount
-                $paidAmount   = (float) $request->paid_amount;
+                $paidAmount = (float) $request->paid_amount;
                 $changeAmount = $paymentType === 'cash' ? max(0, $paidAmount - $total) : 0;
 
                 $order = SalesOrder::create([
-                    'tenant_id'          => $tenantId,
-                    'customer_id'        => $request->customer_id ?: null,
-                    'user_id'            => auth()->id(),
+                    'tenant_id' => $tenantId,
+                    'customer_id' => $request->customer_id ?: null,
+                    'user_id' => auth()->id(),
                     'cashier_session_id' => $activeSession?->id,
-                    'number'             => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
-                    'date'               => now(),
-                    'status'             => 'completed',
-                    'payment_type'       => $paymentType,
-                    'payment_method'     => $request->payment_method,
-                    'source'             => 'pos',
-                    'subtotal'           => $subtotal,
-                    'discount'           => $discount + $loyaltyDiscount,
-                    'tax'                => $tax,
-                    'total'              => $total,
-                    'paid_amount'        => $paidAmount,
-                    'change_amount'      => $changeAmount,
-                    'split_payments'     => $paymentType === 'split' ? $request->split_payments : null,
-                    'completed_at'       => now(),
-                    'notes'              => 'POS Transaction',
+                    'number' => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
+                    'date' => now(),
+                    'status' => 'completed',
+                    'payment_type' => $paymentType,
+                    'payment_method' => $request->payment_method,
+                    'source' => 'pos',
+                    'subtotal' => $subtotal,
+                    'discount' => $discount + $loyaltyDiscount,
+                    'tax' => $tax,
+                    'total' => $total,
+                    'paid_amount' => $paidAmount,
+                    'change_amount' => $changeAmount,
+                    'split_payments' => $paymentType === 'split' ? $request->split_payments : null,
+                    'completed_at' => now(),
+                    'notes' => 'POS Transaction',
                 ]);
 
                 foreach ($request->items as $item) {
@@ -191,7 +288,7 @@ class PosController extends Controller
                         ->get();
 
                     if ($stocks->isEmpty()) {
-                        throw new \Exception("Stok produk tidak tersedia.");
+                        throw new \Exception('Stok produk tidak tersedia.');
                     }
 
                     $totalAvailable = $stocks->sum('quantity');
@@ -202,8 +299,9 @@ class PosController extends Controller
                     // Deduct stock across warehouses atomically
                     $remainingToDeduct = $item['qty'];
                     foreach ($stocks as $stock) {
-                        if ($remainingToDeduct <= 0)
+                        if ($remainingToDeduct <= 0) {
                             break;
+                        }
 
                         $deductFromThis = min($remainingToDeduct, $stock->quantity);
                         $before = $stock->quantity;
@@ -213,8 +311,8 @@ class PosController extends Controller
                             ->where('quantity', '>=', $deductFromThis)
                             ->decrement('quantity', $deductFromThis);
 
-                        if (!$updated) {
-                            throw new \Exception("Gagal mengurangi stok untuk produk. Silakan coba lagi.");
+                        if (! $updated) {
+                            throw new \Exception('Gagal mengurangi stok untuk produk. Silakan coba lagi.');
                         }
 
                         StockMovement::create([
@@ -237,11 +335,12 @@ class PosController extends Controller
                 return $order;
             });
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('POS Checkout Error: ' . $e->getMessage(), [
+            Log::error('POS Checkout Error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -249,6 +348,9 @@ class PosController extends Controller
         }
 
         ActivityLog::record('pos_checkout', "POS checkout #{$order->number}", $order);
+
+        // Invalidate product cache karena stok berubah
+        Cache::forget("pos_products_{$tenantId}");
 
         $this->fireWebhook('order.created', $order->load('items')->toArray());
 
@@ -270,7 +372,7 @@ class PosController extends Controller
                         $order->number
                     );
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("LoyaltyService redeem failed for order {$order->number}: " . $e->getMessage());
+                    Log::warning("LoyaltyService redeem failed for order {$order->number}: " . $e->getMessage());
                 }
             }
 
@@ -281,19 +383,19 @@ class PosController extends Controller
                     $earnedPoints = $txn->points;
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("LoyaltyService award failed for order {$order->number}: " . $e->getMessage());
+                Log::warning("LoyaltyService award failed for order {$order->number}: " . $e->getMessage());
             }
         }
 
         return response()->json([
-            'status'          => 'success',
-            'order_id'        => $order->id,
-            'order_number'    => $order->number,
-            'total'           => $order->total,
-            'paid_amount'     => $order->paid_amount,
-            'change'          => $order->change_amount,
-            'payment_method'  => $order->payment_method,
-            'earned_points'   => $earnedPoints,
+            'status' => 'success',
+            'order_id' => $order->id,
+            'order_number' => $order->number,
+            'total' => $order->total,
+            'paid_amount' => $order->paid_amount,
+            'change' => $order->change_amount,
+            'payment_method' => $order->payment_method,
+            'earned_points' => $earnedPoints,
             'loyalty_discount' => $loyaltyDiscount,
         ]);
     }
@@ -328,21 +430,21 @@ class PosController extends Controller
 
                 // Create order with pending payment status
                 $order = SalesOrder::create([
-                    'tenant_id'          => $tenantId,
-                    'customer_id'        => $request->customer_id ?: null,
-                    'user_id'            => auth()->id(),
+                    'tenant_id' => $tenantId,
+                    'customer_id' => $request->customer_id ?: null,
+                    'user_id' => auth()->id(),
                     'cashier_session_id' => $activeSession?->id,
-                    'number'             => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
-                    'date'               => now(),
-                    'status'             => 'pending_payment',
-                    'payment_type'       => null, // Will be set after payment
-                    'payment_method'     => null, // Will be set after payment
-                    'source'             => 'pos',
-                    'subtotal'           => $subtotal,
-                    'discount'           => $discount,
-                    'tax'                => $tax,
-                    'total'              => $total,
-                    'notes'              => 'POS Transaction - Awaiting Payment',
+                    'number' => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
+                    'date' => now(),
+                    'status' => 'pending_payment',
+                    'payment_type' => null, // Will be set after payment
+                    'payment_method' => null, // Will be set after payment
+                    'source' => 'pos',
+                    'subtotal' => $subtotal,
+                    'discount' => $discount,
+                    'tax' => $tax,
+                    'total' => $total,
+                    'notes' => 'POS Transaction - Awaiting Payment',
                 ]);
 
                 foreach ($request->items as $item) {
@@ -430,8 +532,9 @@ class PosController extends Controller
                     // Deduct stock across warehouses atomically
                     $remainingToDeduct = $item->quantity;
                     foreach ($stocks as $stock) {
-                        if ($remainingToDeduct <= 0)
+                        if ($remainingToDeduct <= 0) {
                             break;
+                        }
 
                         $deductFromThis = min($remainingToDeduct, $stock->quantity);
                         $before = $stock->quantity;
@@ -441,7 +544,7 @@ class PosController extends Controller
                             ->where('quantity', '>=', $deductFromThis)
                             ->decrement('quantity', $deductFromThis);
 
-                        if (!$updated) {
+                        if (! $updated) {
                             throw new \Exception("Failed to deduct stock for {$item->product->name}. Please try again.");
                         }
 
@@ -464,6 +567,9 @@ class PosController extends Controller
             });
 
             ActivityLog::record('pos_payment_completed', "POS payment completed #{$order->number}", $order);
+
+            // Invalidate product cache karena stok berubah
+            Cache::forget("pos_products_{$order->tenant_id}");
 
             $this->fireWebhook('order.completed', $order->load('items')->toArray());
 
@@ -488,7 +594,7 @@ class PosController extends Controller
     {
         $request->validate([
             'order_id' => 'required|integer',
-            'email'    => 'required|email|max:255',
+            'email' => 'required|email|max:255',
         ]);
 
         $tenantId = auth()->user()->tenant_id;
@@ -521,7 +627,7 @@ class PosController extends Controller
     {
         $request->validate([
             'order_id' => 'required|integer',
-            'phone'    => 'required|string|max:20',
+            'phone' => 'required|string|max:20',
         ]);
 
         $tenantId = auth()->user()->tenant_id;
@@ -533,7 +639,7 @@ class PosController extends Controller
         try {
             $wa = new WhatsAppService($tenantId);
 
-            if (!$wa->isConfigured()) {
+            if (! $wa->isConfigured()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'WhatsApp belum dikonfigurasi. Silakan setup di Pengaturan → WhatsApp.',
@@ -541,7 +647,7 @@ class PosController extends Controller
             }
 
             $message = $this->buildWhatsAppReceiptMessage($order);
-            $result  = $wa->sendMessage($request->phone, $message);
+            $result = $wa->sendMessage($request->phone, $message);
 
             if ($result['status'] === 'success') {
                 ActivityLog::record('pos_receipt_whatsapp', "Struk #{$order->number} dikirim ke WA {$request->phone}", $order);
@@ -570,21 +676,21 @@ class PosController extends Controller
     private function buildWhatsAppReceiptMessage(SalesOrder $order): string
     {
         $storeName = $order->tenant?->name ?? config('app.name', 'Toko');
-        $lines     = [];
+        $lines = [];
 
-        $lines[] = "🧾 *STRUK PEMBELIAN*";
+        $lines[] = '🧾 *STRUK PEMBELIAN*';
         $lines[] = "*{$storeName}*";
         $lines[] = str_repeat('─', 28);
         $lines[] = "No. Transaksi: *#{$order->number}*";
-        $lines[] = "Tanggal: " . ($order->date ? \Carbon\Carbon::parse($order->date)->format('d/m/Y H:i') : now()->format('d/m/Y H:i'));
+        $lines[] = 'Tanggal: ' . ($order->date ? Carbon::parse($order->date)->format('d/m/Y H:i') : now()->format('d/m/Y H:i'));
         if ($order->customer) {
             $lines[] = "Pelanggan: {$order->customer->name}";
         }
         $lines[] = str_repeat('─', 28);
 
         foreach ($order->items as $item) {
-            $name  = $item->product?->name ?? 'Produk';
-            $qty   = $item->quantity;
+            $name = $item->product?->name ?? 'Produk';
+            $qty = $item->quantity;
             $total = number_format($item->total, 0, ',', '.');
             $lines[] = "{$name} x{$qty}";
             $lines[] = "  Rp {$total}";
@@ -593,24 +699,24 @@ class PosController extends Controller
         $lines[] = str_repeat('─', 28);
 
         if ($order->discount > 0) {
-            $lines[] = "Diskon: -Rp " . number_format($order->discount, 0, ',', '.');
+            $lines[] = 'Diskon: -Rp ' . number_format($order->discount, 0, ',', '.');
         }
         if ($order->tax > 0) {
-            $lines[] = "Pajak: Rp " . number_format($order->tax, 0, ',', '.');
+            $lines[] = 'Pajak: Rp ' . number_format($order->tax, 0, ',', '.');
         }
 
-        $lines[] = "*TOTAL: Rp " . number_format($order->total, 0, ',', '.') . "*";
-        $lines[] = "Metode: " . strtoupper($order->payment_method ?? '-');
+        $lines[] = '*TOTAL: Rp ' . number_format($order->total, 0, ',', '.') . '*';
+        $lines[] = 'Metode: ' . strtoupper($order->payment_method ?? '-');
 
         if ($order->paid_amount) {
-            $lines[] = "Dibayar: Rp " . number_format($order->paid_amount, 0, ',', '.');
+            $lines[] = 'Dibayar: Rp ' . number_format($order->paid_amount, 0, ',', '.');
         }
         if ($order->change_amount > 0) {
-            $lines[] = "Kembalian: Rp " . number_format($order->change_amount, 0, ',', '.');
+            $lines[] = 'Kembalian: Rp ' . number_format($order->change_amount, 0, ',', '.');
         }
 
         $lines[] = str_repeat('─', 28);
-        $lines[] = "_Terima kasih atas kunjungan Anda!_ 🙏";
+        $lines[] = '_Terima kasih atas kunjungan Anda!_ 🙏';
 
         return implode("\n", $lines);
     }
@@ -618,7 +724,7 @@ class PosController extends Controller
     /**
      * Ambil saldo poin loyalty pelanggan untuk ditampilkan di POS.
      */
-    public function getLoyaltyBalance(\App\Models\Customer $customer)
+    public function getLoyaltyBalance(Customer $customer)
     {
         $tenantId = auth()->user()->tenant_id;
 
@@ -627,8 +733,8 @@ class PosController extends Controller
         }
 
         $loyaltyService = app(LoyaltyService::class);
-        $balance        = $loyaltyService->getBalance($tenantId, $customer->id);
-        $earnPreview    = 0;
+        $balance = $loyaltyService->getBalance($tenantId, $customer->id);
+        $earnPreview = 0;
 
         // Hitung poin yang akan diperoleh jika ada program aktif
         $program = $loyaltyService->getActiveProgram($tenantId);
@@ -637,20 +743,20 @@ class PosController extends Controller
         $minRedeem = $program ? (int) $program->min_redeem_points : 100;
 
         return response()->json([
-            'balance'          => $balance,
-            'idr_per_point'    => $idrPerPoint,
-            'min_redeem'       => $minRedeem,
+            'balance' => $balance,
+            'idr_per_point' => $idrPerPoint,
+            'min_redeem' => $minRedeem,
             'points_per_amount' => $pointsPerAmount,
-            'program_active'   => $program !== null,
+            'program_active' => $program !== null,
         ]);
     }
 
     public function findByBarcode(Request $request)
     {
         $tenantId = auth()->user()->tenant_id;
-        $barcode  = trim($request->barcode ?? '');
+        $barcode = trim($request->barcode ?? '');
 
-        if (!$barcode) {
+        if (! $barcode) {
             return response()->json(['status' => 'not_found'], 404);
         }
 
@@ -668,20 +774,20 @@ class PosController extends Controller
                 ->first();
         });
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['status' => 'not_found'], 404);
         }
 
         $product->total_stock = (int) ($product->product_stocks_sum_quantity ?? 0);
 
         return response()->json([
-            'id'        => $product->id,
-            'name'      => $product->name,
-            'sku'       => $product->sku,
-            'barcode'   => $product->barcode,
-            'price'     => (float) $product->price_sell,
-            'stock'     => $product->total_stock,
-            'unit'      => $product->unit,
+            'id' => $product->id,
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+            'price' => (float) $product->price_sell,
+            'stock' => $product->total_stock,
+            'unit' => $product->unit,
             'image_url' => $product->image,
         ]);
     }
@@ -693,7 +799,7 @@ class PosController extends Controller
     public function searchProducts(Request $request)
     {
         $tenantId = auth()->user()->tenant_id;
-        $query    = trim($request->get('q', ''));
+        $query = trim($request->get('q', ''));
 
         if ($query === '') {
             return response()->json([]);
@@ -713,18 +819,18 @@ class PosController extends Controller
                 })
                 ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image', 'unit')
                 ->withSum('productStocks', 'quantity')
-                ->orderByRaw("CASE WHEN barcode = ? OR sku = ? THEN 0 ELSE 1 END", [$query, $query]) // exact matches first
+                ->orderByRaw('CASE WHEN barcode = ? OR sku = ? THEN 0 ELSE 1 END', [$query, $query]) // exact matches first
                 ->limit(20)
                 ->get()
                 ->map(function ($p) {
                     return [
-                        'id'        => $p->id,
-                        'name'      => $p->name,
-                        'sku'       => $p->sku,
-                        'barcode'   => $p->barcode,
-                        'price'     => (float) $p->price_sell,
-                        'stock'     => (int) ($p->product_stocks_sum_quantity ?? 0),
-                        'unit'      => $p->unit,
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'sku' => $p->sku,
+                        'barcode' => $p->barcode,
+                        'price' => (float) $p->price_sell,
+                        'stock' => (int) ($p->product_stocks_sum_quantity ?? 0),
+                        'unit' => $p->unit,
                         'image_url' => $p->image,
                     ];
                 });
@@ -741,18 +847,18 @@ class PosController extends Controller
     public function syncOffline(Request $request)
     {
         $request->validate([
-            'transactions'              => 'required|array|min:1|max:100',
+            'transactions' => 'required|array|min:1|max:100',
             'transactions.*.offline_id' => 'required|string|max:100',
-            'transactions.*.items'      => 'required|array|min:1',
-            'transactions.*.items.*.id'    => 'required|integer',
-            'transactions.*.items.*.qty'   => 'required|integer|min:1',
+            'transactions.*.items' => 'required|array|min:1',
+            'transactions.*.items.*.id' => 'required|integer',
+            'transactions.*.items.*.qty' => 'required|integer|min:1',
             'transactions.*.items.*.price' => 'required|numeric|min:0',
             'transactions.*.payment_method' => 'required|string|in:cash,card,credit,qris,transfer,bank_transfer,split',
-            'transactions.*.paid_amount'    => 'required|numeric|min:0',
+            'transactions.*.paid_amount' => 'required|numeric|min:0',
         ]);
 
         $tenantId = auth()->user()->tenant_id;
-        $results  = [];
+        $results = [];
 
         foreach ($request->transactions as $txData) {
             $offlineId = $txData['offline_id'];
@@ -764,20 +870,21 @@ class PosController extends Controller
 
             if ($existing) {
                 $results[] = [
-                    'offline_id'   => $offlineId,
-                    'success'      => true,
-                    'skipped'      => true,
+                    'offline_id' => $offlineId,
+                    'success' => true,
+                    'skipped' => true,
                     'order_number' => $existing->number,
-                    'message'      => 'Transaksi sudah pernah disinkronisasi.',
+                    'message' => 'Transaksi sudah pernah disinkronisasi.',
                 ];
+
                 continue;
             }
 
             try {
                 $subtotal = collect($txData['items'])->sum(fn($i) => $i['qty'] * $i['price']);
                 $discount = $txData['discount'] ?? 0;
-                $tax      = $txData['tax'] ?? 0;
-                $total    = max(0, $subtotal - $discount + $tax);
+                $tax = $txData['tax'] ?? 0;
+                $total = max(0, $subtotal - $discount + $tax);
 
                 $validPaymentTypes = ['cash', 'credit', 'transfer', 'qris', 'card', 'bank_transfer', 'split'];
                 $paymentType = in_array($txData['payment_method'], $validPaymentTypes)
@@ -789,39 +896,39 @@ class PosController extends Controller
                         ->where('status', CashierSession::STATUS_OPEN)
                         ->first();
 
-                    $paidAmount   = (float) $txData['paid_amount'];
+                    $paidAmount = (float) $txData['paid_amount'];
                     $changeAmount = $paymentType === 'cash' ? max(0, $paidAmount - $total) : 0;
 
                     $order = SalesOrder::create([
-                        'tenant_id'          => $tenantId,
-                        'customer_id'        => $txData['customer_id'] ?? null,
-                        'user_id'            => auth()->id(),
+                        'tenant_id' => $tenantId,
+                        'customer_id' => $txData['customer_id'] ?? null,
+                        'user_id' => auth()->id(),
                         'cashier_session_id' => $activeSession?->id,
-                        'number'             => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
-                        'date'               => $txData['created_at'] ?? now(),
-                        'status'             => 'completed',
-                        'payment_type'       => $paymentType,
-                        'payment_method'     => $txData['payment_method'],
-                        'source'             => 'pos',
-                        'subtotal'           => $subtotal,
-                        'discount'           => $discount,
-                        'tax'                => $tax,
-                        'total'              => $total,
-                        'paid_amount'        => $paidAmount,
-                        'change_amount'      => $changeAmount,
-                        'split_payments'     => $paymentType === 'split' ? ($txData['split_payments'] ?? null) : null,
-                        'completed_at'       => $txData['created_at'] ?? now(),
-                        'notes'              => "POS Offline Sync | offline_id:{$offlineId}",
+                        'number' => 'POS-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5)),
+                        'date' => $txData['created_at'] ?? now(),
+                        'status' => 'completed',
+                        'payment_type' => $paymentType,
+                        'payment_method' => $txData['payment_method'],
+                        'source' => 'pos',
+                        'subtotal' => $subtotal,
+                        'discount' => $discount,
+                        'tax' => $tax,
+                        'total' => $total,
+                        'paid_amount' => $paidAmount,
+                        'change_amount' => $changeAmount,
+                        'split_payments' => $paymentType === 'split' ? ($txData['split_payments'] ?? null) : null,
+                        'completed_at' => $txData['created_at'] ?? now(),
+                        'notes' => "POS Offline Sync | offline_id:{$offlineId}",
                     ]);
 
                     foreach ($txData['items'] as $item) {
                         SalesOrderItem::create([
                             'sales_order_id' => $order->id,
-                            'product_id'     => $item['id'],
-                            'quantity'       => $item['qty'],
-                            'price'          => $item['price'],
-                            'discount'       => 0,
-                            'total'          => $item['qty'] * $item['price'],
+                            'product_id' => $item['id'],
+                            'quantity' => $item['qty'],
+                            'price' => $item['price'],
+                            'discount' => 0,
+                            'total' => $item['qty'] * $item['price'],
                         ]);
 
                         $stocks = ProductStock::where('product_id', $item['id'])
@@ -841,7 +948,9 @@ class PosController extends Controller
 
                         $remainingToDeduct = $item['qty'];
                         foreach ($stocks as $stock) {
-                            if ($remainingToDeduct <= 0) break;
+                            if ($remainingToDeduct <= 0) {
+                                break;
+                            }
 
                             $deductFromThis = min($remainingToDeduct, $stock->quantity);
                             $before = $stock->quantity;
@@ -850,21 +959,21 @@ class PosController extends Controller
                                 ->where('quantity', '>=', $deductFromThis)
                                 ->decrement('quantity', $deductFromThis);
 
-                            if (!$updated) {
+                            if (! $updated) {
                                 throw new \Exception("Gagal mengurangi stok produk ID {$item['id']}. Silakan coba lagi.");
                             }
 
                             StockMovement::create([
-                                'tenant_id'       => $tenantId,
-                                'product_id'      => $item['id'],
-                                'warehouse_id'    => $stock->warehouse_id,
-                                'user_id'         => auth()->id(),
-                                'type'            => 'out',
-                                'quantity'        => $deductFromThis,
+                                'tenant_id' => $tenantId,
+                                'product_id' => $item['id'],
+                                'warehouse_id' => $stock->warehouse_id,
+                                'user_id' => auth()->id(),
+                                'type' => 'out',
+                                'quantity' => $deductFromThis,
                                 'quantity_before' => $before,
-                                'quantity_after'  => $before - $deductFromThis,
-                                'reference'       => $order->number,
-                                'notes'           => 'POS Offline Sync',
+                                'quantity_after' => $before - $deductFromThis,
+                                'reference' => $order->number,
+                                'notes' => 'POS Offline Sync',
                             ]);
 
                             $remainingToDeduct -= $deductFromThis;
@@ -877,32 +986,32 @@ class PosController extends Controller
                 ActivityLog::record('pos_offline_sync', "POS offline sync #{$order->number} (offline_id: {$offlineId})", $order);
 
                 $results[] = [
-                    'offline_id'   => $offlineId,
-                    'success'      => true,
-                    'skipped'      => false,
+                    'offline_id' => $offlineId,
+                    'success' => true,
+                    'skipped' => false,
                     'order_number' => $order->number,
-                    'order_id'     => $order->id,
-                    'message'      => 'Transaksi berhasil disinkronisasi.',
+                    'order_id' => $order->id,
+                    'message' => 'Transaksi berhasil disinkronisasi.',
                 ];
             } catch (\Throwable $e) {
                 $results[] = [
                     'offline_id' => $offlineId,
-                    'success'    => false,
-                    'skipped'    => false,
-                    'message'    => $e->getMessage(),
+                    'success' => false,
+                    'skipped' => false,
+                    'message' => $e->getMessage(),
                 ];
             }
         }
 
         $successCount = collect($results)->where('success', true)->count();
-        $failCount    = collect($results)->where('success', false)->count();
+        $failCount = collect($results)->where('success', false)->count();
 
         return response()->json([
-            'status'        => $failCount === 0 ? 'success' : ($successCount > 0 ? 'partial' : 'error'),
-            'synced'        => $successCount,
-            'failed'        => $failCount,
-            'results'       => $results,
-            'message'       => "{$successCount} transaksi berhasil disinkronisasi" . ($failCount > 0 ? ", {$failCount} gagal." : "."),
+            'status' => $failCount === 0 ? 'success' : ($successCount > 0 ? 'partial' : 'error'),
+            'synced' => $successCount,
+            'failed' => $failCount,
+            'results' => $results,
+            'message' => "{$successCount} transaksi berhasil disinkronisasi" . ($failCount > 0 ? ", {$failCount} gagal." : '.'),
         ]);
     }
 }

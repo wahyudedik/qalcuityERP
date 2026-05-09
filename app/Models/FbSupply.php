@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FbSupply extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -77,6 +76,7 @@ class FbSupply extends Model
         } elseif ($this->needsRestock()) {
             return 'low_stock';
         }
+
         return 'in_stock';
     }
 
@@ -117,7 +117,7 @@ class FbSupply extends Model
     /**
      * Deduct stock (for usage)
      */
-    public function deductStock(float $quantity, string $reference = null, string $notes = null): void
+    public function deductStock(float $quantity, ?string $reference = null, ?string $notes = null): void
     {
         if ($this->current_stock < $quantity) {
             throw new \Exception("Insufficient stock for {$this->name}. Available: {$this->current_stock}, Required: {$quantity}");

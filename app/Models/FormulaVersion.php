@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FormulaVersion extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'formula_id',
@@ -44,6 +44,7 @@ class FormulaVersion extends Model
     public function isMajorVersion(): bool
     {
         $parts = explode('.', str_replace('v', '', $this->version_number));
+
         return isset($parts[1]) && $parts[1] == '0';
     }
 
@@ -53,8 +54,9 @@ class FormulaVersion extends Model
     public function getVersionFormattedAttribute(): string
     {
         if (strpos($this->version_number, 'v') !== 0) {
-            return 'v' . $this->version_number;
+            return 'v'.$this->version_number;
         }
+
         return $this->version_number;
     }
 
@@ -80,13 +82,13 @@ class FormulaVersion extends Model
             $parts[0] = (int) $parts[0] + 1;
             $parts[1] = 0;
         } else {
-            if (!isset($parts[1])) {
+            if (! isset($parts[1])) {
                 $parts[1] = 0;
             }
             $parts[1] = (int) $parts[1] + 1;
         }
 
-        return 'v' . implode('.', $parts);
+        return 'v'.implode('.', $parts);
     }
 
     /**

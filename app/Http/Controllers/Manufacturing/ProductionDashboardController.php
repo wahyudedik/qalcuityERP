@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Production Dashboard Controller
- * 
+ *
  * TASK-2.18: Comprehensive production analytics dashboard
  */
 class ProductionDashboardController extends Controller
@@ -210,10 +210,11 @@ class ProductionDashboardController extends Controller
         }
 
         $onTime = $completed->filter(function ($wo) {
-            /** @var \Carbon\Carbon $actualEnd */
+            /** @var Carbon $actualEnd */
             $actualEnd = $wo->actual_end_date;
-            /** @var \Carbon\Carbon $plannedEnd */
+            /** @var Carbon $plannedEnd */
             $plannedEnd = $wo->planned_end_date;
+
             return $actualEnd->lte($plannedEnd);
         })->count();
 

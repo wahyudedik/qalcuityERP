@@ -3,8 +3,8 @@
 namespace App\Services\Marketplace;
 
 use App\Models\ApiKey;
-use App\Models\ApiUsageLog;
 use App\Models\ApiSubscription;
+use App\Models\ApiUsageLog;
 use Illuminate\Support\Str;
 
 class ApiMonetizationService
@@ -17,7 +17,7 @@ class ApiMonetizationService
         return ApiKey::create([
             'tenant_id' => $tenantId,
             'user_id' => $userId,
-            'key' => 'ak_' . Str::random(40),
+            'key' => 'ak_'.Str::random(40),
             'name' => $name,
             'permissions' => $permissions,
             'rate_limit' => $rateLimit,
@@ -34,7 +34,7 @@ class ApiMonetizationService
             ->where('is_active', true)
             ->first();
 
-        if (!$key) {
+        if (! $key) {
             return null;
         }
 
@@ -77,13 +77,14 @@ class ApiMonetizationService
     {
         $key = ApiKey::find($apiKeyId);
 
-        if (!$key) {
+        if (! $key) {
             return false;
         }
 
         // Reset counter if new hour
         if ($key->last_used_at && $key->last_used_at->hour !== now()->hour) {
             $key->update(['requests_used' => 0]);
+
             return true;
         }
 

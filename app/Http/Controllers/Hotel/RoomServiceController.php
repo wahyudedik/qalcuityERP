@@ -53,18 +53,21 @@ class RoomServiceController extends Controller
     public function showOrder(int $id)
     {
         $order = FbOrder::with(['items.menuItem', 'guest', 'reservation.room'])->findOrFail($id);
+
         return view('hotel.fb.roomservice.orders.show', compact('order'));
     }
 
     public function deliverOrder(int $id)
     {
         $order = $this->orderService->updateOrderStatus($id, 'served');
+
         return back()->with('success', 'Order marked as delivered');
     }
 
     public function chargeToRoom(int $id)
     {
         $order = $this->orderService->processPayment($id, 'room_charge');
+
         return back()->with('success', 'Charged to room successfully');
     }
 

@@ -37,6 +37,7 @@ class MedicalCertificateController extends Controller
     public function create()
     {
         $patients = Patient::where('is_active', true)->get();
+
         return view('healthcare.medical-certificates.create', compact('patients'));
     }
 
@@ -51,7 +52,7 @@ class MedicalCertificateController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['certificate_number'] = 'MC-' . now()->format('Ymd') . '-' . str_pad(MedicalCertificate::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['certificate_number'] = 'MC-'.now()->format('Ymd').'-'.str_pad(MedicalCertificate::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['doctor_id'] = Auth::id();
         $validated['status'] = 'approved';
 
@@ -64,20 +65,24 @@ class MedicalCertificateController extends Controller
     public function show(MedicalCertificate $certificate)
     {
         $certificate->load(['patient', 'doctor']);
+
         return view('healthcare.medical-certificates.show', compact('certificate'));
     }
 
     public function print(MedicalCertificate $certificate)
     {
         $certificate->load(['patient', 'doctor']);
+
         return view('healthcare.medical-certificates.print', compact('certificate'));
     }
 
     public function destroy(MedicalCertificate $certificate)
     {
         $certificate->delete();
+
         return response()->json(['success' => true, 'message' => 'Certificate deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/medical-certificates/{medical_certificate}/edit
@@ -85,9 +90,10 @@ class MedicalCertificateController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.medical-certificate.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/medical-certificates/{medical_certificate}
@@ -95,13 +101,13 @@ class MedicalCertificateController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.medical-certificates.update')
             ->with('success', 'Updated successfully.');
     }

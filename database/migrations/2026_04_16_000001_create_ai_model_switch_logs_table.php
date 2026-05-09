@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('ai_model_switch_logs')) {
+        if (! Schema::hasTable('ai_model_switch_logs')) {
             Schema::create('ai_model_switch_logs', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('from_model', 100);
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->unsignedInteger('triggered_by_tenant_id')->nullable();
                 $table->timestamp('switched_at')->useCurrent();
                 $table->timestamps();
-    
+
                 $table->index('switched_at', 'idx_switched_at');
                 $table->index('reason', 'idx_reason');
                 $table->index('triggered_by_tenant_id', 'idx_tenant');

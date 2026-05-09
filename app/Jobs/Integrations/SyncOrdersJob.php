@@ -15,8 +15,11 @@ class SyncOrdersJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected Integration $integration;
+
     public $timeout = 300;
+
     public $tries = 3;
+
     public $backoff = 60;
 
     public function __construct(Integration $integration)
@@ -34,10 +37,11 @@ class SyncOrdersJob implements ShouldQueue
             $connectorClass = $this->integration->getConnectorClass();
             $connector = new $connectorClass($this->integration);
 
-            if (!$connector->isConnected()) {
+            if (! $connector->isConnected()) {
                 Log::error('Integration not connected', [
                     'integration' => $this->integration->slug,
                 ]);
+
                 return;
             }
 

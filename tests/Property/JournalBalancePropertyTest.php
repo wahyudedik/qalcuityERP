@@ -15,7 +15,7 @@ use Tests\TestCase;
  * Property-Based Tests for Journal Entry Balance Invariant.
  *
  * Feature: erp-comprehensive-audit-fix
- * 
+ *
  * **Validates: Requirements 10.2**
  */
 class JournalBalancePropertyTest extends TestCase
@@ -32,14 +32,14 @@ class JournalBalancePropertyTest extends TestCase
      * **Validates: Requirements 10.2**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testJournalBalanceInvariant(): void
+    public function test_journal_balance_invariant(): void
     {
         $this
             ->forAll(
                 Generators::choose(1, 10),  // number of journal lines
                 Generators::choose(100, 10000)  // base amount
             )
-            ->then(function($lineCount, $baseAmount) {
+            ->then(function ($lineCount, $baseAmount) {
                 // Create tenant, user, and seed COA
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -51,14 +51,14 @@ class JournalBalancePropertyTest extends TestCase
                     ->limit(10)
                     ->get();
 
-                $this->assertGreaterThan(0, $accounts->count(), 
-                    "Must have at least one account to create journal entries");
+                $this->assertGreaterThan(0, $accounts->count(),
+                    'Must have at least one account to create journal entries');
 
                 // Create a journal entry
                 $journal = JournalEntry::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
-                    'number' => 'JE-' . uniqid(),
+                    'number' => 'JE-'.uniqid(),
                     'date' => now(),
                     'description' => 'Property test journal',
                     'status' => 'draft',
@@ -79,7 +79,7 @@ class JournalBalancePropertyTest extends TestCase
                         'account_id' => $account->id,
                         'debit' => $amount,
                         'credit' => 0,
-                        'description' => 'Debit line ' . $i,
+                        'description' => 'Debit line '.$i,
                     ]);
                     $totalDebit += $amount;
 
@@ -90,7 +90,7 @@ class JournalBalancePropertyTest extends TestCase
                         'account_id' => $creditAccount->id,
                         'debit' => 0,
                         'credit' => $amount,
-                        'description' => 'Credit line ' . $i,
+                        'description' => 'Credit line '.$i,
                     ]);
                     $totalCredit += $amount;
                 }
@@ -106,21 +106,21 @@ class JournalBalancePropertyTest extends TestCase
                 $this->assertLessThan(
                     0.01,
                     $difference,
-                    "Journal entry must be balanced (debit = credit). " .
+                    'Journal entry must be balanced (debit = credit). '.
                     "Debit: {$actualDebit}, Credit: {$actualCredit}, Difference: {$difference}"
                 );
 
                 $this->assertTrue(
                     $journal->isBalanced(),
-                    "Journal->isBalanced() must return true for balanced journal"
+                    'Journal->isBalanced() must return true for balanced journal'
                 );
 
                 // Verify the journal can be validated without throwing exception
                 try {
                     $journal->validateBalance();
-                    $this->assertTrue(true, "validateBalance() should not throw for balanced journal");
+                    $this->assertTrue(true, 'validateBalance() should not throw for balanced journal');
                 } catch (\RuntimeException $e) {
-                    $this->fail("validateBalance() threw exception for balanced journal: " . $e->getMessage());
+                    $this->fail('validateBalance() threw exception for balanced journal: '.$e->getMessage());
                 }
             });
     }
@@ -134,14 +134,14 @@ class JournalBalancePropertyTest extends TestCase
      * **Validates: Requirements 10.2**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testUnbalancedJournalRejection(): void
+    public function test_unbalanced_journal_rejection(): void
     {
         $this
             ->forAll(
                 Generators::choose(100, 10000),  // debit amount
                 Generators::choose(1, 100)       // difference amount (makes it unbalanced)
             )
-            ->then(function($debitAmount, $difference) {
+            ->then(function ($debitAmount, $difference) {
                 // Create tenant, user, and seed COA
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -159,7 +159,7 @@ class JournalBalancePropertyTest extends TestCase
                 $journal = JournalEntry::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
-                    'number' => 'JE-UNBAL-' . uniqid(),
+                    'number' => 'JE-UNBAL-'.uniqid(),
                     'date' => now(),
                     'description' => 'Unbalanced journal test',
                     'status' => 'draft',

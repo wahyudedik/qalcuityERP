@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\WorkOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class MaterialShortageNotification extends Notification implements ShouldQueue
@@ -21,17 +22,17 @@ class MaterialShortageNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'material_shortage', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
@@ -42,7 +43,7 @@ class MaterialShortageNotification extends Notification implements ShouldQueue
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Work Order **#{$this->workOrder->wo_number}** tidak dapat diproses karena kekurangan material.")
             ->line("**Produk:** {$this->workOrder->product->name}")
-            ->line("**Material yang kurang:**");
+            ->line('**Material yang kurang:**');
 
         foreach ($this->shortageItems as $item) {
             $mail->line("• **{$item['material_name']}**: Butuh {$item['required']} {$item['unit']}, Tersedia {$item['available']} {$item['unit']}");

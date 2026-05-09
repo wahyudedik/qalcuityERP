@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\RedisHealthService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -18,8 +18,6 @@ class RedisHealthController extends Controller
 {
     /**
      * Redis health service instance
-     *
-     * @var RedisHealthService
      */
     private RedisHealthService $redisHealth;
 
@@ -33,17 +31,16 @@ class RedisHealthController extends Controller
         // Only super admin users can access Redis health monitoring
         $this->middleware('auth');
         $this->middleware(function ($request, $next) {
-            if (!auth()->user()->is_super_admin) {
+            if (! auth()->user()->is_super_admin) {
                 abort(403, 'Access denied. Super admin privileges required.');
             }
+
             return $next($request);
         });
     }
 
     /**
      * Display Redis health monitoring dashboard
-     *
-     * @return View
      */
     public function index(): View
     {
@@ -60,9 +57,6 @@ class RedisHealthController extends Controller
 
     /**
      * Get Redis health status as JSON
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function status(Request $request): JsonResponse
     {
@@ -84,9 +78,6 @@ class RedisHealthController extends Controller
 
     /**
      * Test specific Redis connection
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function testConnection(Request $request): JsonResponse
     {
@@ -107,9 +98,6 @@ class RedisHealthController extends Controller
 
     /**
      * Clear Redis health cache
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function clearCache(Request $request): JsonResponse
     {
@@ -128,8 +116,6 @@ class RedisHealthController extends Controller
 
     /**
      * Get Redis health metrics for dashboard charts
-     *
-     * @return JsonResponse
      */
     public function metrics(): JsonResponse
     {
@@ -141,7 +127,7 @@ class RedisHealthController extends Controller
         $dashboardMetrics = [
             'current_status' => $currentHealth['overall_healthy'],
             'total_connections' => count($currentHealth['connections']),
-            'healthy_connections' => count(array_filter($currentHealth['connections'], fn($c) => $c['healthy'])),
+            'healthy_connections' => count(array_filter($currentHealth['connections'], fn ($c) => $c['healthy'])),
             'average_response_time' => $this->calculateAverageResponseTime($currentHealth['connections']),
             'last_check' => $currentHealth['timestamp'],
             'cached_metrics' => $metrics,
@@ -157,8 +143,6 @@ class RedisHealthController extends Controller
 
     /**
      * Validate Redis configuration
-     *
-     * @return JsonResponse
      */
     public function validateConfiguration(): JsonResponse
     {
@@ -177,15 +161,12 @@ class RedisHealthController extends Controller
 
     /**
      * Calculate average response time from connections
-     *
-     * @param array $connections
-     * @return float
      */
     private function calculateAverageResponseTime(array $connections): float
     {
-        $responseTimes = array_map(fn($c) => $c['response_time'], $connections);
-        $validTimes = array_filter($responseTimes, fn($time) => is_numeric($time) && $time > 0);
+        $responseTimes = array_map(fn ($c) => $c['response_time'], $connections);
+        $validTimes = array_filter($responseTimes, fn ($time) => is_numeric($time) && $time > 0);
 
-        return !empty($validTimes) ? round(array_sum($validTimes) / count($validTimes), 2) : 0.0;
+        return ! empty($validTimes) ? round(array_sum($validTimes) / count($validTimes), 2) : 0.0;
     }
 }

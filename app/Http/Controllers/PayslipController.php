@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CompanyProfile;
 use App\Models\Employee;
-use App\Models\PayrollItem;
 use App\Models\OvertimeRequest;
+use App\Models\PayrollItem;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 
 class PayslipController extends Controller
 {
@@ -15,6 +14,7 @@ class PayslipController extends Controller
     private function myEmployee(): ?Employee
     {
         $user = auth()->user();
+
         return Employee::where('tenant_id', $user->tenant_id)
             ->where('user_id', $user->id)
             ->first();
@@ -25,7 +25,7 @@ class PayslipController extends Controller
     {
         $employee = $this->myEmployee();
 
-        if (!$employee) {
+        if (! $employee) {
             return view('payroll.slip-index', ['items' => collect(), 'employee' => null]);
         }
 
@@ -108,8 +108,8 @@ class PayslipController extends Controller
         $pdf = Pdf::loadView('pdf.payslip', compact('item', 'overtimes', 'companyName', 'profile'))
             ->setPaper('a4', 'portrait');
 
-        $period   = $item->payrollRun?->period ?? 'slip';
-        $empName  = str_replace(' ', '_', $item->employee?->name ?? 'karyawan');
+        $period = $item->payrollRun?->period ?? 'slip';
+        $empName = str_replace(' ', '_', $item->employee?->name ?? 'karyawan');
         $filename = "slip_gaji_{$empName}_{$period}.pdf";
 
         return $pdf->download($filename);

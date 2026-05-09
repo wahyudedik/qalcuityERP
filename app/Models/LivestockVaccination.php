@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivestockVaccination extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'livestock_herd_id',
         'tenant_id',
@@ -30,9 +30,9 @@ class LivestockVaccination extends Model
     protected function casts(): array
     {
         return [
-            'scheduled_date'    => 'date',
+            'scheduled_date' => 'date',
             'administered_date' => 'date',
-            'cost'              => 'decimal:2',
+            'cost' => 'decimal:2',
         ];
     }
 
@@ -40,10 +40,12 @@ class LivestockVaccination extends Model
     {
         return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id');
     }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -89,33 +91,40 @@ class LivestockVaccination extends Model
     {
         $schedule = match ($herd->animal_type) {
             'ayam_broiler' => self::BROILER_SCHEDULE,
-            'ayam_layer'   => self::LAYER_SCHEDULE,
-            default        => [],
+            'ayam_layer' => self::LAYER_SCHEDULE,
+            default => [],
         };
 
-        if (empty($schedule) || !$herd->entry_date) return 0;
+        if (empty($schedule) || ! $herd->entry_date) {
+            return 0;
+        }
 
         $count = 0;
         foreach ($schedule as $vax) {
             $scheduledDate = $herd->entry_date->copy()->addDays($vax['day'] - $herd->entry_age_days);
-            if ($scheduledDate->isPast() && $scheduledDate->diffInDays(now()) > 7) continue; // skip long past
+            if ($scheduledDate->isPast() && $scheduledDate->diffInDays(now()) > 7) {
+                continue;
+            } // skip long past
 
             $exists = self::where('livestock_herd_id', $herd->id)
                 ->where('vaccine_name', $vax['vaccine'])
                 ->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             self::create([
                 'livestock_herd_id' => $herd->id,
-                'tenant_id'         => $herd->tenant_id,
-                'vaccine_name'      => $vax['vaccine'],
-                'scheduled_date'    => $scheduledDate,
-                'dose_age_days'     => $vax['day'],
-                'dose_method'       => $vax['method'],
-                'status'            => 'scheduled',
+                'tenant_id' => $herd->tenant_id,
+                'vaccine_name' => $vax['vaccine'],
+                'scheduled_date' => $scheduledDate,
+                'dose_age_days' => $vax['day'],
+                'dose_method' => $vax['method'],
+                'status' => 'scheduled',
             ]);
             $count++;
         }
+
         return $count;
     }
 }

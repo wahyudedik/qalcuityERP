@@ -3,24 +3,31 @@
 namespace App\Exports;
 
 use App\Services\FinancialStatementService;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class IncomeStatementExport implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class IncomeStatementExport implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $from,
         protected string $to,
         protected string $tenantName = 'Qalcuity ERP',
     ) {}
 
-    public function title(): string { return 'Laba Rugi'; }
+    public function title(): string
+    {
+        return 'Laba Rugi';
+    }
 
-    public function columnWidths(): array { return ['A' => 12, 'B' => 40, 'C' => 20]; }
+    public function columnWidths(): array
+    {
+        return ['A' => 12, 'B' => 40, 'C' => 20];
+    }
 
     public function styles(Worksheet $sheet): array
     {
@@ -33,12 +40,12 @@ class IncomeStatementExport implements FromArray, WithTitle, WithStyles, WithCol
     public function array(): array
     {
         $data = app(FinancialStatementService::class)->incomeStatement($this->tenantId, $this->from, $this->to);
-        $fmt  = fn($n) => round((float) $n, 2);
+        $fmt = fn ($n) => round((float) $n, 2);
         $rows = [];
 
         $rows[] = [$this->tenantName];
         $rows[] = ['LAPORAN LABA RUGI (INCOME STATEMENT)'];
-        $rows[] = ['Periode: ' . \Carbon\Carbon::parse($this->from)->format('d M Y') . ' s/d ' . \Carbon\Carbon::parse($this->to)->format('d M Y')];
+        $rows[] = ['Periode: '.Carbon::parse($this->from)->format('d M Y').' s/d '.Carbon::parse($this->to)->format('d M Y')];
         $rows[] = [];
         $rows[] = ['KODE', 'KETERANGAN', 'JUMLAH (Rp)'];
 
@@ -69,7 +76,7 @@ class IncomeStatementExport implements FromArray, WithTitle, WithStyles, WithCol
         $rows[] = [];
 
         // Other
-        if (!empty($data['other_expense']['items']) && count($data['other_expense']['items']) > 0) {
+        if (! empty($data['other_expense']['items']) && count($data['other_expense']['items']) > 0) {
             $rows[] = ['', '=== BEBAN LAIN-LAIN ===', ''];
             foreach ($data['other_expense']['items'] as $acc) {
                 $rows[] = [$acc['code'], $acc['name'], $fmt($acc['balance'])];

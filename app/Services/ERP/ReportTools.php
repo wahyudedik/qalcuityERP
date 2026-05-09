@@ -2,24 +2,19 @@
 
 namespace App\Services\ERP;
 
-use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Payable;
-use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\Project;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\Transaction;
-use App\Models\WorkOrder;
 use Carbon\Carbon;
 
 class ReportTools
 {
-    public function __construct(protected int $tenantId, protected int $userId)
-    {
-    }
+    public function __construct(protected int $tenantId, protected int $userId) {}
 
     // ─── Tool Definitions ─────────────────────────────────────────
 
@@ -29,9 +24,9 @@ class ReportTools
             [
                 'name' => 'get_profit_loss',
                 'description' => 'Laporan laba rugi detail per periode. Gunakan untuk: '
-                    . '"laporan laba rugi bulan ini", "P&L Januari", '
-                    . '"untung rugi minggu ini", "analisis laba bulan lalu", '
-                    . '"berapa profit bersih bulan ini?".',
+                    .'"laporan laba rugi bulan ini", "P&L Januari", '
+                    .'"untung rugi minggu ini", "analisis laba bulan lalu", '
+                    .'"berapa profit bersih bulan ini?".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -44,9 +39,9 @@ class ReportTools
             [
                 'name' => 'get_sales_trend',
                 'description' => 'Analisis tren penjualan per hari/minggu/bulan. Gunakan untuk: '
-                    . '"tren penjualan 7 hari terakhir", "grafik omzet bulan ini", '
-                    . '"penjualan per hari minggu ini", "produk terlaris bulan ini", '
-                    . '"perbandingan penjualan bulan ini vs bulan lalu".',
+                    .'"tren penjualan 7 hari terakhir", "grafik omzet bulan ini", '
+                    .'"penjualan per hari minggu ini", "produk terlaris bulan ini", '
+                    .'"perbandingan penjualan bulan ini vs bulan lalu".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -59,9 +54,9 @@ class ReportTools
             [
                 'name' => 'get_expense_breakdown',
                 'description' => 'Rincian pengeluaran per kategori. Gunakan untuk: '
-                    . '"pengeluaran terbesar bulan ini", "breakdown biaya operasional", '
-                    . '"kategori pengeluaran apa yang paling besar?", '
-                    . '"analisis biaya bulan ini".',
+                    .'"pengeluaran terbesar bulan ini", "breakdown biaya operasional", '
+                    .'"kategori pengeluaran apa yang paling besar?", '
+                    .'"analisis biaya bulan ini".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -74,9 +69,9 @@ class ReportTools
             [
                 'name' => 'get_receivables_report',
                 'description' => 'Laporan piutang dan hutang lengkap. Gunakan untuk: '
-                    . '"laporan piutang bulan ini", "total hutang ke supplier", '
-                    . '"aging piutang detail", "cashflow dari piutang", '
-                    . '"berapa total yang belum dibayar customer?".',
+                    .'"laporan piutang bulan ini", "total hutang ke supplier", '
+                    .'"aging piutang detail", "cashflow dari piutang", '
+                    .'"berapa total yang belum dibayar customer?".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -88,9 +83,9 @@ class ReportTools
             [
                 'name' => 'get_inventory_valuation',
                 'description' => 'Valuasi inventori dan analisis pergerakan stok. Gunakan untuk: '
-                    . '"nilai total inventori", "valuasi stok gudang", '
-                    . '"produk mana yang nilainya paling besar?", '
-                    . '"analisis perputaran stok", "dead stock ada berapa?".',
+                    .'"nilai total inventori", "valuasi stok gudang", '
+                    .'"produk mana yang nilainya paling besar?", '
+                    .'"analisis perputaran stok", "dead stock ada berapa?".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -102,8 +97,8 @@ class ReportTools
             [
                 'name' => 'get_hrm_report',
                 'description' => 'Laporan SDM: kehadiran, produktivitas, dan ringkasan karyawan. Gunakan untuk: '
-                    . '"laporan absensi bulan ini", "rekap kehadiran karyawan", '
-                    . '"siapa yang paling sering absen?", "produktivitas tim bulan ini".',
+                    .'"laporan absensi bulan ini", "rekap kehadiran karyawan", '
+                    .'"siapa yang paling sering absen?", "produktivitas tim bulan ini".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -116,8 +111,8 @@ class ReportTools
             [
                 'name' => 'get_project_financial_report',
                 'description' => 'Laporan keuangan proyek: realisasi vs budget, profitabilitas. Gunakan untuk: '
-                    . '"laporan keuangan semua proyek", "proyek mana yang over budget?", '
-                    . '"profitabilitas proyek bulan ini", "realisasi anggaran proyek".',
+                    .'"laporan keuangan semua proyek", "proyek mana yang over budget?", '
+                    .'"profitabilitas proyek bulan ini", "realisasi anggaran proyek".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -129,9 +124,9 @@ class ReportTools
             [
                 'name' => 'export_report_pdf',
                 'description' => 'Generate link download laporan PDF. Gunakan ketika user ingin download/export laporan ke PDF. '
-                    . 'Contoh: "download laporan penjualan bulan ini", "export PDF inventori", '
-                    . '"cetak laporan keuangan minggu ini", "unduh laporan kehadiran bulan lalu", '
-                    . '"export laporan piutang ke PDF", "download laporan laba rugi".',
+                    .'Contoh: "download laporan penjualan bulan ini", "export PDF inventori", '
+                    .'"cetak laporan keuangan minggu ini", "unduh laporan kehadiran bulan lalu", '
+                    .'"export laporan piutang ke PDF", "download laporan laba rugi".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -175,8 +170,7 @@ class ReportTools
         // HPP dari penjualan (price_buy * qty terjual)
         $hpp = SalesOrderItem::whereHas(
             'salesOrder',
-            fn($q) =>
-            $q->where('tenant_id', $this->tenantId)
+            fn ($q) => $q->where('tenant_id', $this->tenantId)
                 ->whereNotIn('status', ['cancelled'])
                 ->whereBetween('date', [$start, $end])
         )->join('products', 'sales_order_items.product_id', '=', 'products.id')
@@ -191,19 +185,19 @@ class ReportTools
         return [
             'status' => 'success',
             'data' => [
-                'periode' => $start->format('d M Y') . ' — ' . $end->format('d M Y'),
-                'pendapatan' => 'Rp ' . number_format($income, 0, ',', '.'),
-                'hpp' => 'Rp ' . number_format($hpp, 0, ',', '.'),
-                'laba_kotor' => 'Rp ' . number_format($grossProfit, 0, ',', '.'),
-                'gross_margin' => $grossMargin . '%',
-                'total_biaya' => 'Rp ' . number_format($totalExpense, 0, ',', '.'),
-                'laba_bersih' => 'Rp ' . number_format($netProfit, 0, ',', '.'),
-                'net_margin' => $netMargin . '%',
+                'periode' => $start->format('d M Y').' — '.$end->format('d M Y'),
+                'pendapatan' => 'Rp '.number_format($income, 0, ',', '.'),
+                'hpp' => 'Rp '.number_format($hpp, 0, ',', '.'),
+                'laba_kotor' => 'Rp '.number_format($grossProfit, 0, ',', '.'),
+                'gross_margin' => $grossMargin.'%',
+                'total_biaya' => 'Rp '.number_format($totalExpense, 0, ',', '.'),
+                'laba_bersih' => 'Rp '.number_format($netProfit, 0, ',', '.'),
+                'net_margin' => $netMargin.'%',
                 'status' => $netProfit >= 0 ? '✅ LABA' : '🔴 RUGI',
-                'rincian_biaya' => $expenseRows->map(fn($r) => [
+                'rincian_biaya' => $expenseRows->map(fn ($r) => [
                     'kategori' => $r->category,
-                    'total' => 'Rp ' . number_format($r->total, 0, ',', '.'),
-                    'persen' => $totalExpense > 0 ? round(($r->total / $totalExpense) * 100, 1) . '%' : '0%',
+                    'total' => 'Rp '.number_format($r->total, 0, ',', '.'),
+                    'persen' => $totalExpense > 0 ? round(($r->total / $totalExpense) * 100, 1).'%' : '0%',
                 ])->toArray(),
             ],
         ];
@@ -231,18 +225,17 @@ class ReportTools
             ->groupBy('period')
             ->orderBy('period')
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'periode' => $r->period,
                 'orders' => $r->orders,
-                'omzet' => 'Rp ' . number_format($r->revenue, 0, ',', '.'),
+                'omzet' => 'Rp '.number_format($r->revenue, 0, ',', '.'),
                 'omzet_raw' => (float) $r->revenue,
             ])->toArray();
 
         // Produk terlaris
         $topProducts = SalesOrderItem::whereHas(
             'salesOrder',
-            fn($q) =>
-            $q->where('tenant_id', $this->tenantId)
+            fn ($q) => $q->where('tenant_id', $this->tenantId)
                 ->whereNotIn('status', ['cancelled'])
                 ->whereBetween('date', [$start, $end])
         )->join('products', 'sales_order_items.product_id', '=', 'products.id')
@@ -251,10 +244,10 @@ class ReportTools
             ->orderByDesc('total_revenue')
             ->limit($topN)
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'produk' => $r->name,
                 'qty' => $r->total_qty,
-                'omzet' => 'Rp ' . number_format($r->total_revenue, 0, ',', '.'),
+                'omzet' => 'Rp '.number_format($r->total_revenue, 0, ',', '.'),
             ])->toArray();
 
         $totalRevenue = collect($trend)->sum('omzet_raw');
@@ -277,10 +270,10 @@ class ReportTools
         return [
             'status' => 'success',
             'data' => [
-                'periode' => $start->format('d M Y') . ' — ' . $end->format('d M Y'),
-                'total_omzet' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
+                'periode' => $start->format('d M Y').' — '.$end->format('d M Y'),
+                'total_omzet' => 'Rp '.number_format($totalRevenue, 0, ',', '.'),
                 'total_orders' => $totalOrders,
-                'rata_rata_harian' => 'Rp ' . number_format($avgDaily, 0, ',', '.'),
+                'rata_rata_harian' => 'Rp '.number_format($avgDaily, 0, ',', '.'),
                 'pertumbuhan' => $growth !== null ? ($growth >= 0 ? "+{$growth}%" : "{$growth}%") : 'N/A',
                 'trend' => $trend,
                 'produk_terlaris' => $topProducts,
@@ -310,13 +303,13 @@ class ReportTools
         return [
             'status' => 'success',
             'data' => [
-                'periode' => $start->format('d M Y') . ' — ' . $end->format('d M Y'),
-                'total_biaya' => 'Rp ' . number_format($total, 0, ',', '.'),
-                'rincian' => $rows->map(fn($r) => [
+                'periode' => $start->format('d M Y').' — '.$end->format('d M Y'),
+                'total_biaya' => 'Rp '.number_format($total, 0, ',', '.'),
+                'rincian' => $rows->map(fn ($r) => [
                     'kategori' => $r->category,
-                    'total' => 'Rp ' . number_format($r->total, 0, ',', '.'),
+                    'total' => 'Rp '.number_format($r->total, 0, ',', '.'),
                     'jumlah_trx' => $r->count,
-                    'persentase' => $total > 0 ? round(($r->total / $total) * 100, 1) . '%' : '0%',
+                    'persentase' => $total > 0 ? round(($r->total / $total) * 100, 1).'%' : '0%',
                 ])->toArray(),
             ],
         ];
@@ -343,11 +336,11 @@ class ReportTools
                 ->count();
 
             $result['piutang'] = [
-                'total_tagihan' => 'Rp ' . number_format($invoices->sum('total'), 0, ',', '.'),
-                'sudah_dibayar' => 'Rp ' . number_format($invoices->get('paid')?->total ?? 0, 0, ',', '.'),
-                'belum_dibayar' => 'Rp ' . number_format($invoices->get('unpaid')?->total ?? 0, 0, ',', '.'),
-                'sebagian_bayar' => 'Rp ' . number_format($invoices->get('partial')?->total ?? 0, 0, ',', '.'),
-                'jatuh_tempo' => $overdueCount . ' invoice',
+                'total_tagihan' => 'Rp '.number_format($invoices->sum('total'), 0, ',', '.'),
+                'sudah_dibayar' => 'Rp '.number_format($invoices->get('paid')?->total ?? 0, 0, ',', '.'),
+                'belum_dibayar' => 'Rp '.number_format($invoices->get('unpaid')?->total ?? 0, 0, ',', '.'),
+                'sebagian_bayar' => 'Rp '.number_format($invoices->get('partial')?->total ?? 0, 0, ',', '.'),
+                'jatuh_tempo' => $overdueCount.' invoice',
             ];
         }
 
@@ -365,17 +358,17 @@ class ReportTools
                 ->count();
 
             $result['hutang'] = [
-                'total_kewajiban' => 'Rp ' . number_format($payables->sum('total'), 0, ',', '.'),
-                'sudah_dibayar' => 'Rp ' . number_format($payables->get('paid')?->total ?? 0, 0, ',', '.'),
-                'belum_dibayar' => 'Rp ' . number_format($payables->get('unpaid')?->total ?? 0, 0, ',', '.'),
-                'jatuh_tempo' => $overduePayable . ' payable',
+                'total_kewajiban' => 'Rp '.number_format($payables->sum('total'), 0, ',', '.'),
+                'sudah_dibayar' => 'Rp '.number_format($payables->get('paid')?->total ?? 0, 0, ',', '.'),
+                'belum_dibayar' => 'Rp '.number_format($payables->get('unpaid')?->total ?? 0, 0, ',', '.'),
+                'jatuh_tempo' => $overduePayable.' payable',
             ];
         }
 
         return [
             'status' => 'success',
             'data' => array_merge(
-                ['periode' => $start->format('d M Y') . ' — ' . $end->format('d M Y')],
+                ['periode' => $start->format('d M Y').' — '.$end->format('d M Y')],
                 $result
             ),
         ];
@@ -390,56 +383,54 @@ class ReportTools
             },
             'warehouse' => function ($q) {
                 $q->select('id', 'tenant_id', 'name');
-            }
+            },
         ])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $this->tenantId)->where('is_active', true));
+            ->whereHas('product', fn ($q) => $q->where('tenant_id', $this->tenantId)->where('is_active', true));
 
-        if (!empty($args['warehouse_name'])) {
-            $query->whereHas('warehouse', fn($q) => $q->where('name', 'like', "%{$args['warehouse_name']}%"));
+        if (! empty($args['warehouse_name'])) {
+            $query->whereHas('warehouse', fn ($q) => $q->where('name', 'like', "%{$args['warehouse_name']}%"));
         }
 
-        if (!empty($args['category'])) {
-            $query->whereHas('product', fn($q) => $q->where('category', 'like', "%{$args['category']}%"));
+        if (! empty($args['category'])) {
+            $query->whereHas('product', fn ($q) => $q->where('category', 'like', "%{$args['category']}%"));
         }
 
         $stocks = $query->get();
 
-        $totalCostValue = $stocks->sum(fn($s) => $s->quantity * ($s->product->price_buy ?? 0));
-        $totalSellValue = $stocks->sum(fn($s) => $s->quantity * ($s->product->price_sell ?? 0));
+        $totalCostValue = $stocks->sum(fn ($s) => $s->quantity * ($s->product->price_buy ?? 0));
+        $totalSellValue = $stocks->sum(fn ($s) => $s->quantity * ($s->product->price_sell ?? 0));
         $potentialProfit = $totalSellValue - $totalCostValue;
 
         // Dead stock: stok > 0 tapi tidak ada penjualan 30 hari terakhir
         $activeProductIds = SalesOrderItem::whereHas(
             'salesOrder',
-            fn($q) =>
-            $q->where('tenant_id', $this->tenantId)->where('date', '>=', now()->subDays(30))
+            fn ($q) => $q->where('tenant_id', $this->tenantId)->where('date', '>=', now()->subDays(30))
         )->pluck('product_id')->unique();
 
         $deadStock = $stocks->filter(
-            fn($s) =>
-            $s->quantity > 0 && !$activeProductIds->contains($s->product_id)
+            fn ($s) => $s->quantity > 0 && ! $activeProductIds->contains($s->product_id)
         );
 
         // Top 5 by value
-        $topByValue = $stocks->sortByDesc(fn($s) => $s->quantity * ($s->product->price_buy ?? 0))
+        $topByValue = $stocks->sortByDesc(fn ($s) => $s->quantity * ($s->product->price_buy ?? 0))
             ->take(5)
-            ->map(fn($s) => [
+            ->map(fn ($s) => [
                 'produk' => $s->product->name,
                 'gudang' => $s->warehouse->name,
-                'stok' => $s->quantity . ' ' . $s->product->unit,
-                'nilai' => 'Rp ' . number_format($s->quantity * ($s->product->price_buy ?? 0), 0, ',', '.'),
+                'stok' => $s->quantity.' '.$s->product->unit,
+                'nilai' => 'Rp '.number_format($s->quantity * ($s->product->price_buy ?? 0), 0, ',', '.'),
             ])->values()->toArray();
 
         return [
             'status' => 'success',
             'data' => [
                 'total_sku' => $stocks->count(),
-                'nilai_modal' => 'Rp ' . number_format($totalCostValue, 0, ',', '.'),
-                'nilai_jual' => 'Rp ' . number_format($totalSellValue, 0, ',', '.'),
-                'potensi_profit' => 'Rp ' . number_format($potentialProfit, 0, ',', '.'),
+                'nilai_modal' => 'Rp '.number_format($totalCostValue, 0, ',', '.'),
+                'nilai_jual' => 'Rp '.number_format($totalSellValue, 0, ',', '.'),
+                'potensi_profit' => 'Rp '.number_format($potentialProfit, 0, ',', '.'),
                 'dead_stock_count' => $deadStock->count(),
-                'dead_stock_nilai' => 'Rp ' . number_format(
-                    $deadStock->sum(fn($s) => $s->quantity * ($s->product->price_buy ?? 0)),
+                'dead_stock_nilai' => 'Rp '.number_format(
+                    $deadStock->sum(fn ($s) => $s->quantity * ($s->product->price_buy ?? 0)),
                     0,
                     ',',
                     '.'
@@ -455,7 +446,7 @@ class ReportTools
 
         $employees = Employee::where('tenant_id', $this->tenantId)
             ->where('status', 'active')
-            ->with(['attendances' => fn($q) => $q->whereBetween('date', [$start, $end])])
+            ->with(['attendances' => fn ($q) => $q->whereBetween('date', [$start, $end])])
             ->get();
 
         if ($employees->isEmpty()) {
@@ -464,7 +455,7 @@ class ReportTools
 
         $summary = [
             'total_karyawan' => $employees->count(),
-            'periode' => $start->format('d M Y') . ' — ' . $end->format('d M Y'),
+            'periode' => $start->format('d M Y').' — '.$end->format('d M Y'),
         ];
 
         $totalDays = $start->diffInDays($end) + 1;
@@ -484,7 +475,7 @@ class ReportTools
                 'absen' => $absent,
                 'terlambat' => $late,
                 'izin_sakit' => $leave,
-                'tingkat_kehadiran' => $rate . '%',
+                'tingkat_kehadiran' => $rate.'%',
             ];
         })->sortBy('tingkat_kehadiran')->values()->toArray();
 
@@ -509,11 +500,11 @@ class ReportTools
         $query = Project::where('tenant_id', $this->tenantId)
             ->with(['customer', 'expenses']);
 
-        if (!empty($args['status']) && $args['status'] !== 'all') {
+        if (! empty($args['status']) && $args['status'] !== 'all') {
             $query->where('status', $args['status']);
         }
 
-        if (!empty($args['period'])) {
+        if (! empty($args['period'])) {
             [$start, $end] = $this->resolveDateRange(['period' => $args['period']]);
             $query->whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()]);
         }
@@ -526,31 +517,31 @@ class ReportTools
 
         $totalBudget = $projects->sum('budget');
         $totalActual = $projects->sum('actual_cost');
-        $overBudget = $projects->filter(fn($p) => $p->actual_cost > $p->budget);
-        $onBudget = $projects->filter(fn($p) => $p->actual_cost <= $p->budget);
+        $overBudget = $projects->filter(fn ($p) => $p->actual_cost > $p->budget);
+        $onBudget = $projects->filter(fn ($p) => $p->actual_cost <= $p->budget);
 
-        $list = $projects->map(fn($p) => [
+        $list = $projects->map(fn ($p) => [
             'nomor' => $p->number,
             'nama' => $p->name,
             'client' => $p->customer?->name ?? '-',
             'status' => $p->status,
-            'progress' => $p->progress . '%',
-            'budget' => 'Rp ' . number_format($p->budget, 0, ',', '.'),
-            'realisasi' => 'Rp ' . number_format($p->actual_cost, 0, ',', '.'),
-            'selisih' => 'Rp ' . number_format($p->budget - $p->actual_cost, 0, ',', '.'),
+            'progress' => $p->progress.'%',
+            'budget' => 'Rp '.number_format($p->budget, 0, ',', '.'),
+            'realisasi' => 'Rp '.number_format($p->actual_cost, 0, ',', '.'),
+            'selisih' => 'Rp '.number_format($p->budget - $p->actual_cost, 0, ',', '.'),
             'status_budget' => $p->actual_cost > $p->budget ? '🔴 OVER' : '✅ ON BUDGET',
-            'persen_terpakai' => $p->budget > 0 ? round(($p->actual_cost / $p->budget) * 100, 1) . '%' : '0%',
+            'persen_terpakai' => $p->budget > 0 ? round(($p->actual_cost / $p->budget) * 100, 1).'%' : '0%',
         ])->toArray();
 
         return [
             'status' => 'success',
             'data' => [
                 'total_proyek' => $projects->count(),
-                'total_budget' => 'Rp ' . number_format($totalBudget, 0, ',', '.'),
-                'total_realisasi' => 'Rp ' . number_format($totalActual, 0, ',', '.'),
-                'total_selisih' => 'Rp ' . number_format($totalBudget - $totalActual, 0, ',', '.'),
-                'over_budget' => $overBudget->count() . ' proyek',
-                'on_budget' => $onBudget->count() . ' proyek',
+                'total_budget' => 'Rp '.number_format($totalBudget, 0, ',', '.'),
+                'total_realisasi' => 'Rp '.number_format($totalActual, 0, ',', '.'),
+                'total_selisih' => 'Rp '.number_format($totalBudget - $totalActual, 0, ',', '.'),
+                'over_budget' => $overBudget->count().' proyek',
+                'on_budget' => $onBudget->count().' proyek',
                 'proyek' => $list,
             ],
         ];
@@ -560,7 +551,7 @@ class ReportTools
 
     protected function resolveDateRange(array $args): array
     {
-        if (!empty($args['start_date']) && !empty($args['end_date'])) {
+        if (! empty($args['start_date']) && ! empty($args['end_date'])) {
             return [Carbon::parse($args['start_date']), Carbon::parse($args['end_date'])];
         }
 
@@ -573,25 +564,26 @@ class ReportTools
             in_array(strtolower($period), ['minggu ini', 'this week', 'this_week', 'week']) => 'this_week',
             in_array(strtolower($period), ['hari ini', 'today', 'today']) => 'today',
             in_array(strtolower($period), ['bulan lalu', 'last month', 'last_month']) => 'last_month',
-            preg_match('/^20\d{2}$/', $period) => 'year_' . $period, // e.g. "2026"
+            preg_match('/^20\d{2}$/', $period) => 'year_'.$period, // e.g. "2026"
             default => $period,
         };
 
         // Handle specific year like "2026"
         if (str_starts_with($period, 'year_')) {
             $year = substr($period, 5);
+
             return [Carbon::createFromDate($year, 1, 1)->startOfYear(), Carbon::createFromDate($year, 12, 31)->endOfYear()];
         }
 
         return match ($period) {
-            'today'        => [today(), today()],
-            'this_week'    => [now()->startOfWeek(), now()->endOfWeek()],
-            'last_7_days'  => [now()->subDays(6), now()],
+            'today' => [today(), today()],
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'last_7_days' => [now()->subDays(6), now()],
             'last_30_days' => [now()->subDays(29), now()],
-            'this_month'   => [now()->startOfMonth(), now()->endOfMonth()],
-            'last_month'   => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
-            'this_year'    => [now()->startOfYear(), now()->endOfYear()],
-            default        => [now()->startOfMonth(), now()->endOfMonth()],
+            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'this_year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
         };
     }
 
@@ -611,7 +603,7 @@ class ReportTools
             'profit_loss' => ['name' => 'reports.profit-loss.pdf', 'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
         ];
 
-        if (!isset($routeMap[$reportType])) {
+        if (! isset($routeMap[$reportType])) {
             return ['status' => 'error', 'message' => "Jenis laporan '{$reportType}' tidak dikenali. Pilih: sales, finance, inventory, hrm, receivables, profit_loss."];
         }
 
@@ -627,8 +619,8 @@ class ReportTools
         ];
 
         $periodLabel = $reportType === 'inventory'
-            ? 'per ' . now()->format('d M Y')
-            : $start->format('d M Y') . ' s/d ' . $end->format('d M Y');
+            ? 'per '.now()->format('d M Y')
+            : $start->format('d M Y').' s/d '.$end->format('d M Y');
 
         return [
             'status' => 'success',

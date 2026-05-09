@@ -12,6 +12,7 @@ class DailyReportSubmittedNotification extends Notification implements ShouldQue
     use Queueable;
 
     protected $report;
+
     protected $approver;
 
     public function __construct($report, $approver)
@@ -30,7 +31,7 @@ class DailyReportSubmittedNotification extends Notification implements ShouldQue
         return (new MailMessage)
             ->subject('Daily Site Report Submitted for Approval')
             ->greeting("Hello {$this->approver->name},")
-            ->line("A new daily site report has been submitted for your approval.")
+            ->line('A new daily site report has been submitted for your approval.')
             ->line("**Project:** {$this->report->project->name}")
             ->line("**Date:** {$this->report->report_date->format('d F Y')}")
             ->line("**Progress:** {$this->report->progress_percentage}%")

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AiTourSession;
 use App\Models\OnboardingProfile;
 use App\Models\OnboardingProgress;
-use App\Models\AiTourSession;
 use App\Models\Tenant;
 use App\Models\UserTip;
 use App\Services\ModuleRecommendationService;
@@ -17,8 +17,7 @@ class OnboardingController extends Controller
     public function __construct(
         protected SampleDataGeneratorService $sampleDataService,
         protected ModuleRecommendationService $moduleRecommendationService
-    ) {
-    }
+    ) {}
 
     /**
      * Get authenticated user's tenant ID with null safety
@@ -26,6 +25,7 @@ class OnboardingController extends Controller
     protected function getTenantId(): int
     {
         $user = Auth::user();
+
         return $user?->tenant_id ?? abort(401, 'Unauthenticated.');
     }
 
@@ -35,6 +35,7 @@ class OnboardingController extends Controller
     protected function getUserId(): int
     {
         $user = Auth::user();
+
         return $user?->id ?? abort(401, 'Unauthenticated.');
     }
 
@@ -51,7 +52,7 @@ class OnboardingController extends Controller
             ->where('user_id', $userId)
             ->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return redirect()->route('onboarding.wizard');
         }
 
@@ -65,6 +66,7 @@ class OnboardingController extends Controller
                 ->where('user_id', $userId)
                 ->whereNull('completed_at')
                 ->update(['completed_at' => now()]);
+
             return redirect()->route('dashboard');
         }
 
@@ -131,7 +133,7 @@ class OnboardingController extends Controller
             ->where('user_id', $this->getUserId())
             ->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return redirect()->route('onboarding.wizard');
         }
 
@@ -152,7 +154,7 @@ class OnboardingController extends Controller
             ->where('user_id', $userId)
             ->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return response()->json(['error' => 'Profile not found'], 404);
         }
 
@@ -189,13 +191,13 @@ class OnboardingController extends Controller
     public function completeStep(Request $request, string $stepKey)
     {
         $tenantId = $this->getTenantId();
-        $userId   = $this->getUserId();
+        $userId = $this->getUserId();
 
         $this->markStepCompleted($tenantId, $userId, $stepKey);
 
         // Check if all steps are now complete
-        $progress  = $this->getProgress($tenantId, $userId);
-        $allDone   = $progress['total_steps'] > 0
+        $progress = $this->getProgress($tenantId, $userId);
+        $allDone = $progress['total_steps'] > 0
                   && $progress['completed_steps'] >= $progress['total_steps'];
 
         if ($allDone) {
@@ -210,9 +212,9 @@ class OnboardingController extends Controller
         }
 
         return response()->json([
-            'success'   => true,
-            'all_done'  => $allDone,
-            'redirect'  => $allDone ? route('dashboard') : null,
+            'success' => true,
+            'all_done' => $allDone,
+            'redirect' => $allDone ? route('dashboard') : null,
         ]);
     }
 
@@ -311,15 +313,15 @@ class OnboardingController extends Controller
 
         // Map onboarding industry keys to ModuleRecommendationService keys
         $industryMap = [
-            'restaurant'    => 'fnb',
+            'restaurant' => 'fnb',
             'manufacturing' => 'manufacture',
-            'services'      => 'service',
+            'services' => 'service',
         ];
         $recommendKey = $industryMap[$request->industry] ?? $request->industry;
 
         // Determine modules to apply: use selected_modules if provided, otherwise use recommendations
         $selectedModules = $request->selected_modules ?? [];
-        if (!empty($selectedModules)) {
+        if (! empty($selectedModules)) {
             $modulesToApply = $selectedModules;
         } else {
             $modulesToApply = $this->moduleRecommendationService->recommend($recommendKey)['modules'];
@@ -328,7 +330,7 @@ class OnboardingController extends Controller
         // Save modules and mark onboarding as completed on the tenant
         $tenant = Tenant::find($tenantId);
         $tenant->update([
-            'enabled_modules'      => $modulesToApply,
+            'enabled_modules' => $modulesToApply,
             'onboarding_completed' => true,
         ]);
 
@@ -520,14 +522,14 @@ class OnboardingController extends Controller
             OnboardingProgress::firstOrCreate(
                 [
                     'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'step_key'  => $step['key'],
+                    'user_id' => $userId,
+                    'step_key' => $step['key'],
                 ],
                 [
-                    'step_name'   => $step['name'],
-                    'category'    => $step['category'],
-                    'order'       => $step['order'],
-                    'description' => "Complete this step to continue your onboarding journey",
+                    'step_name' => $step['name'],
+                    'category' => $step['category'],
+                    'order' => $step['order'],
+                    'description' => 'Complete this step to continue your onboarding journey',
                 ]
             );
         }

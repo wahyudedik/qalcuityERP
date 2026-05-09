@@ -44,7 +44,7 @@ class ProviderFallbackTest extends TestCase
      */
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
 
         return new ProviderSwitcher($cache);
     }
@@ -54,7 +54,8 @@ class ProviderFallbackTest extends TestCase
      */
     private function makeProvider(string $name): AiProvider
     {
-        return new class($name) implements AiProvider {
+        return new class($name) implements AiProvider
+        {
             public function __construct(private string $name) {}
 
             public function getProviderName(): string
@@ -69,22 +70,22 @@ class ProviderFallbackTest extends TestCase
 
             public function chat(string $prompt, array $history = [], array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function generate(string $prompt, array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function chatWithMedia(string $message, array $files, array $history = [], array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function generateWithImage(string $prompt, string $imageData, string $mimeType): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function withTenantContext(string $context): static
@@ -140,9 +141,9 @@ class ProviderFallbackTest extends TestCase
             )
             ->then(function (array $unavailableProviders) {
                 // Buat switcher baru per iterasi agar state cache terisolasi
-                $switcher          = $this->makeSwitcher();
+                $switcher = $this->makeSwitcher();
                 $providerInstances = $this->makeProviderInstances();
-                $fallbackOrder     = self::ALL_PROVIDERS;
+                $fallbackOrder = self::ALL_PROVIDERS;
 
                 // Mark setiap provider dalam subset sebagai unavailable
                 foreach ($unavailableProviders as $provider) {
@@ -157,8 +158,8 @@ class ProviderFallbackTest extends TestCase
                         $switcher->getNextAvailableProvider($fallbackOrder, $providerInstances);
 
                         $this->fail(
-                            'AllProvidersUnavailableException harus dilempar ketika semua provider ' .
-                                'dalam cooldown. Unavailable: [' . implode(', ', $unavailableProviders) . ']. ' .
+                            'AllProvidersUnavailableException harus dilempar ketika semua provider '.
+                                'dalam cooldown. Unavailable: ['.implode(', ', $unavailableProviders).']. '.
                                 'Property 3 dilanggar.'
                         );
                     } catch (AllProvidersUnavailableException $e) {
@@ -179,7 +180,7 @@ class ProviderFallbackTest extends TestCase
                             $result->getProviderName(),
                             $unavailableProviders,
                             sprintf(
-                                "Provider '%s' yang dikembalikan ada dalam set unavailable [%s]. " .
+                                "Provider '%s' yang dikembalikan ada dalam set unavailable [%s]. ".
                                     'Property 3 dilanggar: fallback harus menghindari provider dalam cooldown.',
                                 $result->getProviderName(),
                                 implode(', ', $unavailableProviders)
@@ -200,7 +201,7 @@ class ProviderFallbackTest extends TestCase
 
                         $this->fail(
                             sprintf(
-                                'AllProvidersUnavailableException tidak boleh dilempar ketika masih ada ' .
+                                'AllProvidersUnavailableException tidak boleh dilempar ketika masih ada '.
                                     'provider yang tersedia: [%s]. Unavailable: [%s]. Property 3 dilanggar.',
                                 implode(', ', $availableProviders),
                                 implode(', ', $unavailableProviders)
@@ -230,9 +231,9 @@ class ProviderFallbackTest extends TestCase
                 Generators::subset(self::ALL_PROVIDERS)
             )
             ->then(function (array $unavailableProviders) {
-                $switcher          = $this->makeSwitcher();
+                $switcher = $this->makeSwitcher();
                 $providerInstances = $this->makeProviderInstances();
-                $fallbackOrder     = self::ALL_PROVIDERS;
+                $fallbackOrder = self::ALL_PROVIDERS;
 
                 // Mark provider dalam subset sebagai unavailable
                 foreach ($unavailableProviders as $provider) {
@@ -242,7 +243,7 @@ class ProviderFallbackTest extends TestCase
                 // Hitung provider pertama yang seharusnya dikembalikan
                 $expectedProvider = null;
                 foreach ($fallbackOrder as $providerName) {
-                    if (!in_array($providerName, $unavailableProviders, true)) {
+                    if (! in_array($providerName, $unavailableProviders, true)) {
                         $expectedProvider = $providerName;
                         break;
                     }
@@ -260,7 +261,7 @@ class ProviderFallbackTest extends TestCase
                         $expectedProvider,
                         $result->getProviderName(),
                         sprintf(
-                            "Provider yang dikembalikan harus '%s' (pertama dalam urutan yang tersedia), " .
+                            "Provider yang dikembalikan harus '%s' (pertama dalam urutan yang tersedia), ".
                                 "bukan '%s'. Unavailable: [%s]. Property 3 dilanggar.",
                             $expectedProvider,
                             $result->getProviderName(),
@@ -283,9 +284,9 @@ class ProviderFallbackTest extends TestCase
     {
         Config::set('ai.mode', 'failover');
 
-        $switcher          = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $providerInstances = $this->makeProviderInstances();
-        $fallbackOrder     = self::ALL_PROVIDERS;
+        $fallbackOrder = self::ALL_PROVIDERS;
 
         // Tidak ada provider yang di-mark unavailable
         $result = $switcher->getNextAvailableProvider($fallbackOrder, $providerInstances);
@@ -293,7 +294,7 @@ class ProviderFallbackTest extends TestCase
         $this->assertSame(
             self::ALL_PROVIDERS[0],
             $result->getProviderName(),
-            "Ketika tidak ada provider dalam cooldown, provider pertama dalam urutan harus dikembalikan."
+            'Ketika tidak ada provider dalam cooldown, provider pertama dalam urutan harus dikembalikan.'
         );
     }
 
@@ -306,9 +307,9 @@ class ProviderFallbackTest extends TestCase
     {
         Config::set('ai.mode', 'failover');
 
-        $switcher          = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $providerInstances = $this->makeProviderInstances();
-        $fallbackOrder     = self::ALL_PROVIDERS;
+        $fallbackOrder = self::ALL_PROVIDERS;
 
         // Mark semua provider sebagai unavailable
         foreach (self::ALL_PROVIDERS as $provider) {

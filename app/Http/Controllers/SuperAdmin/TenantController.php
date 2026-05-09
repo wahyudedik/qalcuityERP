@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\AiQuotaService;
 use App\Services\PlanModuleMap;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,17 +20,23 @@ class TenantController extends Controller
         $query = Tenant::withCount('users')->with('admins');
 
         if ($search = $request->input('search')) {
-            $query->where(fn($q) => $q->where('name', 'like', "%{$search}%")
+            $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")
                 ->orWhere('slug', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%"));
         }
 
         if ($status = $request->input('status')) {
-            if ($status === 'active')   $query->where('is_active', true);
-            if ($status === 'inactive') $query->where('is_active', false);
-            if ($status === 'expired')  $query->where('is_active', true)->where(fn($q) => $q
-                ->where(fn($q2) => $q2->where('plan', 'trial')->where('trial_ends_at', '<', now()))
-                ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereNotNull('plan_expires_at')->where('plan_expires_at', '<', now())));
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            }
+            if ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+            if ($status === 'expired') {
+                $query->where('is_active', true)->where(fn ($q) => $q
+                    ->where(fn ($q2) => $q2->where('plan', 'trial')->where('trial_ends_at', '<', now()))
+                    ->orWhere(fn ($q2) => $q2->where('plan', '!=', 'trial')->whereNotNull('plan_expires_at')->where('plan_expires_at', '<', now())));
+            }
         }
 
         if ($plan = $request->input('plan')) {
@@ -40,10 +47,10 @@ class TenantController extends Controller
 
         // Stats from DB (not paginated collection)
         $stats = [
-            'total'    => Tenant::count(),
-            'active'   => Tenant::where('is_active', true)->count(),
+            'total' => Tenant::count(),
+            'active' => Tenant::where('is_active', true)->count(),
             'inactive' => Tenant::where('is_active', false)->count(),
-            'trial'    => Tenant::where('plan', 'trial')->count(),
+            'trial' => Tenant::where('plan', 'trial')->count(),
         ];
 
         return view('super-admin.tenants.index', compact('tenants', 'stats'));
@@ -53,6 +60,7 @@ class TenantController extends Controller
     {
         $tenant->load('users', 'subscriptionPlan');
         $plans = SubscriptionPlan::where('is_active', true)->orderBy('sort_order')->get();
+
         return view('super-admin.tenants.show', compact('tenant', 'plans'));
     }
 
@@ -61,6 +69,7 @@ class TenantController extends Controller
         $tenant->update(['is_active' => ! $tenant->is_active]);
 
         $status = $tenant->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
         return redirect()->route('super-admin.tenants.index')
             ->with('success', "Tenant \"{$tenant->name}\" berhasil {$status}.");
     }
@@ -78,10 +87,10 @@ class TenantController extends Controller
     public function updatePlan(Request $request, Tenant $tenant): RedirectResponse
     {
         $data = $request->validate([
-            'plan'                 => 'required|in:trial,starter,business,professional,enterprise',
+            'plan' => 'required|in:trial,starter,business,professional,enterprise',
             'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
-            'plan_expires_at'      => 'nullable|date|after:today',
-            'trial_ends_at'        => 'nullable|date',
+            'plan_expires_at' => 'nullable|date|after:today',
+            'trial_ends_at' => 'nullable|date',
         ]);
 
         // Jika plan bukan trial, hapus trial_ends_at
@@ -103,17 +112,17 @@ class TenantController extends Controller
             $tenant->update(['enabled_modules' => $filteredModules]);
 
             Log::info('Tenant enabled_modules synced after plan change', [
-                'tenant_id'       => $tenant->id,
-                'old_plan'        => $oldPlan,
-                'new_plan'        => $newPlanSlug,
+                'tenant_id' => $tenant->id,
+                'old_plan' => $oldPlan,
+                'new_plan' => $newPlanSlug,
                 'removed_modules' => array_values($removedModules),
             ]);
         }
 
         // Bust AI quota limit cache so new plan limits take effect immediately
-        app(\App\Services\AiQuotaService::class)->bustLimitCache($tenant->id);
+        app(AiQuotaService::class)->bustLimitCache($tenant->id);
 
         return redirect()->route('super-admin.tenants.show', $tenant)
-            ->with('success', "Paket tenant \"{$tenant->name}\" berhasil diperbarui ke " . ucfirst($data['plan']) . '.');
+            ->with('success', "Paket tenant \"{$tenant->name}\" berhasil diperbarui ke ".ucfirst($data['plan']).'.');
     }
 }

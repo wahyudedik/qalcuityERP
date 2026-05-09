@@ -18,7 +18,18 @@ class GoodsReceiptItem extends Model
         'quantity_rejected' => 'decimal:2',
     ];
 
-    public function goodsReceipt(): BelongsTo      { return $this->belongsTo(GoodsReceipt::class); }
-    public function purchaseOrderItem(): BelongsTo { return $this->belongsTo(PurchaseOrderItem::class); }
-    public function product(): BelongsTo           { return $this->belongsTo(Product::class); }
+    public function goodsReceipt(): BelongsTo
+    {
+        return $this->belongsTo(GoodsReceipt::class);
+    }
+
+    public function purchaseOrderItem(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrderItem::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

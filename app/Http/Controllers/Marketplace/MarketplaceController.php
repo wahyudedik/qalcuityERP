@@ -3,28 +3,34 @@
 namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
+use App\Models\ApiKey;
+use App\Models\DeveloperAccount;
+use App\Services\Marketplace\ApiMonetizationService;
 use App\Services\Marketplace\AppMarketplaceService;
 use App\Services\Marketplace\DeveloperService;
 use App\Services\Marketplace\ModuleBuilderService;
 use App\Services\Marketplace\ThemeService;
-use App\Services\Marketplace\ApiMonetizationService;
 use Illuminate\Http\Request;
 
 class MarketplaceController extends Controller
 {
     protected $appService;
+
     protected $developerService;
+
     protected $moduleService;
+
     protected $themeService;
+
     protected $apiService;
 
     public function __construct()
     {
-        $this->appService = new AppMarketplaceService();
-        $this->developerService = new DeveloperService();
-        $this->moduleService = new ModuleBuilderService();
-        $this->themeService = new ThemeService();
-        $this->apiService = new ApiMonetizationService();
+        $this->appService = new AppMarketplaceService;
+        $this->developerService = new DeveloperService;
+        $this->moduleService = new ModuleBuilderService;
+        $this->themeService = new ThemeService;
+        $this->apiService = new ApiMonetizationService;
     }
 
     // ==========================================
@@ -52,7 +58,7 @@ class MarketplaceController extends Controller
     {
         $app = $this->appService->getAppBySlug($slug);
 
-        if (!$app) {
+        if (! $app) {
             return response()->json(['success' => false, 'message' => 'App not found'], 404);
         }
 
@@ -188,7 +194,7 @@ class MarketplaceController extends Controller
             'repository_url' => 'nullable|url',
         ]);
 
-        $developer = \App\Models\DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
+        $developer = DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
         $app = $this->developerService->submitApp($developer->id, $validated);
 
         return response()->json([
@@ -255,7 +261,7 @@ class MarketplaceController extends Controller
      */
     public function getDeveloperApps()
     {
-        $developer = \App\Models\DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
+        $developer = DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
         $apps = $this->developerService->getDeveloperApps($developer->id);
 
         return response()->json([
@@ -269,7 +275,7 @@ class MarketplaceController extends Controller
      */
     public function getEarningsSummary(Request $request)
     {
-        $developer = \App\Models\DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
+        $developer = DeveloperAccount::where('user_id', auth()->id())->firstOrFail();
         $summary = $this->developerService->getEarningsSummary($developer->id, $request->period);
 
         return response()->json([
@@ -551,14 +557,14 @@ class MarketplaceController extends Controller
      */
     public function listApiKeys()
     {
-        $keys = \App\Models\ApiKey::where('tenant_id', auth()->user()->tenant_id)
+        $keys = ApiKey::where('tenant_id', auth()->user()->tenant_id)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($key) {
                 return [
                     'id' => $key->id,
                     'name' => $key->name,
-                    'key' => substr($key->key, 0, 8) . '...',
+                    'key' => substr($key->key, 0, 8).'...',
                     'rate_limit' => $key->rate_limit,
                     'requests_used' => $key->requests_used,
                     'is_active' => $key->is_active,
@@ -578,7 +584,7 @@ class MarketplaceController extends Controller
      */
     public function revokeApiKey(int $keyId)
     {
-        $key = \App\Models\ApiKey::where('tenant_id', auth()->user()->tenant_id)
+        $key = ApiKey::where('tenant_id', auth()->user()->tenant_id)
             ->findOrFail($keyId);
 
         $key->update(['is_active' => false]);

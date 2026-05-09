@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,17 +14,26 @@ class PrintJob extends Model
 
     // Status constants for printing module workflow
     const STATUS_QUEUED = 'queued';
+
     const STATUS_PREPRESS = 'prepress';
+
     const STATUS_PLATEMAKING = 'platemaking';
+
     const STATUS_ON_PRESS = 'on_press';
+
     const STATUS_FINISHING = 'finishing';
+
     const STATUS_QUALITY_CHECK = 'quality_check';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     // Status constants for POS print queue
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_FAILED = 'failed';
 
     const STATUSES = [
@@ -195,6 +203,7 @@ class PrintJob extends Model
     {
         $stages = ['queued', 'prepress', 'platemaking', 'on_press', 'finishing', 'quality_check', 'completed'];
         $currentIndex = array_search($this->status, $stages);
+
         return $currentIndex !== false ? ($currentIndex / (count($stages) - 1)) * 100 : 0;
     }
 
@@ -247,7 +256,7 @@ class PrintJob extends Model
     /**
      * Mark job as failed
      */
-    public function markAsFailed(string $errorMessage = null): void
+    public function markAsFailed(?string $errorMessage = null): void
     {
         $this->update([
             'status' => self::STATUS_FAILED,
@@ -261,6 +270,7 @@ class PrintJob extends Model
     public function canRetry(): bool
     {
         $maxRetries = config('pos_printer.queue.retry_attempts', 3);
+
         return $this->retry_count < $maxRetries && in_array($this->status, ['failed', 'pending']);
     }
 

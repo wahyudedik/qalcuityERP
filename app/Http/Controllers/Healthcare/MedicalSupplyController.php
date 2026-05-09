@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\MedicalSupply;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MedicalSupplyController extends Controller
 {
@@ -89,6 +88,7 @@ class MedicalSupplyController extends Controller
     public function show(MedicalSupply $supply)
     {
         $supply->load(['usageLogs']);
+
         return view('healthcare.medical-supplies.show', compact('supply'));
     }
 

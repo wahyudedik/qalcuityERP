@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
+use App\Models\ApprovalRequest;
+use App\Models\ApprovalWorkflow;
 use App\Models\PurchaseOrder;
 use App\Models\User;
-use App\Models\ApprovalWorkflow;
-use App\Models\ApprovalRequest;
 use Illuminate\Support\Facades\Log;
 
 /**
  * PoApprovalService - Enforce purchase order approval workflow
- * 
+ *
  * BUG-PO-001 FIX: Prevent unauthorized purchase order posting
- * 
+ *
  * Security Rules:
  * 1. PO above threshold requires approval before posting
  * 2. Only authorized roles can approve (manager, admin, etc.)
@@ -23,8 +23,7 @@ class PoApprovalService
 {
     /**
      * BUG-PO-001 FIX: Check if PO requires approval before posting
-     * 
-     * @param PurchaseOrder $po
+     *
      * @return array ['requires_approval' => bool, 'reason' => string]
      */
     public function requiresApproval(PurchaseOrder $po): array
@@ -32,7 +31,7 @@ class PoApprovalService
         // Find applicable approval workflow
         $workflow = $this->getApplicableWorkflow($po);
 
-        if (!$workflow) {
+        if (! $workflow) {
             return [
                 'requires_approval' => false,
                 'reason' => 'No approval workflow configured for this PO amount.',
@@ -41,16 +40,14 @@ class PoApprovalService
 
         return [
             'requires_approval' => true,
-            'reason' => "PO total (Rp " . number_format($po->total, 0, ',', '.') . ") exceeds threshold (Rp " . number_format($workflow->min_amount, 0, ',', '.') . "). Requires approval from: " . implode(', ', $workflow->approver_roles),
+            'reason' => 'PO total (Rp '.number_format($po->total, 0, ',', '.').') exceeds threshold (Rp '.number_format($workflow->min_amount, 0, ',', '.').'). Requires approval from: '.implode(', ', $workflow->approver_roles),
             'workflow' => $workflow,
         ];
     }
 
     /**
      * BUG-PO-001 FIX: Validate if user can approve PO
-     * 
-     * @param User $user
-     * @param PurchaseOrder $po
+     *
      * @return array ['allowed' => bool, 'reason' => string]
      */
     public function canApprove(User $user, PurchaseOrder $po): array
@@ -58,7 +55,7 @@ class PoApprovalService
         // Check if approval is required
         $approvalCheck = $this->requiresApproval($po);
 
-        if (!$approvalCheck['requires_approval']) {
+        if (! $approvalCheck['requires_approval']) {
             return [
                 'allowed' => true,
                 'reason' => 'No approval required for this PO.',
@@ -74,12 +71,12 @@ class PoApprovalService
         }
 
         $allowedRoles = $workflow->approver_roles;
-        $hasRole = !empty(array_intersect($userRoles, $allowedRoles));
+        $hasRole = ! empty(array_intersect($userRoles, $allowedRoles));
 
-        if (!$hasRole) {
+        if (! $hasRole) {
             return [
                 'allowed' => false,
-                'reason' => "Anda tidak memiliki role yang diperlukan untuk approve PO ini. Required roles: " . implode(', ', $allowedRoles),
+                'reason' => 'Anda tidak memiliki role yang diperlukan untuk approve PO ini. Required roles: '.implode(', ', $allowedRoles),
             ];
         }
 
@@ -112,15 +109,12 @@ class PoApprovalService
 
     /**
      * BUG-PO-001 FIX: Create approval request for PO
-     * 
-     * @param PurchaseOrder $po
-     * @return ApprovalRequest
      */
     public function createApprovalRequest(PurchaseOrder $po): ApprovalRequest
     {
         $workflow = $this->getApplicableWorkflow($po);
 
-        if (!$workflow) {
+        if (! $workflow) {
             throw new \Exception('No approval workflow found for this PO');
         }
 
@@ -142,7 +136,7 @@ class PoApprovalService
             'model_id' => $po->id,
             'status' => 'pending',
             'amount' => $po->total,
-            'notes' => "Approval required for PO {$po->number} - Total: Rp " . number_format($po->total, 0, ',', '.'),
+            'notes' => "Approval required for PO {$po->number} - Total: Rp ".number_format($po->total, 0, ',', '.'),
         ]);
 
         Log::info('PO: Approval request created', [
@@ -158,18 +152,13 @@ class PoApprovalService
 
     /**
      * BUG-PO-001 FIX: Approve PO with validation
-     * 
-     * @param User $approver
-     * @param PurchaseOrder $po
-     * @param string|null $notes
-     * @return array
      */
     public function approvePo(User $approver, PurchaseOrder $po, ?string $notes = null): array
     {
         // Validate approval permission
         $validation = $this->canApprove($approver, $po);
 
-        if (!$validation['allowed']) {
+        if (! $validation['allowed']) {
             Log::warning('PO: Self-approval or unauthorized attempt blocked', [
                 'approver_id' => $approver->id,
                 'approver_name' => $approver->name,
@@ -190,7 +179,7 @@ class PoApprovalService
             ->where('status', 'pending')
             ->first();
 
-        if (!$approvalRequest) {
+        if (! $approvalRequest) {
             // Create one if doesn't exist
             $approvalRequest = $this->createApprovalRequest($po);
         }
@@ -224,17 +213,12 @@ class PoApprovalService
 
     /**
      * BUG-PO-001 FIX: Reject PO
-     * 
-     * @param User $rejector
-     * @param PurchaseOrder $po
-     * @param string $reason
-     * @return array
      */
     public function rejectPo(User $rejector, PurchaseOrder $po, string $reason): array
     {
         $validation = $this->canApprove($rejector, $po);
 
-        if (!$validation['allowed']) {
+        if (! $validation['allowed']) {
             return [
                 'success' => false,
                 'message' => $validation['reason'],
@@ -246,7 +230,7 @@ class PoApprovalService
             ->where('status', 'pending')
             ->first();
 
-        if (!$approvalRequest) {
+        if (! $approvalRequest) {
             return [
                 'success' => false,
                 'message' => 'Tidak ada approval request pending untuk PO ini.',
@@ -275,15 +259,12 @@ class PoApprovalService
 
     /**
      * BUG-PO-001 FIX: Check if PO can be posted
-     * 
-     * @param PurchaseOrder $po
-     * @return array
      */
     public function canPost(PurchaseOrder $po): array
     {
         $approvalCheck = $this->requiresApproval($po);
 
-        if (!$approvalCheck['requires_approval']) {
+        if (! $approvalCheck['requires_approval']) {
             return [
                 'can_post' => true,
                 'reason' => 'No approval required.',
@@ -296,7 +277,7 @@ class PoApprovalService
             ->where('status', 'approved')
             ->first();
 
-        if (!$approval) {
+        if (! $approval) {
             return [
                 'can_post' => false,
                 'reason' => "PO harus disetujui terlebih dahulu. {$approvalCheck['reason']}",
@@ -312,9 +293,6 @@ class PoApprovalService
 
     /**
      * Get applicable approval workflow for PO
-     * 
-     * @param PurchaseOrder $po
-     * @return ApprovalWorkflow|null
      */
     protected function getApplicableWorkflow(PurchaseOrder $po): ?ApprovalWorkflow
     {
@@ -332,9 +310,6 @@ class PoApprovalService
 
     /**
      * Get approval history for PO
-     * 
-     * @param PurchaseOrder $po
-     * @return array
      */
     public function getApprovalHistory(PurchaseOrder $po): array
     {

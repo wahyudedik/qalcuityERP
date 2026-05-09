@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -183,6 +182,7 @@ class Teleconsultation extends Model
         if ($this->actual_start_time && $this->actual_end_time) {
             return $this->actual_start_time->diffInMinutes($this->actual_end_time);
         }
+
         return null;
     }
 
@@ -252,9 +252,10 @@ class Teleconsultation extends Model
     public function tenantSetting()
     {
         $tenantId = $this->patient ? $this->patient->tenant_id : null;
-        if (!$tenantId) {
+        if (! $tenantId) {
             return null;
         }
+
         return TelemedicineSetting::getForTenant($tenantId);
     }
 

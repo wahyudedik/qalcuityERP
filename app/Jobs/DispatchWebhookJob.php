@@ -11,13 +11,16 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DispatchWebhookJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 5;
+
     public int $timeout = 30;
+
     public int $maxExceptions = 5;
 
     public function __construct(
@@ -41,36 +44,36 @@ class DispatchWebhookJob implements ShouldQueue
     {
         $subscription = $this->subscription;
 
-        if (!$subscription->is_active) {
+        if (! $subscription->is_active) {
             return;
         }
 
         $body = json_encode([
-            'id'         => \Illuminate\Support\Str::uuid()->toString(),
-            'event'      => $this->event,
+            'id' => Str::uuid()->toString(),
+            'event' => $this->event,
             'created_at' => now()->toIso8601String(),
-            'tenant_id'  => $subscription->tenant_id,
-            'data'       => $this->payload,
+            'tenant_id' => $subscription->tenant_id,
+            'data' => $this->payload,
         ], JSON_UNESCAPED_UNICODE);
 
         $headers = [
-            'Content-Type'        => 'application/json',
-            'User-Agent'          => 'QalcuityERP-Webhook/1.0',
-            'X-Qalcuity-Event'    => $this->event,
-            'X-Qalcuity-Delivery' => \Illuminate\Support\Str::uuid()->toString(),
-            'X-Qalcuity-Attempt'  => (string) $this->attempt,
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'QalcuityERP-Webhook/1.0',
+            'X-Qalcuity-Event' => $this->event,
+            'X-Qalcuity-Delivery' => Str::uuid()->toString(),
+            'X-Qalcuity-Attempt' => (string) $this->attempt,
         ];
 
         if ($subscription->secret) {
-            $headers['X-Qalcuity-Signature'] = 'sha256=' . hash_hmac('sha256', $body, $subscription->secret);
+            $headers['X-Qalcuity-Signature'] = 'sha256='.hash_hmac('sha256', $body, $subscription->secret);
         }
 
         $delivery = WebhookDelivery::create([
             'webhook_subscription_id' => $subscription->id,
-            'event'                   => $this->event,
-            'payload'                 => $this->payload,
-            'status'                  => 'pending',
-            'attempt'                 => $this->attempt,
+            'event' => $this->event,
+            'payload' => $this->payload,
+            'status' => 'pending',
+            'attempt' => $this->attempt,
         ]);
 
         $startTime = microtime(true);
@@ -86,17 +89,17 @@ class DispatchWebhookJob implements ShouldQueue
             $delivery->update([
                 'response_code' => $response->status(),
                 'response_body' => substr($response->body(), 0, 2000),
-                'status'        => $response->successful() ? 'success' : 'failed',
-                'duration_ms'   => $durationMs,
+                'status' => $response->successful() ? 'success' : 'failed',
+                'duration_ms' => $durationMs,
             ]);
 
             $subscription->update([
                 'last_triggered_at' => now(),
-                'retry_count'       => 0,
+                'retry_count' => 0,
             ]);
 
             // If non-2xx, throw to trigger retry
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $this->handleFailure($subscription, $delivery);
             }
 
@@ -105,8 +108,8 @@ class DispatchWebhookJob implements ShouldQueue
 
             $delivery->update([
                 'response_body' => substr($e->getMessage(), 0, 2000),
-                'status'        => 'failed',
-                'duration_ms'   => $durationMs,
+                'status' => 'failed',
+                'duration_ms' => $durationMs,
             ]);
 
             $this->handleFailure($subscription, $delivery);

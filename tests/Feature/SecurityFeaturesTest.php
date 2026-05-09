@@ -2,8 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\RateLimitAiRequests;
+use App\Http\Middleware\VerifyCsrfForUploads;
 use App\Models\User;
+use App\Services\AiCommandValidator;
+use App\Services\ERP\ToolRegistry;
+use App\Services\OutputEscaper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Tests\TestCase;
 
 /**
@@ -30,7 +38,7 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_ai_command_validation_blocks_dangerous_patterns(): void
     {
-        $validator = new \App\Services\AiCommandValidator();
+        $validator = new AiCommandValidator;
 
         // Test script injection
         $result = $validator->validate('test_command', [
@@ -46,7 +54,7 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_ai_command_validation_sanitizes_input(): void
     {
-        $validator = new \App\Services\AiCommandValidator();
+        $validator = new AiCommandValidator;
 
         $result = $validator->validate('test_command', [
             'description' => "Hello\x00World", // Contains null byte
@@ -64,7 +72,7 @@ class SecurityFeaturesTest extends TestCase
         // This would require actual route testing
         // For now, we verify the middleware exists and is registered
         $this->assertTrue(
-            class_exists(\App\Http\Middleware\RateLimitAiRequests::class),
+            class_exists(RateLimitAiRequests::class),
             'RateLimitAiRequests middleware should exist'
         );
     }
@@ -75,7 +83,7 @@ class SecurityFeaturesTest extends TestCase
     public function test_csrf_protection_on_uploads(): void
     {
         $this->assertTrue(
-            class_exists(\App\Http\Middleware\VerifyCsrfForUploads::class),
+            class_exists(VerifyCsrfForUploads::class),
             'VerifyCsrfForUploads middleware should exist'
         );
     }
@@ -85,10 +93,10 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_security_headers_middleware(): void
     {
-        $middleware = new \App\Http\Middleware\AddSecurityHeaders();
+        $middleware = new AddSecurityHeaders;
 
-        $request = new \Illuminate\Http\Request();
-        $response = new \Illuminate\Http\Response('Test');
+        $request = new Request;
+        $response = new Response('Test');
 
         $result = $middleware->handle($request, function () use ($response) {
             return $response;
@@ -104,7 +112,7 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_output_escaper_html(): void
     {
-        $escaped = \App\Services\OutputEscaper::html('<script>alert("xss")</script>');
+        $escaped = OutputEscaper::html('<script>alert("xss")</script>');
 
         $this->assertStringNotContainsString('<script>', $escaped);
         $this->assertStringContainsString('&lt;script&gt;', $escaped);
@@ -115,7 +123,7 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_output_escaper_js(): void
     {
-        $escaped = \App\Services\OutputEscaper::js('</script><script>alert(1)</script>');
+        $escaped = OutputEscaper::js('</script><script>alert(1)</script>');
 
         $this->assertStringNotContainsString('</script>', $escaped);
     }
@@ -125,7 +133,7 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_output_escaper_url_protocol_filter(): void
     {
-        $escaped = \App\Services\OutputEscaper::url('javascript:alert(1)');
+        $escaped = OutputEscaper::url('javascript:alert(1)');
 
         $this->assertEquals('#blocked', $escaped);
     }
@@ -135,14 +143,14 @@ class SecurityFeaturesTest extends TestCase
      */
     public function test_tool_registry_has_validator(): void
     {
-        $registry = new \App\Services\ERP\ToolRegistry(1, 1);
+        $registry = new ToolRegistry(1, 1);
 
         $reflection = new \ReflectionClass($registry);
         $property = $reflection->getProperty('validator');
         $property->setAccessible(true);
 
         $this->assertInstanceOf(
-            \App\Services\AiCommandValidator::class,
+            AiCommandValidator::class,
             $property->getValue($registry)
         );
     }

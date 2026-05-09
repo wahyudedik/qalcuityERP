@@ -42,7 +42,7 @@ class ImageRecognitionService
             // Step 1: Send to AI vision API
             $analysisResult = $this->callVisionAPI($imagePath, $type);
 
-            if (!$analysisResult['success']) {
+            if (! $analysisResult['success']) {
                 return $analysisResult;
             }
 
@@ -69,11 +69,11 @@ class ImageRecognitionService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Image recognition failed: ' . $e->getMessage());
+            Log::error('Image recognition failed: '.$e->getMessage());
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -118,15 +118,15 @@ class ImageRecognitionService
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->post("https://vision.googleapis.com/v1/images:annotate?key={$apiKey}", [
-                    'requests' => [
-                        [
-                            'image' => [
-                                'content' => $imageContent,
-                            ],
-                            'features' => array_map(fn($f) => ['type' => $f], $features),
-                        ],
+            'requests' => [
+                [
+                    'image' => [
+                        'content' => $imageContent,
                     ],
-                ]);
+                    'features' => array_map(fn ($f) => ['type' => $f], $features),
+                ],
+            ],
+        ]);
 
         if ($response->successful()) {
             $results = $response->json('responses.0');
@@ -254,18 +254,19 @@ class ImageRecognitionService
     {
         $result = ImageRecognitionResult::find($resultId);
 
-        if (!$result) {
+        if (! $result) {
             return false;
         }
 
         $result->update(['verified' => $verified]);
+
         return true;
     }
 
     /**
      * Get recognition history
      */
-    public function getRecognitionHistory(int $tenantId, string $type = null, int $limit = 20): array
+    public function getRecognitionHistory(int $tenantId, ?string $type = null, int $limit = 20): array
     {
         $query = ImageRecognitionResult::where('tenant_id', $tenantId);
 
@@ -293,11 +294,11 @@ class ImageRecognitionService
             ->selectRaw('recognition_type, COUNT(*) as count, AVG(confidence_score) as avg_confidence')
             ->groupBy('recognition_type')
             ->get()
-            ->mapWithKeys(fn($item) => [
+            ->mapWithKeys(fn ($item) => [
                 $item->recognition_type => [
                     'count' => $item->count,
-                    'avg_confidence' => round($item->avg_confidence, 4)
-                ]
+                    'avg_confidence' => round($item->avg_confidence, 4),
+                ],
             ])
             ->toArray();
 

@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BatchReworkLog extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'batch_id',
@@ -105,11 +105,12 @@ class BatchReworkLog extends Model
      */
     public function calculateLoss(): float
     {
-        if (!$this->quantity_after) {
+        if (! $this->quantity_after) {
             return 0;
         }
 
         $this->loss_quantity = round($this->quantity_before - $this->quantity_after, 2);
+
         return $this->loss_quantity;
     }
 
@@ -123,6 +124,7 @@ class BatchReworkLog extends Model
         }
 
         $loss = $this->loss_quantity ?? ($this->quantity_before - ($this->quantity_after ?? 0));
+
         return round(($loss / $this->quantity_before) * 100, 2);
     }
 
@@ -139,7 +141,7 @@ class BatchReworkLog extends Model
      */
     public function getDurationHoursAttribute(): ?float
     {
-        if (!$this->created_at || !$this->completed_at) {
+        if (! $this->created_at || ! $this->completed_at) {
             return null;
         }
 
@@ -153,7 +155,8 @@ class BatchReworkLog extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'RW-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'RW-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -218,9 +221,9 @@ class BatchReworkLog extends Model
             'quantity_before' => $this->quantity_before,
             'quantity_after' => $this->quantity_after,
             'loss' => $this->loss_quantity,
-            'loss_percentage' => $this->loss_percentage . '%',
+            'loss_percentage' => $this->loss_percentage.'%',
             'status' => $this->status_label,
-            'duration' => $this->duration_hours ? $this->duration_hours . ' hours' : 'N/A',
+            'duration' => $this->duration_hours ? $this->duration_hours.' hours' : 'N/A',
         ];
     }
 }

@@ -10,7 +10,10 @@ use Illuminate\Http\Request;
 
 class ShiftController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     // ─── Halaman utama: template shift + weekly scheduler ─────────
 
@@ -22,10 +25,10 @@ class ShiftController extends Controller
         $weekStart = $request->week
             ? Carbon::parse($request->week)->startOfWeek(Carbon::MONDAY)
             : now()->startOfWeek(Carbon::MONDAY);
-        $weekEnd   = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
-        $weekDays  = collect(range(0, 6))->map(fn($i) => $weekStart->copy()->addDays($i));
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $weekDays = collect(range(0, 6))->map(fn ($i) => $weekStart->copy()->addDays($i));
 
-        $shifts    = WorkShift::where('tenant_id', $tid)->where('is_active', true)->orderBy('start_time')->get();
+        $shifts = WorkShift::where('tenant_id', $tid)->where('is_active', true)->orderBy('start_time')->get();
         $employees = Employee::where('tenant_id', $tid)->where('status', 'active')->orderBy('name')->get();
 
         // Jadwal minggu ini: [employee_id][date] => ShiftSchedule
@@ -34,7 +37,7 @@ class ShiftController extends Controller
             ->with('shift')
             ->get()
             ->groupBy('employee_id')
-            ->map(fn($rows) => $rows->keyBy(fn($r) => $r->date->format('Y-m-d')));
+            ->map(fn ($rows) => $rows->keyBy(fn ($r) => $r->date->format('Y-m-d')));
 
         return view('hrm.shifts', compact('shifts', 'employees', 'schedules', 'weekStart', 'weekEnd', 'weekDays'));
     }
@@ -44,18 +47,18 @@ class ShiftController extends Controller
     public function storeShift(Request $request)
     {
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'color'            => 'required|string|size:7',
-            'start_time'       => 'required|date_format:H:i',
-            'end_time'         => 'required|date_format:H:i',
-            'break_minutes'    => 'required|integer|min:0|max:480',
+            'name' => 'required|string|max:100',
+            'color' => 'required|string|size:7',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'break_minutes' => 'required|integer|min:0|max:480',
             'crosses_midnight' => 'boolean',
-            'description'      => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:255',
         ]);
 
         WorkShift::create(array_merge($data, [
-            'tenant_id'       => $this->tid(),
-            'crosses_midnight'=> $request->boolean('crosses_midnight'),
+            'tenant_id' => $this->tid(),
+            'crosses_midnight' => $request->boolean('crosses_midnight'),
         ]));
 
         return back()->with('success', "Shift \"{$data['name']}\" berhasil dibuat.");
@@ -66,29 +69,30 @@ class ShiftController extends Controller
         abort_unless($shift->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'color'            => 'required|string|size:7',
-            'start_time'       => 'required|date_format:H:i',
-            'end_time'         => 'required|date_format:H:i',
-            'break_minutes'    => 'required|integer|min:0|max:480',
+            'name' => 'required|string|max:100',
+            'color' => 'required|string|size:7',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'break_minutes' => 'required|integer|min:0|max:480',
             'crosses_midnight' => 'boolean',
-            'description'      => 'nullable|string|max:255',
-            'is_active'        => 'boolean',
+            'description' => 'nullable|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
         $shift->update(array_merge($data, [
             'crosses_midnight' => $request->boolean('crosses_midnight'),
-            'is_active'        => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active', true),
         ]));
 
-        return back()->with('success', "Shift diperbarui.");
+        return back()->with('success', 'Shift diperbarui.');
     }
 
     public function destroyShift(WorkShift $shift)
     {
         abort_unless($shift->tenant_id === $this->tid(), 403);
         $shift->update(['is_active' => false]);
-        return back()->with('success', "Shift dinonaktifkan.");
+
+        return back()->with('success', 'Shift dinonaktifkan.');
     }
 
     // ─── Jadwal per karyawan ──────────────────────────────────────
@@ -99,10 +103,10 @@ class ShiftController extends Controller
     public function assignShift(Request $request)
     {
         $data = $request->validate([
-            'employee_id'  => 'required|exists:employees,id',
-            'work_shift_id'=> 'nullable|exists:work_shifts,id',
-            'date'         => 'required|date',
-            'notes'        => 'nullable|string|max:255',
+            'employee_id' => 'required|exists:employees,id',
+            'work_shift_id' => 'nullable|exists:work_shifts,id',
+            'date' => 'required|date',
+            'notes' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tid();
@@ -114,6 +118,7 @@ class ShiftController extends Controller
                 ->where('employee_id', $data['employee_id'])
                 ->where('date', $data['date'])
                 ->delete();
+
             return response()->json(['action' => 'removed']);
         }
 
@@ -125,12 +130,12 @@ class ShiftController extends Controller
         $schedule->load('shift');
 
         return response()->json([
-            'action'  => 'assigned',
-            'shift'   => [
-                'id'    => $schedule->shift->id,
-                'name'  => $schedule->shift->name,
+            'action' => 'assigned',
+            'shift' => [
+                'id' => $schedule->shift->id,
+                'name' => $schedule->shift->name,
                 'color' => $schedule->shift->color,
-                'time'  => $schedule->shift->timeLabel(),
+                'time' => $schedule->shift->timeLabel(),
             ],
         ]);
     }
@@ -142,10 +147,10 @@ class ShiftController extends Controller
     {
         $data = $request->validate(['week_start' => 'required|date']);
 
-        $tid       = $this->tid();
+        $tid = $this->tid();
         $fromStart = Carbon::parse($data['week_start'])->startOfWeek(Carbon::MONDAY);
-        $fromEnd   = $fromStart->copy()->endOfWeek(Carbon::SUNDAY);
-        $toStart   = $fromStart->copy()->addWeek();
+        $fromEnd = $fromStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $toStart = $fromStart->copy()->addWeek();
 
         $schedules = ShiftSchedule::where('tenant_id', $tid)
             ->whereBetween('date', [$fromStart, $fromEnd])
@@ -169,21 +174,21 @@ class ShiftController extends Controller
      */
     public function scheduleData(Request $request)
     {
-        $tid       = $this->tid();
+        $tid = $this->tid();
         $weekStart = Carbon::parse($request->week ?? now())->startOfWeek(Carbon::MONDAY);
-        $weekEnd   = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
 
         $schedules = ShiftSchedule::where('tenant_id', $tid)
             ->whereBetween('date', [$weekStart, $weekEnd])
             ->with('shift')
             ->get()
-            ->map(fn($s) => [
+            ->map(fn ($s) => [
                 'employee_id' => $s->employee_id,
-                'date'        => $s->date->format('Y-m-d'),
-                'shift_id'    => $s->work_shift_id,
-                'shift_name'  => $s->shift->name,
+                'date' => $s->date->format('Y-m-d'),
+                'shift_id' => $s->work_shift_id,
+                'shift_name' => $s->shift->name,
                 'shift_color' => $s->shift->color,
-                'shift_time'  => $s->shift->timeLabel(),
+                'shift_time' => $s->shift->timeLabel(),
             ]);
 
         return response()->json(['schedules' => $schedules]);
@@ -194,7 +199,7 @@ class ShiftController extends Controller
      */
     public function todaySchedule(Request $request)
     {
-        $tid  = $this->tid();
+        $tid = $this->tid();
         $date = $request->date ?? today()->format('Y-m-d');
 
         $schedules = ShiftSchedule::where('tenant_id', $tid)
@@ -202,10 +207,10 @@ class ShiftController extends Controller
             ->with('shift')
             ->get()
             ->keyBy('employee_id')
-            ->map(fn($s) => [
-                'shift_id'   => $s->work_shift_id,
+            ->map(fn ($s) => [
+                'shift_id' => $s->work_shift_id,
                 'shift_name' => $s->shift->name,
-                'shift_color'=> $s->shift->color,
+                'shift_color' => $s->shift->color,
                 'shift_time' => $s->shift->timeLabel(),
             ]);
 
@@ -225,9 +230,9 @@ class ShiftController extends Controller
      */
     public function conflictDetect(Request $request)
     {
-        $tid       = $this->tid();
+        $tid = $this->tid();
         $weekStart = Carbon::parse($request->week ?? now())->startOfWeek(Carbon::MONDAY);
-        $weekEnd   = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
 
         // Load jadwal minggu ini + minggu sebelumnya (untuk rest time lintas minggu)
         $prevStart = $weekStart->copy()->subWeek();
@@ -239,13 +244,15 @@ class ShiftController extends Controller
         // Group by employee
         $byEmployee = $schedules->groupBy('employee_id');
 
-        $conflicts  = [];
-        $warnings   = [];
+        $conflicts = [];
+        $warnings = [];
         $totalIssues = 0;
 
         foreach ($byEmployee as $empId => $empSchedules) {
             $emp = $empSchedules->first()->employee;
-            if (!$emp) continue;
+            if (! $emp) {
+                continue;
+            }
 
             $empConflicts = [];
 
@@ -253,18 +260,18 @@ class ShiftController extends Controller
             $sorted = $empSchedules->sortBy('date')->values();
 
             // Only analyze current week for most checks
-            $thisWeek = $sorted->filter(fn($s) => $s->date->between($weekStart, $weekEnd));
+            $thisWeek = $sorted->filter(fn ($s) => $s->date->between($weekStart, $weekEnd));
 
             // ── a) Double shift (same day, different shift) ───────
-            $byDate = $thisWeek->groupBy(fn($s) => $s->date->format('Y-m-d'));
+            $byDate = $thisWeek->groupBy(fn ($s) => $s->date->format('Y-m-d'));
             foreach ($byDate as $date => $daySchedules) {
                 if ($daySchedules->count() > 1) {
-                    $names = $daySchedules->map(fn($s) => $s->shift->name)->join(' & ');
+                    $names = $daySchedules->map(fn ($s) => $s->shift->name)->join(' & ');
                     $empConflicts[] = [
-                        'type'     => 'double_shift',
+                        'type' => 'double_shift',
                         'severity' => 'critical',
-                        'date'     => $date,
-                        'message'  => "Double shift pada {$date}: {$names}",
+                        'date' => $date,
+                        'message' => "Double shift pada {$date}: {$names}",
                     ];
                 }
             }
@@ -276,52 +283,56 @@ class ShiftController extends Controller
 
                 // Only check consecutive or near-consecutive days
                 $dayGap = $prev->date->diffInDays($curr->date);
-                if ($dayGap > 2) continue;
+                if ($dayGap > 2) {
+                    continue;
+                }
 
-                $prevEndTime  = $prev->shift->end_time;
-                $currStartTime= $curr->shift->start_time;
+                $prevEndTime = $prev->shift->end_time;
+                $currStartTime = $curr->shift->start_time;
 
                 // Build datetime objects
-                $prevEnd  = Carbon::parse($prev->date->format('Y-m-d') . ' ' . $prevEndTime);
-                $currStart= Carbon::parse($curr->date->format('Y-m-d') . ' ' . $currStartTime);
+                $prevEnd = Carbon::parse($prev->date->format('Y-m-d').' '.$prevEndTime);
+                $currStart = Carbon::parse($curr->date->format('Y-m-d').' '.$currStartTime);
 
-                if ($prev->shift->crosses_midnight) $prevEnd->addDay();
+                if ($prev->shift->crosses_midnight) {
+                    $prevEnd->addDay();
+                }
 
                 $restMinutes = $prevEnd->diffInMinutes($currStart, false);
 
                 if ($restMinutes > 0 && $restMinutes < 480) { // < 8 jam
                     $restHours = round($restMinutes / 60, 1);
-                    $severity  = $restMinutes < 240 ? 'critical' : 'high'; // < 4 jam = critical
+                    $severity = $restMinutes < 240 ? 'critical' : 'high'; // < 4 jam = critical
                     $empConflicts[] = [
-                        'type'     => 'rest_violation',
+                        'type' => 'rest_violation',
                         'severity' => $severity,
-                        'date'     => $curr->date->format('Y-m-d'),
-                        'message'  => "Jeda istirahat hanya {$restHours} jam sebelum shift {$curr->shift->name} pada {$curr->date->format('d/m')} (minimum 8 jam).",
+                        'date' => $curr->date->format('Y-m-d'),
+                        'message' => "Jeda istirahat hanya {$restHours} jam sebelum shift {$curr->shift->name} pada {$curr->date->format('d/m')} (minimum 8 jam).",
                     ];
                 }
             }
 
             // ── c) Excessive weekly hours (> 48 jam/minggu) ───────
-            $weeklyMinutes = $thisWeek->sum(fn($s) => $s->shift->workMinutes());
-            $weeklyHours   = round($weeklyMinutes / 60, 1);
+            $weeklyMinutes = $thisWeek->sum(fn ($s) => $s->shift->workMinutes());
+            $weeklyHours = round($weeklyMinutes / 60, 1);
             if ($weeklyHours > 48) {
                 $empConflicts[] = [
-                    'type'     => 'excessive_hours',
+                    'type' => 'excessive_hours',
                     'severity' => $weeklyHours > 60 ? 'critical' : 'high',
-                    'date'     => null,
-                    'message'  => "Total jam kerja minggu ini {$weeklyHours} jam (batas UU: 40 jam reguler, 48 jam dengan lembur).",
+                    'date' => null,
+                    'message' => "Total jam kerja minggu ini {$weeklyHours} jam (batas UU: 40 jam reguler, 48 jam dengan lembur).",
                 ];
             } elseif ($weeklyHours > 40) {
                 $empConflicts[] = [
-                    'type'     => 'overtime_warning',
+                    'type' => 'overtime_warning',
                     'severity' => 'medium',
-                    'date'     => null,
-                    'message'  => "Total jam kerja {$weeklyHours} jam/minggu — melebihi 40 jam reguler (" . ($weeklyHours - 40) . " jam lembur).",
+                    'date' => null,
+                    'message' => "Total jam kerja {$weeklyHours} jam/minggu — melebihi 40 jam reguler (".($weeklyHours - 40).' jam lembur).',
                 ];
             }
 
             // ── d) Consecutive days without rest (> 6 hari) ───────
-            $workDates = $thisWeek->pluck('date')->map(fn($d) => $d->format('Y-m-d'))->sort()->values();
+            $workDates = $thisWeek->pluck('date')->map(fn ($d) => $d->format('Y-m-d'))->sort()->values();
             $consecutive = 1;
             $maxConsecutive = 1;
             for ($i = 1; $i < $workDates->count(); $i++) {
@@ -336,51 +347,53 @@ class ShiftController extends Controller
             }
             if ($maxConsecutive >= 6) {
                 $empConflicts[] = [
-                    'type'     => 'consecutive_days',
+                    'type' => 'consecutive_days',
                     'severity' => $maxConsecutive >= 7 ? 'critical' : 'high',
-                    'date'     => null,
-                    'message'  => "Dijadwalkan {$maxConsecutive} hari berturut-turut tanpa hari libur (maksimum 6 hari per UU).",
+                    'date' => null,
+                    'message' => "Dijadwalkan {$maxConsecutive} hari berturut-turut tanpa hari libur (maksimum 6 hari per UU).",
                 ];
             }
 
-            if (empty($empConflicts)) continue;
+            if (empty($empConflicts)) {
+                continue;
+            }
 
             $maxSeverity = collect($empConflicts)->contains('severity', 'critical') ? 'critical'
                 : (collect($empConflicts)->contains('severity', 'high') ? 'high'
                 : (collect($empConflicts)->contains('severity', 'medium') ? 'medium' : 'low'));
 
             $conflicts[] = [
-                'employee_id'   => $empId,
+                'employee_id' => $empId,
                 'employee_name' => $emp->name,
-                'position'      => $emp->position ?? '-',
-                'department'    => $emp->department ?? '-',
-                'weekly_hours'  => $weeklyHours ?? 0,
-                'severity'      => $maxSeverity,
-                'conflicts'     => $empConflicts,
+                'position' => $emp->position ?? '-',
+                'department' => $emp->department ?? '-',
+                'weekly_hours' => $weeklyHours ?? 0,
+                'severity' => $maxSeverity,
+                'conflicts' => $empConflicts,
                 // Which dates have issues (for cell highlighting)
-                'conflict_dates'=> collect($empConflicts)->pluck('date')->filter()->unique()->values(),
+                'conflict_dates' => collect($empConflicts)->pluck('date')->filter()->unique()->values(),
             ];
 
             $totalIssues += count($empConflicts);
         }
 
         // Sort: critical first
-        usort($conflicts, fn($a, $b) => match(true) {
+        usort($conflicts, fn ($a, $b) => match (true) {
             $a['severity'] === 'critical' && $b['severity'] !== 'critical' => -1,
             $a['severity'] !== 'critical' && $b['severity'] === 'critical' => 1,
             default => 0,
         });
 
         $critical = collect($conflicts)->where('severity', 'critical')->count();
-        $high     = collect($conflicts)->where('severity', 'high')->count();
+        $high = collect($conflicts)->where('severity', 'high')->count();
 
         return response()->json([
-            'conflicts'    => $conflicts,
+            'conflicts' => $conflicts,
             'total_issues' => $totalIssues,
-            'critical'     => $critical,
-            'high'         => $high,
-            'week_start'   => $weekStart->format('Y-m-d'),
-            'week_end'     => $weekEnd->format('Y-m-d'),
+            'critical' => $critical,
+            'high' => $high,
+            'week_start' => $weekStart->format('Y-m-d'),
+            'week_end' => $weekEnd->format('Y-m-d'),
         ]);
     }
 }

@@ -14,6 +14,7 @@ class OfflineSyncController extends Controller
     {
         $this->conflictResolutionService = $conflictResolutionService;
     }
+
     /**
      * Get sync status and statistics
      * GET /api/offline/status
@@ -37,7 +38,7 @@ class OfflineSyncController extends Controller
                 'data' => $stats,
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::getStatus failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::getStatus failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -77,7 +78,7 @@ class OfflineSyncController extends Controller
                     // BUG-OFF-001 FIX: Check for conflicts before applying
                     $conflictCheck = $this->conflictResolutionService->checkAndResolveConflict($mutation);
 
-                    if ($conflictCheck['has_conflict'] && !$conflictCheck['apply']) {
+                    if ($conflictCheck['has_conflict'] && ! $conflictCheck['apply']) {
                         // BUG-OFF-001 FIX: Conflict detected, don't apply
                         $results[] = [
                             'index' => $index,
@@ -89,6 +90,7 @@ class OfflineSyncController extends Controller
                         ];
 
                         $conflicts++;
+
                         continue;
                     }
 
@@ -138,7 +140,7 @@ class OfflineSyncController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::bulkSync failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::bulkSync failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -183,11 +185,11 @@ class OfflineSyncController extends Controller
         // Check if this is a checkout operation
         if (isset($body['items'])) {
             // Call existing POS checkout logic
-            $posController = app(\App\Http\Controllers\PosController::class);
+            $posController = app(PosController::class);
 
             // Create request object
             $request = Request::create('/pos/checkout', 'POST', $body);
-            $request->setUserResolver(fn() => $user);
+            $request->setUserResolver(fn () => $user);
 
             // Execute checkout
             $response = $posController->checkout($request);
@@ -235,7 +237,7 @@ class OfflineSyncController extends Controller
                 'message' => 'Failed mutations cleared',
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::clearFailed failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::clearFailed failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -258,7 +260,7 @@ class OfflineSyncController extends Controller
             $cacheKey = "offline_cache:{$tenantId}:{$key}";
             $data = cache()->get($cacheKey);
 
-            if (!$data) {
+            if (! $data) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cache not found',
@@ -271,7 +273,7 @@ class OfflineSyncController extends Controller
                 'cached_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::getCache failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::getCache failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -301,7 +303,7 @@ class OfflineSyncController extends Controller
                 'message' => 'Cache updated',
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::updateCache failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::updateCache failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -320,7 +322,7 @@ class OfflineSyncController extends Controller
             // Support both Sanctum and web session auth
             $user = $request->user() ?: auth()->user();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthenticated.',
@@ -336,7 +338,7 @@ class OfflineSyncController extends Controller
                 'statistics' => $statistics,
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::getConflicts failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::getConflicts failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -375,7 +377,7 @@ class OfflineSyncController extends Controller
             ], 400);
 
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::resolveConflict failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::resolveConflict failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -399,7 +401,7 @@ class OfflineSyncController extends Controller
                 'result' => $result,
             ]);
         } catch (\Throwable $e) {
-            Log::error('OfflineSyncController::autoResolveAll failed: ' . $e->getMessage());
+            Log::error('OfflineSyncController::autoResolveAll failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

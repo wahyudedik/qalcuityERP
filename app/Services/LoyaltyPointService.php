@@ -4,16 +4,16 @@ namespace App\Services;
 
 use App\Models\LoyaltyPoint;
 use App\Models\LoyaltyProgram;
-use App\Models\LoyaltyTransaction;
 use App\Models\LoyaltyTier;
+use App\Models\LoyaltyTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * LoyaltyPointService - Race condition-free loyalty points management
- * 
+ *
  * BUG-CRM-003 FIX: Atomic operations with pessimistic locking
- * 
+ *
  * Problems Fixed:
  * 1. Non-atomic increment (read-modify-write race condition)
  * 2. Non-atomic decrement with balance check race
@@ -24,13 +24,6 @@ class LoyaltyPointService
 {
     /**
      * BUG-CRM-003 FIX: Atomically earn points with pessimistic locking
-     * 
-     * @param int $tenantId
-     * @param int $customerId
-     * @param float $transactionAmount
-     * @param int|null $pointsOverride
-     * @param string|null $reference
-     * @return array
      */
     public function earnPoints(
         int $tenantId,
@@ -62,7 +55,7 @@ class LoyaltyPointService
                 ->first();
 
             // Create if not exists (still inside transaction)
-            if (!$lp) {
+            if (! $lp) {
                 $lp = LoyaltyPoint::create([
                     'tenant_id' => $tenantId,
                     'customer_id' => $customerId,
@@ -132,12 +125,6 @@ class LoyaltyPointService
 
     /**
      * BUG-CRM-003 FIX: Atomically redeem points with balance check inside lock
-     * 
-     * @param int $tenantId
-     * @param int $customerId
-     * @param int $pointsToRedeem
-     * @param string|null $reference
-     * @return array
      */
     public function redeemPoints(
         int $tenantId,
@@ -225,11 +212,6 @@ class LoyaltyPointService
 
     /**
      * BUG-CRM-003 FIX: Get accurate balance with transaction history
-     * 
-     * @param int $tenantId
-     * @param int $customerId
-     * @param int $programId
-     * @return array
      */
     public function getBalance(int $tenantId, int $customerId, int $programId): array
     {
@@ -238,7 +220,7 @@ class LoyaltyPointService
             ->where('program_id', $programId)
             ->first();
 
-        if (!$lp) {
+        if (! $lp) {
             return [
                 'has_account' => false,
                 'balance' => 0,
@@ -271,17 +253,12 @@ class LoyaltyPointService
             'tier' => $lp->tier,
             'tier_updated_at' => $lp->tier_updated_at,
             'calculated_balance' => $calculatedBalance,
-            'balance_verified' => !$balanceMismatch,
+            'balance_verified' => ! $balanceMismatch,
         ];
     }
 
     /**
      * BUG-CRM-003 FIX: Recalculate balance from transactions (repair tool)
-     * 
-     * @param int $tenantId
-     * @param int $customerId
-     * @param int $programId
-     * @return array
      */
     public function recalculateBalance(int $tenantId, int $customerId, int $programId): array
     {
@@ -292,7 +269,7 @@ class LoyaltyPointService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$lp) {
+            if (! $lp) {
                 return ['success' => false, 'message' => 'Loyalty account not found'];
             }
 
@@ -326,13 +303,6 @@ class LoyaltyPointService
 
     /**
      * BUG-CRM-003 FIX: Transfer points between customers (atomic)
-     * 
-     * @param int $tenantId
-     * @param int $fromCustomerId
-     * @param int $toCustomerId
-     * @param int $programId
-     * @param int $points
-     * @return array
      */
     public function transferPoints(
         int $tenantId,

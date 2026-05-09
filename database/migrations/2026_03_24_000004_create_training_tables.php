@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Program pelatihan (katalog)
-        if (!Schema::hasTable('training_programs')) {
+        if (! Schema::hasTable('training_programs')) {
             Schema::create('training_programs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -21,14 +21,14 @@ return new class extends Migration
                 $table->decimal('cost', 18, 2)->default(0);
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->index(['tenant_id', 'category']);
             });
         }
 
         // Sesi pelatihan (jadwal)
-        if (!Schema::hasTable('training_sessions')) {
+        if (! Schema::hasTable('training_sessions')) {
             Schema::create('training_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -41,7 +41,7 @@ return new class extends Migration
                 $table->enum('status', ['scheduled', 'ongoing', 'completed', 'cancelled'])->default('scheduled');
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->foreign('training_program_id')->references('id')->on('training_programs')->cascadeOnDelete();
                 $table->index(['tenant_id', 'start_date']);
@@ -49,7 +49,7 @@ return new class extends Migration
         }
 
         // Peserta pelatihan
-        if (!Schema::hasTable('training_participants')) {
+        if (! Schema::hasTable('training_participants')) {
             Schema::create('training_participants', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -59,7 +59,7 @@ return new class extends Migration
                 $table->unsignedTinyInteger('score')->nullable();   // 0-100
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->foreign('training_session_id')->references('id')->on('training_sessions')->cascadeOnDelete();
                 $table->foreign('employee_id')->references('id')->on('employees')->cascadeOnDelete();
@@ -69,7 +69,7 @@ return new class extends Migration
         }
 
         // Sertifikasi karyawan
-        if (!Schema::hasTable('employee_certifications')) {
+        if (! Schema::hasTable('employee_certifications')) {
             Schema::create('employee_certifications', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -83,7 +83,7 @@ return new class extends Migration
                 $table->string('file_path')->nullable();        // upload scan sertifikat
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->foreign('employee_id')->references('id')->on('employees')->cascadeOnDelete();
                 $table->index(['tenant_id', 'employee_id']);

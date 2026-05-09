@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Construction;
 
 use App\Http\Controllers\Controller;
-use App\Services\GanttChartService;
 use App\Models\Project;
+use App\Services\GanttChartService;
 use Illuminate\Http\Request;
 
 class GanttChartController extends Controller

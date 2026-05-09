@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Contract templates
-        if (!Schema::hasTable('contract_templates')) {
+        if (! Schema::hasTable('contract_templates')) {
             Schema::create('contract_templates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -23,7 +23,7 @@ return new class extends Migration
         }
 
         // Contracts
-        if (!Schema::hasTable('contracts')) {
+        if (! Schema::hasTable('contracts')) {
             Schema::create('contracts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -56,7 +56,7 @@ return new class extends Migration
                 $table->timestamp('signed_at')->nullable();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'contract_number']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'next_billing_date']);
@@ -64,7 +64,7 @@ return new class extends Migration
         }
 
         // Contract billing history
-        if (!Schema::hasTable('contract_billings')) {
+        if (! Schema::hasTable('contract_billings')) {
             Schema::create('contract_billings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('contract_id')->constrained()->cascadeOnDelete();
@@ -78,13 +78,13 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // SLA incidents / tracking
-        if (!Schema::hasTable('contract_sla_logs')) {
+        if (! Schema::hasTable('contract_sla_logs')) {
             Schema::create('contract_sla_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('contract_id')->constrained()->cascadeOnDelete();

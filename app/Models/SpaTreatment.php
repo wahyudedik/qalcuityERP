@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpaTreatment extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -79,6 +78,7 @@ class SpaTreatment extends Model
         if ($this->price == 0) {
             return 0;
         }
+
         return (($this->price - $this->cost) / $this->price) * 100;
     }
 
@@ -87,7 +87,7 @@ class SpaTreatment extends Model
      */
     public function canBeBookedToday(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 

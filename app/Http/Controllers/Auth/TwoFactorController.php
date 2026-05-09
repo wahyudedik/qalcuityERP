@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\TwoFactorService;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
@@ -22,12 +23,12 @@ class TwoFactorController extends Controller
      */
     public function setup(Request $request)
     {
-        $user   = $request->user();
+        $user = $request->user();
         $secret = $request->session()->get('2fa_setup_secret') ?? $this->twoFactor->generateSecret();
         $request->session()->put('2fa_setup_secret', $secret);
 
-        $qrUrl  = $this->twoFactor->getQrCodeUrl($user, $secret);
-        $qrSvg  = $this->generateQrSvg($qrUrl);
+        $qrUrl = $this->twoFactor->getQrCodeUrl($user, $secret);
+        $qrSvg = $this->generateQrSvg($qrUrl);
 
         return view('auth.two-factor.setup', compact('secret', 'qrSvg', 'user'));
     }
@@ -40,11 +41,11 @@ class TwoFactorController extends Controller
         $request->validate(['code' => 'required|string|digits:6']);
 
         $secret = $request->session()->get('2fa_setup_secret');
-        if (!$secret) {
+        if (! $secret) {
             return back()->with('error', 'Sesi setup 2FA tidak valid. Mulai ulang.');
         }
 
-        if (!$this->twoFactor->verify($secret, $request->code)) {
+        if (! $this->twoFactor->verify($secret, $request->code)) {
             return back()->withErrors(['code' => 'Kode OTP tidak valid. Pastikan waktu perangkat Anda sinkron.']);
         }
 
@@ -64,6 +65,7 @@ class TwoFactorController extends Controller
     {
         $request->validate(['password' => 'required|current_password']);
         $this->twoFactor->disable($request->user());
+
         return back()->with('success', '2FA berhasil dinonaktifkan.');
     }
 
@@ -74,6 +76,7 @@ class TwoFactorController extends Controller
     {
         $request->validate(['password' => 'required|current_password']);
         $codes = $this->twoFactor->regenerateRecoveryCodes($request->user());
+
         return view('auth.two-factor.recovery-codes', ['recoveryCodes' => $codes]);
     }
 
@@ -84,9 +87,10 @@ class TwoFactorController extends Controller
      */
     public function challenge()
     {
-        if (!session('2fa_user_id')) {
+        if (! session('2fa_user_id')) {
             return redirect()->route('login');
         }
+
         return view('auth.two-factor.challenge');
     }
 
@@ -98,13 +102,13 @@ class TwoFactorController extends Controller
         $request->validate(['code' => 'required|string']);
 
         $userId = $request->session()->get('2fa_user_id');
-        if (!$userId) {
+        if (! $userId) {
             return redirect()->route('login');
         }
 
-        $user   = \App\Models\User::findOrFail($userId);
-        $code   = trim($request->code);
-        $valid  = false;
+        $user = User::findOrFail($userId);
+        $code = trim($request->code);
+        $valid = false;
 
         // Coba OTP dulu, lalu recovery code
         $secret = $this->twoFactor->getSecret($user);
@@ -112,11 +116,11 @@ class TwoFactorController extends Controller
             $valid = $this->twoFactor->verify($secret, $code);
         }
 
-        if (!$valid && strlen($code) === 10) {
+        if (! $valid && strlen($code) === 10) {
             $valid = $this->twoFactor->verifyRecoveryCode($user, $code);
         }
 
-        if (!$valid) {
+        if (! $valid) {
             return back()->withErrors(['code' => 'Kode tidak valid. Coba lagi atau gunakan recovery code.']);
         }
 
@@ -135,9 +139,10 @@ class TwoFactorController extends Controller
         try {
             $renderer = new ImageRenderer(
                 new RendererStyle(200),
-                new SvgImageBackEnd()
+                new SvgImageBackEnd
             );
             $writer = new Writer($renderer);
+
             return $writer->writeString($url);
         } catch (\Throwable) {
             // Fallback: return URL saja jika library tidak tersedia

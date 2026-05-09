@@ -35,12 +35,12 @@ class BotService
 
         BotMessage::create([
             'tenant_id' => $config->tenant_id,
-            'platform'  => 'telegram',
+            'platform' => 'telegram',
             'direction' => 'outbound',
             'recipient' => $chatId,
-            'message'   => $reply,
-            'status'    => 'sent',
-            'sent_at'   => now(),
+            'message' => $reply,
+            'status' => 'sent',
+            'sent_at' => now(),
         ]);
     }
 
@@ -54,12 +54,12 @@ class BotService
 
         BotMessage::create([
             'tenant_id' => $config->tenant_id,
-            'platform'  => 'whatsapp',
+            'platform' => 'whatsapp',
             'direction' => 'outbound',
             'recipient' => $from,
-            'message'   => $reply,
-            'status'    => 'sent',
-            'sent_at'   => now(),
+            'message' => $reply,
+            'status' => 'sent',
+            'sent_at' => now(),
         ]);
     }
 
@@ -76,14 +76,14 @@ class BotService
         // /start or /help
         if (in_array($text, ['/start', '/help', 'help', 'menu', 'halo', 'hi'])) {
             return "🤖 *Qalcuity ERP Bot*\n\n"
-                . "Perintah yang tersedia:\n"
-                . "📊 *omzet* — Omzet hari ini\n"
-                . "📦 *stok* — Produk stok rendah\n"
-                . "🧾 *invoice* — Invoice jatuh tempo\n"
-                . "👤 *customer* — Jumlah customer\n"
-                . "📋 *order* — Order pending\n"
-                . "🔍 *cari [nama]* — Cari produk\n\n"
-                . "Ketik perintah di atas untuk mulai.";
+                ."Perintah yang tersedia:\n"
+                ."📊 *omzet* — Omzet hari ini\n"
+                ."📦 *stok* — Produk stok rendah\n"
+                ."🧾 *invoice* — Invoice jatuh tempo\n"
+                ."👤 *customer* — Jumlah customer\n"
+                ."📋 *order* — Order pending\n"
+                ."🔍 *cari [nama]* — Cari produk\n\n"
+                .'Ketik perintah di atas untuk mulai.';
         }
 
         // Omzet hari ini
@@ -96,23 +96,27 @@ class BotService
                 ->whereNotIn('status', ['cancelled'])
                 ->whereDate('date', today())
                 ->count();
+
             return "📊 *Omzet Hari Ini*\n\n"
-                . "💰 Rp " . number_format($today, 0, ',', '.') . "\n"
-                . "📋 {$count} order";
+                .'💰 Rp '.number_format($today, 0, ',', '.')."\n"
+                ."📋 {$count} order";
         }
 
         // Stok rendah
         if (str_contains($text, 'stok') || str_contains($text, 'stock')) {
             $low = Product::where('tenant_id', $tenantId)
                 ->where('is_active', true)
-                ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
+                ->whereHas('productStocks', fn ($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
                 ->limit(10)
                 ->get();
 
-            if ($low->isEmpty()) return "✅ Semua stok aman, tidak ada yang rendah.";
+            if ($low->isEmpty()) {
+                return '✅ Semua stok aman, tidak ada yang rendah.';
+            }
 
-            $lines = $low->map(fn($p) => "• {$p->name}: {$p->totalStock()} {$p->unit} (min: {$p->stock_min})");
-            return "📦 *Stok Rendah ({$low->count()})*\n\n" . $lines->implode("\n");
+            $lines = $low->map(fn ($p) => "• {$p->name}: {$p->totalStock()} {$p->unit} (min: {$p->stock_min})");
+
+            return "📦 *Stok Rendah ({$low->count()})*\n\n".$lines->implode("\n");
         }
 
         // Invoice jatuh tempo
@@ -124,18 +128,22 @@ class BotService
                 ->limit(10)
                 ->get();
 
-            if ($overdue->isEmpty()) return "✅ Tidak ada invoice jatuh tempo.";
+            if ($overdue->isEmpty()) {
+                return '✅ Tidak ada invoice jatuh tempo.';
+            }
 
             $total = $overdue->sum('remaining_amount');
-            $lines = $overdue->map(fn($i) => "• {$i->number} — {$i->customer?->name} — Rp " . number_format($i->remaining_amount, 0, ',', '.'));
+            $lines = $overdue->map(fn ($i) => "• {$i->number} — {$i->customer?->name} — Rp ".number_format($i->remaining_amount, 0, ',', '.'));
+
             return "🧾 *Invoice Jatuh Tempo ({$overdue->count()})*\n"
-                . "Total: Rp " . number_format($total, 0, ',', '.') . "\n\n"
-                . $lines->implode("\n");
+                .'Total: Rp '.number_format($total, 0, ',', '.')."\n\n"
+                .$lines->implode("\n");
         }
 
         // Customer count
         if (str_contains($text, 'customer') || str_contains($text, 'pelanggan')) {
             $count = Customer::where('tenant_id', $tenantId)->where('is_active', true)->count();
+
             return "👤 Total customer aktif: *{$count}*";
         }
 
@@ -144,6 +152,7 @@ class BotService
             $pending = SalesOrder::where('tenant_id', $tenantId)
                 ->whereIn('status', ['pending', 'confirmed'])
                 ->count();
+
             return "📋 Order pending/confirmed: *{$pending}*";
         }
 
@@ -156,10 +165,13 @@ class BotService
                 ->limit(5)
                 ->get();
 
-            if ($products->isEmpty()) return "🔍 Tidak ditemukan produk dengan kata kunci \"{$keyword}\".";
+            if ($products->isEmpty()) {
+                return "🔍 Tidak ditemukan produk dengan kata kunci \"{$keyword}\".";
+            }
 
-            $lines = $products->map(fn($p) => "• {$p->name} — Rp " . number_format($p->price_sell, 0, ',', '.') . " ({$p->totalStock()} {$p->unit})");
-            return "🔍 *Hasil Pencarian: \"{$keyword}\"*\n\n" . $lines->implode("\n");
+            $lines = $products->map(fn ($p) => "• {$p->name} — Rp ".number_format($p->price_sell, 0, ',', '.')." ({$p->totalStock()} {$p->unit})");
+
+            return "🔍 *Hasil Pencarian: \"{$keyword}\"*\n\n".$lines->implode("\n");
         }
 
         return "🤔 Perintah tidak dikenali.\nKetik *help* untuk melihat daftar perintah.";
@@ -180,7 +192,9 @@ class BotService
         foreach ($configs as $config) {
             // Check if this event type is enabled
             $events = $config->notification_events ?? [];
-            if (!empty($events) && !in_array($eventType, $events)) continue;
+            if (! empty($events) && ! in_array($eventType, $events)) {
+                continue;
+            }
 
             try {
                 if ($config->platform === 'telegram' && $config->chat_id) {
@@ -190,17 +204,17 @@ class BotService
                 }
 
                 BotMessage::create([
-                    'tenant_id'  => $tenantId,
-                    'platform'   => $config->platform,
-                    'direction'  => 'outbound',
-                    'recipient'  => $config->chat_id ?? $config->phone_number ?? '',
-                    'message'    => $message,
+                    'tenant_id' => $tenantId,
+                    'platform' => $config->platform,
+                    'direction' => 'outbound',
+                    'recipient' => $config->chat_id ?? $config->phone_number ?? '',
+                    'message' => $message,
                     'event_type' => $eventType,
-                    'status'     => 'sent',
-                    'sent_at'    => now(),
+                    'status' => 'sent',
+                    'sent_at' => now(),
                 ]);
             } catch (\Throwable $e) {
-                Log::warning("BotService notification failed ({$config->platform}): " . $e->getMessage());
+                Log::warning("BotService notification failed ({$config->platform}): ".$e->getMessage());
             }
         }
     }
@@ -210,8 +224,8 @@ class BotService
     private function sendTelegram(string $token, string $chatId, string $text): void
     {
         Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
-            'chat_id'    => $chatId,
-            'text'       => $text,
+            'chat_id' => $chatId,
+            'text' => $text,
             'parse_mode' => 'Markdown',
         ]);
     }
@@ -243,8 +257,9 @@ class BotService
         $phoneNumberId = $config->phone_number; // stored as phone_number_id
         $token = $config->token;
 
-        if (!$phoneNumberId) {
+        if (! $phoneNumberId) {
             Log::warning("WhatsApp Meta: phone_number_id not set for config #{$config->id}");
+
             return;
         }
 
@@ -252,9 +267,9 @@ class BotService
             "https://graph.facebook.com/v18.0/{$phoneNumberId}/messages",
             [
                 'messaging_product' => 'whatsapp',
-                'to'                => $to,
-                'type'              => 'text',
-                'text'              => ['body' => strip_tags(str_replace(['*', '_'], '', $text))],
+                'to' => $to,
+                'type' => 'text',
+                'text' => ['body' => strip_tags(str_replace(['*', '_'], '', $text))],
             ]
         );
     }
@@ -267,7 +282,7 @@ class BotService
     {
         Http::withHeaders(['Authorization' => $token])
             ->post('https://api.fonnte.com/send', [
-                'target'  => $to,
+                'target' => $to,
                 'message' => $text,
             ]);
     }

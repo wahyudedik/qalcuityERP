@@ -3,23 +3,24 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\CosmeticBatchRecord;
-use App\Models\CosmeticFormula;
 use App\Models\BatchQualityCheck;
 use App\Models\BatchReworkLog;
-use App\Services\BatchProductionService;
+use App\Models\CosmeticBatchRecord;
+use App\Models\CosmeticFormula;
 use App\Services\BatchPdfExportService;
-use Illuminate\Support\Facades\Auth;
+use App\Services\BatchProductionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Batch Production Controller
- * 
+ *
  * @note Linter may show false positives for Auth::user() and Auth::id() - standard Laravel
  */
 class BatchController extends Controller
 {
     protected $batchService;
+
     protected $pdfService;
 
     public function __construct(BatchProductionService $batchService, BatchPdfExportService $pdfService)
@@ -27,6 +28,7 @@ class BatchController extends Controller
         $this->batchService = $batchService;
         $this->pdfService = $pdfService;
     }
+
     /**
      * Display all batch records
      */
@@ -110,7 +112,7 @@ class BatchController extends Controller
         ]);
 
         try {
-            $batch = new CosmeticBatchRecord();
+            $batch = new CosmeticBatchRecord;
             $batch->tenant_id = Auth::user()->tenant_id;
             $batch->batch_number = $validated['batch_number'] ?? CosmeticBatchRecord::getNextBatchNumber();
             $batch->formula_id = $validated['formula_id'];
@@ -125,7 +127,7 @@ class BatchController extends Controller
             return redirect()->route('cosmetic.batches.show', $batch)
                 ->with('success', 'Batch record created successfully!');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Failed to create batch: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to create batch: '.$e->getMessage());
         }
     }
 
@@ -139,7 +141,7 @@ class BatchController extends Controller
             'qualityChecks.inspector',
             'reworkLogs.initiator',
             'producer',
-            'qcInspector'
+            'qcInspector',
         ])
             ->where('tenant_id', Auth::user()->tenant_id)
             ->findOrFail($id);
@@ -190,13 +192,13 @@ class BatchController extends Controller
                 $batch->qc_notes = $validated['qc_notes'];
             }
 
-            if ($validated['status'] === 'in_progress' && !$batch->produced_by) {
+            if ($validated['status'] === 'in_progress' && ! $batch->produced_by) {
                 $batch->produced_by = Auth::id();
             }
 
             $batch->save();
 
-            return back()->with('success', 'Batch status updated to ' . $batch->status_label);
+            return back()->with('success', 'Batch status updated to '.$batch->status_label);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -221,7 +223,7 @@ class BatchController extends Controller
             $batch = CosmeticBatchRecord::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
-            $check = new BatchQualityCheck();
+            $check = new BatchQualityCheck;
             $check->tenant_id = Auth::user()->tenant_id;
             $check->batch_id = $batch->id;
             $check->check_point = $validated['check_point'];
@@ -288,7 +290,7 @@ class BatchController extends Controller
             $batch = CosmeticBatchRecord::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
-            $rework = new BatchReworkLog();
+            $rework = new BatchReworkLog;
             $rework->tenant_id = Auth::user()->tenant_id;
             $rework->batch_id = $batch->id;
             $rework->rework_code = BatchReworkLog::getNextReworkCode();
@@ -323,7 +325,7 @@ class BatchController extends Controller
             $rework->calculateLoss();
             $rework->complete(Auth::id(), $validated['final_notes'] ?? '');
 
-            return back()->with('success', 'Rework completed! Loss: ' . $rework->loss_quantity . ' units');
+            return back()->with('success', 'Rework completed! Loss: '.$rework->loss_quantity.' units');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -338,7 +340,7 @@ class BatchController extends Controller
             $batch = CosmeticBatchRecord::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
-            if (!$batch->canBeReleased()) {
+            if (! $batch->canBeReleased()) {
                 return back()->with('error', 'Batch cannot be released. Please ensure all QC checks passed and no open rework.');
             }
 
@@ -387,7 +389,7 @@ class BatchController extends Controller
             return redirect()->route('cosmetic.batches.show', $batch)
                 ->with('success', 'Batch created from formula successfully!');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Failed to create batch: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to create batch: '.$e->getMessage());
         }
     }
 
@@ -424,7 +426,8 @@ class BatchController extends Controller
             $this->batchService->recordProductionQuantity($batch, $validated['actual_quantity']);
 
             $yield = $batch->yield_percentage ?? 0;
-            return back()->with('success', 'Production quantity recorded! Yield: ' . number_format((float) $yield, 1) . '%');
+
+            return back()->with('success', 'Production quantity recorded! Yield: '.number_format((float) $yield, 1).'%');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

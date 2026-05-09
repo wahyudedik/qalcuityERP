@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -45,8 +46,9 @@ class MedicalStaffSchedule extends Model
      */
     public function getDurationInMinutesAttribute()
     {
-        $start = \Carbon\Carbon::parse($this->start_time);
-        $end = \Carbon\Carbon::parse($this->end_time);
+        $start = Carbon::parse($this->start_time);
+        $end = Carbon::parse($this->end_time);
+
         return $start->diffInMinutes($end);
     }
 
@@ -81,7 +83,7 @@ class MedicalStaffSchedule extends Model
     {
         return $this->is_available &&
             $this->status === 'available' &&
-            (!$this->isFull() || $this->allow_overbooking);
+            (! $this->isFull() || $this->allow_overbooking);
     }
 
     /**
@@ -98,7 +100,7 @@ class MedicalStaffSchedule extends Model
         }
 
         // Update status if full
-        if ($this->isFull() && !$this->allow_overbooking) {
+        if ($this->isFull() && ! $this->allow_overbooking) {
             $this->update(['status' => 'booked']);
         }
     }
@@ -154,8 +156,8 @@ class MedicalStaffSchedule extends Model
     public function getAvailableTimeSlotsAttribute()
     {
         $slots = [];
-        $currentTime = \Carbon\Carbon::parse($this->start_time);
-        $endTime = \Carbon\Carbon::parse($this->end_time);
+        $currentTime = Carbon::parse($this->start_time);
+        $endTime = Carbon::parse($this->end_time);
 
         while ($currentTime < $endTime) {
             $slots[] = $currentTime->format('H:i');
@@ -241,7 +243,7 @@ class MedicalStaffSchedule extends Model
         return [
             'id' => $this->id,
             'date' => $this->schedule_date->format('Y-m-d'),
-            'time' => $this->start_time . ' - ' . $this->end_time,
+            'time' => $this->start_time.' - '.$this->end_time,
             'location' => $this->location,
             'type' => $this->schedule_type,
             'status' => $this->status,

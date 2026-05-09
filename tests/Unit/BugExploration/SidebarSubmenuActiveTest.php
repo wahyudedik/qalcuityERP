@@ -42,21 +42,21 @@ class SidebarSubmenuActiveTest extends TestCase
         // FIX: panel-link items mendapatkan class 'active' dari item.active flag
         // yang di-render oleh PHP di NAV_GROUPS
         $hasPanelLinkActiveCheck = (
-            str_contains($content, "panel-link") &&
+            str_contains($content, 'panel-link') &&
             (
-                str_contains($content, "Route::is(") ||
-                str_contains($content, "request()->routeIs(") ||
-                str_contains($content, "routeIs(") ||
-                (str_contains($content, "'active'") && str_contains($content, "panel-link")) ||
-                (str_contains($content, "active") && str_contains($content, "panel-link"))
+                str_contains($content, 'Route::is(') ||
+                str_contains($content, 'request()->routeIs(') ||
+                str_contains($content, 'routeIs(') ||
+                (str_contains($content, "'active'") && str_contains($content, 'panel-link')) ||
+                (str_contains($content, 'active') && str_contains($content, 'panel-link'))
             )
         );
 
         $this->assertTrue(
             $hasPanelLinkActiveCheck,
-            "Bug 1.3 FIX: Tidak ditemukan mekanisme active class untuk panel-link items. " .
-            "Setelah fix, renderPanelItems() harus menerapkan class 'active' berdasarkan " .
-            "flag item.active yang di-render oleh PHP."
+            'Bug 1.3 FIX: Tidak ditemukan mekanisme active class untuk panel-link items. '.
+            "Setelah fix, renderPanelItems() harus menerapkan class 'active' berdasarkan ".
+            'flag item.active yang di-render oleh PHP.'
         );
     }
 
@@ -79,17 +79,17 @@ class SidebarSubmenuActiveTest extends TestCase
         // FIX: NAV_GROUPS items memiliki 'active' property yang di-render PHP
         // Pattern: active: {{ request()->routeIs(...) ? 'true' : 'false' }}
         $hasActiveInNavGroups = (
-            str_contains($content, "active:") &&
+            str_contains($content, 'active:') &&
             (
-                str_contains($content, "request()->routeIs(") ||
-                str_contains($content, "routeIs(")
+                str_contains($content, 'request()->routeIs(') ||
+                str_contains($content, 'routeIs(')
             )
         );
 
         $this->assertTrue(
             $hasActiveInNavGroups,
-            "Bug 1.3 FIX: NAV_GROUPS tidak menyertakan flag 'active' yang di-render PHP. " .
-            "Setelah fix, setiap item harus memiliki 'active: {{ request()->routeIs(...) ? 'true' : 'false' }}' " .
+            "Bug 1.3 FIX: NAV_GROUPS tidak menyertakan flag 'active' yang di-render PHP. ".
+            "Setelah fix, setiap item harus memiliki 'active: {{ request()->routeIs(...) ? 'true' : 'false' }}' ".
             "agar renderPanelItems() bisa menerapkan class 'active' yang benar."
         );
     }
@@ -112,15 +112,15 @@ class SidebarSubmenuActiveTest extends TestCase
         $hasActiveFlagInRender = (
             str_contains($content, 'item.active') ||
             (str_contains($content, "'active': true") || str_contains($content, '"active": true')) ||
-            str_contains($content, "isActive") ||
-            (str_contains($content, "is_active") && str_contains($content, "panel"))
+            str_contains($content, 'isActive') ||
+            (str_contains($content, 'is_active') && str_contains($content, 'panel'))
         );
 
         $this->assertTrue(
             $hasActiveFlagInRender,
-            "Bug 1.3 FIX: renderPanelItems() tidak menggunakan flag 'active' dari item data. " .
-            "Setelah fix, harus ada 'item.active' atau flag serupa untuk menandai " .
-            "item submenu yang sesuai dengan route aktif saat ini."
+            "Bug 1.3 FIX: renderPanelItems() tidak menggunakan flag 'active' dari item data. ".
+            "Setelah fix, harus ada 'item.active' atau flag serupa untuk menandai ".
+            'item submenu yang sesuai dengan route aktif saat ini.'
         );
     }
 }

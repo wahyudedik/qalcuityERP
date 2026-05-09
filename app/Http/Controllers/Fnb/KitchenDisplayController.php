@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Fnb;
 
 use App\Http\Controllers\Controller;
+use App\Models\FbOrder;
 use App\Models\KitchenOrderTicket;
 use App\Services\KitchenDisplayService;
+use App\Services\KitchenTicketService;
 use Illuminate\Http\Request;
 
 class KitchenDisplayController extends Controller
@@ -41,12 +43,12 @@ class KitchenDisplayController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $orderId = $request->input('order_id');
 
-        if (!$orderId) {
+        if (! $orderId) {
             return response()->json(['error' => 'order_id required'], 400);
         }
 
-        $order = \App\Models\FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
-        $ticketService = new \App\Services\KitchenTicketService();
+        $order = FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
+        $ticketService = new KitchenTicketService;
 
         // Validate ticket count
         $validation = $ticketService->validateTicketCount($order);
@@ -62,12 +64,12 @@ class KitchenDisplayController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $orderId = $request->input('order_id');
 
-        if (!$orderId) {
+        if (! $orderId) {
             return response()->json(['error' => 'order_id required'], 400);
         }
 
-        $order = \App\Models\FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
-        $ticketService = new \App\Services\KitchenTicketService();
+        $order = FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
+        $ticketService = new KitchenTicketService;
 
         // Cleanup duplicates
         $result = $ticketService->cleanupDuplicateTickets($order);

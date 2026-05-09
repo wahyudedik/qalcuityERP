@@ -2,10 +2,10 @@
 
 namespace App\Services\Fisheries;
 
-use App\Models\ExportPermit;
-use App\Models\HealthCertificate;
 use App\Models\CustomsDeclaration;
+use App\Models\ExportPermit;
 use App\Models\ExportShipment;
+use App\Models\HealthCertificate;
 use Illuminate\Support\Str;
 
 class ExportDocumentationService
@@ -17,7 +17,7 @@ class ExportDocumentationService
     {
         return ExportPermit::create([
             'tenant_id' => $tenantId,
-            'permit_number' => $data['permit_number'] ?? 'EP-' . date('Ymd') . '-' . Str::upper(Str::random(5)),
+            'permit_number' => $data['permit_number'] ?? 'EP-'.date('Ymd').'-'.Str::upper(Str::random(5)),
             'permit_type' => $data['permit_type'] ?? 'general',
             'destination_country' => $data['destination_country'],
             'destination_address' => $data['destination_address'] ?? null,
@@ -39,7 +39,7 @@ class ExportDocumentationService
     {
         return HealthCertificate::create([
             'tenant_id' => $tenantId,
-            'certificate_number' => $data['certificate_number'] ?? 'HC-' . date('Ymd') . '-' . Str::upper(Str::random(5)),
+            'certificate_number' => $data['certificate_number'] ?? 'HC-'.date('Ymd').'-'.Str::upper(Str::random(5)),
             'product_batch_id' => $data['product_batch_id'] ?? null,
             'catch_log_id' => $data['catch_log_id'] ?? null,
             'certificate_type' => $data['certificate_type'] ?? 'health',
@@ -62,7 +62,7 @@ class ExportDocumentationService
     {
         return CustomsDeclaration::create([
             'tenant_id' => $tenantId,
-            'declaration_number' => $data['declaration_number'] ?? 'CD-' . date('Ymd') . '-' . Str::upper(Str::random(5)),
+            'declaration_number' => $data['declaration_number'] ?? 'CD-'.date('Ymd').'-'.Str::upper(Str::random(5)),
             'shipment_id' => $data['shipment_id'] ?? null,
             'export_permit_id' => $data['export_permit_id'] ?? null,
             'hs_code' => $data['hs_code'],
@@ -111,7 +111,7 @@ class ExportDocumentationService
     {
         return ExportShipment::create([
             'tenant_id' => $tenantId,
-            'shipment_number' => $data['shipment_number'] ?? 'ES-' . date('Ymd') . '-' . Str::upper(Str::random(5)),
+            'shipment_number' => $data['shipment_number'] ?? 'ES-'.date('Ymd').'-'.Str::upper(Str::random(5)),
             'customs_declaration_id' => $data['customs_declaration_id'] ?? null,
             'transport_id' => $data['transport_id'] ?? null,
             'shipment_date' => $data['shipment_date'] ?? now(),
@@ -162,7 +162,7 @@ class ExportDocumentationService
     {
         $documents = [];
 
-        if (!$type || $type === 'permits') {
+        if (! $type || $type === 'permits') {
             $documents['permits'] = ExportPermit::where('tenant_id', $tenantId)
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -178,7 +178,7 @@ class ExportDocumentationService
                 });
         }
 
-        if (!$type || $type === 'certificates') {
+        if (! $type || $type === 'certificates') {
             $documents['certificates'] = HealthCertificate::where('tenant_id', $tenantId)
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -193,7 +193,7 @@ class ExportDocumentationService
                 });
         }
 
-        if (!$type || $type === 'declarations') {
+        if (! $type || $type === 'declarations') {
             $documents['declarations'] = CustomsDeclaration::where('tenant_id', $tenantId)
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -208,7 +208,7 @@ class ExportDocumentationService
                 });
         }
 
-        if (!$type || $type === 'shipments') {
+        if (! $type || $type === 'shipments') {
             $documents['shipments'] = ExportShipment::where('tenant_id', $tenantId)
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -255,7 +255,7 @@ class ExportDocumentationService
             'is_ready' => $checks['all_documents_complete'],
             'checks' => $checks,
             'missing_documents' => array_keys(array_filter($checks, function ($value) {
-                return !$value;
+                return ! $value;
             })),
         ];
     }
@@ -286,7 +286,7 @@ class ExportDocumentationService
             'in_transit_shipments' => $shipments->where('status', 'in_transit')->count(),
             'total_export_value' => $totalValue,
             'top_destinations' => $shipments->groupBy('destination_port')
-                ->map(fn($group) => $group->count())
+                ->map(fn ($group) => $group->count())
                 ->sortByDesc()
                 ->take(5),
         ];

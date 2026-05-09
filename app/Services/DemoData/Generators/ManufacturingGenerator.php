@@ -16,12 +16,12 @@ class ManufacturingGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId      = $ctx->tenantId;
-        $warehouseId   = $ctx->warehouseId;
-        $supplierIds   = $ctx->supplierIds;
-        $customerIds   = $ctx->customerIds;
+        $tenantId = $ctx->tenantId;
+        $warehouseId = $ctx->warehouseId;
+        $supplierIds = $ctx->supplierIds;
+        $customerIds = $ctx->customerIds;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // ── 1. Raw Material Products (5) ───────────────────────────────────
         try {
@@ -31,7 +31,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed raw materials', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $rawMaterialIds = [];
             $generatedData['raw_materials'] = 0;
@@ -45,7 +45,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed finished goods', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $finishedGoodIds = [];
             $generatedData['finished_goods'] = 0;
@@ -54,7 +54,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         // ── 3. BOMs (2) ────────────────────────────────────────────────────
         $bomIds = [];
         try {
-            if (!empty($finishedGoodIds) && !empty($rawMaterialIds)) {
+            if (! empty($finishedGoodIds) && ! empty($rawMaterialIds)) {
                 $bomIds = $this->seedBoms($tenantId, $finishedGoodIds, $rawMaterialIds);
                 $recordsCreated += count($bomIds);
                 $generatedData['boms'] = count($bomIds);
@@ -67,7 +67,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed BOMs', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['boms'] = 0;
         }
@@ -75,7 +75,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         // ── 4. Work Orders (3 — draft, in_progress, completed) ─────────────
         $workOrderIds = [];
         try {
-            if (!empty($finishedGoodIds)) {
+            if (! empty($finishedGoodIds)) {
                 $workOrderIds = $this->seedWorkOrders($tenantId, $finishedGoodIds, $bomIds);
                 $recordsCreated += count($workOrderIds);
                 $generatedData['work_orders'] = count($workOrderIds);
@@ -88,14 +88,14 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed work orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['work_orders'] = 0;
         }
 
         // ── 5. Quality Control Records (2) ─────────────────────────────────
         try {
-            if (!empty($workOrderIds) && !empty($finishedGoodIds)) {
+            if (! empty($workOrderIds) && ! empty($finishedGoodIds)) {
                 $qcCount = $this->seedQualityChecks($tenantId, $workOrderIds, $finishedGoodIds);
                 $recordsCreated += $qcCount;
                 $generatedData['quality_checks'] = $qcCount;
@@ -108,14 +108,14 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed quality checks', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['quality_checks'] = 0;
         }
 
         // ── 6. Purchase Orders for raw materials ───────────────────────────
         try {
-            if (!empty($supplierIds) && !empty($rawMaterialIds)) {
+            if (! empty($supplierIds) && ! empty($rawMaterialIds)) {
                 $poCount = $this->seedPurchaseOrders($tenantId, $supplierIds, $rawMaterialIds, $warehouseId);
                 $recordsCreated += $poCount;
                 $generatedData['purchase_orders'] = $poCount;
@@ -128,14 +128,14 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed purchase orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['purchase_orders'] = 0;
         }
 
         // ── 7. Sales Orders for finished goods ─────────────────────────────
         try {
-            if (!empty($customerIds) && !empty($finishedGoodIds)) {
+            if (! empty($customerIds) && ! empty($finishedGoodIds)) {
                 $soCount = $this->seedSalesOrders($tenantId, $customerIds, $finishedGoodIds);
                 $recordsCreated += $soCount;
                 $generatedData['sales_orders'] = $soCount;
@@ -148,14 +148,14 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('ManufacturingGenerator: failed to seed sales orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['sales_orders'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -174,7 +174,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($materials as $m) {
             $existing = DB::table('products')
@@ -184,19 +184,20 @@ class ManufacturingGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $m['name'],
-                'sku'        => $m['sku'],
-                'category'   => 'raw_material',
-                'unit'       => $m['unit'],
-                'price_buy'  => $m['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $m['name'],
+                'sku' => $m['sku'],
+                'category' => 'raw_material',
+                'unit' => $m['unit'],
+                'price_buy' => $m['price_buy'],
                 'price_sell' => $m['price_sell'],
-                'stock_min'  => $m['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $m['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -204,15 +205,15 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             $productIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $m['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $m['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -227,12 +228,12 @@ class ManufacturingGenerator extends BaseIndustryGenerator
     {
         $goods = [
             ['name' => 'Rangka Pintu Baja Galvanis',   'sku' => 'MFG-FG-001', 'unit' => 'unit', 'price_buy' => 450000,  'price_sell' => 750000,  'stock_min' => 10, 'qty' => 50],
-            ['name' => 'Panel Aluminium Komposit 4mm', 'sku' => 'MFG-FG-002', 'unit' => 'lembar','price_buy' => 320000,  'price_sell' => 520000,  'stock_min' => 15, 'qty' => 80],
+            ['name' => 'Panel Aluminium Komposit 4mm', 'sku' => 'MFG-FG-002', 'unit' => 'lembar', 'price_buy' => 320000,  'price_sell' => 520000,  'stock_min' => 15, 'qty' => 80],
             ['name' => 'Komponen Mesin Press Hidrolik', 'sku' => 'MFG-FG-003', 'unit' => 'set',  'price_buy' => 1200000, 'price_sell' => 1950000, 'stock_min' => 5,  'qty' => 20],
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($goods as $g) {
             $existing = DB::table('products')
@@ -242,19 +243,20 @@ class ManufacturingGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $g['name'],
-                'sku'        => $g['sku'],
-                'category'   => 'finished_good',
-                'unit'       => $g['unit'],
-                'price_buy'  => $g['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $g['name'],
+                'sku' => $g['sku'],
+                'category' => 'finished_good',
+                'unit' => $g['unit'],
+                'price_buy' => $g['price_buy'],
                 'price_sell' => $g['price_sell'],
-                'stock_min'  => $g['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $g['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -262,15 +264,15 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             $productIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $g['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $g['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -285,22 +287,22 @@ class ManufacturingGenerator extends BaseIndustryGenerator
     {
         $bomDefinitions = [
             [
-                'name'       => 'BOM Rangka Pintu Baja',
+                'name' => 'BOM Rangka Pintu Baja',
                 'product_id' => $finishedGoodIds[0],
                 'batch_size' => 1,
                 'batch_unit' => 'unit',
-                'lines'      => [
+                'lines' => [
                     ['product_id' => $rawMaterialIds[0], 'qty' => 3,   'unit' => 'lembar', 'sort' => 1, 'notes' => 'Baja lembaran untuk rangka'],
                     ['product_id' => $rawMaterialIds[3], 'qty' => 2,   'unit' => 'meter',  'sort' => 2, 'notes' => 'Karet seal untuk pintu'],
                     ['product_id' => $rawMaterialIds[4], 'qty' => 0.5, 'unit' => 'kg',     'sort' => 3, 'notes' => 'Cat powder coating'],
                 ],
             ],
             [
-                'name'       => 'BOM Panel Aluminium Komposit',
+                'name' => 'BOM Panel Aluminium Komposit',
                 'product_id' => $finishedGoodIds[1],
                 'batch_size' => 1,
                 'batch_unit' => 'lembar',
-                'lines'      => [
+                'lines' => [
                     ['product_id' => $rawMaterialIds[1], 'qty' => 2,   'unit' => 'batang', 'sort' => 1, 'notes' => 'Profil aluminium untuk frame'],
                     ['product_id' => $rawMaterialIds[2], 'qty' => 0.3, 'unit' => 'kg',     'sort' => 2, 'notes' => 'Resin epoxy untuk bonding'],
                     ['product_id' => $rawMaterialIds[4], 'qty' => 0.2, 'unit' => 'kg',     'sort' => 3, 'notes' => 'Cat finishing'],
@@ -319,17 +321,18 @@ class ManufacturingGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $bomIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $bomId = DB::table('boms')->insertGetId([
-                'tenant_id'  => $tenantId,
+                'tenant_id' => $tenantId,
                 'product_id' => $def['product_id'],
-                'name'       => $def['name'],
+                'name' => $def['name'],
                 'batch_size' => $def['batch_size'],
                 'batch_unit' => $def['batch_unit'],
-                'is_active'  => true,
-                'notes'      => 'Demo BOM untuk industri manufaktur',
+                'is_active' => true,
+                'notes' => 'Demo BOM untuk industri manufaktur',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -337,14 +340,15 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             $lineRows = [];
             foreach ($def['lines'] as $line) {
                 $lineRows[] = [
-                    'bom_id'             => $bomId,
-                    'product_id'         => $line['product_id'],
+                    'tenant_id' => $tenantId,
+                    'bom_id' => $bomId,
+                    'product_id' => $line['product_id'],
                     'quantity_per_batch' => $line['qty'],
-                    'unit'               => $line['unit'],
-                    'sort_order'         => $line['sort'],
-                    'notes'              => $line['notes'],
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
+                    'unit' => $line['unit'],
+                    'sort_order' => $line['sort'],
+                    'notes' => $line['notes'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -363,55 +367,56 @@ class ManufacturingGenerator extends BaseIndustryGenerator
     {
         // work_orders requires user_id — resolve any user for this tenant
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId) {
+        if (! $userId) {
             $this->logWarning('ManufacturingGenerator: no user found for tenant, skipping work orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return [];
         }
 
         $workOrders = [
             [
-                'number'             => 'MFG-WO-' . $tenantId . '-001',
-                'product_id'         => $finishedGoodIds[0],
-                'recipe_id'          => null,
-                'status'             => 'pending',
-                'target_quantity'    => 20,
-                'unit'               => 'unit',
+                'number' => 'MFG-WO-' . $tenantId . '-001',
+                'product_id' => $finishedGoodIds[0],
+                'recipe_id' => null,
+                'status' => 'pending',
+                'target_quantity' => 20,
+                'unit' => 'unit',
                 'planned_start_date' => Carbon::now()->addDays(3)->format('Y-m-d'),
-                'planned_end_date'   => Carbon::now()->addDays(10)->format('Y-m-d'),
-                'started_at'         => null,
-                'completed_at'       => null,
-                'progress_percent'   => 0,
-                'notes'              => 'Work order baru — menunggu persiapan material',
+                'planned_end_date' => Carbon::now()->addDays(10)->format('Y-m-d'),
+                'started_at' => null,
+                'completed_at' => null,
+                'progress_percent' => 0,
+                'notes' => 'Work order baru — menunggu persiapan material',
             ],
             [
-                'number'             => 'MFG-WO-' . $tenantId . '-002',
-                'product_id'         => $finishedGoodIds[1 % count($finishedGoodIds)],
-                'recipe_id'          => null,
-                'status'             => 'in_progress',
-                'target_quantity'    => 15,
-                'unit'               => 'pcs',
+                'number' => 'MFG-WO-' . $tenantId . '-002',
+                'product_id' => $finishedGoodIds[1 % count($finishedGoodIds)],
+                'recipe_id' => null,
+                'status' => 'in_progress',
+                'target_quantity' => 15,
+                'unit' => 'pcs',
                 'planned_start_date' => Carbon::now()->subDays(5)->format('Y-m-d'),
-                'planned_end_date'   => Carbon::now()->addDays(5)->format('Y-m-d'),
-                'started_at'         => Carbon::now()->subDays(5)->toDateTimeString(),
-                'completed_at'       => null,
-                'progress_percent'   => 60,
-                'notes'              => 'Produksi sedang berjalan — 60% selesai',
+                'planned_end_date' => Carbon::now()->addDays(5)->format('Y-m-d'),
+                'started_at' => Carbon::now()->subDays(5)->toDateTimeString(),
+                'completed_at' => null,
+                'progress_percent' => 60,
+                'notes' => 'Produksi sedang berjalan — 60% selesai',
             ],
             [
-                'number'             => 'MFG-WO-' . $tenantId . '-003',
-                'product_id'         => $finishedGoodIds[2 % count($finishedGoodIds)],
-                'recipe_id'          => null,
-                'status'             => 'completed',
-                'target_quantity'    => 10,
-                'unit'               => 'pcs',
+                'number' => 'MFG-WO-' . $tenantId . '-003',
+                'product_id' => $finishedGoodIds[2 % count($finishedGoodIds)],
+                'recipe_id' => null,
+                'status' => 'completed',
+                'target_quantity' => 10,
+                'unit' => 'pcs',
                 'planned_start_date' => Carbon::now()->subDays(20)->format('Y-m-d'),
-                'planned_end_date'   => Carbon::now()->subDays(10)->format('Y-m-d'),
-                'started_at'         => Carbon::now()->subDays(20)->toDateTimeString(),
-                'completed_at'       => Carbon::now()->subDays(10)->toDateTimeString(),
-                'progress_percent'   => 100,
-                'notes'              => 'Produksi selesai — semua unit lolos QC',
+                'planned_end_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
+                'started_at' => Carbon::now()->subDays(20)->toDateTimeString(),
+                'completed_at' => Carbon::now()->subDays(10)->toDateTimeString(),
+                'progress_percent' => 100,
+                'notes' => 'Produksi selesai — semua unit lolos QC',
             ],
         ];
 
@@ -425,30 +430,31 @@ class ManufacturingGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $workOrderIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('work_orders')->insertGetId([
-                'tenant_id'          => $tenantId,
-                'user_id'            => $userId,
-                'product_id'         => $wo['product_id'],
-                'recipe_id'          => $wo['recipe_id'],
-                'number'             => $wo['number'],
-                'status'             => $wo['status'],
-                'target_quantity'    => $wo['target_quantity'],
-                'unit'               => $wo['unit'],
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'product_id' => $wo['product_id'],
+                'recipe_id' => $wo['recipe_id'],
+                'number' => $wo['number'],
+                'status' => $wo['status'],
+                'target_quantity' => $wo['target_quantity'],
+                'unit' => $wo['unit'],
                 'planned_start_date' => $wo['planned_start_date'],
-                'planned_end_date'   => $wo['planned_end_date'],
-                'started_at'         => $wo['started_at'],
-                'completed_at'       => $wo['completed_at'],
-                'material_cost'      => 0,
-                'labor_cost'         => 0,
-                'overhead_cost'      => 0,
-                'total_cost'         => 0,
-                'progress_percent'   => $wo['progress_percent'],
-                'notes'              => $wo['notes'],
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'planned_end_date' => $wo['planned_end_date'],
+                'started_at' => $wo['started_at'],
+                'completed_at' => $wo['completed_at'],
+                'material_cost' => 0,
+                'labor_cost' => 0,
+                'overhead_cost' => 0,
+                'total_cost' => 0,
+                'progress_percent' => $wo['progress_percent'],
+                'notes' => $wo['notes'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $workOrderIds[] = (int) $id;
@@ -465,28 +471,28 @@ class ManufacturingGenerator extends BaseIndustryGenerator
     {
         $qcRecords = [
             [
-                'check_number'  => 'MFG-QC-0001',
+                'check_number' => 'MFG-QC-0001',
                 'work_order_id' => $workOrderIds[2] ?? $workOrderIds[0], // completed WO
-                'product_id'    => $finishedGoodIds[2 % count($finishedGoodIds)],
-                'stage'         => 'final',
-                'sample_size'   => 10,
+                'product_id' => $finishedGoodIds[2 % count($finishedGoodIds)],
+                'stage' => 'final',
+                'sample_size' => 10,
                 'sample_passed' => 10,
                 'sample_failed' => 0,
-                'status'        => 'passed',
-                'notes'         => 'Semua unit memenuhi standar dimensi dan finishing',
-                'inspected_at'  => Carbon::now()->subDays(10)->toDateTimeString(),
+                'status' => 'passed',
+                'notes' => 'Semua unit memenuhi standar dimensi dan finishing',
+                'inspected_at' => Carbon::now()->subDays(10)->toDateTimeString(),
             ],
             [
-                'check_number'  => 'MFG-QC-0002',
+                'check_number' => 'MFG-QC-0002',
                 'work_order_id' => $workOrderIds[1] ?? $workOrderIds[0], // in_progress WO
-                'product_id'    => $finishedGoodIds[1 % count($finishedGoodIds)],
-                'stage'         => 'in_process',
-                'sample_size'   => 5,
+                'product_id' => $finishedGoodIds[1 % count($finishedGoodIds)],
+                'stage' => 'in_process',
+                'sample_size' => 5,
                 'sample_passed' => 4,
                 'sample_failed' => 1,
-                'status'        => 'conditional_pass',
-                'notes'         => '1 unit perlu rework pada bagian coating — lanjutkan produksi dengan pengawasan',
-                'inspected_at'  => Carbon::now()->subDays(2)->toDateTimeString(),
+                'status' => 'conditional_pass',
+                'notes' => '1 unit perlu rework pada bagian coating — lanjutkan produksi dengan pengawasan',
+                'inspected_at' => Carbon::now()->subDays(2)->toDateTimeString(),
             ],
         ];
 
@@ -503,19 +509,19 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             DB::table('quality_checks')->insert([
-                'tenant_id'      => $tenantId,
-                'work_order_id'  => $qc['work_order_id'],
-                'product_id'     => $qc['product_id'],
-                'check_number'   => $qc['check_number'],
-                'stage'          => $qc['stage'],
-                'sample_size'    => $qc['sample_size'],
-                'sample_passed'  => $qc['sample_passed'],
-                'sample_failed'  => $qc['sample_failed'],
-                'status'         => $qc['status'],
-                'notes'          => $qc['notes'],
-                'inspected_at'   => $qc['inspected_at'],
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'tenant_id' => $tenantId,
+                'work_order_id' => $qc['work_order_id'],
+                'product_id' => $qc['product_id'],
+                'check_number' => $qc['check_number'],
+                'stage' => $qc['stage'],
+                'sample_size' => $qc['sample_size'],
+                'sample_passed' => $qc['sample_passed'],
+                'sample_failed' => $qc['sample_failed'],
+                'status' => $qc['status'],
+                'notes' => $qc['notes'],
+                'inspected_at' => $qc['inspected_at'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -535,10 +541,11 @@ class ManufacturingGenerator extends BaseIndustryGenerator
         int $warehouseId
     ): int {
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId || empty($supplierIds) || empty($rawMaterialIds)) {
+        if (! $userId || empty($supplierIds) || empty($rawMaterialIds)) {
             $this->logWarning('ManufacturingGenerator: missing user, suppliers or raw materials for POs', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
@@ -561,28 +568,28 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             $supplierId = $supplierIds[$idx % count($supplierIds)];
-            $poDate     = Carbon::now()->subDays(rand(7, 30))->format('Y-m-d');
-            $subtotal   = 0;
-            $items      = [];
+            $poDate = Carbon::now()->subDays(rand(7, 30))->format('Y-m-d');
+            $subtotal = 0;
+            $items = [];
 
             foreach ($def['products'] as $productId) {
                 $product = DB::table('products')->where('id', $productId)->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
-                $qty      = rand(50, 200);
-                $price    = (float) $product->price_buy;
-                $total    = $qty * $price;
+                $qty = rand(50, 200);
+                $price = (float) $product->price_buy;
+                $total = $qty * $price;
                 $subtotal += $total;
 
                 $items[] = [
-                    'product_id'        => $productId,
-                    'quantity_ordered'  => $qty,
+                    'product_id' => $productId,
+                    'quantity_ordered' => $qty,
                     'quantity_received' => 0,
-                    'price'             => $price,
-                    'total'             => $total,
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
+                    'price' => $price,
+                    'total' => $total,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -591,20 +598,20 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             $poId = DB::table('purchase_orders')->insertGetId([
-                'tenant_id'     => $tenantId,
-                'supplier_id'   => $supplierId,
-                'user_id'       => $userId,
-                'warehouse_id'  => $warehouseId,
-                'number'        => $def['number'],
-                'status'        => 'sent',
-                'date'          => $poDate,
+                'tenant_id' => $tenantId,
+                'supplier_id' => $supplierId,
+                'user_id' => $userId,
+                'warehouse_id' => $warehouseId,
+                'number' => $def['number'],
+                'status' => 'sent',
+                'date' => $poDate,
                 'expected_date' => Carbon::parse($poDate)->addDays(14)->format('Y-m-d'),
-                'subtotal'      => $subtotal,
-                'discount'      => 0,
-                'tax'           => 0,
-                'total'         => $subtotal,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $subtotal,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($items as &$item) {
@@ -627,10 +634,11 @@ class ManufacturingGenerator extends BaseIndustryGenerator
     {
         // sales_orders requires user_id
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId) {
+        if (! $userId) {
             $this->logWarning('ManufacturingGenerator: no user found for tenant, skipping sales orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
@@ -650,7 +658,7 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             $customerId = $customerIds[($i - 1) % count($customerIds)];
-            $orderDate  = Carbon::now()->subDays(rand(5, 60))->format('Y-m-d');
+            $orderDate = Carbon::now()->subDays(rand(5, 60))->format('Y-m-d');
 
             $orderProducts = array_slice($finishedGoodIds, ($i - 1) % count($finishedGoodIds), 2);
             if (empty($orderProducts)) {
@@ -658,24 +666,24 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             $subtotal = 0;
-            $items    = [];
+            $items = [];
 
             foreach ($orderProducts as $productId) {
                 $product = DB::table('products')->where('id', $productId)->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
-                $qty      = rand(2, 10);
-                $price    = (float) $product->price_sell;
-                $total    = $qty * $price;
+                $qty = rand(2, 10);
+                $price = (float) $product->price_sell;
+                $total = $qty * $price;
                 $subtotal += $total;
 
                 $items[] = [
                     'product_id' => $productId,
-                    'quantity'   => $qty,
-                    'price'      => $price,
-                    'discount'   => 0,
-                    'total'      => $total,
+                    'quantity' => $qty,
+                    'price' => $price,
+                    'discount' => 0,
+                    'total' => $total,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -686,18 +694,18 @@ class ManufacturingGenerator extends BaseIndustryGenerator
             }
 
             $soId = DB::table('sales_orders')->insertGetId([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'customer_id' => $customerId,
-                'user_id'     => $userId,
-                'number'      => $soNumber,
-                'status'      => 'delivered',
-                'date'        => $orderDate,
-                'subtotal'    => $subtotal,
-                'discount'    => 0,
-                'tax'         => 0,
-                'total'       => $subtotal,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'user_id' => $userId,
+                'number' => $soNumber,
+                'status' => 'delivered',
+                'date' => $orderDate,
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $subtotal,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($items as &$item) {

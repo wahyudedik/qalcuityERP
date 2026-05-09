@@ -90,7 +90,7 @@ class ControllerAnalyzer implements AnalyzerInterface
                 $this->basePath = getcwd();
             }
         }
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
     }
 
     /**
@@ -114,13 +114,13 @@ class ControllerAnalyzer implements AnalyzerInterface
     /**
      * Analyze a single controller class by its fully-qualified class name.
      *
-     * @param string $controllerClass Fully-qualified class name
+     * @param  string  $controllerClass  Fully-qualified class name
      * @return AuditFinding[]
      */
     public function analyzeController(string $controllerClass): array
     {
         $filePath = $this->resolveFilePath($controllerClass);
-        if ($filePath === null || !file_exists($filePath)) {
+        if ($filePath === null || ! file_exists($filePath)) {
             return [];
         }
 
@@ -130,7 +130,7 @@ class ControllerAnalyzer implements AnalyzerInterface
     /**
      * Analyze a single controller file by its file path.
      *
-     * @param string $filePath Absolute path to the controller PHP file
+     * @param  string  $filePath  Absolute path to the controller PHP file
      * @return AuditFinding[]
      */
     private function analyzeFile(string $filePath): array
@@ -142,13 +142,14 @@ class ControllerAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Low,
-                title: "Unreadable controller file",
+                title: 'Unreadable controller file',
                 description: "Could not read controller file: {$filePath}.",
                 file: $this->relativePath($filePath),
                 line: null,
-                recommendation: "Check file permissions.",
+                recommendation: 'Check file permissions.',
                 metadata: ['file' => $filePath],
             );
+
             return $findings;
         }
 
@@ -221,12 +222,12 @@ class ControllerAnalyzer implements AnalyzerInterface
             severity: $severity,
             title: "Missing try-catch in {$shortClass}::{$methodName}()",
             description: "Public method {$methodName}() in {$shortClass} lacks try-catch error handling. "
-                . ($isDataModifying
-                    ? "This method appears to modify data, so unhandled exceptions could leave the system in an inconsistent state."
-                    : "Consider wrapping database or external service calls in try-catch blocks."),
+                .($isDataModifying
+                    ? 'This method appears to modify data, so unhandled exceptions could leave the system in an inconsistent state.'
+                    : 'Consider wrapping database or external service calls in try-catch blocks.'),
             file: $this->relativePath($filePath),
             line: $line,
-            recommendation: "Wrap the method body in a try-catch block and return an appropriate error response.",
+            recommendation: 'Wrap the method body in a try-catch block and return an appropriate error response.',
             metadata: [
                 'controller' => $controllerClass,
                 'method' => $methodName,
@@ -251,7 +252,7 @@ class ControllerAnalyzer implements AnalyzerInterface
         // Only flag data-modifying methods (store, update, destroy, etc.)
         // Read-only methods (index, show, view) are lower priority
         $isDataModifying = $this->isDataModifyingMethod($methodName, $methodBody);
-        if (!$isDataModifying) {
+        if (! $isDataModifying) {
             return null;
         }
 
@@ -275,12 +276,12 @@ class ControllerAnalyzer implements AnalyzerInterface
             severity: Severity::High,
             title: "Missing authorization in {$shortClass}::{$methodName}()",
             description: "Data-modifying method {$methodName}() in {$shortClass} has no visible authorization check. "
-                . "No abort_unless/abort_if, \$this->authorize(), Gate:: check, or constructor middleware was found. "
-                . "Note: Route-level middleware may provide authorization — verify in routes/web.php.",
+                .'No abort_unless/abort_if, $this->authorize(), Gate:: check, or constructor middleware was found. '
+                .'Note: Route-level middleware may provide authorization — verify in routes/web.php.',
             file: $this->relativePath($filePath),
             line: $line,
-            recommendation: "Add authorization via route middleware (permission: or role:), "
-                . "inline \$this->authorize(), or abort_unless() checks.",
+            recommendation: 'Add authorization via route middleware (permission: or role:), '
+                .'inline $this->authorize(), or abort_unless() checks.',
             metadata: [
                 'controller' => $controllerClass,
                 'method' => $methodName,
@@ -307,7 +308,7 @@ class ControllerAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($this->controllerPath)) {
+        if (! is_dir($this->controllerPath)) {
             return $files;
         }
 
@@ -367,7 +368,8 @@ class ControllerAnalyzer implements AnalyzerInterface
         // Convert App\Http\Controllers\FooController to app/Http/Controllers/FooController.php
         if (str_starts_with($className, 'App\\')) {
             $relativePath = str_replace('\\', '/', substr($className, 4));
-            return $this->basePath . "/app/{$relativePath}.php";
+
+            return $this->basePath."/app/{$relativePath}.php";
         }
 
         return null;
@@ -437,7 +439,7 @@ class ControllerAnalyzer implements AnalyzerInterface
             $braceCount += substr_count($stripped, '{');
             $braceCount -= substr_count($stripped, '}');
 
-            if (!$foundOpenBrace && $braceCount > 0) {
+            if (! $foundOpenBrace && $braceCount > 0) {
                 $foundOpenBrace = true;
             }
 
@@ -573,7 +575,7 @@ class ControllerAnalyzer implements AnalyzerInterface
 
             if ($char === '{') {
                 $braceCount++;
-                if (!$foundOpenBrace) {
+                if (! $foundOpenBrace) {
                     $foundOpenBrace = true;
                     $start = $i;
                 }
@@ -594,6 +596,7 @@ class ControllerAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -602,7 +605,7 @@ class ControllerAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

@@ -8,23 +8,29 @@ use App\Models\DataRequest;
 use App\Models\IpWhitelist;
 use App\Models\TwoFactorAuth;
 use App\Models\UserSession;
-use App\Services\Security\TwoFactorAuthService;
-use App\Services\Security\EncryptionService;
-use App\Services\Security\SessionManagementService;
-use App\Services\Security\IpWhitelistService;
 use App\Services\Security\AuditLogService;
+use App\Services\Security\EncryptionService;
 use App\Services\Security\GdprComplianceService;
+use App\Services\Security\IpWhitelistService;
 use App\Services\Security\PermissionService;
+use App\Services\Security\SessionManagementService;
+use App\Services\Security\TwoFactorAuthService;
 use Illuminate\Http\Request;
 
 class SecurityController extends Controller
 {
     protected $twoFactorService;
+
     protected $encryptionService;
+
     protected $sessionService;
+
     protected $ipWhitelistService;
+
     protected $auditLogService;
+
     protected $gdprService;
+
     protected $permissionService;
 
     public function __construct(
@@ -50,6 +56,7 @@ class SecurityController extends Controller
     public function enable2FA()
     {
         $result = $this->twoFactorService->enable2FA(auth()->id());
+
         return response()->json($result);
     }
 
@@ -80,6 +87,7 @@ class SecurityController extends Controller
     public function get2FAStatus()
     {
         $status = $this->twoFactorService->getStatus(auth()->id());
+
         return response()->json(['success' => true, 'status' => $status]);
     }
 
@@ -88,6 +96,7 @@ class SecurityController extends Controller
     public function getActiveSessions()
     {
         $sessions = $this->sessionService->getActiveSessions(auth()->id());
+
         return response()->json(['success' => true, 'sessions' => $sessions]);
     }
 
@@ -136,7 +145,7 @@ class SecurityController extends Controller
             'expires_at' => 'sometimes|date|after:now',
         ]);
 
-        if (!$this->ipWhitelistService->isValidIp($request->ip_address)) {
+        if (! $this->ipWhitelistService->isValidIp($request->ip_address)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid IP address format',
@@ -228,7 +237,7 @@ class SecurityController extends Controller
 
         return response($csv)
             ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', 'attachment; filename="audit_logs_' . date('Y-m-d') . '.csv"');
+            ->header('Content-Disposition', 'attachment; filename="audit_logs_'.date('Y-m-d').'.csv"');
     }
 
     // ==================== GDPR/PDP COMPLIANCE ====================
@@ -322,6 +331,7 @@ class SecurityController extends Controller
     public function getPendingDataRequests()
     {
         $requests = $this->gdprService->getPendingRequests(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'requests' => $requests]);
     }
 
@@ -360,12 +370,14 @@ class SecurityController extends Controller
     public function getPermissions()
     {
         $permissions = $this->permissionService->getGroupedPermissions();
+
         return response()->json(['success' => true, 'permissions' => $permissions]);
     }
 
     public function getRolePermissions(int $roleId)
     {
         $permissions = $this->permissionService->getRolePermissions($roleId);
+
         return response()->json(['success' => true, 'permissions' => $permissions]);
     }
 

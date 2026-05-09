@@ -6,12 +6,13 @@ use App\Models\AccountingIntegration;
 use App\Models\AccountingSyncLog;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Traits\BelongsToTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
  * Task 59: Audit & Perbaikan Integrasi Akuntansi Eksternal
- * 
+ *
  * Requirement 16: Integrasi akuntansi (Jurnal.id, Accurate Online) berfungsi:
  * sinkronisasi data jurnal dan laporan keuangan berjalan dengan benar
  */
@@ -20,6 +21,7 @@ class AccountingIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void
@@ -250,7 +252,7 @@ class AccountingIntegrationTest extends TestCase
     public function test_accounting_integration_uses_belongs_to_tenant_trait(): void
     {
         $traits = class_uses_recursive(AccountingIntegration::class);
-        $this->assertContains(\App\Traits\BelongsToTenant::class, $traits);
+        $this->assertContains(BelongsToTenant::class, $traits);
     }
 
     /**
@@ -259,7 +261,7 @@ class AccountingIntegrationTest extends TestCase
     public function test_accounting_sync_log_uses_belongs_to_tenant_trait(): void
     {
         $traits = class_uses_recursive(AccountingSyncLog::class);
-        $this->assertContains(\App\Traits\BelongsToTenant::class, $traits);
+        $this->assertContains(BelongsToTenant::class, $traits);
     }
 
     /**
@@ -267,7 +269,7 @@ class AccountingIntegrationTest extends TestCase
      */
     public function test_accounting_integration_fillable_attributes(): void
     {
-        $integration = new AccountingIntegration();
+        $integration = new AccountingIntegration;
         $fillable = $integration->getFillable();
 
         $this->assertContains('tenant_id', $fillable);
@@ -282,7 +284,7 @@ class AccountingIntegrationTest extends TestCase
      */
     public function test_accounting_sync_log_fillable_attributes(): void
     {
-        $syncLog = new AccountingSyncLog();
+        $syncLog = new AccountingSyncLog;
         $fillable = $syncLog->getFillable();
 
         $this->assertContains('tenant_id', $fillable);
@@ -298,7 +300,7 @@ class AccountingIntegrationTest extends TestCase
      */
     public function test_accounting_sync_log_casts(): void
     {
-        $syncLog = new AccountingSyncLog();
+        $syncLog = new AccountingSyncLog;
         $casts = $syncLog->getCasts();
 
         $this->assertEquals('array', $casts['errors']);

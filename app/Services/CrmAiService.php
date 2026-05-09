@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\CrmActivity;
 use App\Models\CrmLead;
-use Carbon\Carbon;
 
 class CrmAiService
 {
@@ -27,14 +26,14 @@ class CrmAiService
         $daysSince = $lead->last_contact_at ? now()->diffInDays($lead->last_contact_at) : 999;
         $recencyScore = $daysSince <= 3 ? 20 : ($daysSince <= 7 ? 15 : ($daysSince <= 14 ? 10 : ($daysSince <= 30 ? 5 : 0)));
         $score += $recencyScore;
-        $breakdown[] = ['label' => 'Recency kontak', 'value' => $daysSince . ' hari lalu', 'points' => $recencyScore];
+        $breakdown[] = ['label' => 'Recency kontak', 'value' => $daysSince.' hari lalu', 'points' => $recencyScore];
 
         // 3. Activity outcomes (max 20)
         $interested = $activities->where('outcome', 'interested')->count();
         $notInterested = $activities->where('outcome', 'not_interested')->count();
         $outcomeScore = min(20, max(0, ($interested * 5) - ($notInterested * 8)));
         $score += $outcomeScore;
-        $breakdown[] = ['label' => 'Outcome positif', 'value' => $interested . ' tertarik, ' . $notInterested . ' tidak', 'points' => $outcomeScore];
+        $breakdown[] = ['label' => 'Outcome positif', 'value' => $interested.' tertarik, '.$notInterested.' tidak', 'points' => $outcomeScore];
 
         // 4. Stage progression (max 20)
         $stageScore = match ($lead->stage) {
@@ -47,7 +46,7 @@ class CrmAiService
         // 5. Estimated value (max 10)
         $valueScore = $lead->estimated_value >= 100_000_000 ? 10 : ($lead->estimated_value >= 50_000_000 ? 7 : ($lead->estimated_value >= 10_000_000 ? 4 : ($lead->estimated_value > 0 ? 2 : 0)));
         $score += $valueScore;
-        $breakdown[] = ['label' => 'Nilai estimasi', 'value' => 'Rp ' . number_format($lead->estimated_value, 0, ',', '.'), 'points' => $valueScore];
+        $breakdown[] = ['label' => 'Nilai estimasi', 'value' => 'Rp '.number_format($lead->estimated_value, 0, ',', '.'), 'points' => $valueScore];
 
         // 6. Source quality (max 10)
         $sourceScore = match ($lead->source) {
@@ -62,8 +61,8 @@ class CrmAiService
         $tierLabel = ['hot' => '🔥 Hot', 'warm' => '🌤 Warm', 'cold' => '❄️ Cold'][$tier];
 
         return [
-            'score'     => $score,
-            'tier'      => $tier,
+            'score' => $score,
+            'tier' => $tier,
             'tier_label' => $tierLabel,
             'breakdown' => $breakdown,
         ];
@@ -84,17 +83,17 @@ class CrmAiService
         // No activity yet
         if ($activities->isEmpty()) {
             return [
-                'action'    => 'call',
+                'action' => 'call',
                 'action_label' => 'Telepon',
-                'message'   => 'Lead baru belum pernah dihubungi. Segera lakukan kontak pertama via telepon.',
-                'priority'  => 'high',
+                'message' => 'Lead baru belum pernah dihubungi. Segera lakukan kontak pertama via telepon.',
+                'priority' => 'high',
                 'suggestions' => ['Perkenalkan produk secara singkat', 'Identifikasi kebutuhan utama', 'Jadwalkan demo jika tertarik'],
             ];
         }
 
         // Overdue follow-up
         $overdueFollowUp = $activities->whereNotNull('next_follow_up')
-            ->filter(fn($a) => $a->next_follow_up && $a->next_follow_up->isPast())
+            ->filter(fn ($a) => $a->next_follow_up && $a->next_follow_up->isPast())
             ->first();
 
         if ($overdueFollowUp) {
@@ -108,10 +107,10 @@ class CrmAiService
 
         if ($lastOutcome === 'not_interested') {
             return [
-                'action'    => 'email',
+                'action' => 'email',
                 'action_label' => 'Email',
-                'message'   => 'Lead terakhir menyatakan tidak tertarik. Kirim email nurturing dengan value proposition berbeda.',
-                'priority'  => 'low',
+                'message' => 'Lead terakhir menyatakan tidak tertarik. Kirim email nurturing dengan value proposition berbeda.',
+                'priority' => 'low',
                 'suggestions' => ['Kirim case study relevan', 'Tawarkan trial gratis atau demo singkat', 'Tanyakan keberatan spesifik'],
             ];
         }
@@ -122,12 +121,12 @@ class CrmAiService
 
         // Stage-based action recommendation
         $action = match ($lead->stage) {
-            'new'         => ['type' => 'call', 'label' => 'Telepon', 'msg' => 'Lakukan kontak awal untuk kualifikasi kebutuhan.'],
-            'contacted'   => ['type' => 'meeting', 'label' => 'Meeting', 'msg' => 'Jadwalkan meeting untuk presentasi produk.'],
-            'qualified'   => ['type' => 'demo', 'label' => 'Demo', 'msg' => 'Kirimkan demo atau proposal awal.'],
-            'proposal'    => ['type' => 'whatsapp', 'label' => 'WhatsApp', 'msg' => 'Follow-up proposal yang sudah dikirim, tanyakan feedback.'],
+            'new' => ['type' => 'call', 'label' => 'Telepon', 'msg' => 'Lakukan kontak awal untuk kualifikasi kebutuhan.'],
+            'contacted' => ['type' => 'meeting', 'label' => 'Meeting', 'msg' => 'Jadwalkan meeting untuk presentasi produk.'],
+            'qualified' => ['type' => 'demo', 'label' => 'Demo', 'msg' => 'Kirimkan demo atau proposal awal.'],
+            'proposal' => ['type' => 'whatsapp', 'label' => 'WhatsApp', 'msg' => 'Follow-up proposal yang sudah dikirim, tanyakan feedback.'],
             'negotiation' => ['type' => 'call', 'label' => 'Telepon', 'msg' => 'Hubungi untuk finalisasi negosiasi dan closing.'],
-            default       => ['type' => 'call', 'label' => 'Telepon', 'msg' => 'Hubungi untuk update status.'],
+            default => ['type' => 'call', 'label' => 'Telepon', 'msg' => 'Hubungi untuk update status.'],
         };
 
         // Stale lead warning
@@ -138,7 +137,7 @@ class CrmAiService
 
         // Successful pattern from same-stage leads in tenant
         $successPattern = CrmActivity::where('tenant_id', $lead->tenant_id)
-            ->whereHas('lead', fn($q) => $q->where('stage', 'won'))
+            ->whereHas('lead', fn ($q) => $q->where('stage', 'won'))
             ->where('type', $action['type'])
             ->where('outcome', 'interested')
             ->count();
@@ -154,13 +153,13 @@ class CrmAiService
         $suggestions[] = $action['msg'];
 
         return [
-            'action'       => $action['type'],
+            'action' => $action['type'],
             'action_label' => $action['label'],
-            'message'      => $action['msg'],
-            'priority'     => $priority,
+            'message' => $action['msg'],
+            'priority' => $priority,
             'days_since_last' => $daysSinceLast,
             'last_outcome' => $lastOutcome,
-            'suggestions'  => array_unique($suggestions),
+            'suggestions' => array_unique($suggestions),
         ];
     }
 
@@ -179,6 +178,7 @@ class CrmAiService
             $s = $this->scoreLead($lead);
             $results[$lead->id] = ['score' => $s['score'], 'tier' => $s['tier'], 'tier_label' => $s['tier_label']];
         }
+
         return $results;
     }
 }

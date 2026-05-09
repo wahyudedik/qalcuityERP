@@ -8,15 +8,18 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * OpenWRT Router Adapter
- * 
+ *
  * Integrates with OpenWRT routers via LuCI RPC API or SSH.
  * Supports standard OpenWRT installations with luci-rpc package.
  */
 class OpenWRTAdapter implements RouterAdapterInterface
 {
     protected NetworkDevice $device;
+
     protected string $baseUrl;
+
     protected ?string $authToken = null;
+
     protected string $rpcPath = '/cgi-bin/luci/rpc';
 
     public function __construct(NetworkDevice $device)
@@ -24,7 +27,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
         $this->device = $device;
 
         // Validate required fields
-        if (!$device->ip_address || !$device->username || !$device->password) {
+        if (! $device->ip_address || ! $device->username || ! $device->password) {
             throw new \InvalidArgumentException('Device must have ip_address, username, and password');
         }
 
@@ -60,7 +63,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
             // Attempt to authenticate
             $authSuccess = $this->authenticate();
 
-            if (!$authSuccess) {
+            if (! $authSuccess) {
                 return [
                     'success' => false,
                     'message' => 'Authentication failed',
@@ -86,7 +89,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
 
             return [
                 'success' => false,
-                'message' => 'Connection failed: ' . $e->getMessage(),
+                'message' => 'Connection failed: '.$e->getMessage(),
                 'latency_ms' => round((microtime(true) - $startTime) * 1000, 2),
             ];
         }
@@ -104,6 +107,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
 
             if ($response && isset($response['result'])) {
                 $board = $response['result'];
+
                 return [
                     'hostname' => $board['hostname'] ?? 'Unknown',
                     'model' => $board['model'] ?? 'Unknown',
@@ -116,6 +120,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get OpenWRT system info', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -149,6 +154,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get OpenWRT interface list', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -180,6 +186,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get OpenWRT active users', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -199,15 +206,16 @@ class OpenWRTAdapter implements RouterAdapterInterface
             $limitDown = $userData['download_limit_kbps'] ?? 0;
             $limitUp = $userData['upload_limit_kbps'] ?? 0;
 
-            if (!$mac) {
+            if (! $mac) {
                 Log::warning('Cannot create OpenWRT user without MAC address');
+
                 return false;
             }
 
             // Execute shell command via RPC (requires luci-exec package)
             $command = sprintf(
-                'tc qdisc add dev br-lan root handle 1: htb default 10 && ' .
-                'tc class add dev br-lan parent 1: classid 1:1 htb rate %dkbit && ' .
+                'tc qdisc add dev br-lan root handle 1: htb default 10 && '.
+                'tc class add dev br-lan parent 1: classid 1:1 htb rate %dkbit && '.
                 'tc filter add dev br-lan protocol all parent 1:0 prio 1 u32 match ether src %s flowid 1:1',
                 $limitDown,
                 $mac
@@ -221,6 +229,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'user_data' => $userData,
             ]);
+
             return false;
         }
     }
@@ -247,6 +256,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'username' => $username,
             ]);
+
             return false;
         }
     }
@@ -273,6 +283,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'username' => $username,
             ]);
+
             return false;
         }
     }
@@ -287,7 +298,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
 
             // Get network statistics from /proc/net/dev
             $response = $this->rpcCall('luci-rpc', 'exec', [
-                'command' => 'cat /proc/net/dev'
+                'command' => 'cat /proc/net/dev',
             ]);
 
             if ($response && isset($response['result']['stdout'])) {
@@ -319,6 +330,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get OpenWRT bandwidth usage', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -338,12 +350,13 @@ class OpenWRTAdapter implements RouterAdapterInterface
                 $data = $response->json();
                 $this->authToken = $data['result'] ?? null;
 
-                return !empty($this->authToken);
+                return ! empty($this->authToken);
             }
 
             return false;
         } catch (\Exception $e) {
             Log::error('OpenWRT authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -356,7 +369,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
         if (empty($this->authToken)) {
             $authSuccess = $this->authenticate();
 
-            if (!$authSuccess) {
+            if (! $authSuccess) {
                 throw new \RuntimeException('Failed to authenticate with OpenWRT router');
             }
         }
@@ -393,6 +406,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
                 'method' => $method,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -420,7 +434,7 @@ class OpenWRTAdapter implements RouterAdapterInterface
      */
     public function logout(): void
     {
-        if (!empty($this->authToken)) {
+        if (! empty($this->authToken)) {
             try {
                 $this->rpcCall('session', 'destroy');
             } catch (\Exception $e) {

@@ -14,7 +14,7 @@ class AiDigestNotification extends Notification implements ShouldQueue
 
     public function __construct(
         public readonly Tenant $tenant,
-        public readonly array  $insights,
+        public readonly array $insights,
         public readonly string $period = 'daily',
     ) {}
 
@@ -26,7 +26,7 @@ class AiDigestNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $periodLabel = $this->period === 'weekly' ? 'Mingguan' : 'Harian';
-        $dateLabel   = now()->translatedFormat('l, d F Y');
+        $dateLabel = now()->translatedFormat('l, d F Y');
 
         $mail = (new MailMessage)
             ->subject("📊 Digest {$periodLabel} Qalcuity ERP — {$this->tenant->name}")
@@ -34,34 +34,34 @@ class AiDigestNotification extends Notification implements ShouldQueue
             ->line("Berikut ringkasan insight AI untuk **{$this->tenant->name}** — {$dateLabel}.");
 
         // Kelompokkan per severity
-        $critical = array_filter($this->insights, fn($i) => $i['severity'] === 'critical');
-        $warning  = array_filter($this->insights, fn($i) => $i['severity'] === 'warning');
-        $info     = array_filter($this->insights, fn($i) => $i['severity'] === 'info');
+        $critical = array_filter($this->insights, fn ($i) => $i['severity'] === 'critical');
+        $warning = array_filter($this->insights, fn ($i) => $i['severity'] === 'warning');
+        $info = array_filter($this->insights, fn ($i) => $i['severity'] === 'info');
 
-        if (!empty($critical)) {
+        if (! empty($critical)) {
             $mail->line('---')
-                 ->line('🔴 **Perlu Tindakan Segera:**');
+                ->line('🔴 **Perlu Tindakan Segera:**');
             foreach ($critical as $insight) {
                 $mail->line("**{$insight['title']}**")
-                     ->line($insight['body']);
+                    ->line($insight['body']);
             }
         }
 
-        if (!empty($warning)) {
+        if (! empty($warning)) {
             $mail->line('---')
-                 ->line('🟡 **Perhatian:**');
+                ->line('🟡 **Perhatian:**');
             foreach ($warning as $insight) {
                 $mail->line("**{$insight['title']}**")
-                     ->line($insight['body']);
+                    ->line($insight['body']);
             }
         }
 
-        if (!empty($info)) {
+        if (! empty($info)) {
             $mail->line('---')
-                 ->line('🟢 **Info:**');
+                ->line('🟢 **Info:**');
             foreach (array_slice($info, 0, 3) as $insight) {
                 $mail->line("**{$insight['title']}**")
-                     ->line($insight['body']);
+                    ->line($insight['body']);
             }
         }
 

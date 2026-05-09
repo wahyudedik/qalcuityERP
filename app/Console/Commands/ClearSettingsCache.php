@@ -44,6 +44,7 @@ class ClearSettingsCache extends Command
         if ($this->option('version')) {
             $version = $this->cacheService->getVersion();
             $this->info("📌 Current cache version: {$version}");
+
             return Command::SUCCESS;
         }
 
@@ -52,11 +53,12 @@ class ClearSettingsCache extends Command
             $this->warn('⚠️  Clearing ALL settings cache...');
             $this->cacheService->clearAll();
             $this->info('✅ All settings cache cleared (version incremented)');
+
             return Command::SUCCESS;
         }
 
         // Clear system settings cache
-        if ($this->option('system') || (!$this->option('tenant') && !$this->option('all-tenants') && !$this->option('modules') && !$this->option('api'))) {
+        if ($this->option('system') || (! $this->option('tenant') && ! $this->option('all-tenants') && ! $this->option('modules') && ! $this->option('api'))) {
             $this->cacheService->clearSystemCache();
             $this->info('✅ System settings cache cleared');
             $cleared++;
@@ -96,7 +98,7 @@ class ClearSettingsCache extends Command
             $cleared += $tenantCount;
         }
 
-        if ($cleared === 0 && !$this->option('all')) {
+        if ($cleared === 0 && ! $this->option('all')) {
             $this->warn('⚠️  No cache cleared. Use options: --system, --tenant={id}, --all-tenants, --modules, --api, or --all');
         } else {
             $newVersion = $this->cacheService->getVersion();

@@ -55,8 +55,8 @@ class AgentExecutor
      */
     public function setUser(User $user, int $tenantId, ?int $sessionId = null): void
     {
-        $this->user      = $user;
-        $this->tenantId  = $tenantId;
+        $this->user = $user;
+        $this->tenantId = $tenantId;
         $this->sessionId = $sessionId;
     }
 
@@ -103,26 +103,26 @@ class AgentExecutor
 
         // 4. Eksekusi tool dengan timeout
         $startTime = microtime(true);
-        $result    = null;
-        $error     = null;
+        $result = null;
+        $error = null;
 
         try {
             $result = $this->executeWithTimeout(
-                fn() => $registry->execute($step->toolName, $resolvedArgs),
+                fn () => $registry->execute($step->toolName, $resolvedArgs),
                 self::TOOL_TIMEOUT_SECONDS
             );
         } catch (TimeoutException $e) {
-            $error = "Eksekusi tool '{$step->toolName}' melebihi batas waktu " . self::TOOL_TIMEOUT_SECONDS . " detik.";
+            $error = "Eksekusi tool '{$step->toolName}' melebihi batas waktu ".self::TOOL_TIMEOUT_SECONDS.' detik.';
             Log::warning('AgentExecutor: tool timeout', [
-                'tool'      => $step->toolName,
-                'step'      => $step->order,
+                'tool' => $step->toolName,
+                'step' => $step->order,
                 'elapsed_s' => round(microtime(true) - $startTime, 2),
             ]);
         } catch (\Throwable $e) {
-            $error = "Eksekusi tool '{$step->toolName}' gagal: " . $e->getMessage();
+            $error = "Eksekusi tool '{$step->toolName}' gagal: ".$e->getMessage();
             Log::error('AgentExecutor: tool execution error', [
-                'tool'  => $step->toolName,
-                'step'  => $step->order,
+                'tool' => $step->toolName,
+                'step' => $step->order,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -184,7 +184,7 @@ class AgentExecutor
      */
     public function canUndo(AgentAuditLog $log): bool
     {
-        if (!$log->is_undoable) {
+        if (! $log->is_undoable) {
             return false;
         }
 
@@ -200,8 +200,8 @@ class AgentExecutor
      */
     public function undo(AgentAuditLog $log, ToolRegistry $registry): UndoResult
     {
-        if (!$this->canUndo($log)) {
-            $reason = !$log->is_undoable
+        if (! $this->canUndo($log)) {
+            $reason = ! $log->is_undoable
                 ? "Aksi '{$log->action_name}' tidak mendukung undo."
                 : "Window undo 5 menit untuk aksi '{$log->action_name}' sudah berakhir.";
 
@@ -211,7 +211,7 @@ class AgentExecutor
             );
         }
 
-        $undoToolName = 'undo_' . $log->action_name;
+        $undoToolName = 'undo_'.$log->action_name;
 
         try {
             if ($registry->isWriteOperation($log->action_name)) {
@@ -221,7 +221,7 @@ class AgentExecutor
                 try {
                     $undoResult = $registry->execute($undoToolName, [
                         'original_log_id' => $log->id,
-                        'original_args'   => $log->parameters ?? [],
+                        'original_args' => $log->parameters ?? [],
                         'original_result' => $log->result ?? [],
                     ]);
                 } catch (\Throwable) {
@@ -243,12 +243,12 @@ class AgentExecutor
             Log::error('AgentExecutor: undo gagal', [
                 'log_id' => $log->id,
                 'action' => $log->action_name,
-                'error'  => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return new UndoResult(
                 success: false,
-                message: "Undo gagal: " . $e->getMessage(),
+                message: 'Undo gagal: '.$e->getMessage(),
             );
         }
     }
@@ -266,13 +266,13 @@ class AgentExecutor
         foreach (self::DESTRUCTIVE_TOOL_PATTERNS as $pattern) {
             if (str_contains($toolNameLower, $pattern)) {
                 return "Operasi '{$step->toolName}' ditolak karena termasuk operasi destruktif "
-                    . "(bulk delete / modifikasi data historis terkunci) yang tidak diizinkan.";
+                    .'(bulk delete / modifikasi data historis terkunci) yang tidak diizinkan.';
             }
         }
 
         if ($this->isLockedPeriodModification($step)) {
             return "Operasi '{$step->toolName}' ditolak karena mencoba memodifikasi data "
-                . "pada periode akuntansi yang sudah dikunci.";
+                .'pada periode akuntansi yang sudah dikunci.';
         }
 
         return null;
@@ -283,7 +283,7 @@ class AgentExecutor
      */
     private function isLockedPeriodModification(AgentStep $step): bool
     {
-        if (!$step->isWriteOp) {
+        if (! $step->isWriteOp) {
             return false;
         }
 
@@ -318,7 +318,7 @@ class AgentExecutor
             return null;
         }
 
-        $parts  = explode('.', $requiredPermission);
+        $parts = explode('.', $requiredPermission);
         $action = array_pop($parts);
         $module = implode('.', $parts) ?: $requiredPermission;
 
@@ -326,7 +326,7 @@ class AgentExecutor
 
         if (! $permissionService->check($this->user, $module, $action)) {
             return "Akses ditolak: Anda memerlukan permission '{$requiredPermission}' "
-                . "untuk mengeksekusi aksi '{$step->toolName}'.";
+                ."untuk mengeksekusi aksi '{$step->toolName}'.";
         }
 
         return null;
@@ -339,15 +339,15 @@ class AgentExecutor
     private function resolveRequiredPermission(AgentStep $step): ?string
     {
         $permissionMap = [
-            'create_journal'        => 'accounting.journal.create',
-            'post_journal'          => 'accounting.journal.post',
-            'create_invoice'        => 'sales.invoice.create',
+            'create_journal' => 'accounting.journal.create',
+            'post_journal' => 'accounting.journal.post',
+            'create_invoice' => 'sales.invoice.create',
             'create_purchase_order' => 'purchasing.po.create',
-            'run_payroll'           => 'hrm.payroll.run',
-            'delete_'               => 'admin.delete',
-            'adjust_stock'          => 'inventory.stock.adjust',
-            'create_employee'       => 'hrm.employee.create',
-            'update_employee'       => 'hrm.employee.update',
+            'run_payroll' => 'hrm.payroll.run',
+            'delete_' => 'admin.delete',
+            'adjust_stock' => 'inventory.stock.adjust',
+            'create_employee' => 'hrm.employee.create',
+            'update_employee' => 'hrm.employee.update',
         ];
 
         $toolName = $step->toolName;
@@ -379,13 +379,13 @@ class AgentExecutor
             return $this->executeWithPcntlTimeout($fn, $timeoutSeconds);
         }
 
-        $start   = microtime(true);
-        $result  = $fn();
+        $start = microtime(true);
+        $result = $fn();
         $elapsed = microtime(true) - $start;
 
         if ($elapsed > $timeoutSeconds) {
             throw new TimeoutException(
-                "Eksekusi melebihi batas waktu {$timeoutSeconds} detik (aktual: " . round($elapsed, 2) . " detik)."
+                "Eksekusi melebihi batas waktu {$timeoutSeconds} detik (aktual: ".round($elapsed, 2).' detik).'
             );
         }
 
@@ -435,31 +435,32 @@ class AgentExecutor
             Log::warning('AgentExecutor: tidak dapat menulis audit log - user/tenantId tidak di-set', [
                 'tool' => $step->toolName,
             ]);
+
             return;
         }
 
         try {
-            $isUndoable    = $status === 'success';
+            $isUndoable = $status === 'success';
             $undoableUntil = $isUndoable
                 ? Carbon::now()->addSeconds(self::UNDO_WINDOW_SECONDS)
                 : null;
 
             AgentAuditLog::create([
-                'tenant_id'      => $this->tenantId,
-                'user_id'        => $this->user->id,
-                'session_id'     => $this->sessionId,
-                'action_name'    => $step->toolName,
-                'action_type'    => 'write',
-                'parameters'     => $args,
-                'result'         => $result,
-                'status'         => $status,
-                'error_message'  => $errorMessage,
-                'is_undoable'    => $isUndoable,
+                'tenant_id' => $this->tenantId,
+                'user_id' => $this->user->id,
+                'session_id' => $this->sessionId,
+                'action_name' => $step->toolName,
+                'action_type' => 'write',
+                'parameters' => $args,
+                'result' => $result,
+                'status' => $status,
+                'error_message' => $errorMessage,
+                'is_undoable' => $isUndoable,
                 'undoable_until' => $undoableUntil,
             ]);
         } catch (\Throwable $e) {
             Log::error('AgentExecutor: gagal menulis audit log', [
-                'tool'  => $step->toolName,
+                'tool' => $step->toolName,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -496,6 +497,7 @@ class AgentExecutor
             '/\{\{step_(\d+)\.([^}]+)\}\}/',
             function (array $m) use ($context): string {
                 $extracted = $this->extractFromContext((int) $m[1], $m[2], $context);
+
                 return is_scalar($extracted) ? (string) $extracted : '';
             },
             $value
@@ -514,7 +516,7 @@ class AgentExecutor
             return null;
         }
 
-        $parts   = explode('.', $field);
+        $parts = explode('.', $field);
         $current = $output;
 
         foreach ($parts as $part) {

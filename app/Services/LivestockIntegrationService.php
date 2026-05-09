@@ -4,17 +4,17 @@ namespace App\Services;
 
 use App\Models\AccountingPeriod;
 use App\Models\ChartOfAccount;
+use App\Models\DairyMilkRecord;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\LivestockFeedLog;
 use App\Models\LivestockHerd;
 use App\Models\LivestockMovement;
-use App\Models\DairyMilkRecord;
 use App\Models\PoultryEggProduction;
-use App\Models\WasteManagementLog;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\WarehouseStock;
+use App\Models\WasteManagementLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -32,18 +32,31 @@ class LivestockIntegrationService
 {
     // COA codes for livestock accounting
     private const COA_LIVESTOCK_ASSET = '1106';      // Aset Ternak
+
     private const COA_CASH = '1101';                  // Kas
+
     private const COA_BANK = '1102';                  // Bank
+
     private const COA_ACCOUNTS_PAYABLE = '2101';      // Hutang Usaha
+
     private const COA_ACCOUNTS_RECEIVABLE = '1103';   // Piutang Usaha
+
     private const COA_LIVESTOCK_REVENUE = '4103';     // Pendapatan Penjualan Ternak
+
     private const COA_LIVESTOCK_COGS = '5103';        // HPP Ternak
+
     private const COA_FEED_EXPENSE = '5301';          // Beban Pakan Ternak
+
     private const COA_FEED_INVENTORY = '1109';        // Persediaan Pakan
+
     private const COA_DAIRY_INVENTORY = '1110';       // Persediaan Produk Susu
+
     private const COA_EGG_INVENTORY = '1111';         // Persediaan Telur
+
     private const COA_PRODUCTION_REVENUE = '4104';    // Pendapatan Produksi Peternakan
+
     private const COA_OTHER_REVENUE = '4199';         // Pendapatan Lain-lain
+
     private const COA_VETERINARY_EXPENSE = '5302';    // Beban Kesehatan Ternak
 
     private array $accountCache = [];
@@ -134,7 +147,7 @@ class LivestockIntegrationService
             tenantId: $tenantId,
             userId: $userId,
             date: $date,
-            description: "Auto: Penjualan Ternak {$herd->code} - " . abs($movement->quantity) . " ekor",
+            description: "Auto: Penjualan Ternak {$herd->code} - ".abs($movement->quantity).' ekor',
             lines: $lines
         );
     }
@@ -373,8 +386,9 @@ class LivestockIntegrationService
                     ->lockForUpdate()
                     ->first();
 
-                if (!$stock) {
+                if (! $stock) {
                     Log::warning("Livestock feed: Stock not found for product {$productId} in warehouse {$warehouseId}");
+
                     return;
                 }
 
@@ -401,7 +415,7 @@ class LivestockIntegrationService
                 ]);
             });
         } catch (\Exception $e) {
-            Log::error("Livestock feed stock deduction failed: " . $e->getMessage());
+            Log::error('Livestock feed stock deduction failed: '.$e->getMessage());
         }
     }
 
@@ -428,6 +442,7 @@ class LivestockIntegrationService
 
                 if ($exists) {
                     Log::info("Livestock GL Auto-Post skipped (already exists): {$refType} {$reference}");
+
                     return GlPostingResult::skipped("Jurnal sudah ada untuk {$refType} {$reference}");
                 }
 
@@ -437,7 +452,7 @@ class LivestockIntegrationService
 
                 foreach ($lines as $line) {
                     $accountId = $this->resolveAccount($tenantId, $line['code']);
-                    if (!$accountId) {
+                    if (! $accountId) {
                         $missingCodes[] = $line['code'];
                     } else {
                         $resolvedLines[] = [
@@ -449,9 +464,10 @@ class LivestockIntegrationService
                     }
                 }
 
-                if (!empty($missingCodes)) {
+                if (! empty($missingCodes)) {
                     $codesStr = implode(', ', $missingCodes);
                     Log::warning("Livestock GL Auto-Post: akun [{$codesStr}] tidak ditemukan untuk tenant {$tenantId}. Ref: {$refType} {$reference}");
+
                     return GlPostingResult::failed(
                         "Akun COA tidak ditemukan: {$codesStr}. Silakan tambahkan akun tersebut di Chart of Accounts.",
                         $missingCodes
@@ -464,6 +480,7 @@ class LivestockIntegrationService
                 if (abs($totalDebit - $totalCredit) > 0.01) {
                     $msg = "Jurnal tidak balance (D={$totalDebit} C={$totalCredit})";
                     Log::warning("Livestock GL Auto-Post: {$msg} untuk {$refType} {$reference}");
+
                     return GlPostingResult::failed($msg);
                 }
 
@@ -473,6 +490,7 @@ class LivestockIntegrationService
                     $lockInfo = $periodLockService->getLockInfo($tenantId, $date);
                     $msg = "Periode {$lockInfo} sudah dikunci. Tidak dapat membuat jurnal untuk tanggal {$date}.";
                     Log::warning("Livestock GL Auto-Post: {$msg} Ref: {$refType} {$reference}");
+
                     return GlPostingResult::failed($msg);
                 }
 
@@ -508,10 +526,11 @@ class LivestockIntegrationService
                 return GlPostingResult::success($je);
             });
         } catch (\Throwable $e) {
-            Log::error("Livestock GL Auto-Post exception for {$refType} {$reference}: " . $e->getMessage(), [
+            Log::error("Livestock GL Auto-Post exception for {$refType} {$reference}: ".$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return GlPostingResult::failed("Exception: " . $e->getMessage());
+
+            return GlPostingResult::failed('Exception: '.$e->getMessage());
         }
     }
 
@@ -531,6 +550,7 @@ class LivestockIntegrationService
             ->value('id');
 
         $this->accountCache[$key] = $id;
+
         return $id;
     }
 
@@ -547,7 +567,7 @@ class LivestockIntegrationService
                 ->where('reference_type', 'livestock_purchase')
                 ->whereBetween('date', [$fromDate, $toDate])
                 ->where('status', 'posted')
-                ->sum(fn($je) => $je->totalDebit()),
+                ->sum(fn ($je) => $je->totalDebit()),
             'livestock_sales' => JournalEntry::where('tenant_id', $tenantId)
                 ->where('reference_type', 'livestock_sale')
                 ->whereBetween('date', [$fromDate, $toDate])

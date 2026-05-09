@@ -35,7 +35,7 @@ class DocumentTemplateController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:document_templates,name,NULL,id,tenant_id,' . Auth::user()->tenant_id,
+            'name' => 'required|string|max:255|unique:document_templates,name,NULL,id,tenant_id,'.Auth::user()->tenant_id,
             'description' => 'nullable|string',
             'content' => 'required|string',
             'category' => 'nullable|string|max:100',
@@ -86,7 +86,7 @@ class DocumentTemplateController extends Controller
         $this->authorize('update', $template);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:document_templates,name,' . $template->id . ',id,tenant_id,' . Auth::user()->tenant_id,
+            'name' => 'required|string|max:255|unique:document_templates,name,'.$template->id.',id,tenant_id,'.Auth::user()->tenant_id,
             'description' => 'nullable|string',
             'content' => 'required|string',
             'category' => 'nullable|string|max:100',
@@ -123,7 +123,7 @@ class DocumentTemplateController extends Controller
         $newTemplate = DocumentTemplate::create([
             'tenant_id' => Auth::user()->tenant_id,
             'created_by' => Auth::id(),
-            'name' => $template->name . ' (Copy)',
+            'name' => $template->name.' (Copy)',
             'description' => $template->description,
             'content' => $template->content,
             'category' => $template->category,

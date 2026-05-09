@@ -9,14 +9,13 @@ use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
 use Eris\TestTrait;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
  * Property-Based Tests for ENUM Validation Rejection.
  *
  * Feature: erp-comprehensive-audit-fix
- * 
+ *
  * **Validates: Requirements 1.2, 1.3**
  */
 class EnumValidationPropertyTest extends TestCase
@@ -33,7 +32,7 @@ class EnumValidationPropertyTest extends TestCase
      * **Validates: Requirements 1.2, 1.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testEnumValidationRejection(): void
+    public function test_enum_validation_rejection(): void
     {
         $this
             ->forAll(
@@ -50,7 +49,7 @@ class EnumValidationPropertyTest extends TestCase
                     'pending_approval', // might be valid for some models but not Invoice
                 ])
             )
-            ->then(function($invalidStatus) {
+            ->then(function ($invalidStatus) {
                 // Create tenant
                 $tenant = $this->createTenant();
 
@@ -69,7 +68,7 @@ class EnumValidationPropertyTest extends TestCase
                 try {
                     Invoice::create([
                         'tenant_id' => $tenant->id,
-                        'number' => 'INV-' . uniqid(),
+                        'number' => 'INV-'.uniqid(),
                         'total_amount' => 1000,
                         'paid_amount' => 0,
                         'remaining_amount' => 1000,
@@ -82,7 +81,7 @@ class EnumValidationPropertyTest extends TestCase
                     // MySQL may report "Data truncated" or "ENUM" depending on version/config
                     $message = $e->getMessage();
                     $this->assertTrue(
-                        stripos($message, 'enum') !== false || 
+                        stripos($message, 'enum') !== false ||
                         stripos($message, 'truncated') !== false ||
                         stripos($message, 'invalid') !== false,
                         "Exception should mention ENUM constraint violation or data truncation. Got: {$message}"
@@ -103,7 +102,7 @@ class EnumValidationPropertyTest extends TestCase
                 $this->assertEquals(
                     $countBefore,
                     $countAfter,
-                    "No new invoice should be created when invalid status is provided"
+                    'No new invoice should be created when invalid status is provided'
                 );
             });
     }
@@ -117,13 +116,13 @@ class EnumValidationPropertyTest extends TestCase
      * **Validates: Requirements 1.2, 1.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testValidEnumAcceptance(): void
+    public function test_valid_enum_acceptance(): void
     {
         $this
             ->forAll(
                 Generators::elements(Invoice::STATUSES)
             )
-            ->then(function($validStatus) {
+            ->then(function ($validStatus) {
                 // Create tenant and customer
                 $tenant = $this->createTenant();
                 $customer = $this->createCustomer($tenant->id);
@@ -134,7 +133,7 @@ class EnumValidationPropertyTest extends TestCase
                     'tenant_id' => $tenant->id,
                     'customer_id' => $customer->id,
                     'user_id' => $user->id,
-                    'number' => 'SO-' . uniqid(),
+                    'number' => 'SO-'.uniqid(),
                     'status' => 'confirmed',
                     'date' => now(),
                     'subtotal' => 1000,
@@ -148,7 +147,7 @@ class EnumValidationPropertyTest extends TestCase
                     'tenant_id' => $tenant->id,
                     'customer_id' => $customer->id,
                     'sales_order_id' => $so->id,
-                    'number' => 'INV-' . uniqid(),
+                    'number' => 'INV-'.uniqid(),
                     'total_amount' => 1000,
                     'paid_amount' => 0,
                     'remaining_amount' => 1000,
@@ -157,20 +156,20 @@ class EnumValidationPropertyTest extends TestCase
                 ]);
 
                 // Verify invoice was created successfully
-                $this->assertNotNull($invoice->id, "Invoice should be created with valid status");
+                $this->assertNotNull($invoice->id, 'Invoice should be created with valid status');
                 $this->assertEquals(
                     $validStatus,
                     $invoice->status,
-                    "Invoice status should match the provided valid status"
+                    'Invoice status should match the provided valid status'
                 );
 
                 // Verify invoice can be retrieved from database
                 $retrieved = Invoice::find($invoice->id);
-                $this->assertNotNull($retrieved, "Invoice should be retrievable from database");
+                $this->assertNotNull($retrieved, 'Invoice should be retrievable from database');
                 $this->assertEquals(
                     $validStatus,
                     $retrieved->status,
-                    "Retrieved invoice status should match"
+                    'Retrieved invoice status should match'
                 );
             });
     }
@@ -183,7 +182,7 @@ class EnumValidationPropertyTest extends TestCase
      * **Validates: Requirements 1.2, 1.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testSalesOrderEnumValidation(): void
+    public function test_sales_order_enum_validation(): void
     {
         $this
             ->forAll(
@@ -194,7 +193,7 @@ class EnumValidationPropertyTest extends TestCase
                     'random123',
                 ])
             )
-            ->then(function($invalidStatus) {
+            ->then(function ($invalidStatus) {
                 // Create tenant and customer
                 $tenant = $this->createTenant();
                 $customer = $this->createCustomer($tenant->id);
@@ -217,7 +216,7 @@ class EnumValidationPropertyTest extends TestCase
                     SalesOrder::create([
                         'tenant_id' => $tenant->id,
                         'customer_id' => $customer->id,
-                        'number' => 'SO-' . uniqid(),
+                        'number' => 'SO-'.uniqid(),
                         'total_amount' => 1000,
                         'status' => $invalidStatus, // Invalid status
                         'order_date' => now(),
@@ -241,7 +240,7 @@ class EnumValidationPropertyTest extends TestCase
                 $this->assertEquals(
                     $countBefore,
                     $countAfter,
-                    "No new sales order should be created when invalid status is provided"
+                    'No new sales order should be created when invalid status is provided'
                 );
             });
     }

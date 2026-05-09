@@ -2,17 +2,18 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // ICD-10 Codes Reference Table
-        if (!Schema::hasTable('icd10_codes')) {
+        if (! Schema::hasTable('icd10_codes')) {
             Schema::create('icd10_codes', function (Blueprint $table) {
                 $table->id();
                 $table->string('code', 10)->unique(); // A00.0, B99.9, etc.
@@ -28,7 +29,7 @@ return new class extends Migration {
         }
 
         // Diagnoses
-        if (!Schema::hasTable('diagnoses')) {
+        if (! Schema::hasTable('diagnoses')) {
             Schema::create('diagnoses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('visit_id')->constrained('patient_visits')->onDelete('cascade');
@@ -59,7 +60,7 @@ return new class extends Migration {
         }
 
         // Prescriptions
-        if (!Schema::hasTable('prescriptions')) {
+        if (! Schema::hasTable('prescriptions')) {
             Schema::create('prescriptions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('visit_id')->constrained('patient_visits')->onDelete('cascade');
@@ -96,7 +97,7 @@ return new class extends Migration {
         }
 
         // Prescription Items
-        if (!Schema::hasTable('prescription_items')) {
+        if (! Schema::hasTable('prescription_items')) {
             Schema::create('prescription_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('prescription_id')->constrained()->onDelete('cascade');
@@ -132,7 +133,7 @@ return new class extends Migration {
         }
 
         // Medical Procedures
-        if (!Schema::hasTable('medical_procedures')) {
+        if (! Schema::hasTable('medical_procedures')) {
             Schema::create('medical_procedures', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('visit_id')->constrained('patient_visits')->onDelete('cascade');
@@ -172,7 +173,7 @@ return new class extends Migration {
         }
 
         // Lab Orders
-        if (!Schema::hasTable('lab_orders')) {
+        if (! Schema::hasTable('lab_orders')) {
             Schema::create('lab_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('visit_id')->constrained('patient_visits')->onDelete('cascade');
@@ -215,7 +216,7 @@ return new class extends Migration {
         }
 
         // Lab Results
-        if (!Schema::hasTable('lab_results')) {
+        if (! Schema::hasTable('lab_results')) {
             Schema::create('lab_results', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('lab_order_id')->constrained()->onDelete('cascade');
@@ -249,7 +250,7 @@ return new class extends Migration {
         }
 
         // EMR Documents
-        if (!Schema::hasTable('emr_documents')) {
+        if (! Schema::hasTable('emr_documents')) {
             Schema::create('emr_documents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('patient_id')->constrained()->onDelete('cascade');

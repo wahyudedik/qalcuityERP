@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('price_lists')) {
+        if (! Schema::hasTable('price_lists')) {
             Schema::create('price_lists', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -20,13 +20,13 @@ return new class extends Migration
                 $table->date('valid_until')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
                 $table->unique(['tenant_id', 'code']);
             });
         }
 
-        if (!Schema::hasTable('price_list_items')) {
+        if (! Schema::hasTable('price_list_items')) {
             Schema::create('price_list_items', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('price_list_id');
@@ -35,7 +35,7 @@ return new class extends Migration
                 $table->decimal('discount_percent', 5, 2)->default(0); // diskon % opsional
                 $table->decimal('min_qty', 10, 2)->default(1); // minimum qty untuk harga ini
                 $table->timestamps();
-    
+
                 $table->unique(['price_list_id', 'product_id', 'min_qty']);
                 $table->index('price_list_id');
                 $table->index('product_id');
@@ -45,14 +45,14 @@ return new class extends Migration
         }
 
         // Assign price list ke customer (many-to-many dengan prioritas)
-        if (!Schema::hasTable('customer_price_lists')) {
+        if (! Schema::hasTable('customer_price_lists')) {
             Schema::create('customer_price_lists', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('customer_id');
                 $table->unsignedBigInteger('price_list_id');
                 $table->unsignedTinyInteger('priority')->default(1); // 1 = tertinggi
                 $table->timestamps();
-    
+
                 $table->unique(['customer_id', 'price_list_id']);
                 $table->index('customer_id');
                 $table->foreign('customer_id')->references('id')->on('customers')->cascadeOnDelete();

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -38,17 +39,19 @@ class TenantIsolationService
      */
     public function assertOwnership(Model $model, int $tenantId, string $context = ''): void
     {
-        if (!isset($model->tenant_id)) return; // model doesn't have tenant_id
+        if (! isset($model->tenant_id)) {
+            return;
+        } // model doesn't have tenant_id
 
         if ($model->tenant_id !== $tenantId) {
             Log::warning('TenantIsolation: ownership violation', [
-                'model'     => get_class($model),
-                'model_id'  => $model->getKey(),
+                'model' => get_class($model),
+                'model_id' => $model->getKey(),
                 'model_tenant' => $model->tenant_id,
-                'user_tenant'  => $tenantId,
-                'context'      => $context,
-                'user_id'      => auth()->id(),
-                'ip'           => request()->ip(),
+                'user_tenant' => $tenantId,
+                'context' => $context,
+                'user_id' => auth()->id(),
+                'ip' => request()->ip(),
             ]);
 
             abort(403, 'Akses ditolak: data bukan milik tenant ini.');
@@ -59,7 +62,7 @@ class TenantIsolationService
      * Filter a query to only return records for the given tenant.
      * Convenience wrapper for ->where('tenant_id', $tenantId).
      */
-    public function scopeQuery(\Illuminate\Database\Eloquent\Builder $query, int $tenantId): \Illuminate\Database\Eloquent\Builder
+    public function scopeQuery(Builder $query, int $tenantId): Builder
     {
         return $query->where('tenant_id', $tenantId);
     }

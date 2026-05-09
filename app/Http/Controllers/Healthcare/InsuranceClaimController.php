@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\InsuranceClaim;
-use App\Models\Patient;
-use App\Models\PatientInsurance;
 use App\Models\MedicalBill;
 use Illuminate\Http\Request;
 
@@ -37,6 +35,7 @@ class InsuranceClaimController extends Controller
     public function create(MedicalBill $bill)
     {
         $bill->load(['patient.insurances']);
+
         return view('healthcare.insurance-claims.create', compact('bill'));
     }
 
@@ -51,19 +50,20 @@ class InsuranceClaimController extends Controller
             'claim_notes' => 'nullable|string',
         ]);
 
-        $validated['claim_number'] = 'CLM-' . now()->format('Ymd') . '-' . str_pad(InsuranceClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['claim_number'] = 'CLM-'.now()->format('Ymd').'-'.str_pad(InsuranceClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['submission_date'] = now();
         $validated['status'] = 'pending';
 
         $claim = InsuranceClaim::create($validated);
 
         return redirect()->route('healthcare.insurance-claims.show', $claim)
-            ->with('success', 'Insurance claim created: ' . $claim->claim_number);
+            ->with('success', 'Insurance claim created: '.$claim->claim_number);
     }
 
     public function show(InsuranceClaim $claim)
     {
         $claim->load(['patient', 'insurance', 'medicalBill']);
+
         return view('healthcare.insurance-claims.show', compact('claim'));
     }
 
@@ -116,6 +116,7 @@ class InsuranceClaimController extends Controller
     public function print(InsuranceClaim $claim)
     {
         $claim->load(['patient', 'insurance', 'medicalBill']);
+
         return view('healthcare.insurance-claims.print', compact('claim'));
     }
 
@@ -126,8 +127,10 @@ class InsuranceClaimController extends Controller
         }
 
         $claim->delete();
+
         return response()->json(['success' => true, 'message' => 'Claim deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/insurance-claims/{insurance_claim}/edit
@@ -135,9 +138,10 @@ class InsuranceClaimController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.insurance-claim.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/insurance-claims/{insurance_claim}
@@ -145,13 +149,13 @@ class InsuranceClaimController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.insurance-claims.update')
             ->with('success', 'Updated successfully.');
     }

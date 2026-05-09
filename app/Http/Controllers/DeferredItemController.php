@@ -19,8 +19,8 @@ class DeferredItemController extends Controller
     {
         $query = DeferredItem::where('tenant_id', $this->tid())
             ->with(['deferredAccount', 'recognitionAccount'])
-            ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
-            ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
+            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
             ->latest();
 
         $items = $query->paginate(20)->withQueryString();
@@ -30,7 +30,7 @@ class DeferredItemController extends Controller
 
     public function create()
     {
-        $tid      = $this->tid();
+        $tid = $this->tid();
         $accounts = ChartOfAccount::where('tenant_id', $tid)
             ->where('is_active', true)
             ->where('is_header', false)
@@ -43,14 +43,14 @@ class DeferredItemController extends Controller
     public function store(Request $request, DeferredItemService $service)
     {
         $data = $request->validate([
-            'type'                   => 'required|in:deferred_revenue,prepaid_expense',
-            'description'            => 'required|string|max:255',
-            'total_amount'           => 'required|numeric|min:1',
-            'start_date'             => 'required|date',
-            'end_date'               => 'required|date|after:start_date',
-            'deferred_account_id'    => 'required|exists:chart_of_accounts,id',
+            'type' => 'required|in:deferred_revenue,prepaid_expense',
+            'description' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'deferred_account_id' => 'required|exists:chart_of_accounts,id',
             'recognition_account_id' => 'required|exists:chart_of_accounts,id',
-            'reference_number'       => 'nullable|string|max:50',
+            'reference_number' => 'nullable|string|max:50',
         ]);
 
         $item = $service->create($data, $this->tid(), auth()->id());
@@ -63,6 +63,7 @@ class DeferredItemController extends Controller
     {
         abort_if($deferredItem->tenant_id !== $this->tid(), 403);
         $deferredItem->load(['schedules.journalEntry', 'deferredAccount', 'recognitionAccount', 'user']);
+
         return view('deferred.show', compact('deferredItem'));
     }
 

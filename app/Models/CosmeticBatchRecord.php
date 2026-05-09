@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -166,7 +165,7 @@ class CosmeticBatchRecord extends Model
      */
     public function isExpired(): bool
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return false;
         }
 
@@ -178,7 +177,7 @@ class CosmeticBatchRecord extends Model
      */
     public function getDaysUntilExpiryAttribute(): ?int
     {
-        if (!$this->expiry_date) {
+        if (! $this->expiry_date) {
             return null;
         }
 
@@ -196,7 +195,7 @@ class CosmeticBatchRecord extends Model
             return false;
         }
 
-        return $checks->every(fn($check) => $check->result === 'pass');
+        return $checks->every(fn ($check) => $check->result === 'pass');
     }
 
     /**
@@ -214,7 +213,8 @@ class CosmeticBatchRecord extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'BMR-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'BMR-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -222,11 +222,12 @@ class CosmeticBatchRecord extends Model
      */
     public function getProductionDurationAttribute(): ?int
     {
-        if (!$this->production_date) {
+        if (! $this->production_date) {
             return null;
         }
 
         $endDate = $this->qc_completed_at ?? now();
+
         return $this->production_date->diffInDays($endDate);
     }
 
@@ -236,12 +237,12 @@ class CosmeticBatchRecord extends Model
     public function canBeReleased(): bool
     {
         // Must have actual quantity recorded
-        if (!$this->actual_quantity || $this->actual_quantity <= 0) {
+        if (! $this->actual_quantity || $this->actual_quantity <= 0) {
             return false;
         }
 
         // Must pass all QC checks
-        if (!$this->allQcPassed()) {
+        if (! $this->allQcPassed()) {
             return false;
         }
 

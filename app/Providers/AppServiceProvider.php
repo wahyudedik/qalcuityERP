@@ -7,18 +7,26 @@ use App\Events\SettingsUpdated;
 use App\Exceptions\CustomExceptionHandler;
 use App\Listeners\ClearSettingsCache;
 use App\Listeners\NotifyAllModelsUnavailable;
-use App\Models\SystemSetting;
-use App\Models\TenantApiSetting;
 use App\Models\Product;
 use App\Models\ProductStock;
+use App\Models\SystemSetting;
+use App\Models\TenantApiSetting;
 use App\Observers\ProductObserver;
 use App\Observers\ProductStockObserver;
 use App\Observers\SystemSettingObserver; // BUG-SET-001 FIX
 use App\Observers\TenantApiSettingObserver; // BUG-SET-001 FIX
+use App\Services\AI\ModelSwitcher;
+use App\Services\BusinessConstraintService;
 use App\Services\ChatSessionManager;
+use App\Services\DocumentNumberService;
+use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiWriteValidator;
+use App\Services\TransactionLinkService;
+use App\Services\TransactionStateMachine;
 use App\View\Composers\SidebarBadgeComposer;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -32,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register CustomExceptionHandler as the application exception handler
         $this->app->singleton(
-            \Illuminate\Contracts\Debug\ExceptionHandler::class,
+            ExceptionHandler::class,
             CustomExceptionHandler::class
         );
 
@@ -40,31 +48,32 @@ class AppServiceProvider extends ServiceProvider
         // didaftarkan di AiProviderServiceProvider (bootstrap/providers.php).
         // ModelSwitcher tetap didaftarkan di sini sebagai fallback agar tidak ada
         // circular dependency jika AppServiceProvider di-load sebelum AiProviderServiceProvider.
-        $this->app->singleton(\App\Services\AI\ModelSwitcher::class, function ($app) {
-            return new \App\Services\AI\ModelSwitcher($app['cache.store']);
+        $this->app->singleton(ModelSwitcher::class, function ($app) {
+            return new ModelSwitcher($app['cache.store']);
         });
         $this->app->singleton(ChatSessionManager::class);
         $this->app->singleton(GeminiWriteValidator::class);
 
         // Task 37: DocumentNumberService — singleton agar cache sequence per request
-        $this->app->singleton(\App\Services\DocumentNumberService::class);
+        $this->app->singleton(DocumentNumberService::class);
 
         // Task 35: TransactionStateMachine — singleton (stateless)
-        $this->app->singleton(\App\Services\TransactionStateMachine::class);
+        $this->app->singleton(TransactionStateMachine::class);
 
         // Task 44-46: Cost Center, Business Constraints, Transaction Links
-        $this->app->singleton(\App\Services\BusinessConstraintService::class);
-        $this->app->singleton(\App\Services\TransactionLinkService::class);
+        $this->app->singleton(BusinessConstraintService::class);
+        $this->app->singleton(TransactionLinkService::class);
 
         // BUG-AI-002 FIX: ToolRegistry - Factory pattern with static caching
         // Uses internal static cache, so binding as singleton for DI compatibility
-        $this->app->singleton(\App\Services\ERP\ToolRegistry::class, function ($app) {
+        $this->app->singleton(ToolRegistry::class, function ($app) {
             // This will use static cache internally, so multiple calls are efficient
             // Actual caching happens in ToolRegistry constructor
             $user = $app['auth']->user();
             if ($user && $user->tenant_id) {
-                return new \App\Services\ERP\ToolRegistry($user->tenant_id, $user->id);
+                return new ToolRegistry($user->tenant_id, $user->id);
             }
+
             return null;
         });
     }
@@ -144,6 +153,7 @@ class AppServiceProvider extends ServiceProvider
         // @canmodule('sales', 'delete') ... @endcanmodule
         Blade::directive('canmodule', function (string $expression) {
             [$module, $action] = array_map('trim', explode(',', $expression, 2));
+
             return "<?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), {$module}, {$action})): ?>";
         });
 
@@ -154,6 +164,7 @@ class AppServiceProvider extends ServiceProvider
         // @cannotmodule('sales', 'delete') ... @endcannotmodule
         Blade::directive('cannotmodule', function (string $expression) {
             [$module, $action] = array_map('trim', explode(',', $expression, 2));
+
             return "<?php if(!auth()->check() || !app(\App\Services\PermissionService::class)->check(auth()->user(), {$module}, {$action})): ?>";
         });
 
@@ -193,13 +204,13 @@ class AppServiceProvider extends ServiceProvider
         // ── AI Chat (existing) ────────────────────────────────────
         RateLimiter::for('ai-chat', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(30)->by('user:' . $request->user()->id)
+                ? Limit::perMinute(30)->by('user:'.$request->user()->id)
                 : Limit::perMinute(5)->by($request->ip());
         });
 
         RateLimiter::for('ai-media', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(10)->by('user:' . $request->user()->id)
+                ? Limit::perMinute(10)->by('user:'.$request->user()->id)
                 : Limit::perMinute(2)->by($request->ip());
         });
 
@@ -211,8 +222,8 @@ class AppServiceProvider extends ServiceProvider
             $limit = (int) (60 * $multiplier);
 
             return $tenantId
-                ? Limit::perMinute($limit)->by('api-read:tenant:' . $tenantId)->response(fn() => $this->rateLimitResponse('API read', $limit))
-                : Limit::perMinute(10)->by('api-read:ip:' . $request->ip());
+                ? Limit::perMinute($limit)->by('api-read:tenant:'.$tenantId)->response(fn () => $this->rateLimitResponse('API read', $limit))
+                : Limit::perMinute(10)->by('api-read:ip:'.$request->ip());
         });
 
         // ── REST API — write endpoints ────────────────────────────
@@ -223,46 +234,46 @@ class AppServiceProvider extends ServiceProvider
             $limit = (int) (20 * $multiplier);
 
             return $tenantId
-                ? Limit::perMinute($limit)->by('api-write:tenant:' . $tenantId)->response(fn() => $this->rateLimitResponse('API write', $limit))
-                : Limit::perMinute(5)->by('api-write:ip:' . $request->ip());
+                ? Limit::perMinute($limit)->by('api-write:tenant:'.$tenantId)->response(fn () => $this->rateLimitResponse('API write', $limit))
+                : Limit::perMinute(5)->by('api-write:ip:'.$request->ip());
         });
 
         // ── Inbound webhooks (Midtrans, Xendit, Telegram, WA) ────
         // 30 req/min per IP — generous for payment callbacks
         RateLimiter::for('webhook-inbound', function (Request $request) {
             return Limit::perMinute(30)
-                ->by('webhook:ip:' . $request->ip())
-                ->response(fn() => $this->rateLimitResponse('Webhook', 30));
+                ->by('webhook:ip:'.$request->ip())
+                ->response(fn () => $this->rateLimitResponse('Webhook', 30));
         });
 
         // ── POS checkout ──────────────────────────────────────────
         // 60 req/min per user — high throughput for busy cashiers
         RateLimiter::for('pos-checkout', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(60)->by('pos:user:' . $request->user()->id)
-                : Limit::perMinute(10)->by('pos:ip:' . $request->ip());
+                ? Limit::perMinute(60)->by('pos:user:'.$request->user()->id)
+                : Limit::perMinute(10)->by('pos:ip:'.$request->ip());
         });
 
         // ── Export / Import ───────────────────────────────────────
         // Heavy operations — 10 exports/min, 5 imports/min
         RateLimiter::for('export', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(10)->by('export:user:' . $request->user()->id)
-                : Limit::perMinute(2)->by('export:ip:' . $request->ip());
+                ? Limit::perMinute(10)->by('export:user:'.$request->user()->id)
+                : Limit::perMinute(2)->by('export:ip:'.$request->ip());
         });
 
         RateLimiter::for('import', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(5)->by('import:user:' . $request->user()->id)
-                : Limit::perMinute(1)->by('import:ip:' . $request->ip());
+                ? Limit::perMinute(5)->by('import:user:'.$request->user()->id)
+                : Limit::perMinute(1)->by('import:ip:'.$request->ip());
         });
 
         // ── Global web fallback ───────────────────────────────────
         // 120 req/min per user for general authenticated routes
         RateLimiter::for('web-global', function (Request $request) {
             return $request->user()
-                ? Limit::perMinute(120)->by('web:user:' . $request->user()->id)
-                : Limit::perMinute(30)->by('web:ip:' . $request->ip());
+                ? Limit::perMinute(120)->by('web:user:'.$request->user()->id)
+                : Limit::perMinute(30)->by('web:ip:'.$request->ip());
         });
     }
 
@@ -279,8 +290,9 @@ class AppServiceProvider extends ServiceProvider
             $tenant = $request->user()->tenant;
         }
 
-        if (!$tenant)
+        if (! $tenant) {
             return 1.0;
+        }
 
         return match ($tenant->plan) {
             'starter' => 1.0,
@@ -293,7 +305,7 @@ class AppServiceProvider extends ServiceProvider
         };
     }
 
-    private function rateLimitResponse(string $label, int $limit): \Illuminate\Http\JsonResponse
+    private function rateLimitResponse(string $label, int $limit): JsonResponse
     {
         return response()->json([
             'error' => 'rate_limit_exceeded',

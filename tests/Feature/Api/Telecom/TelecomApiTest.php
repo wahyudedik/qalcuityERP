@@ -2,11 +2,10 @@
 
 namespace Tests\Feature\Api\Telecom;
 
-use App\Models\User;
-use App\Models\NetworkDevice;
-use App\Models\InternetPackage;
 use App\Models\Customer;
-use App\Models\TelecomSubscription;
+use App\Models\InternetPackage;
+use App\Models\NetworkDevice;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -16,6 +15,7 @@ class TelecomApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected string $apiToken;
 
     protected function setUp(): void
@@ -234,7 +234,7 @@ class TelecomApiTest extends TestCase
         $response = $this->getJson("/api/telecom/devices/{$otherTenantDevice->id}/status");
 
         // Should return 404 (not found) or 403 (forbidden)
-        $response->assertStatus(fn($status) => in_array($status, [403, 404]));
+        $response->assertStatus(fn ($status) => in_array($status, [403, 404]));
     }
 
     /** @test */

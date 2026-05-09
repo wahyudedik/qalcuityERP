@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DynamicPricingHistory extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -38,14 +37,17 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
+
     public function rule()
     {
         return $this->belongsTo(DynamicPricingRule::class);
     }
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');

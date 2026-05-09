@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Service for multi-tenant data migration and consolidation.
- * 
+ *
  * Supports:
  * - Merging tenants
  * - Splitting tenants
@@ -30,9 +30,9 @@ class TenantDataMigrationService
      * Merge source tenant into target tenant
      * All data from source will be moved to target
      *
-     * @param int $sourceTenantId Source tenant ID
-     * @param int $targetTenantId Target tenant ID
-     * @param array $options Migration options
+     * @param  int  $sourceTenantId  Source tenant ID
+     * @param  int  $targetTenantId  Target tenant ID
+     * @param  array  $options  Migration options
      * @return array Migration result
      */
     public function mergeTenants(
@@ -41,7 +41,7 @@ class TenantDataMigrationService
         array $options = []
     ): array {
         if ($sourceTenantId === $targetTenantId) {
-            throw new \InvalidArgumentException("Source and target tenants must be different");
+            throw new \InvalidArgumentException('Source and target tenants must be different');
         }
 
         Log::info("Starting tenant merge: {$sourceTenantId} → {$targetTenantId}");
@@ -73,7 +73,7 @@ class TenantDataMigrationService
                 $results['transactions'] = $this->moveTransactions($sourceTenantId, $targetTenantId, $options);
             });
 
-            Log::info("Tenant merge completed successfully");
+            Log::info('Tenant merge completed successfully');
 
             return [
                 'success' => true,
@@ -83,7 +83,7 @@ class TenantDataMigrationService
             ];
 
         } catch (\Throwable $e) {
-            Log::error("Tenant merge failed: " . $e->getMessage());
+            Log::error('Tenant merge failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -332,7 +332,7 @@ class TenantDataMigrationService
      */
     protected function findReferences(string $modelClass, int $id): array
     {
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
         $references = [];
 
@@ -367,7 +367,7 @@ class TenantDataMigrationService
         int $targetTenantId,
         array $dataTypes
     ): array {
-        Log::info("Transferring data types: " . implode(', ', $dataTypes));
+        Log::info('Transferring data types: '.implode(', ', $dataTypes));
 
         $results = [];
 
@@ -405,7 +405,7 @@ class TenantDataMigrationService
             'invoices' => Invoice::class,
         ];
 
-        if (!isset($models[$dataType])) {
+        if (! isset($models[$dataType])) {
             throw new \InvalidArgumentException("Unknown data type: {$dataType}");
         }
 
@@ -432,7 +432,7 @@ class TenantDataMigrationService
         $issues = [];
 
         // Check for orphaned records
-        $orphanService = new OrphanedDataCleanupService();
+        $orphanService = new OrphanedDataCleanupService;
         $orphans = $orphanService->scanAll($tenantId);
 
         foreach ($orphans as $type => $result) {
@@ -443,7 +443,7 @@ class TenantDataMigrationService
 
         // Check for duplicate records
         $duplicates = $this->findDuplicates($tenantId);
-        if (!empty($duplicates)) {
+        if (! empty($duplicates)) {
             $issues = array_merge($issues, $duplicates);
         }
 

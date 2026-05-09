@@ -2,16 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\GoodsReceiptItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
-use App\Models\GoodsReceipt;
-use Illuminate\Support\Facades\Log;
 
 /**
  * GoodsReceiptValidationService - Prevent goods receipt over-acceptance
- * 
+ *
  * BUG-PO-002 FIX: Validate GR quantity does not exceed PO quantity
- * 
+ *
  * Security Rules:
  * 1. Cannot receive more than ordered quantity
  * 2. Must track cumulative received across multiple GRs
@@ -22,9 +21,8 @@ class GoodsReceiptValidationService
 {
     /**
      * BUG-PO-002 FIX: Validate if GR items exceed PO quantities
-     * 
-     * @param PurchaseOrder $po
-     * @param array $grItems Array of ['purchase_order_item_id' => X, 'quantity_accepted' => Y]
+     *
+     * @param  array  $grItems  Array of ['purchase_order_item_id' => X, 'quantity_accepted' => Y]
      * @return array ['valid' => bool, 'errors' => array]
      */
     public function validateReceipt(PurchaseOrder $po, array $grItems): array
@@ -40,12 +38,13 @@ class GoodsReceiptValidationService
             // Find PO item
             $poItem = $po->items->find($poItemId);
 
-            if (!$poItem) {
+            if (! $poItem) {
                 $errors[] = [
                     'item_index' => $index,
                     'error' => 'Item tidak ditemukan di PO',
                     'field' => 'purchase_order_item_id',
                 ];
+
                 continue;
             }
 
@@ -57,7 +56,7 @@ class GoodsReceiptValidationService
             if ($newAcceptedQty > $remaining) {
                 $errors[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
                     'error' => 'Over-acceptance detected',
                     'field' => 'quantity_accepted',
                     'ordered' => $poItem->quantity_ordered,
@@ -72,7 +71,7 @@ class GoodsReceiptValidationService
             if ($newReceivedQty > $remaining) {
                 $errors[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
                     'error' => 'Received quantity exceeds remaining PO quantity',
                     'field' => 'quantity_received',
                     'ordered' => $poItem->quantity_ordered,
@@ -87,7 +86,7 @@ class GoodsReceiptValidationService
             if ($newAcceptedQty > $newReceivedQty) {
                 $errors[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
                     'error' => 'Accepted quantity cannot exceed received quantity',
                     'field' => 'quantity_accepted',
                     'received' => $newReceivedQty,
@@ -113,16 +112,14 @@ class GoodsReceiptValidationService
 
     /**
      * BUG-PO-002 FIX: Calculate already received quantity for PO item
-     * 
+     *
      * Excludes the current GR if updating (to avoid double-counting)
-     * 
-     * @param PurchaseOrderItem $poItem
-     * @param int|null $excludeGrId Exclude this GR from calculation
-     * @return float
+     *
+     * @param  int|null  $excludeGrId  Exclude this GR from calculation
      */
     public function getAlreadyReceived(PurchaseOrderItem $poItem, ?int $excludeGrId = null): float
     {
-        $query = \App\Models\GoodsReceiptItem::where('purchase_order_item_id', $poItem->id);
+        $query = GoodsReceiptItem::where('purchase_order_item_id', $poItem->id);
 
         if ($excludeGrId) {
             $query->where('goods_receipt_id', '!=', $excludeGrId);
@@ -133,21 +130,16 @@ class GoodsReceiptValidationService
 
     /**
      * BUG-PO-002 FIX: Get remaining quantity for PO item
-     * 
-     * @param PurchaseOrderItem $poItem
-     * @return float
      */
     public function getRemainingQuantity(PurchaseOrderItem $poItem): float
     {
         $alreadyReceived = $this->getAlreadyReceived($poItem);
+
         return max(0, $poItem->quantity_ordered - $alreadyReceived);
     }
 
     /**
      * BUG-PO-002 FIX: Get receipt summary for PO
-     * 
-     * @param PurchaseOrder $po
-     * @return array
      */
     public function getReceiptSummary(PurchaseOrder $po): array
     {
@@ -164,7 +156,7 @@ class GoodsReceiptValidationService
 
             $items[] = [
                 'product_id' => $item->product_id,
-                'product_name' => $item->product->name ?? 'Product #' . $item->product_id,
+                'product_name' => $item->product->name ?? 'Product #'.$item->product_id,
                 'ordered' => $item->quantity_ordered,
                 'received' => $alreadyReceived,
                 'remaining' => $remaining,
@@ -196,11 +188,9 @@ class GoodsReceiptValidationService
 
     /**
      * BUG-PO-002 FIX: Validate and auto-correct GR quantities
-     * 
+     *
      * If user tries to over-receive, auto-correct to remaining quantity
-     * 
-     * @param PurchaseOrder $po
-     * @param array $grItems
+     *
      * @return array ['corrected_items' => array, 'warnings' => array]
      */
     public function autoCorrectQuantities(PurchaseOrder $po, array $grItems): array
@@ -213,8 +203,9 @@ class GoodsReceiptValidationService
             $poItemId = $grItem['purchase_order_item_id'];
             $poItem = $po->items->find($poItemId);
 
-            if (!$poItem) {
+            if (! $poItem) {
                 $correctedItems[] = $grItem;
+
                 continue;
             }
 
@@ -229,8 +220,8 @@ class GoodsReceiptValidationService
                 $correctedItem['quantity_received'] = $remaining;
                 $warnings[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
-                    'warning' => 'Quantity received auto-corrected from ' . $newReceivedQty . ' to ' . $remaining . ' (remaining PO quantity)',
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
+                    'warning' => 'Quantity received auto-corrected from '.$newReceivedQty.' to '.$remaining.' (remaining PO quantity)',
                     'original' => $newReceivedQty,
                     'corrected' => $remaining,
                 ];
@@ -243,8 +234,8 @@ class GoodsReceiptValidationService
                 $correctedItem['quantity_accepted'] = $newReceivedQty;
                 $warnings[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
-                    'warning' => 'Quantity accepted auto-corrected from ' . $newAcceptedQty . ' to ' . $newReceivedQty,
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
+                    'warning' => 'Quantity accepted auto-corrected from '.$newAcceptedQty.' to '.$newReceivedQty,
                     'original' => $newAcceptedQty,
                     'corrected' => $newReceivedQty,
                 ];
@@ -252,8 +243,8 @@ class GoodsReceiptValidationService
                 $correctedItem['quantity_accepted'] = $remaining;
                 $warnings[] = [
                     'item_index' => $index,
-                    'product_name' => $poItem->product->name ?? 'Product #' . $poItem->product_id,
-                    'warning' => 'Quantity accepted auto-corrected from ' . $newAcceptedQty . ' to ' . $remaining,
+                    'product_name' => $poItem->product->name ?? 'Product #'.$poItem->product_id,
+                    'warning' => 'Quantity accepted auto-corrected from '.$newAcceptedQty.' to '.$remaining,
                     'original' => $newAcceptedQty,
                     'corrected' => $remaining,
                 ];
@@ -265,15 +256,12 @@ class GoodsReceiptValidationService
         return [
             'corrected_items' => $correctedItems,
             'warnings' => $warnings,
-            'has_corrections' => !empty($warnings),
+            'has_corrections' => ! empty($warnings),
         ];
     }
 
     /**
      * BUG-PO-002 FIX: Check if PO is fully received
-     * 
-     * @param PurchaseOrder $po
-     * @return bool
      */
     public function isFullyReceived(PurchaseOrder $po): bool
     {

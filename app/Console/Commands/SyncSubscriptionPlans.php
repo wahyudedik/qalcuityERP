@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class SyncSubscriptionPlans extends Command
 {
     protected $signature = 'plans:sync {--force : Overwrite existing plans}';
+
     protected $description = 'Sync subscription plans from defaultPlans() to database';
 
     public function handle(): int
@@ -24,7 +25,7 @@ class SyncSubscriptionPlans extends Command
                 $synced++;
             } else {
                 $existing = SubscriptionPlan::where('slug', $plan['slug'])->first();
-                if (!$existing) {
+                if (! $existing) {
                     SubscriptionPlan::create($plan + ['is_active' => true]);
                     $synced++;
                     $this->line("Created: {$plan['name']}");
@@ -35,6 +36,7 @@ class SyncSubscriptionPlans extends Command
         }
 
         $this->info("Synced {$synced} plans.");
+
         return self::SUCCESS;
     }
 }

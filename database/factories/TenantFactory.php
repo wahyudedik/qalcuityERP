@@ -6,7 +6,7 @@ use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant>
+ * @extends Factory<Tenant>
  */
 class TenantFactory extends Factory
 {
@@ -25,10 +25,10 @@ class TenantFactory extends Factory
     public function definition(): array
     {
         $companyName = $this->faker->company();
-        
+
         return [
             'name' => $companyName,
-            'slug' => \Str::slug($companyName) . '-' . $this->faker->randomNumber(4),
+            'slug' => \Str::slug($companyName).'-'.$this->faker->randomNumber(4),
             'email' => $this->faker->companyEmail(),
             'phone' => $this->faker->phoneNumber(),
             'address' => $this->faker->address(),
@@ -57,7 +57,7 @@ class TenantFactory extends Factory
             'letter_head_color' => $this->faker->hexColor(),
             'doc_number_prefix' => $this->faker->optional()->randomElement(['INV', 'SO', 'PO']),
             'enabled_modules' => $this->faker->randomElements([
-                'accounting', 'inventory', 'sales', 'purchasing', 'hrm', 'pos', 'manufacturing'
+                'accounting', 'inventory', 'sales', 'purchasing', 'hrm', 'pos', 'manufacturing',
             ], $this->faker->numberBetween(3, 7)),
         ];
     }

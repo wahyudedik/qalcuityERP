@@ -10,6 +10,7 @@ use App\Models\ProductStock;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\StockMovement;
+use App\Models\TaxRate;
 use App\Models\Warehouse;
 use App\Services\DocumentNumberService;
 use Illuminate\Http\Request;
@@ -17,24 +18,29 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryOrderController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
         $query = DeliveryOrder::with(['salesOrder.customer', 'warehouse'])
             ->where('tenant_id', $this->tid());
 
-        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('salesOrder', fn($so) => $so->where('number', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('salesOrder', fn ($so) => $so->where('number', 'like', "%$s%")));
         }
 
         $orders = $query->latest('delivery_date')->paginate(20)->withQueryString();
         $stats = [
-            'draft'     => DeliveryOrder::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
-            'shipped'   => DeliveryOrder::where('tenant_id', $this->tid())->where('status', 'shipped')->count(),
+            'draft' => DeliveryOrder::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
+            'shipped' => DeliveryOrder::where('tenant_id', $this->tid())->where('status', 'shipped')->count(),
             'delivered' => DeliveryOrder::where('tenant_id', $this->tid())->where('status', 'delivered')->count(),
         ];
 
@@ -43,7 +49,7 @@ class DeliveryOrderController extends Controller
 
     public function create(Request $request)
     {
-        $tid        = $this->tid();
+        $tid = $this->tid();
         $salesOrders = SalesOrder::with(['customer', 'items.product'])
             ->where('tenant_id', $tid)
             ->whereIn('status', ['confirmed', 'processing'])
@@ -64,46 +70,46 @@ class DeliveryOrderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'sales_order_id'   => 'required|exists:sales_orders,id',
-            'warehouse_id'     => 'required|exists:warehouses,id',
-            'delivery_date'    => 'required|date',
+            'sales_order_id' => 'required|exists:sales_orders,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'delivery_date' => 'required|date',
             'shipping_address' => 'nullable|string|max:500',
-            'courier'          => 'nullable|string|max:100',
-            'notes'            => 'nullable|string|max:1000',
-            'items'            => 'required|array|min:1',
+            'courier' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1',
             'items.*.sales_order_item_id' => 'required|exists:sales_order_items,id',
-            'items.*.product_id'          => 'required|exists:products,id',
-            'items.*.quantity_delivered'  => 'required|numeric|min:0.001',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity_delivered' => 'required|numeric|min:0.001',
         ]);
 
         $tid = $this->tid();
-        $so  = SalesOrder::where('tenant_id', $tid)->findOrFail($data['sales_order_id']);
+        $so = SalesOrder::where('tenant_id', $tid)->findOrFail($data['sales_order_id']);
 
         DB::transaction(function () use ($data, $tid, $so) {
             $number = app(DocumentNumberService::class)->generate($tid, 'DO');
 
             $do = DeliveryOrder::create([
-                'tenant_id'        => $tid,
-                'sales_order_id'   => $so->id,
-                'warehouse_id'     => $data['warehouse_id'],
-                'created_by'       => auth()->id(),
-                'number'           => $number,
-                'delivery_date'    => $data['delivery_date'],
-                'status'           => 'draft',
+                'tenant_id' => $tid,
+                'sales_order_id' => $so->id,
+                'warehouse_id' => $data['warehouse_id'],
+                'created_by' => auth()->id(),
+                'number' => $number,
+                'delivery_date' => $data['delivery_date'],
+                'status' => 'draft',
                 'shipping_address' => $data['shipping_address'] ?? $so->shipping_address,
-                'courier'          => $data['courier'] ?? null,
-                'notes'            => $data['notes'] ?? null,
+                'courier' => $data['courier'] ?? null,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             foreach ($data['items'] as $item) {
                 $soItem = SalesOrderItem::find($item['sales_order_item_id']);
                 DeliveryOrderItem::create([
-                    'delivery_order_id'  => $do->id,
-                    'sales_order_item_id'=> $item['sales_order_item_id'],
-                    'product_id'         => $item['product_id'],
-                    'quantity_ordered'   => $soItem->quantity,
+                    'delivery_order_id' => $do->id,
+                    'sales_order_item_id' => $item['sales_order_item_id'],
+                    'product_id' => $item['product_id'],
+                    'quantity_ordered' => $soItem->quantity,
                     'quantity_delivered' => $item['quantity_delivered'],
-                    'unit'               => $soItem->product->unit ?? 'pcs',
+                    'unit' => $soItem->product->unit ?? 'pcs',
                 ]);
             }
 
@@ -131,16 +137,16 @@ class DeliveryOrderController extends Controller
                 $stock->decrement('quantity', $item->quantity_delivered);
 
                 StockMovement::create([
-                    'tenant_id'       => $tid,
-                    'product_id'      => $item->product_id,
-                    'warehouse_id'    => $deliveryOrder->warehouse_id,
-                    'user_id'         => auth()->id(),
-                    'type'            => 'out',
-                    'quantity'        => $item->quantity_delivered,
+                    'tenant_id' => $tid,
+                    'product_id' => $item->product_id,
+                    'warehouse_id' => $deliveryOrder->warehouse_id,
+                    'user_id' => auth()->id(),
+                    'type' => 'out',
+                    'quantity' => $item->quantity_delivered,
                     'quantity_before' => $before,
-                    'quantity_after'  => $before - $item->quantity_delivered,
-                    'reference'       => $deliveryOrder->number,
-                    'notes'           => "Pengiriman {$deliveryOrder->number}",
+                    'quantity_after' => $before - $item->quantity_delivered,
+                    'reference' => $deliveryOrder->number,
+                    'notes' => "Pengiriman {$deliveryOrder->number}",
                 ]);
             }
 
@@ -171,38 +177,38 @@ class DeliveryOrderController extends Controller
         abort_if($deliveryOrder->status !== 'delivered', 422, 'Surat jalan harus berstatus terkirim untuk membuat invoice.');
 
         $tid = $this->tid();
-        $so  = $deliveryOrder->salesOrder;
+        $so = $deliveryOrder->salesOrder;
 
         DB::transaction(function () use ($deliveryOrder, $so, $tid) {
             // Hitung total dari items yang dikirim
             $subtotal = 0;
             foreach ($deliveryOrder->items as $doItem) {
-                $soItem    = $doItem->salesOrderItem;
+                $soItem = $doItem->salesOrderItem;
                 $subtotal += $doItem->quantity_delivered * $soItem->price;
             }
 
-            $taxRate   = $so->tax_rate_id ? \App\Models\TaxRate::find($so->tax_rate_id) : null;
+            $taxRate = $so->tax_rate_id ? TaxRate::find($so->tax_rate_id) : null;
             $taxAmount = $taxRate ? round($subtotal * ($taxRate->rate / 100), 2) : 0;
-            $total     = $subtotal + $taxAmount;
+            $total = $subtotal + $taxAmount;
 
             $number = app(DocumentNumberService::class)->generate($tid, 'INV');
 
             $invoice = Invoice::create([
-                'tenant_id'        => $tid,
-                'number'           => $number,
-                'customer_id'      => $so->customer_id,
-                'sales_order_id'   => $so->id,
-                'subtotal_amount'  => $subtotal,
-                'tax_rate_id'      => $so->tax_rate_id,
-                'tax_amount'       => $taxAmount,
-                'total_amount'     => $total,
-                'paid_amount'      => 0,
+                'tenant_id' => $tid,
+                'number' => $number,
+                'customer_id' => $so->customer_id,
+                'sales_order_id' => $so->id,
+                'subtotal_amount' => $subtotal,
+                'tax_rate_id' => $so->tax_rate_id,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $total,
+                'paid_amount' => 0,
                 'remaining_amount' => $total,
-                'status'           => 'unpaid',
-                'due_date'         => $so->due_date ?? today()->addDays(30),
-                'currency_code'    => $so->currency_code ?? 'IDR',
-                'currency_rate'    => $so->currency_rate ?? 1,
-                'notes'            => "Invoice dari surat jalan {$deliveryOrder->number}",
+                'status' => 'unpaid',
+                'due_date' => $so->due_date ?? today()->addDays(30),
+                'currency_code' => $so->currency_code ?? 'IDR',
+                'currency_rate' => $so->currency_rate ?? 1,
+                'notes' => "Invoice dari surat jalan {$deliveryOrder->number}",
             ]);
 
             ActivityLog::record('invoice_from_do', "Invoice {$number} dibuat dari surat jalan {$deliveryOrder->number}", $invoice);
@@ -225,15 +231,15 @@ class DeliveryOrderController extends Controller
             }
         }
 
-        $items = $salesOrder->items->map(fn($i) => [
-            'id'           => $i->id,
-            'product_id'   => $i->product_id,
+        $items = $salesOrder->items->map(fn ($i) => [
+            'id' => $i->id,
+            'product_id' => $i->product_id,
             'product_name' => $i->product->name,
-            'quantity'     => $i->quantity,
-            'delivered'    => $deliveredQty[$i->id] ?? 0,
-            'remaining'    => $i->quantity - ($deliveredQty[$i->id] ?? 0),
-            'unit'         => $i->product->unit ?? 'pcs',
-        ])->filter(fn($i) => $i['remaining'] > 0)->values();
+            'quantity' => $i->quantity,
+            'delivered' => $deliveredQty[$i->id] ?? 0,
+            'remaining' => $i->quantity - ($deliveredQty[$i->id] ?? 0),
+            'unit' => $i->product->unit ?? 'pcs',
+        ])->filter(fn ($i) => $i['remaining'] > 0)->values();
 
         return response()->json($items);
     }

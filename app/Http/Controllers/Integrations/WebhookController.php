@@ -22,7 +22,7 @@ class WebhookController extends Controller
         $payload = $request->getContent();
 
         // Verify HMAC signature
-        if (!$this->verifyShopifySignature($payload, $hmac, $shop)) {
+        if (! $this->verifyShopifySignature($payload, $hmac, $shop)) {
             Log::error('Shopify webhook signature verification failed', [
                 'shop' => $shop,
                 'topic' => $topic,
@@ -41,7 +41,7 @@ class WebhookController extends Controller
             ->whereJsonContains('config', $shop)
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             Log::error('Shopify integration not found for webhook', [
                 'shop' => $shop,
             ]);
@@ -85,16 +85,18 @@ class WebhookController extends Controller
             ->where('status', 'active')
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             Log::error('WooCommerce integration not found for webhook');
+
             return response('Integration not found', 404);
         }
 
         // Verify signature
         $webhookSecret = $integration->getConfigValue('webhook_secret');
 
-        if ($webhookSecret && !$this->verifySignature($payload, $signature, $webhookSecret)) {
+        if ($webhookSecret && ! $this->verifySignature($payload, $signature, $webhookSecret)) {
             Log::error('WooCommerce webhook signature verification failed');
+
             return response('Invalid signature', 401);
         }
 
@@ -118,7 +120,7 @@ class WebhookController extends Controller
      */
     protected function verifyShopifySignature(string $payload, ?string $hmac, ?string $shop): bool
     {
-        if (!$hmac || !$shop) {
+        if (! $hmac || ! $shop) {
             return false;
         }
 
@@ -127,13 +129,13 @@ class WebhookController extends Controller
             ->whereJsonContains('config', $shop)
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             return false;
         }
 
         $secret = $integration->getConfigValue('webhook_secret');
 
-        if (!$secret) {
+        if (! $secret) {
             return false;
         }
 
@@ -147,7 +149,7 @@ class WebhookController extends Controller
      */
     protected function verifySignature(string $payload, ?string $signature, string $secret): bool
     {
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 

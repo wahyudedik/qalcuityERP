@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Reservation;
+use App\Models\Room;
 use App\Models\RoomRate;
 use App\Models\RoomType;
 use Carbon\Carbon;
@@ -33,10 +35,7 @@ class RateManagementService
      * Priority: dynamic > promo > seasonal > weekend (if matching day) > standard.
      * Falls back to room_type.base_rate if no active rate found.
      *
-     * @param int $roomTypeId
-     * @param string $date Format Y-m-d
-     * @param int $tenantId
-     * @return float
+     * @param  string  $date  Format Y-m-d
      */
     public function getEffectiveRate(int $roomTypeId, string $date, int $tenantId): float
     {
@@ -63,6 +62,7 @@ class RateManagementService
             if (empty($rate->day_of_week)) {
                 return true;
             }
+
             return in_array($dayOfWeek, $rate->day_of_week);
         });
 
@@ -85,13 +85,14 @@ class RateManagementService
 
         // Fallback to room type base rate
         $roomType = RoomType::find($roomTypeId);
+
         return $roomType ? (float) $roomType->base_rate : 0.0;
     }
 
     /**
      * Bulk update rates — create/update multiple rate entries.
      *
-     * @param array $rates Array of rate data
+     * @param  array  $rates  Array of rate data
      * @return array ['created' => int, 'updated' => int, 'errors' => array]
      */
     public function bulkUpdateRates(array $rates): array
@@ -107,6 +108,7 @@ class RateManagementService
                     // Validate required fields
                     if (empty($rateData['room_type_id']) || empty($rateData['tenant_id'])) {
                         $errors[] = ['data' => $rateData, 'error' => 'Missing required fields: room_type_id or tenant_id'];
+
                         continue;
                     }
 
@@ -129,7 +131,7 @@ class RateManagementService
                     $errors[] = ['data' => $rateData, 'error' => $e->getMessage()];
                     Log::warning('RateManagementService: Failed to process rate', [
                         'data' => $rateData,
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
                     ]);
                 }
             }
@@ -138,7 +140,7 @@ class RateManagementService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('RateManagementService: Bulk update failed', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -155,11 +157,7 @@ class RateManagementService
      * If occupancy > 80%: base * 1.3, > 60%: base * 1.15, > 40%: base * 1.0, else base * 0.9
      * Only applies if a 'dynamic' rate type exists and is active.
      *
-     * @param int $roomTypeId
-     * @param string $date
-     * @param int $tenantId
-     * @param float|null $baseAmount The dynamic rate's base amount (optional)
-     * @return float
+     * @param  float|null  $baseAmount  The dynamic rate's base amount (optional)
      */
     public function calculateDynamicRate(int $roomTypeId, string $date, int $tenantId, ?float $baseAmount = null): float
     {
@@ -171,7 +169,7 @@ class RateManagementService
                 ->where('is_active', true)
                 ->first();
 
-            if (!$dynamicRate) {
+            if (! $dynamicRate) {
                 // No dynamic rate configured, return standard rate
                 return $this->getEffectiveRate($roomTypeId, $date, $tenantId);
             }
@@ -196,9 +194,6 @@ class RateManagementService
 
     /**
      * Get all seasonal rates for a room type (for calendar display).
-     *
-     * @param int $roomTypeId
-     * @return Collection
      */
     public function getSeasonalRates(int $roomTypeId): Collection
     {
@@ -212,9 +207,6 @@ class RateManagementService
 
     /**
      * Get all rates for a room type (including standard).
-     *
-     * @param int $roomTypeId
-     * @return Collection
      */
     public function getAllRates(int $roomTypeId): Collection
     {
@@ -227,15 +219,12 @@ class RateManagementService
     /**
      * Calculate occupancy rate for a room type on a specific date.
      *
-     * @param int $roomTypeId
-     * @param string $date
-     * @param int $tenantId
      * @return float Percentage (0-100)
      */
     private function calculateOccupancyRate(int $roomTypeId, string $date, int $tenantId): float
     {
         // Get total rooms of this type
-        $totalRooms = \App\Models\Room::where('room_type_id', $roomTypeId)
+        $totalRooms = Room::where('room_type_id', $roomTypeId)
             ->where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->count();
@@ -246,7 +235,7 @@ class RateManagementService
 
         // Count occupied rooms
         $dateCarbon = Carbon::parse($date);
-        $occupiedRooms = \App\Models\Reservation::where('tenant_id', $tenantId)
+        $occupiedRooms = Reservation::where('tenant_id', $tenantId)
             ->where('room_type_id', $roomTypeId)
             ->whereIn('status', ['confirmed', 'checked_in'])
             ->where('check_in_date', '<=', $dateCarbon)
@@ -258,12 +247,6 @@ class RateManagementService
 
     /**
      * Get rates breakdown for a date range.
-     *
-     * @param int $roomTypeId
-     * @param string $startDate
-     * @param string $endDate
-     * @param int $tenantId
-     * @return array
      */
     public function getRatesForDateRange(int $roomTypeId, string $startDate, string $endDate, int $tenantId): array
     {

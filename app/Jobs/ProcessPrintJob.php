@@ -26,7 +26,7 @@ class ProcessPrintJob implements ShouldQueue
 
     public function handle(): void
     {
-        $printerService = new PosPrinterService();
+        $printerService = new PosPrinterService;
 
         try {
             // Mark as processing
@@ -38,8 +38,8 @@ class ProcessPrintJob implements ShouldQueue
                 $this->printJob->printer_destination
             );
 
-            if (!$connected) {
-                throw new \Exception("Failed to connect to printer");
+            if (! $connected) {
+                throw new \Exception('Failed to connect to printer');
             }
 
             // Print based on job type
@@ -64,7 +64,7 @@ class ProcessPrintJob implements ShouldQueue
             if ($result['success']) {
                 $this->printJob->markAsCompleted();
 
-                Log::info("Print job completed successfully", [
+                Log::info('Print job completed successfully', [
                     'job_id' => $this->printJob->id,
                     'job_type' => $this->printJob->job_type,
                     'reference_number' => $this->printJob->reference_number,
@@ -76,7 +76,7 @@ class ProcessPrintJob implements ShouldQueue
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
 
-            Log::error("Print job failed", [
+            Log::error('Print job failed', [
                 'job_id' => $this->printJob->id,
                 'error' => $errorMessage,
                 'retry_count' => $this->printJob->retry_count,
@@ -102,7 +102,7 @@ class ProcessPrintJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Print job permanently failed", [
+        Log::error('Print job permanently failed', [
             'job_id' => $this->printJob->id,
             'error' => $exception->getMessage(),
         ]);

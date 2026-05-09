@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,17 +12,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     // Status constants
-    const STATUS_AVAILABLE   = 'available';
-    const STATUS_OCCUPIED    = 'occupied';
+    const STATUS_AVAILABLE = 'available';
+
+    const STATUS_OCCUPIED = 'occupied';
+
     const STATUS_MAINTENANCE = 'maintenance';
-    const STATUS_CLEANING    = 'cleaning';
-    const STATUS_BLOCKED     = 'blocked';
+
+    const STATUS_CLEANING = 'cleaning';
+
+    const STATUS_BLOCKED = 'blocked';
+
     const STATUS_OUT_OF_ORDER = 'out_of_order';
-    const STATUS_DIRTY       = 'dirty';
+
+    const STATUS_DIRTY = 'dirty';
 
     const STATUSES = [
         self::STATUS_AVAILABLE,

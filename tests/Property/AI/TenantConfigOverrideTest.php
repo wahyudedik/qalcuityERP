@@ -76,7 +76,7 @@ class TenantConfigOverrideTest extends TestCase
      */
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
 
         return new ProviderSwitcher($cache);
     }
@@ -102,8 +102,8 @@ class TenantConfigOverrideTest extends TestCase
      */
     private function setSystemSetting(string $key, string $value): void
     {
-        $existing        = Cache::get('system_settings_all', []);
-        $existing[$key]  = ['value' => $value, 'is_encrypted' => false];
+        $existing = Cache::get('system_settings_all', []);
+        $existing[$key] = ['value' => $value, 'is_encrypted' => false];
         Cache::put('system_settings_all', $existing, 3600);
     }
 
@@ -113,9 +113,9 @@ class TenantConfigOverrideTest extends TestCase
      */
     private function setTenantApiSetting(int $tenantId, string $key, string $value): void
     {
-        $cacheKey        = "tenant_api_settings_{$tenantId}";
-        $existing        = Cache::get($cacheKey, []);
-        $existing[$key]  = ['value' => $value, 'is_encrypted' => false, 'group' => 'ai'];
+        $cacheKey = "tenant_api_settings_{$tenantId}";
+        $existing = Cache::get($cacheKey, []);
+        $existing[$key] = ['value' => $value, 'is_encrypted' => false, 'group' => 'ai'];
         Cache::put($cacheKey, $existing, 1800);
     }
 
@@ -187,14 +187,14 @@ class TenantConfigOverrideTest extends TestCase
                 // Set konfigurasi tenant via TenantApiSetting cache
                 $this->setTenantApiSetting($tenantId, 'ai_provider', $tenantProvider);
 
-                $router   = $this->makeRouter();
+                $router = $this->makeRouter();
                 $provider = $router->resolveProvider($tenantId);
 
                 $this->assertSame(
                     $tenantProvider,
                     $provider->getProviderName(),
                     sprintf(
-                        "resolveProvider(%d) harus mengembalikan provider tenant '%s', " .
+                        "resolveProvider(%d) harus mengembalikan provider tenant '%s', ".
                             "bukan provider global '%s'. Property 5 dilanggar.",
                         $tenantId,
                         $tenantProvider,
@@ -234,15 +234,15 @@ class TenantConfigOverrideTest extends TestCase
 
                 // Tenant TIDAK memiliki override (cache kosong untuk tenant ini)
 
-                $router   = $this->makeRouter();
+                $router = $this->makeRouter();
                 $provider = $router->resolveProvider($tenantId);
 
                 $this->assertSame(
                     $globalProvider,
                     $provider->getProviderName(),
                     sprintf(
-                        "resolveProvider(%d) harus mengembalikan provider global '%s' " .
-                            "ketika tenant tidak memiliki override. Property 5 dilanggar.",
+                        "resolveProvider(%d) harus mengembalikan provider global '%s' ".
+                            'ketika tenant tidak memiliki override. Property 5 dilanggar.',
                         $tenantId,
                         $globalProvider
                     )
@@ -281,14 +281,14 @@ class TenantConfigOverrideTest extends TestCase
                 $this->setSystemSetting('ai_default_provider', 'gemini');
                 $this->setTenantApiSetting($tenantId, 'ai_provider', 'anthropic');
 
-                $router   = $this->makeRouter();
+                $router = $this->makeRouter();
                 $provider = $router->resolveProvider($tenantId);
 
                 $this->assertSame(
                     'anthropic',
                     $provider->getProviderName(),
                     sprintf(
-                        "Kasus 1: resolveProvider(%d) harus mengembalikan 'anthropic' " .
+                        "Kasus 1: resolveProvider(%d) harus mengembalikan 'anthropic' ".
                             "ketika global='gemini' dan tenant='anthropic'. Property 5 dilanggar.",
                         $tenantId
                     )
@@ -301,14 +301,14 @@ class TenantConfigOverrideTest extends TestCase
                 $this->setSystemSetting('ai_default_provider', 'anthropic');
                 $this->setTenantApiSetting($tenantId, 'ai_provider', 'gemini');
 
-                $router2   = $this->makeRouter();
+                $router2 = $this->makeRouter();
                 $provider2 = $router2->resolveProvider($tenantId);
 
                 $this->assertSame(
                     'gemini',
                     $provider2->getProviderName(),
                     sprintf(
-                        "Kasus 2: resolveProvider(%d) harus mengembalikan 'gemini' " .
+                        "Kasus 2: resolveProvider(%d) harus mengembalikan 'gemini' ".
                             "ketika global='anthropic' dan tenant='gemini'. Property 5 dilanggar.",
                         $tenantId
                     )
@@ -336,7 +336,7 @@ class TenantConfigOverrideTest extends TestCase
         $this->clearTenantApiSetting($tenantId);
         $this->setTenantApiSetting($tenantId, 'ai_provider', 'anthropic');
 
-        $router   = $this->makeRouter();
+        $router = $this->makeRouter();
         $provider = $router->resolveProvider($tenantId);
 
         $this->assertSame(
@@ -355,7 +355,7 @@ class TenantConfigOverrideTest extends TestCase
     {
         $this->setSystemSetting('ai_default_provider', 'anthropic');
 
-        $router   = $this->makeRouter();
+        $router = $this->makeRouter();
         $provider = $router->resolveProvider(null);
 
         $this->assertSame(
@@ -381,7 +381,7 @@ class TenantConfigOverrideTest extends TestCase
         $this->setSystemSetting('ai_default_provider', 'gemini');
         $this->setTenantApiSetting($tenantId, 'ai_provider', 'gemini');
 
-        $router   = $this->makeRouter();
+        $router = $this->makeRouter();
         $provider = $router->resolveProvider($tenantId);
 
         $this->assertSame(

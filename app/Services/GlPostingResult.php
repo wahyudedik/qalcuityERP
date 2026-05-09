@@ -16,10 +16,10 @@ use App\Models\JournalEntry;
 final class GlPostingResult
 {
     private function __construct(
-        public readonly string        $status,    // 'success' | 'skipped' | 'failed'
+        public readonly string $status,    // 'success' | 'skipped' | 'failed'
         public readonly ?JournalEntry $journal,
-        public readonly ?string       $reason,    // human-readable reason for failure/skip
-        public readonly array         $missingCoa, // list of COA codes that were not found
+        public readonly ?string $reason,    // human-readable reason for failure/skip
+        public readonly array $missingCoa, // list of COA codes that were not found
     ) {}
 
     public static function success(JournalEntry $journal): self
@@ -37,9 +37,20 @@ final class GlPostingResult
         return new self('failed', null, $reason, $missingCoa);
     }
 
-    public function isSuccess(): bool { return $this->status === 'success'; }
-    public function isSkipped(): bool { return $this->status === 'skipped'; }
-    public function isFailed():  bool { return $this->status === 'failed'; }
+    public function isSuccess(): bool
+    {
+        return $this->status === 'success';
+    }
+
+    public function isSkipped(): bool
+    {
+        return $this->status === 'skipped';
+    }
+
+    public function isFailed(): bool
+    {
+        return $this->status === 'failed';
+    }
 
     /**
      * User-facing warning message when GL posting failed.
@@ -47,12 +58,15 @@ final class GlPostingResult
      */
     public function warningMessage(): ?string
     {
-        if (!$this->isFailed()) return null;
+        if (! $this->isFailed()) {
+            return null;
+        }
 
-        if (!empty($this->missingCoa)) {
+        if (! empty($this->missingCoa)) {
             $codes = implode(', ', $this->missingCoa);
+
             return "⚠️ Jurnal otomatis tidak terbuat karena akun COA tidak ditemukan: {$codes}. "
-                . "Silakan load COA Default Indonesia di menu Pengaturan → Akuntansi, atau buat jurnal manual.";
+                .'Silakan load COA Default Indonesia di menu Pengaturan → Akuntansi, atau buat jurnal manual.';
         }
 
         return "⚠️ Jurnal otomatis tidak terbuat: {$this->reason}. Silakan buat jurnal manual di menu Jurnal.";

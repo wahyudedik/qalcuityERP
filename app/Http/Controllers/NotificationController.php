@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ErpNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,11 +53,12 @@ class NotificationController extends Controller
 
         // Pastikan user berhak
         abort_if(
-            !$user || (!$user->isSuperAdmin() && $notification->tenant_id !== $user->tenant_id),
+            ! $user || (! $user->isSuperAdmin() && $notification->tenant_id !== $user->tenant_id),
             403
         );
 
         $notification->markRead();
+
         return back();
     }
 
@@ -78,7 +80,7 @@ class NotificationController extends Controller
     /**
      * API: Get notifications for notification bell (JSON).
      */
-    public function apiIndex(Request $request): \Illuminate\Http\JsonResponse
+    public function apiIndex(Request $request): JsonResponse
     {
         $user = $request->user();
         $limit = $request->get('limit', 10);
@@ -90,7 +92,7 @@ class NotificationController extends Controller
         $notifications = $query->latest()
             ->limit($limit)
             ->get()
-            ->map(fn($n) => [
+            ->map(fn ($n) => [
                 'id' => $n->id,
                 'type' => $n->type,
                 'module' => $n->module,
@@ -114,7 +116,7 @@ class NotificationController extends Controller
     /**
      * API: Get unread notification count (JSON).
      */
-    public function apiUnreadCount(Request $request): \Illuminate\Http\JsonResponse
+    public function apiUnreadCount(Request $request): JsonResponse
     {
         $user = $request->user();
 

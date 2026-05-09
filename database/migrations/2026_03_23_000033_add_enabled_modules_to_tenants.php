@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('tenants', function (Blueprint $table) {
             // JSON array of enabled module keys, null = all enabled (backward compat)
-            if (!Schema::hasColumn('tenants', 'enabled_modules')) {
+            if (! Schema::hasColumn('tenants', 'enabled_modules')) {
                 $table->json('enabled_modules')->nullable()->after('costing_method');
             }
         });

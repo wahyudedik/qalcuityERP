@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\CropCycle;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class HarvestReminderNotification extends Notification implements ShouldQueue
@@ -21,17 +22,17 @@ class HarvestReminderNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'harvest_reminder', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 

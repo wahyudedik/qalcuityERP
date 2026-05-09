@@ -94,7 +94,7 @@ class AuditReportTest extends TestCase
 
     public function test_add_stores_a_single_finding(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $finding = $this->makeFinding('core', Severity::High, 'Finding 1');
 
         $report->add($finding);
@@ -105,7 +105,7 @@ class AuditReportTest extends TestCase
 
     public function test_add_all_stores_multiple_findings(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $findings = [
             $this->makeFinding('core', Severity::High, 'Finding 1'),
             $this->makeFinding('tenancy', Severity::Critical, 'Finding 2'),
@@ -208,7 +208,7 @@ class AuditReportTest extends TestCase
 
     public function test_get_summary_includes_all_severity_keys_even_when_zero(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::Low, 'Only low'));
 
         $summary = $report->getSummary();
@@ -227,7 +227,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_json_produces_valid_json_with_required_keys(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::High, 'Test finding'));
 
         $json = $report->toJson();
@@ -241,7 +241,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_json_summary_matches_design_spec_structure(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::High, 'F1'));
         $report->add($this->makeFinding('tenancy', Severity::Critical, 'F2'));
 
@@ -258,7 +258,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_json_findings_contain_all_dto_fields(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add(new AuditFinding(
             category: 'model',
             severity: Severity::Medium,
@@ -285,7 +285,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_json_handles_null_fields_in_findings(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::Low, 'Null fields'));
 
         $decoded = json_decode($report->toJson(), true);
@@ -300,7 +300,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_contains_report_header(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::High, 'Test'));
 
         $md = $report->toMarkdown();
@@ -311,7 +311,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_contains_summary_table(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::High, 'Test'));
 
         $md = $report->toMarkdown();
@@ -323,7 +323,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_contains_severity_badges(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('core', Severity::Critical, 'Critical issue'));
         $report->add($this->makeFinding('core', Severity::High, 'High issue'));
         $report->add($this->makeFinding('core', Severity::Medium, 'Medium issue'));
@@ -339,7 +339,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_groups_findings_by_category(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add($this->makeFinding('tenancy', Severity::Critical, 'Tenant issue'));
         $report->add($this->makeFinding('security', Severity::High, 'Security issue'));
 
@@ -351,7 +351,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_includes_file_location_when_present(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add(new AuditFinding(
             category: 'core',
             severity: Severity::Medium,
@@ -369,7 +369,7 @@ class AuditReportTest extends TestCase
 
     public function test_to_markdown_includes_recommendation_when_present(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->add(new AuditFinding(
             category: 'core',
             severity: Severity::Low,
@@ -389,7 +389,7 @@ class AuditReportTest extends TestCase
 
     public function test_empty_report_get_summary_returns_zero_counts(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         $summary = $report->getSummary();
 
@@ -403,7 +403,7 @@ class AuditReportTest extends TestCase
 
     public function test_empty_report_to_json_produces_valid_json(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         $json = $report->toJson();
         $decoded = json_decode($json, true);
@@ -415,7 +415,7 @@ class AuditReportTest extends TestCase
 
     public function test_empty_report_to_markdown_produces_valid_output(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         $md = $report->toMarkdown();
 
@@ -426,7 +426,7 @@ class AuditReportTest extends TestCase
 
     public function test_empty_report_get_findings_returns_empty_array(): void
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         $this->assertSame([], $report->getFindings());
         $this->assertSame([], $report->getFindings(category: 'core'));
@@ -447,7 +447,7 @@ class AuditReportTest extends TestCase
      */
     private function buildMixedReport(): AuditReport
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll([
             $this->makeFinding('tenancy', Severity::Critical, 'Tenant critical'),
             $this->makeFinding('tenancy', Severity::High, 'Tenant high'),

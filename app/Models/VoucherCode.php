@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VoucherCode extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'package_id',
@@ -135,7 +135,7 @@ class VoucherCode extends Model
     public function canBeUsed(): bool
     {
         return $this->isUnused()
-            && !$this->isExpired()
+            && ! $this->isExpired()
             && $this->usage_count < $this->max_usage;
     }
 
@@ -158,7 +158,7 @@ class VoucherCode extends Model
             $updates['used_by_username'] = $username;
         }
 
-        if (!$this->first_used_at) {
+        if (! $this->first_used_at) {
             $updates['first_used_at'] = now();
         }
 

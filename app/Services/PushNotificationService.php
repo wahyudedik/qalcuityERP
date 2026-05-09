@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class PushNotificationService
@@ -15,7 +14,7 @@ class PushNotificationService
     {
         $user = User::find($userId);
 
-        if (!$user || !$user->push_subscription) {
+        if (! $user || ! $user->push_subscription) {
             return false;
         }
 
@@ -35,7 +34,7 @@ class PushNotificationService
         $results = [
             'success' => 0,
             'failed' => 0,
-            'errors' => []
+            'errors' => [],
         ];
 
         foreach ($userIds as $userId) {
@@ -51,10 +50,10 @@ class PushNotificationService
                 $results['failed']++;
                 $results['errors'][] = [
                     'user_id' => $userId,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
 
-                Log::error('Push notification failed: ' . $e->getMessage());
+                Log::error('Push notification failed: '.$e->getMessage());
             }
         }
 
@@ -81,7 +80,7 @@ class PushNotificationService
     {
         $notification = $this->getTransactionTemplate($type, $context);
 
-        if (!$notification) {
+        if (! $notification) {
             return false;
         }
 
@@ -100,12 +99,12 @@ class PushNotificationService
     {
         $user = User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         $user->update([
-            'push_subscription' => json_encode($subscription)
+            'push_subscription' => json_encode($subscription),
         ]);
 
         return true;
@@ -118,12 +117,12 @@ class PushNotificationService
     {
         $user = User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         $user->update([
-            'push_subscription' => null
+            'push_subscription' => null,
         ]);
 
         return true;
@@ -137,22 +136,22 @@ class PushNotificationService
         return match ($type) {
             'invoice_created' => [
                 'title' => 'Invoice Baru Dibuat',
-                'body' => "Invoice #{$context['invoice_number']} sebesar Rp " . number_format($context['amount'], 0, ',', '.'),
+                'body' => "Invoice #{$context['invoice_number']} sebesar Rp ".number_format($context['amount'], 0, ',', '.'),
                 'data' => [
                     'type' => 'invoice',
                     'id' => $context['invoice_id'],
-                    'url' => "/invoices/{$context['invoice_id']}"
-                ]
+                    'url' => "/invoices/{$context['invoice_id']}",
+                ],
             ],
 
             'payment_received' => [
                 'title' => 'Pembayaran Diterima',
-                'body' => "Pembayaran Rp " . number_format($context['amount'], 0, ',', '.') . " untuk invoice #{$context['invoice_number']}",
+                'body' => 'Pembayaran Rp '.number_format($context['amount'], 0, ',', '.')." untuk invoice #{$context['invoice_number']}",
                 'data' => [
                     'type' => 'payment',
                     'id' => $context['payment_id'],
-                    'url' => "/payments/{$context['payment_id']}"
-                ]
+                    'url' => "/payments/{$context['payment_id']}",
+                ],
             ],
 
             'low_stock' => [
@@ -161,8 +160,8 @@ class PushNotificationService
                 'data' => [
                     'type' => 'inventory',
                     'id' => $context['product_id'],
-                    'url' => "/inventory/products/{$context['product_id']}"
-                ]
+                    'url' => "/inventory/products/{$context['product_id']}",
+                ],
             ],
 
             'order_completed' => [
@@ -171,8 +170,8 @@ class PushNotificationService
                 'data' => [
                     'type' => 'order',
                     'id' => $context['order_id'],
-                    'url' => "/orders/{$context['order_id']}"
-                ]
+                    'url' => "/orders/{$context['order_id']}",
+                ],
             ],
 
             'task_assigned' => [
@@ -181,8 +180,8 @@ class PushNotificationService
                 'data' => [
                     'type' => 'task',
                     'id' => $context['task_id'],
-                    'url' => "/tasks/{$context['task_id']}"
-                ]
+                    'url' => "/tasks/{$context['task_id']}",
+                ],
             ],
 
             default => null
@@ -197,7 +196,7 @@ class PushNotificationService
         try {
             $subscriptionData = json_decode($subscription, true);
 
-            if (!$subscriptionData) {
+            if (! $subscriptionData) {
                 return false;
             }
 
@@ -208,7 +207,7 @@ class PushNotificationService
                 'title' => $title,
                 'body' => $body,
                 'data' => $data,
-                'endpoint' => $subscriptionData['endpoint'] ?? null
+                'endpoint' => $subscriptionData['endpoint'] ?? null,
             ]);
 
             // TODO: Implement actual Web Push sending
@@ -218,7 +217,8 @@ class PushNotificationService
             return true;
 
         } catch (\Throwable $e) {
-            Log::error('Push notification error: ' . $e->getMessage());
+            Log::error('Push notification error: '.$e->getMessage());
+
             return false;
         }
     }

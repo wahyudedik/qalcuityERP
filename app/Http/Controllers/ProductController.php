@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\ProductStock;
+use App\Models\SalesOrderItem;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
-use App\Models\ActivityLog;
 use App\Services\QueryCacheService;
+use App\Traits\DispatchesWebhooks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     public function __construct(
         protected QueryCacheService $cacheService
@@ -44,7 +46,7 @@ class ProductController extends Controller
                 ->select('id', 'name')
                 ->get()
                 ->toArray();
-        }, 7200))->map(fn($wh) => (object) $wh); // cast ke object agar $wh->id tetap bekerja di view
+        }, 7200))->map(fn ($wh) => (object) $wh); // cast ke object agar $wh->id tetap bekerja di view
 
         // Products list - TIDAK di-cache karena Paginator+Eloquent tidak aman di-serialize
         // Cache hanya untuk data statis (categories, warehouses, counts)
@@ -52,7 +54,7 @@ class ProductController extends Controller
 
         $lowCount = $this->cacheService->remember("products_low_count:{$tid}", function () use ($tid) {
             return Product::where('tenant_id', $tid)
-                ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
+                ->whereHas('productStocks', fn ($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
                 ->count();
         }, 120); // 2 minutes
 
@@ -68,7 +70,7 @@ class ProductController extends Controller
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('sku', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('sku', 'like', "%$s%"));
         }
         if ($request->category) {
             $query->where('category', $request->category);
@@ -78,7 +80,7 @@ class ProductController extends Controller
         } elseif ($request->status === 'inactive') {
             $query->where('is_active', false);
         } elseif ($request->status === 'low') {
-            $query->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
+            $query->whereHas('productStocks', fn ($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
         }
 
         return $query;
@@ -166,7 +168,7 @@ class ProductController extends Controller
 
             return back()->with('success', "Berhasil: {$affected} produk {$actionLabels[$action]}");
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal melakukan bulk action: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal melakukan bulk action: '.$e->getMessage()]);
         }
     }
 
@@ -216,7 +218,7 @@ class ProductController extends Controller
             return back()->withErrors(['name' => 'Produk dengan nama ini sudah ada.'])->withInput();
         }
 
-        $sku = $data['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)) . '-' . rand(100, 999);
+        $sku = $data['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)).'-'.rand(100, 999);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -243,7 +245,7 @@ class ProductController extends Controller
 
         $this->fireWebhook('product.created', $product->toArray());
 
-        if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
+        if (! empty($data['initial_stock']) && $data['initial_stock'] > 0 && ! empty($data['warehouse_id'])) {
             ProductStock::create([
                 'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
@@ -261,12 +263,12 @@ class ProductController extends Controller
                 'notes' => 'Stok awal produk baru',
             ]);
 
-            if ($product->has_expiry && !empty($data['expiry_date'])) {
+            if ($product->has_expiry && ! empty($data['expiry_date'])) {
                 ProductBatch::create([
                     'tenant_id' => $tid,
                     'product_id' => $product->id,
                     'warehouse_id' => $data['warehouse_id'],
-                    'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
+                    'batch_number' => $data['batch_number'] ?? 'BATCH-'.strtoupper(substr($sku, 0, 4)).'-'.now()->format('ymd'),
                     'quantity' => $data['initial_stock'],
                     'manufacture_date' => $data['manufacture_date'] ?? null,
                     'expiry_date' => $data['expiry_date'],
@@ -314,8 +316,9 @@ class ProductController extends Controller
     public function toggleActive(Product $product)
     {
         abort_unless($product->tenant_id === $this->tenantId(), 403);
-        $product->update(['is_active' => !$product->is_active]);
+        $product->update(['is_active' => ! $product->is_active]);
         $status = $product->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
         return back()->with('success', "Produk {$product->name} berhasil {$status}.");
     }
 
@@ -323,11 +326,12 @@ class ProductController extends Controller
     {
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
-        $hasSales = \App\Models\SalesOrderItem::where('product_id', $product->id)->exists();
+        $hasSales = SalesOrderItem::where('product_id', $product->id)->exists();
         if ($hasSales) {
             $product->update(['is_active' => false]);
             ActivityLog::record('product_deactivated', "Produk dinonaktifkan (sudah pernah terjual): {$product->name}", $product);
-            return back()->with('success', "Produk dinonaktifkan karena sudah pernah terjual.");
+
+            return back()->with('success', 'Produk dinonaktifkan karena sudah pernah terjual.');
         }
 
         ActivityLog::record('product_deleted', "Produk dihapus: {$product->name} (SKU: {$product->sku})", $product, $product->toArray());

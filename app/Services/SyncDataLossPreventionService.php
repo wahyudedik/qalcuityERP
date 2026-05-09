@@ -2,18 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\MarketplaceSyncLog;
 use App\Models\EcommerceChannel;
-use App\Models\EcommerceProductMapping;
+use App\Models\MarketplaceSyncLog;
 use App\Models\ProductStock;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * SyncDataLossPreventionService - Track and prevent marketplace sync data loss
- * 
+ *
  * BUG-API-003 FIX: Comprehensive sync failure tracking with data validation
- * 
+ *
  * Problems Fixed:
  * 1. Sync failures not tracked - silent data loss
  * 2. No before/after validation - can't detect data corruption
@@ -25,12 +23,10 @@ class SyncDataLossPreventionService
 {
     /**
      * BUG-API-003 FIX: Track sync attempt with full audit trail
-     * 
-     * @param EcommerceChannel $channel
-     * @param string $type (stock, price, product, order)
-     * @param array $items Items being synced
-     * @param callable $syncFunction Function that performs actual sync
-     * @return array
+     *
+     * @param  string  $type  (stock, price, product, order)
+     * @param  array  $items  Items being synced
+     * @param  callable  $syncFunction  Function that performs actual sync
      */
     public function trackSyncAttempt(
         EcommerceChannel $channel,
@@ -38,7 +34,7 @@ class SyncDataLossPreventionService
         array $items,
         callable $syncFunction
     ): array {
-        $syncId = 'sync_' . $type . '_' . $channel->id . '_' . now()->timestamp;
+        $syncId = 'sync_'.$type.'_'.$channel->id.'_'.now()->timestamp;
 
         Log::info('BUG-API-003: Sync started', [
             'sync_id' => $syncId,
@@ -63,7 +59,7 @@ class SyncDataLossPreventionService
             $beforeValidation = $this->validateBeforeSync($channel, $type, $items);
             $result['validation_results']['before'] = $beforeValidation;
 
-            if (!$beforeValidation['valid']) {
+            if (! $beforeValidation['valid']) {
                 Log::error('BUG-API-003: Pre-sync validation failed', [
                     'sync_id' => $syncId,
                     'errors' => $beforeValidation['errors'],
@@ -147,13 +143,13 @@ class SyncDataLossPreventionService
                     'error',
                     $item,
                     null,
-                    'Sync crashed: ' . $e->getMessage()
+                    'Sync crashed: '.$e->getMessage()
                 );
             }
 
             return array_merge($result, [
                 'failed' => count($items),
-                'errors' => ['Sync crashed: ' . $e->getMessage()],
+                'errors' => ['Sync crashed: '.$e->getMessage()],
                 'data_loss_detected' => true,
             ]);
         }
@@ -168,7 +164,7 @@ class SyncDataLossPreventionService
         $valid = true;
 
         // Check channel is active
-        if (!$channel->is_active) {
+        if (! $channel->is_active) {
             $errors[] = 'Channel is not active';
             $valid = false;
         }
@@ -182,9 +178,10 @@ class SyncDataLossPreventionService
         // Validate items
         foreach ($items as $index => $item) {
             $mapping = $item['mapping'] ?? null;
-            if (!$mapping) {
+            if (! $mapping) {
                 $errors[] = "Item {$index}: Missing product mapping";
                 $valid = false;
+
                 continue;
             }
 
@@ -226,7 +223,7 @@ class SyncDataLossPreventionService
         $actualFailed = $syncResult['failed'] ?? 0;
 
         if ($actualSuccess + $actualFailed !== $expectedCount) {
-            $errors[] = "Item count mismatch: expected {$expectedCount}, got " . ($actualSuccess + $actualFailed);
+            $errors[] = "Item count mismatch: expected {$expectedCount}, got ".($actualSuccess + $actualFailed);
         }
 
         // Check success rate
@@ -343,14 +340,14 @@ class SyncDataLossPreventionService
             ->groupBy('type')
             ->selectRaw('type, COUNT(*) as total, SUM(CASE WHEN status IN ("failed", "error") THEN 1 ELSE 0 END) as failed')
             ->get()
-            ->mapWithKeys(fn($row) => [$row->type => ['total' => $row->total, 'failed' => $row->failed]]);
+            ->mapWithKeys(fn ($row) => [$row->type => ['total' => $row->total, 'failed' => $row->failed]]);
 
         $byChannel = MarketplaceSyncLog::where('tenant_id', $tenantId)
             ->where('created_at', '>=', $since)
             ->groupBy('channel_id')
             ->selectRaw('channel_id, COUNT(*) as total, SUM(CASE WHEN status IN ("failed", "error") THEN 1 ELSE 0 END) as failed')
             ->get()
-            ->mapWithKeys(fn($row) => [$row->channel_id => ['total' => $row->total, 'failed' => $row->failed]]);
+            ->mapWithKeys(fn ($row) => [$row->channel_id => ['total' => $row->total, 'failed' => $row->failed]]);
 
         return [
             'period_days' => $days,

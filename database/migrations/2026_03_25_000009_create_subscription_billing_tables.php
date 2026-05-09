@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Subscription plans defined by tenant for their customers
-        if (!Schema::hasTable('customer_subscription_plans')) {
+        if (! Schema::hasTable('customer_subscription_plans')) {
             Schema::create('customer_subscription_plans', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -22,13 +22,13 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->json('features')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Customer subscriptions
-        if (!Schema::hasTable('customer_subscriptions')) {
+        if (! Schema::hasTable('customer_subscriptions')) {
             Schema::create('customer_subscriptions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -47,7 +47,7 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'subscription_number']);
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'next_billing_date']);
@@ -55,7 +55,7 @@ return new class extends Migration
         }
 
         // Subscription invoices (recurring billing history)
-        if (!Schema::hasTable('subscription_invoices')) {
+        if (! Schema::hasTable('subscription_invoices')) {
             Schema::create('subscription_invoices', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -71,7 +71,7 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }

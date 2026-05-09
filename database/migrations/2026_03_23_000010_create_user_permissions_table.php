@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('user_permissions')) {
+        if (! Schema::hasTable('user_permissions')) {
             Schema::create('user_permissions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -17,7 +17,7 @@ return new class extends Migration
                 $table->string('action', 20);   // view, create, edit, delete
                 $table->boolean('granted')->default(true);
                 $table->timestamps();
-    
+
                 $table->unique(['user_id', 'module', 'action']);
                 $table->index(['tenant_id', 'user_id']);
             });

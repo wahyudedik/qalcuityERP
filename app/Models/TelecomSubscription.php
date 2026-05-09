@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,11 +14,15 @@ class TelecomSubscription extends Model
     use SoftDeletes;
 
     // Status constants
-    const STATUS_PENDING   = 'pending';
-    const STATUS_ACTIVE    = 'active';
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_ACTIVE = 'active';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_CANCELLED = 'cancelled';
-    const STATUS_EXPIRED   = 'expired';
+
+    const STATUS_EXPIRED = 'expired';
 
     const STATUSES = [
         self::STATUS_PENDING,
@@ -170,7 +173,7 @@ class TelecomSubscription extends Model
      */
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -236,7 +239,7 @@ class TelecomSubscription extends Model
      */
     private function calculateNextQuotaReset(): ?string
     {
-        if (!$this->package) {
+        if (! $this->package) {
             return null;
         }
 
@@ -257,7 +260,7 @@ class TelecomSubscription extends Model
      */
     public function getDecryptedHotspotPasswordAttribute(): ?string
     {
-        if (!$this->hotspot_password_encrypted) {
+        if (! $this->hotspot_password_encrypted) {
             return null;
         }
 
@@ -279,7 +282,7 @@ class TelecomSubscription extends Model
      */
     public function getDecryptedPppoePasswordAttribute(): ?string
     {
-        if (!$this->pppoe_password_encrypted) {
+        if (! $this->pppoe_password_encrypted) {
             return null;
         }
 

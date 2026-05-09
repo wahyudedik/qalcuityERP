@@ -71,9 +71,9 @@ class OutpatientVisit extends Model
     public static function generateVisitNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'OPD-' . $date;
+        $prefix = 'OPD-'.$date;
 
-        $lastVisit = static::where('visit_number', 'like', $prefix . '%')
+        $lastVisit = static::where('visit_number', 'like', $prefix.'%')
             ->orderBy('visit_number', 'desc')
             ->first();
 
@@ -84,7 +84,7 @@ class OutpatientVisit extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -113,6 +113,7 @@ class OutpatientVisit extends Model
         if ($this->called_at && $this->registered_at) {
             return $this->registered_at->diffInMinutes($this->called_at);
         }
+
         return 0;
     }
 
@@ -124,6 +125,7 @@ class OutpatientVisit extends Model
         if ($this->consultation_ended_at && $this->consultation_started_at) {
             return $this->consultation_started_at->diffInMinutes($this->consultation_ended_at);
         }
+
         return 0;
     }
 
@@ -238,7 +240,7 @@ class OutpatientVisit extends Model
             'doctor_name' => $this->doctor?->full_name,
             'status' => $this->status_label,
             'visit_time' => $this->visit_time,
-            'wait_time' => $this->actual_wait_minutes . ' minutes',
+            'wait_time' => $this->actual_wait_minutes.' minutes',
         ];
     }
 }

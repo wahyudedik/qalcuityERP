@@ -146,7 +146,7 @@ class DashboardWidgetService
         $customWidgets = CustomDashboardWidget::where('tenant_id', $tenantId)->get();
 
         foreach ($customWidgets as $cw) {
-            if ($cw->visible_to_roles && !in_array($role, $cw->visible_to_roles)) {
+            if ($cw->visible_to_roles && ! in_array($role, $cw->visible_to_roles)) {
                 continue;
             }
             $registry[$cw->registryKey()] = [
@@ -199,7 +199,7 @@ class DashboardWidgetService
     public static function availableForRole(string $role): array
     {
         return collect(self::registry())
-            ->filter(fn($w) => in_array($role, $w['roles']))
+            ->filter(fn ($w) => in_array($role, $w['roles']))
             ->toArray();
     }
 
@@ -209,7 +209,7 @@ class DashboardWidgetService
     public static function availableForRoleAndTenant(int $tenantId, string $role): array
     {
         return collect(self::registryForTenant($tenantId, $role))
-            ->filter(fn($w) => in_array($role, $w['roles']))
+            ->filter(fn ($w) => in_array($role, $w['roles']))
             ->toArray();
     }
 
@@ -222,13 +222,15 @@ class DashboardWidgetService
         $groups = [];
 
         foreach ($widgets as $w) {
-            if (!($w['visible'] ?? false))
+            if (! ($w['visible'] ?? false)) {
                 continue;
+            }
             $key = $w['key'];
 
             // Custom widgets
             if (str_starts_with($key, 'custom_')) {
                 $groups[] = 'custom';
+
                 continue;
             }
 

@@ -61,10 +61,10 @@ class AgentPlanner
      * Menggunakan GeminiService dengan planning prompt khusus.
      * Retry 1x jika Gemini gagal, lalu fallback ke single-turn.
      *
-     * @param  string     $instruction    Instruksi dari user
-     * @param  ErpContext $context        Konteks ERP tenant
-     * @param  array      $availableTools Daftar tool yang tersedia
-     * @param  string     $language       Bahasa ('id' atau 'en')
+     * @param  string  $instruction  Instruksi dari user
+     * @param  ErpContext  $context  Konteks ERP tenant
+     * @param  array  $availableTools  Daftar tool yang tersedia
+     * @param  string  $language  Bahasa ('id' atau 'en')
      * @return AgentPlan dengan maksimal 10 langkah
      */
     public function plan(
@@ -87,6 +87,7 @@ class AgentPlanner
             Log::warning('AgentPlanner: Gemini gagal setelah retry, fallback ke single-turn', [
                 'instruction' => substr($instruction, 0, 100),
             ]);
+
             return $this->buildFallbackPlan($instruction, $language);
         }
 
@@ -96,8 +97,9 @@ class AgentPlanner
         if ($plan === null) {
             Log::warning('AgentPlanner: gagal parse response Gemini, fallback ke single-turn', [
                 'instruction' => substr($instruction, 0, 100),
-                'response'    => substr($rawResponse, 0, 200),
+                'response' => substr($rawResponse, 0, 200),
             ]);
+
             return $this->buildFallbackPlan($instruction, $language);
         }
 
@@ -108,8 +110,7 @@ class AgentPlanner
      * Deteksi apakah instruksi memerlukan multi-step planning
      * atau bisa langsung dijawab sebagai single-turn.
      *
-     * @param  string $instruction
-     * @return bool   true jika perlu planning
+     * @return bool true jika perlu planning
      */
     public function requiresPlanning(string $instruction): bool
     {
@@ -228,7 +229,7 @@ class AgentPlanner
         try {
             $response = $this->gemini->generate($prompt);
             $text = $response['text'] ?? '';
-            if (!empty(trim($text))) {
+            if (! empty(trim($text))) {
                 return $text;
             }
         } catch (\Throwable $e) {
@@ -241,7 +242,7 @@ class AgentPlanner
         try {
             $response = $this->gemini->generate($prompt);
             $text = $response['text'] ?? '';
-            if (!empty(trim($text))) {
+            if (! empty(trim($text))) {
                 return $text;
             }
         } catch (\Throwable $e) {
@@ -270,12 +271,12 @@ class AgentPlanner
 
         $data = json_decode($json, true);
 
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             return null;
         }
 
         // Validasi struktur dasar
-        if (empty($data['steps']) || !is_array($data['steps'])) {
+        if (empty($data['steps']) || ! is_array($data['steps'])) {
             return null;
         }
 
@@ -288,7 +289,7 @@ class AgentPlanner
         // Batasi maksimal 10 langkah
         $steps = array_slice($steps, 0, self::MAX_STEPS);
 
-        $hasWriteOps = collect($steps)->contains(fn(AgentStep $s) => $s->isWriteOp);
+        $hasWriteOps = collect($steps)->contains(fn (AgentStep $s) => $s->isWriteOp);
 
         return new AgentPlan(
             goal: $data['goal'] ?? $instruction,
@@ -313,7 +314,7 @@ class AgentPlanner
 
         // Cari JSON object
         $start = strpos($text, '{');
-        $end   = strrpos($text, '}');
+        $end = strrpos($text, '}');
 
         if ($start === false || $end === false || $end <= $start) {
             return null;
@@ -331,11 +332,11 @@ class AgentPlanner
         $steps = [];
 
         foreach ($rawSteps as $index => $raw) {
-            if (!is_array($raw)) {
+            if (! is_array($raw)) {
                 continue;
             }
 
-            $name     = trim($raw['name'] ?? '');
+            $name = trim($raw['name'] ?? '');
             $toolName = trim($raw['toolName'] ?? $raw['tool_name'] ?? '');
 
             // Validasi field wajib
@@ -343,10 +344,10 @@ class AgentPlanner
                 continue;
             }
 
-            $order      = isset($raw['order']) ? (int) $raw['order'] : ($index + 1);
-            $args       = is_array($raw['args'] ?? null) ? $raw['args'] : [];
-            $isWriteOp  = (bool) ($raw['isWriteOp'] ?? $raw['is_write_op'] ?? false);
-            $dependsOn  = isset($raw['dependsOnStep']) && $raw['dependsOnStep'] !== null
+            $order = isset($raw['order']) ? (int) $raw['order'] : ($index + 1);
+            $args = is_array($raw['args'] ?? null) ? $raw['args'] : [];
+            $isWriteOp = (bool) ($raw['isWriteOp'] ?? $raw['is_write_op'] ?? false);
+            $dependsOn = isset($raw['dependsOnStep']) && $raw['dependsOnStep'] !== null
                 ? (string) $raw['dependsOnStep']
                 : null;
 
@@ -361,7 +362,7 @@ class AgentPlanner
         }
 
         // Urutkan berdasarkan order
-        usort($steps, fn(AgentStep $a, AgentStep $b) => $a->order <=> $b->order);
+        usort($steps, fn (AgentStep $a, AgentStep $b) => $a->order <=> $b->order);
 
         return $steps;
     }

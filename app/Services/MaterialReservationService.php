@@ -2,19 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\WorkOrder;
 use App\Models\Bom;
+use App\Models\MaterialReservation;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
+use App\Models\Warehouse;
+use App\Models\WorkOrder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * MaterialReservationService - Prevent material double-allocation across Work Orders
- * 
+ *
  * BUG-MFG-002 FIX: Atomic material reservation with conflict detection
- * 
+ *
  * Problems Fixed:
  * 1. No reservation when WO created - materials can be consumed by other WOs
  * 2. No check if materials already reserved by another WO
@@ -25,15 +27,12 @@ class MaterialReservationService
 {
     /**
      * BUG-MFG-002 FIX: Reserve materials for Work Order
-     * 
+     *
      * Checks availability considering already reserved quantities
-     * 
-     * @param WorkOrder $workOrder
-     * @return array
      */
     public function reserveMaterials(WorkOrder $workOrder): array
     {
-        if (!$workOrder->bom_id && !$workOrder->recipe_id) {
+        if (! $workOrder->bom_id && ! $workOrder->recipe_id) {
             return [
                 'success' => false,
                 'message' => 'Work Order must have BOM or Recipe to reserve materials.',
@@ -55,11 +54,11 @@ class MaterialReservationService
             $shortages = [];
 
             // Get active warehouse
-            $warehouse = \App\Models\Warehouse::where('tenant_id', $workOrder->tenant_id)
+            $warehouse = Warehouse::where('tenant_id', $workOrder->tenant_id)
                 ->where('is_active', true)
                 ->first();
 
-            if (!$warehouse) {
+            if (! $warehouse) {
                 return [
                     'success' => false,
                     'message' => 'No active warehouse found.',
@@ -76,7 +75,7 @@ class MaterialReservationService
                     ->lockForUpdate() // Prevent concurrent modifications
                     ->first();
 
-                if (!$stock) {
+                if (! $stock) {
                     $shortages[] = [
                         'product_id' => $productId,
                         'product_name' => $material['product_name'],
@@ -85,6 +84,7 @@ class MaterialReservationService
                         'reserved' => 0,
                         'shortage' => $requiredQty,
                     ];
+
                     continue;
                 }
 
@@ -104,11 +104,12 @@ class MaterialReservationService
                         'available_for_reservation' => $availableForReservation,
                         'shortage' => $requiredQty - $availableForReservation,
                     ];
+
                     continue;
                 }
 
                 // BUG-MFG-002 FIX: Create reservation record
-                $reservation = \App\Models\MaterialReservation::updateOrCreate(
+                $reservation = MaterialReservation::updateOrCreate(
                     [
                         'tenant_id' => $workOrder->tenant_id,
                         'work_order_id' => $workOrder->id,
@@ -133,7 +134,7 @@ class MaterialReservationService
             }
 
             // If any shortages, rollback and return error
-            if (!empty($shortages)) {
+            if (! empty($shortages)) {
                 return [
                     'success' => false,
                     'message' => 'Insufficient materials. Some items are already reserved by other Work Orders.',
@@ -162,14 +163,11 @@ class MaterialReservationService
 
     /**
      * BUG-MFG-002 FIX: Release reserved materials (when WO cancelled)
-     * 
-     * @param WorkOrder $workOrder
-     * @return array
      */
     public function releaseMaterials(WorkOrder $workOrder): array
     {
         return DB::transaction(function () use ($workOrder) {
-            $reservations = \App\Models\MaterialReservation::where('work_order_id', $workOrder->id)
+            $reservations = MaterialReservation::where('work_order_id', $workOrder->id)
                 ->where('status', 'reserved')
                 ->lockForUpdate()
                 ->get();
@@ -199,13 +197,10 @@ class MaterialReservationService
 
     /**
      * BUG-MFG-002 FIX: Consume reserved materials (atomic)
-     * 
-     * @param WorkOrder $workOrder
-     * @return array
      */
     public function consumeMaterials(WorkOrder $workOrder): array
     {
-        if (!$workOrder->materials_reserved) {
+        if (! $workOrder->materials_reserved) {
             return [
                 'success' => false,
                 'message' => 'Materials not reserved. Please reserve materials first.',
@@ -213,12 +208,12 @@ class MaterialReservationService
         }
 
         return DB::transaction(function () use ($workOrder) {
-            $reservations = \App\Models\MaterialReservation::where('work_order_id', $workOrder->id)
+            $reservations = MaterialReservation::where('work_order_id', $workOrder->id)
                 ->where('status', 'reserved')
                 ->lockForUpdate()
                 ->get();
 
-            $warehouse = \App\Models\Warehouse::where('tenant_id', $workOrder->tenant_id)
+            $warehouse = Warehouse::where('tenant_id', $workOrder->tenant_id)
                 ->where('is_active', true)
                 ->first();
 
@@ -236,7 +231,7 @@ class MaterialReservationService
 
                 if ($stock->quantity < $consumeQty) {
                     throw new \Exception(
-                        "Insufficient stock for {$reservation->product->name}. " .
+                        "Insufficient stock for {$reservation->product->name}. ".
                         "Required: {$consumeQty}, Available: {$stock->quantity}"
                     );
                 }
@@ -303,15 +298,10 @@ class MaterialReservationService
 
     /**
      * Get reserved quantity for a product (excluding specific WO)
-     * 
-     * @param int $productId
-     * @param int $warehouseId
-     * @param int|null $excludeWoId
-     * @return float
      */
     public function getReservedQuantity(int $productId, int $warehouseId, ?int $excludeWoId = null): float
     {
-        $query = \App\Models\MaterialReservation::where('product_id', $productId)
+        $query = MaterialReservation::where('product_id', $productId)
             ->where('warehouse_id', $warehouseId)
             ->where('status', 'reserved');
 
@@ -324,11 +314,6 @@ class MaterialReservationService
 
     /**
      * Get available quantity (physical - reserved)
-     * 
-     * @param int $productId
-     * @param int $warehouseId
-     * @param int|null $excludeWoId
-     * @return array
      */
     public function getAvailableQuantity(int $productId, int $warehouseId, ?int $excludeWoId = null): array
     {
@@ -363,7 +348,7 @@ class MaterialReservationService
                 foreach ($bom->items as $item) {
                     $materials[] = [
                         'product_id' => $item->product_id,
-                        'product_name' => $item->product->name ?? 'Product #' . $item->product_id,
+                        'product_name' => $item->product->name ?? 'Product #'.$item->product_id,
                         'quantity' => $item->quantity * $multiplier,
                     ];
                 }
@@ -376,7 +361,7 @@ class MaterialReservationService
                 foreach ($recipe->ingredients as $ingredient) {
                     $materials[] = [
                         'product_id' => $ingredient->product_id,
-                        'product_name' => $ingredient->product->name ?? 'Product #' . $ingredient->product_id,
+                        'product_name' => $ingredient->product->name ?? 'Product #'.$ingredient->product_id,
                         'quantity' => $ingredient->quantity * $multiplier,
                     ];
                 }

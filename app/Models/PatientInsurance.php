@@ -61,6 +61,7 @@ class PatientInsurance extends Model
     public function isValid()
     {
         $now = now();
+
         return $this->is_active &&
             $this->effective_date <= $now &&
             $this->expiry_date >= $now;
@@ -73,7 +74,7 @@ class PatientInsurance extends Model
     {
         $now = now();
 
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return 'inactive';
         }
 

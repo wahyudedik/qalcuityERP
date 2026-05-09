@@ -49,7 +49,7 @@ class ComplianceReportController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['report_number'] = 'CR-' . now()->format('Ymd') . '-' . str_pad(ComplianceReport::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['report_number'] = 'CR-'.now()->format('Ymd').'-'.str_pad(ComplianceReport::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'draft';
         $validated['created_by'] = auth()->id();
 
@@ -62,6 +62,7 @@ class ComplianceReportController extends Controller
     public function show(ComplianceReport $report)
     {
         $report->load(['createdBy', 'reviewer']);
+
         return view('healthcare.compliance-reports.show', compact('report'));
     }
 
@@ -94,14 +95,17 @@ class ComplianceReportController extends Controller
     public function print(ComplianceReport $report)
     {
         $report->load(['createdBy', 'reviewer']);
+
         return view('healthcare.compliance-reports.print', compact('report'));
     }
 
     public function destroy(ComplianceReport $report)
     {
         $report->delete();
+
         return response()->json(['success' => true, 'message' => 'Report deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/compliance-reports/{compliance_report}/edit
@@ -109,9 +113,10 @@ class ComplianceReportController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.compliance-report.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/compliance-reports/{compliance_report}
@@ -119,16 +124,17 @@ class ComplianceReportController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.compliance-reports.update')
             ->with('success', 'Updated successfully.');
     }
+
     /**
      * Review.
      * Route: healthcare/compliance-reports/{report}/review
@@ -136,13 +142,13 @@ class ComplianceReportController extends Controller
     public function review(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement Review logic
-        
+
         return back()->with('success', 'Review completed successfully.');
     }
 }

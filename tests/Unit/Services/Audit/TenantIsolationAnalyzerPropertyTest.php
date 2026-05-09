@@ -30,12 +30,12 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/tenant_isolation_prop_test_' . uniqid();
-        mkdir($this->tempDir . '/models', 0777, true);
-        mkdir($this->tempDir . '/controllers', 0777, true);
-        mkdir($this->tempDir . '/services', 0777, true);
-        mkdir($this->tempDir . '/middleware', 0777, true);
-        mkdir($this->tempDir . '/jobs', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/tenant_isolation_prop_test_'.uniqid();
+        mkdir($this->tempDir.'/models', 0777, true);
+        mkdir($this->tempDir.'/controllers', 0777, true);
+        mkdir($this->tempDir.'/services', 0777, true);
+        mkdir($this->tempDir.'/middleware', 0777, true);
+        mkdir($this->tempDir.'/jobs', 0777, true);
     }
 
     protected function tearDown(): void
@@ -81,16 +81,16 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
                 'Project'
             ) // modelName — base model name
         )->then(function (bool $hasTenantId, bool $isInWhitelist, string $modelName) {
-            $uniqueModel = $modelName . '_MW' . uniqid();
+            $uniqueModel = $modelName.'_MW'.uniqid();
 
             // Clean the temp directories for this iteration
-            $this->cleanDirectory($this->tempDir . '/models');
-            $this->cleanDirectory($this->tempDir . '/middleware');
+            $this->cleanDirectory($this->tempDir.'/models');
+            $this->cleanDirectory($this->tempDir.'/middleware');
 
             // Generate model stub
             $modelSource = $this->generateModelStub($uniqueModel, $hasTenantId, true);
             file_put_contents(
-                $this->tempDir . '/models/' . $uniqueModel . '.php',
+                $this->tempDir.'/models/'.$uniqueModel.'.php',
                 $modelSource
             );
 
@@ -101,16 +101,16 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
 
             $middlewareSource = $this->generateMiddlewareStub($whitelistModels);
             file_put_contents(
-                $this->tempDir . '/middleware/EnforceTenantIsolation.php',
+                $this->tempDir.'/middleware/EnforceTenantIsolation.php',
                 $middlewareSource
             );
 
             $analyzer = new TenantIsolationAnalyzer(
-                modelPath: $this->tempDir . '/models',
-                controllerPath: $this->tempDir . '/controllers',
-                servicePath: $this->tempDir . '/services',
-                middlewarePath: $this->tempDir . '/middleware',
-                jobPath: $this->tempDir . '/jobs',
+                modelPath: $this->tempDir.'/models',
+                controllerPath: $this->tempDir.'/controllers',
+                servicePath: $this->tempDir.'/services',
+                middlewarePath: $this->tempDir.'/middleware',
+                jobPath: $this->tempDir.'/jobs',
                 basePath: $this->tempDir,
                 cacheServiceFiles: [],
             );
@@ -120,30 +120,30 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
             // Filter findings for our specific model
             $modelFindings = array_filter(
                 $findings,
-                fn(AuditFinding $f) => str_contains($f->title, $uniqueModel)
+                fn (AuditFinding $f) => str_contains($f->title, $uniqueModel)
                     && ($f->metadata['check'] ?? '') === 'middleware_whitelist'
             );
 
-            if (!$hasTenantId) {
+            if (! $hasTenantId) {
                 // Model without tenant_id → should never be flagged
                 $this->assertEmpty(
                     $modelFindings,
-                    "Model without tenant_id should NOT be flagged for middleware whitelist. "
-                        . "model={$uniqueModel}, isInWhitelist=" . ($isInWhitelist ? 'true' : 'false')
+                    'Model without tenant_id should NOT be flagged for middleware whitelist. '
+                        ."model={$uniqueModel}, isInWhitelist=".($isInWhitelist ? 'true' : 'false')
                 );
             } elseif ($isInWhitelist) {
                 // Model with tenant_id AND in whitelist → compliant, no finding
                 $this->assertEmpty(
                     $modelFindings,
-                    "Model with tenant_id that IS in the whitelist should NOT be flagged. "
-                        . "model={$uniqueModel}"
+                    'Model with tenant_id that IS in the whitelist should NOT be flagged. '
+                        ."model={$uniqueModel}"
                 );
             } else {
                 // Model with tenant_id but NOT in whitelist → MUST produce a finding
                 $this->assertNotEmpty(
                     $modelFindings,
-                    "Model with tenant_id that is NOT in the whitelist MUST be flagged. "
-                        . "model={$uniqueModel}"
+                    'Model with tenant_id that is NOT in the whitelist MUST be flagged. '
+                        ."model={$uniqueModel}"
                 );
 
                 $finding = reset($modelFindings);
@@ -196,8 +196,8 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
                 'AnalyticsCache'
             ) // serviceName — base service class name
         )->then(function (string $cacheOperation, bool $hasTenantIdInKey, string $serviceName) {
-            $uniqueService = $serviceName . 'Service_CK' . uniqid();
-            $cacheFilePath = $this->tempDir . '/services/' . $uniqueService . '.php';
+            $uniqueService = $serviceName.'Service_CK'.uniqid();
+            $cacheFilePath = $this->tempDir.'/services/'.$uniqueService.'.php';
 
             $source = $this->generateCacheServiceStub(
                 $uniqueService,
@@ -207,11 +207,11 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
             file_put_contents($cacheFilePath, $source);
 
             $analyzer = new TenantIsolationAnalyzer(
-                modelPath: $this->tempDir . '/models',
-                controllerPath: $this->tempDir . '/controllers',
-                servicePath: $this->tempDir . '/services',
-                middlewarePath: $this->tempDir . '/middleware',
-                jobPath: $this->tempDir . '/jobs',
+                modelPath: $this->tempDir.'/models',
+                controllerPath: $this->tempDir.'/controllers',
+                servicePath: $this->tempDir.'/services',
+                middlewarePath: $this->tempDir.'/middleware',
+                jobPath: $this->tempDir.'/jobs',
                 basePath: $this->tempDir,
                 cacheServiceFiles: [$cacheFilePath],
             );
@@ -221,7 +221,7 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
             // Filter findings for our specific service
             $cacheFindings = array_filter(
                 $findings,
-                fn(AuditFinding $f) => str_contains($f->title, $uniqueService)
+                fn (AuditFinding $f) => str_contains($f->title, $uniqueService)
                     && ($f->metadata['check'] ?? '') === 'cache_key_tenant'
             );
 
@@ -229,15 +229,15 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
                 // Cache key includes tenant_id → compliant, no finding
                 $this->assertEmpty(
                     $cacheFindings,
-                    "Cache operation with tenant_id in key should NOT be flagged. "
-                        . "service={$uniqueService}, op={$cacheOperation}"
+                    'Cache operation with tenant_id in key should NOT be flagged. '
+                        ."service={$uniqueService}, op={$cacheOperation}"
                 );
             } else {
                 // Cache key missing tenant_id → MUST produce a finding
                 $this->assertNotEmpty(
                     $cacheFindings,
-                    "Cache operation WITHOUT tenant_id in key MUST be flagged. "
-                        . "service={$uniqueService}, op={$cacheOperation}"
+                    'Cache operation WITHOUT tenant_id in key MUST be flagged. '
+                        ."service={$uniqueService}, op={$cacheOperation}"
                 );
 
                 $finding = reset($cacheFindings);
@@ -299,10 +299,10 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
                 'PurchaseOrder'
             ) // tenantModel — the tenant-scoped model accessed by the job
         )->then(function (bool $accessesTenantData, bool $hasTenantIdParam, string $jobName, string $tenantModel) {
-            $uniqueJob = $jobName . '_QJ' . uniqid();
+            $uniqueJob = $jobName.'_QJ'.uniqid();
 
             // Clean the jobs directory for this iteration
-            $this->cleanDirectory($this->tempDir . '/jobs');
+            $this->cleanDirectory($this->tempDir.'/jobs');
 
             $source = $this->generateQueueJobStub(
                 $uniqueJob,
@@ -311,16 +311,16 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
                 $tenantModel
             );
             file_put_contents(
-                $this->tempDir . '/jobs/' . $uniqueJob . '.php',
+                $this->tempDir.'/jobs/'.$uniqueJob.'.php',
                 $source
             );
 
             $analyzer = new TenantIsolationAnalyzer(
-                modelPath: $this->tempDir . '/models',
-                controllerPath: $this->tempDir . '/controllers',
-                servicePath: $this->tempDir . '/services',
-                middlewarePath: $this->tempDir . '/middleware',
-                jobPath: $this->tempDir . '/jobs',
+                modelPath: $this->tempDir.'/models',
+                controllerPath: $this->tempDir.'/controllers',
+                servicePath: $this->tempDir.'/services',
+                middlewarePath: $this->tempDir.'/middleware',
+                jobPath: $this->tempDir.'/jobs',
                 basePath: $this->tempDir,
                 cacheServiceFiles: [],
             );
@@ -330,30 +330,30 @@ class TenantIsolationAnalyzerPropertyTest extends TestCase
             // Filter findings for our specific job
             $jobFindings = array_filter(
                 $findings,
-                fn(AuditFinding $f) => str_contains($f->title, $uniqueJob)
+                fn (AuditFinding $f) => str_contains($f->title, $uniqueJob)
                     && ($f->metadata['check'] ?? '') === 'queue_job_tenant'
             );
 
-            if (!$accessesTenantData) {
+            if (! $accessesTenantData) {
                 // Job does not access tenant-scoped data → should never be flagged
                 $this->assertEmpty(
                     $jobFindings,
-                    "Job that does NOT access tenant-scoped data should NOT be flagged. "
-                        . "job={$uniqueJob}, hasTenantIdParam=" . ($hasTenantIdParam ? 'true' : 'false')
+                    'Job that does NOT access tenant-scoped data should NOT be flagged. '
+                        ."job={$uniqueJob}, hasTenantIdParam=".($hasTenantIdParam ? 'true' : 'false')
                 );
             } elseif ($hasTenantIdParam) {
                 // Job accesses tenant data AND has tenant_id param → compliant
                 $this->assertEmpty(
                     $jobFindings,
-                    "Job with tenant_id parameter should NOT be flagged. "
-                        . "job={$uniqueJob}"
+                    'Job with tenant_id parameter should NOT be flagged. '
+                        ."job={$uniqueJob}"
                 );
             } else {
                 // Job accesses tenant data WITHOUT tenant_id param → MUST flag
                 $this->assertNotEmpty(
                     $jobFindings,
-                    "Job accessing tenant-scoped data WITHOUT tenant_id MUST be flagged. "
-                        . "job={$uniqueJob}, model={$tenantModel}"
+                    'Job accessing tenant-scoped data WITHOUT tenant_id MUST be flagged. '
+                        ."job={$uniqueJob}, model={$tenantModel}"
                 );
 
                 $finding = reset($jobFindings);
@@ -399,12 +399,12 @@ PHP;
     /**
      * Generate an EnforceTenantIsolation middleware stub with the given models in the whitelist.
      *
-     * @param string[] $modelNames Short model class names to include in the whitelist
+     * @param  string[]  $modelNames  Short model class names to include in the whitelist
      */
     private function generateMiddlewareStub(array $modelNames): string
     {
         $entries = array_map(
-            fn(string $name) => "            \\App\\Models\\{$name}::class,",
+            fn (string $name) => "            \\App\\Models\\{$name}::class,",
             $modelNames
         );
         $whitelistBody = implode("\n", $entries);
@@ -492,9 +492,9 @@ PHP;
 
         return match ($cacheOperation) {
             'Cache::remember' => "        return Cache::remember({$keyExpr}, 3600, function () {\n            return [];\n        });",
-            'Cache::put'      => "        Cache::put({$keyExpr}, ['value' => true], 3600);",
-            'Cache::get'      => "        return Cache::get({$keyExpr});",
-            default           => "        return Cache::remember({$keyExpr}, 3600, fn() => []);",
+            'Cache::put' => "        Cache::put({$keyExpr}, ['value' => true], 3600);",
+            'Cache::get' => "        return Cache::get({$keyExpr});",
+            default => "        return Cache::remember({$keyExpr}, 3600, fn() => []);",
         };
     }
 
@@ -510,7 +510,7 @@ PHP;
     ): string {
         $constructorParams = $hasTenantIdParam
             ? "        public readonly int \$tenantId,\n        public readonly string \$type,"
-            : "        public readonly string \$type,";
+            : '        public readonly string $type,';
 
         if ($accessesTenantData) {
             $handleBody = "        \$items = {$tenantModel}::where('status', 'active')->get();";
@@ -552,11 +552,11 @@ PHP;
      */
     private function cleanDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 
-        $files = glob($dir . '/*');
+        $files = glob($dir.'/*');
         if ($files === false) {
             return;
         }
@@ -573,7 +573,7 @@ PHP;
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

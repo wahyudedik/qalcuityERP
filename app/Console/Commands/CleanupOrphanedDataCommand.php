@@ -59,8 +59,8 @@ class CleanupOrphanedDataCommand extends Command
         OrphanedDataCleanupService $cleanupService,
         ?int $tenantId
     ): int {
-        $this->info("Scanning for orphaned records...");
-        $this->line("Tenant: " . ($tenantId ?? 'All'));
+        $this->info('Scanning for orphaned records...');
+        $this->line('Tenant: '.($tenantId ?? 'All'));
         $this->newLine();
 
         $results = $cleanupService->scanAll($tenantId);
@@ -87,12 +87,13 @@ class CleanupOrphanedDataCommand extends Command
                     ];
                 }
             } else {
-                $this->error("✗ {$type}: " . ($result['error'] ?? 'Unknown error'));
+                $this->error("✗ {$type}: ".($result['error'] ?? 'Unknown error'));
             }
         }
 
         if (empty($rows)) {
-            $this->info("✓ No orphaned records found!");
+            $this->info('✓ No orphaned records found!');
+
             return self::SUCCESS;
         }
 
@@ -102,9 +103,9 @@ class CleanupOrphanedDataCommand extends Command
         $this->warn("Total orphaned records found: {$totalOrphans}");
         $this->warn("Types with orphans: {$typesWithOrphans}");
         $this->newLine();
-        $this->line("Use <info>php artisan cleanup:orphaned --dry-run</info> to preview deletion");
+        $this->line('Use <info>php artisan cleanup:orphaned --dry-run</info> to preview deletion');
 
-        Log::info("Orphan scan completed", [
+        Log::info('Orphan scan completed', [
             'tenant_id' => $tenantId,
             'total_orphans' => $totalOrphans,
             'types_with_orphans' => $typesWithOrphans,
@@ -121,9 +122,9 @@ class CleanupOrphanedDataCommand extends Command
         ?int $tenantId,
         bool $dryRun
     ): int {
-        $this->info("Starting orphan cleanup...");
-        $this->line("Tenant: " . ($tenantId ?? 'All'));
-        $this->line("Mode: " . ($dryRun ? 'DRY RUN' : 'LIVE'));
+        $this->info('Starting orphan cleanup...');
+        $this->line('Tenant: '.($tenantId ?? 'All'));
+        $this->line('Mode: '.($dryRun ? 'DRY RUN' : 'LIVE'));
         $this->newLine();
 
         $results = $cleanupService->cleanupAll($tenantId, $dryRun);
@@ -146,7 +147,7 @@ class CleanupOrphanedDataCommand extends Command
                     }
                 }
             } else {
-                $this->error("✗ {$type}: " . ($result['error'] ?? 'Unknown error'));
+                $this->error("✗ {$type}: ".($result['error'] ?? 'Unknown error'));
                 $failed++;
             }
         }
@@ -154,10 +155,10 @@ class CleanupOrphanedDataCommand extends Command
         $this->newLine();
 
         if ($dryRun) {
-            $this->info("Dry run completed. No data was deleted.");
+            $this->info('Dry run completed. No data was deleted.');
             $this->line("Would delete <comment>{$totalDeleted}</comment> orphaned records total");
         } else {
-            $this->info("Orphan cleanup completed successfully!");
+            $this->info('Orphan cleanup completed successfully!');
             $this->line("Total deleted: <info>{$totalDeleted}</info> orphaned records");
 
             if ($failed > 0) {
@@ -165,7 +166,7 @@ class CleanupOrphanedDataCommand extends Command
             }
         }
 
-        Log::info("Orphan cleanup completed", [
+        Log::info('Orphan cleanup completed', [
             'tenant_id' => $tenantId,
             'dry_run' => $dryRun,
             'total_deleted' => $totalDeleted,
@@ -193,6 +194,7 @@ class CleanupOrphanedDataCommand extends Command
 
             if ($orphanCount === 0) {
                 $this->info("✓ No orphaned {$type} found");
+
                 return self::SUCCESS;
             }
 
@@ -200,6 +202,7 @@ class CleanupOrphanedDataCommand extends Command
 
             if ($dryRun) {
                 $this->info("Would delete {$orphanCount} orphaned {$type}");
+
                 return self::SUCCESS;
             }
 
@@ -209,15 +212,18 @@ class CleanupOrphanedDataCommand extends Command
             if ($result['success']) {
                 $deletedCount = $result['deleted_count'] ?? 0;
                 $this->info("Successfully deleted {$deletedCount} orphaned {$type}");
+
                 return self::SUCCESS;
             } else {
-                $this->error("Failed: " . ($result['message'] ?? 'Unknown error'));
+                $this->error('Failed: '.($result['message'] ?? 'Unknown error'));
+
                 return self::FAILURE;
             }
 
         } catch (\InvalidArgumentException $e) {
             $this->error($e->getMessage());
-            $this->line("Available types: " . implode(', ', $this->getAvailableTypes()));
+            $this->line('Available types: '.implode(', ', $this->getAvailableTypes()));
+
             return self::INVALID;
         }
     }
@@ -229,9 +235,9 @@ class CleanupOrphanedDataCommand extends Command
         OrphanedDataCleanupService $cleanupService,
         ?int $tenantId
     ): int {
-        $this->info("Generating Detailed Orphan Report");
-        $this->line("Generated at: " . now()->toIso8601String());
-        $this->line("Tenant: " . ($tenantId ?? 'All'));
+        $this->info('Generating Detailed Orphan Report');
+        $this->line('Generated at: '.now()->toIso8601String());
+        $this->line('Tenant: '.($tenantId ?? 'All'));
         $this->newLine();
 
         $report = $cleanupService->getDetailedReport($tenantId);
@@ -255,7 +261,8 @@ class CleanupOrphanedDataCommand extends Command
         }
 
         if (empty($rows)) {
-            $this->info("✓ Database is clean - no orphaned records detected!");
+            $this->info('✓ Database is clean - no orphaned records detected!');
+
             return self::SUCCESS;
         }
 

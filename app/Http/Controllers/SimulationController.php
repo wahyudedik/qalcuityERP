@@ -14,9 +14,7 @@ class SimulationController extends Controller
         return auth()->user()->tenant_id;
     }
 
-    public function __construct(protected SimulationService $service)
-    {
-    }
+    public function __construct(protected SimulationService $service) {}
 
     public function index()
     {
@@ -59,13 +57,14 @@ class SimulationController extends Controller
             return redirect()->route('simulations.show', $simulation)
                 ->with('success', 'Simulasi berhasil dihitung.');
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'Gagal menjalankan simulasi: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menjalankan simulasi: '.$e->getMessage());
         }
     }
 
     public function show(Simulation $simulation)
     {
         abort_if($simulation->tenant_id !== $this->tid(), 403);
+
         return view('simulations.show', compact('simulation'));
     }
 
@@ -73,6 +72,7 @@ class SimulationController extends Controller
     {
         abort_if($simulation->tenant_id !== $this->tid(), 403);
         $simulation->delete();
+
         return redirect()->route('simulations.index')->with('success', 'Simulasi dihapus.');
     }
 }

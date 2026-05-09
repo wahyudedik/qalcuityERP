@@ -73,16 +73,16 @@ class RateLimitApiRequests
         $planMultiplier = $this->getPlanMultiplier($request);
 
         return match ($limiterName) {
-            'api-read'         => Limit::perMinute((int) (60 * $planMultiplier)),
-            'api-write'        => Limit::perMinute((int) (20 * $planMultiplier)),
-            'api-default'      => Limit::perMinute((int) (60 * $planMultiplier)),
-            'webhook-inbound'  => Limit::perMinute(30),
-            'webhook-test'     => Limit::perMinute(5),
-            'pos-checkout'     => Limit::perMinute((int) (60 * $planMultiplier)),
-            'export'           => Limit::perMinute(10),
-            'import'           => Limit::perMinute(5),
-            'auth'             => Limit::perMinute(10),
-            default            => Limit::perMinute(60),
+            'api-read' => Limit::perMinute((int) (60 * $planMultiplier)),
+            'api-write' => Limit::perMinute((int) (20 * $planMultiplier)),
+            'api-default' => Limit::perMinute((int) (60 * $planMultiplier)),
+            'webhook-inbound' => Limit::perMinute(30),
+            'webhook-test' => Limit::perMinute(5),
+            'pos-checkout' => Limit::perMinute((int) (60 * $planMultiplier)),
+            'export' => Limit::perMinute(10),
+            'import' => Limit::perMinute(5),
+            'auth' => Limit::perMinute(10),
+            default => Limit::perMinute(60),
         };
     }
 
@@ -101,18 +101,18 @@ class RateLimitApiRequests
             $tenant = $request->user()->tenant;
         }
 
-        if (!$tenant) {
+        if (! $tenant) {
             return 1.0;
         }
 
         return match ($tenant->plan) {
-            'starter'      => 1.0,
-            'basic'        => 1.5,
-            'business'     => 2.0,
+            'starter' => 1.0,
+            'basic' => 1.5,
+            'business' => 2.0,
             'professional' => 3.0,
-            'pro'          => 3.0,
-            'enterprise'   => 10.0,
-            default        => 0.5, // trial
+            'pro' => 3.0,
+            'enterprise' => 10.0,
+            default => 0.5, // trial
         };
     }
 
@@ -134,27 +134,27 @@ class RateLimitApiRequests
         $retryAfter = RateLimiter::availableIn($key);
 
         $labels = [
-            'api-read'        => 'API read',
-            'api-write'       => 'API write',
-            'api-default'     => 'API',
+            'api-read' => 'API read',
+            'api-write' => 'API write',
+            'api-default' => 'API',
             'webhook-inbound' => 'Webhook',
-            'webhook-test'    => 'Webhook test',
-            'pos-checkout'    => 'POS checkout',
-            'export'          => 'Export',
-            'import'          => 'Import',
-            'auth'            => 'Authentication',
+            'webhook-test' => 'Webhook test',
+            'pos-checkout' => 'POS checkout',
+            'export' => 'Export',
+            'import' => 'Import',
+            'auth' => 'Authentication',
         ];
 
         $label = $labels[$limiterName] ?? 'Request';
 
         return response()->json([
-            'error'       => 'rate_limit_exceeded',
-            'message'     => "{$label} rate limit terlampaui. Coba lagi dalam {$retryAfter} detik.",
+            'error' => 'rate_limit_exceeded',
+            'message' => "{$label} rate limit terlampaui. Coba lagi dalam {$retryAfter} detik.",
             'retry_after' => $retryAfter,
         ], 429, [
-            'Retry-After'          => (string) $retryAfter,
-            'X-RateLimit-Limit'    => (string) $maxAttempts,
-            'X-RateLimit-Remaining'=> '0',
+            'Retry-After' => (string) $retryAfter,
+            'X-RateLimit-Limit' => (string) $maxAttempts,
+            'X-RateLimit-Remaining' => '0',
         ]);
     }
 }

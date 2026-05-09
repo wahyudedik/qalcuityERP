@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\ChartOfAccount;
 use App\Models\Invoice;
 use App\Models\InvoiceInstallment;
-use App\Models\Payable;
-use App\Models\ChartOfAccount;
 use App\Models\JournalEntryLine;
+use App\Models\Payable;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class CashFlowProjectionService
 {
@@ -25,7 +24,7 @@ class CashFlowProjectionService
      */
     public function project(int $tenantId, int $days = 90): array
     {
-        $today   = Carbon::today();
+        $today = Carbon::today();
         $endDate = $today->copy()->addDays($days - 1);
 
         // Opening cash balance from GL (kas/bank accounts)
@@ -36,24 +35,24 @@ class CashFlowProjectionService
 
         // Compute running balance
         $runningBalance = $openingBalance;
-        $daily          = [];
-        $totalInflow    = 0;
-        $totalOutflow   = 0;
+        $daily = [];
+        $totalInflow = 0;
+        $totalOutflow = 0;
 
         for ($d = 0; $d < $days; $d++) {
-            $date    = $today->copy()->addDays($d)->toDateString();
-            $inflow  = $dailyMap[$date]['inflow']  ?? 0;
+            $date = $today->copy()->addDays($d)->toDateString();
+            $inflow = $dailyMap[$date]['inflow'] ?? 0;
             $outflow = $dailyMap[$date]['outflow'] ?? 0;
-            $net     = $inflow - $outflow;
+            $net = $inflow - $outflow;
 
             $runningBalance += $net;
-            $totalInflow    += $inflow;
-            $totalOutflow   += $outflow;
+            $totalInflow += $inflow;
+            $totalOutflow += $outflow;
 
             $daily[$date] = [
-                'inflow'  => $inflow,
+                'inflow' => $inflow,
                 'outflow' => $outflow,
-                'net'     => $net,
+                'net' => $net,
                 'balance' => $runningBalance,
             ];
         }
@@ -63,21 +62,21 @@ class CashFlowProjectionService
 
         // Alerts
         $lowCashThreshold = max($openingBalance * 0.1, 1_000_000); // 10% of opening or 1jt
-        $alerts           = $this->buildAlerts($daily, $lowCashThreshold);
+        $alerts = $this->buildAlerts($daily, $lowCashThreshold);
 
         return [
-            'opening_balance'    => $openingBalance,
-            'weeks'              => $weeks,
-            'daily'              => $daily,
-            'totals'             => [
-                'inflow'  => $totalInflow,
+            'opening_balance' => $openingBalance,
+            'weeks' => $weeks,
+            'daily' => $daily,
+            'totals' => [
+                'inflow' => $totalInflow,
                 'outflow' => $totalOutflow,
-                'net'     => $totalInflow - $totalOutflow,
+                'net' => $totalInflow - $totalOutflow,
             ],
-            'alerts'             => $alerts,
+            'alerts' => $alerts,
             'low_cash_threshold' => $lowCashThreshold,
-            'days'               => $days,
-            'generated_at'       => now()->toDateTimeString(),
+            'days' => $days,
+            'generated_at' => now()->toDateTimeString(),
         ];
     }
 
@@ -90,8 +89,8 @@ class CashFlowProjectionService
             ->where('type', 'asset')
             ->where(function ($q) {
                 $q->whereRaw('LOWER(name) LIKE ?', ['%kas%'])
-                  ->orWhereRaw('LOWER(name) LIKE ?', ['%bank%'])
-                  ->orWhereRaw('LOWER(code) LIKE ?', ['1-1%']); // typical cash codes
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%bank%'])
+                    ->orWhereRaw('LOWER(code) LIKE ?', ['1-1%']); // typical cash codes
             })
             ->pluck('id');
 
@@ -99,7 +98,7 @@ class CashFlowProjectionService
             return 0;
         }
 
-        $debit  = JournalEntryLine::whereIn('account_id', $cashAccountIds)->sum('debit');
+        $debit = JournalEntryLine::whereIn('account_id', $cashAccountIds)->sum('debit');
         $credit = JournalEntryLine::whereIn('account_id', $cashAccountIds)->sum('credit');
 
         return max(0, (float) $debit - (float) $credit);
@@ -157,24 +156,24 @@ class CashFlowProjectionService
         $dates = array_keys($daily);
 
         foreach ($dates as $date) {
-            $d       = Carbon::parse($date);
+            $d = Carbon::parse($date);
             $weekNum = (int) $d->diffInWeeks($today);
-            $weekKey = 'week_' . $weekNum;
+            $weekKey = 'week_'.$weekNum;
 
-            if (!isset($weeks[$weekKey])) {
+            if (! isset($weeks[$weekKey])) {
                 $weeks[$weekKey] = [
-                    'label'   => 'Minggu ' . ($weekNum + 1) . ' (' . $d->copy()->startOfWeek()->format('d M') . ' - ' . $d->copy()->endOfWeek()->format('d M Y') . ')',
-                    'inflow'  => 0,
+                    'label' => 'Minggu '.($weekNum + 1).' ('.$d->copy()->startOfWeek()->format('d M').' - '.$d->copy()->endOfWeek()->format('d M Y').')',
+                    'inflow' => 0,
                     'outflow' => 0,
-                    'net'     => 0,
+                    'net' => 0,
                     'balance' => 0, // end-of-week balance
                 ];
             }
 
-            $weeks[$weekKey]['inflow']  += $daily[$date]['inflow'];
+            $weeks[$weekKey]['inflow'] += $daily[$date]['inflow'];
             $weeks[$weekKey]['outflow'] += $daily[$date]['outflow'];
-            $weeks[$weekKey]['net']     += $daily[$date]['net'];
-            $weeks[$weekKey]['balance']  = $daily[$date]['balance']; // last day of week
+            $weeks[$weekKey]['net'] += $daily[$date]['net'];
+            $weeks[$weekKey]['balance'] = $daily[$date]['balance']; // last day of week
         }
 
         return array_values($weeks);
@@ -182,32 +181,34 @@ class CashFlowProjectionService
 
     private function buildAlerts(array $daily, float $threshold): array
     {
-        $alerts        = [];
-        $deficitStart  = null;
-        $deficitDays   = 0;
+        $alerts = [];
+        $deficitStart = null;
+        $deficitDays = 0;
 
         foreach ($daily as $date => $data) {
             if ($data['balance'] < 0) {
-                if ($deficitStart === null) $deficitStart = $date;
+                if ($deficitStart === null) {
+                    $deficitStart = $date;
+                }
                 $deficitDays++;
             } else {
                 if ($deficitStart !== null) {
                     $alerts[] = [
-                        'type'    => 'deficit',
+                        'type' => 'deficit',
                         'message' => "Saldo negatif selama {$deficitDays} hari mulai {$deficitStart}",
-                        'date'    => $deficitStart,
-                        'days'    => $deficitDays,
+                        'date' => $deficitStart,
+                        'days' => $deficitDays,
                     ];
                     $deficitStart = null;
-                    $deficitDays  = 0;
+                    $deficitDays = 0;
                 }
 
                 if ($data['balance'] < $threshold && $data['balance'] >= 0) {
                     $alerts[] = [
-                        'type'    => 'low_cash',
-                        'message' => 'Saldo kas rendah pada ' . Carbon::parse($date)->format('d M Y') . ' (Rp ' . number_format($data['balance'], 0, ',', '.') . ')',
-                        'date'    => $date,
-                        'days'    => 0,
+                        'type' => 'low_cash',
+                        'message' => 'Saldo kas rendah pada '.Carbon::parse($date)->format('d M Y').' (Rp '.number_format($data['balance'], 0, ',', '.').')',
+                        'date' => $date,
+                        'days' => 0,
                     ];
                 }
             }
@@ -216,16 +217,16 @@ class CashFlowProjectionService
         // Close open deficit streak
         if ($deficitStart !== null) {
             $alerts[] = [
-                'type'    => 'deficit',
+                'type' => 'deficit',
                 'message' => "Saldo negatif selama {$deficitDays} hari mulai {$deficitStart}",
-                'date'    => $deficitStart,
-                'days'    => $deficitDays,
+                'date' => $deficitStart,
+                'days' => $deficitDays,
             ];
         }
 
         // Deduplicate low_cash (keep only first 5)
-        $lowCash = array_filter($alerts, fn($a) => $a['type'] === 'low_cash');
-        $deficit = array_filter($alerts, fn($a) => $a['type'] === 'deficit');
+        $lowCash = array_filter($alerts, fn ($a) => $a['type'] === 'low_cash');
+        $deficit = array_filter($alerts, fn ($a) => $a['type'] === 'deficit');
 
         return array_values(array_merge(
             array_values($deficit),

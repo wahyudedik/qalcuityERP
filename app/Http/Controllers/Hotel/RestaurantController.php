@@ -69,6 +69,7 @@ class RestaurantController extends Controller
     public function showOrder(int $id)
     {
         $order = FbOrder::with(['items.menuItem', 'guest', 'server'])->findOrFail($id);
+
         return view('hotel.fb.restaurant.orders.show', compact('order'));
     }
 

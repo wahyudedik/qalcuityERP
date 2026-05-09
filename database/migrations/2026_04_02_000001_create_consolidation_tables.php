@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Mapping COA antar tenant dalam group untuk konsolidasi
-        if (!Schema::hasTable('consolidation_account_mappings')) {
+        if (! Schema::hasTable('consolidation_account_mappings')) {
             Schema::create('consolidation_account_mappings', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -18,14 +19,14 @@ return new class extends Migration {
                 $table->string('mapping_type')->default('direct'); // direct, aggregate, eliminate
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'source_tenant_id'], 'consol_acct_map_group_tenant_idx');
                 $table->unique(['source_tenant_id', 'source_account_id'], 'consol_acct_map_tenant_acct_uniq');
             });
         }
 
         // Master COA untuk konsolidasi (shared across group)
-        if (!Schema::hasTable('consolidation_master_accounts')) {
+        if (! Schema::hasTable('consolidation_master_accounts')) {
             Schema::create('consolidation_master_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -39,13 +40,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->text('description')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'code']);
             });
         }
 
         // Elimination entries untuk transaksi intercompany
-        if (!Schema::hasTable('consolidation_eliminations')) {
+        if (! Schema::hasTable('consolidation_eliminations')) {
             Schema::create('consolidation_eliminations', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -58,13 +59,13 @@ return new class extends Migration {
                 $table->decimal('amount', 18, 2);
                 $table->string('status')->default('draft'); // draft, applied, cancelled
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'consolidation_report_id'], 'consol_elim_group_report_idx');
             });
         }
 
         // Detail elimination entries (debit/credit)
-        if (!Schema::hasTable('consolidation_elimination_lines')) {
+        if (! Schema::hasTable('consolidation_elimination_lines')) {
             Schema::create('consolidation_elimination_lines', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('elimination_id');
@@ -73,13 +74,13 @@ return new class extends Migration {
                 $table->decimal('credit', 18, 2)->default(0);
                 $table->text('description')->nullable();
                 $table->timestamps();
-    
+
                 $table->index('elimination_id');
             });
         }
 
         // Laporan konsolidasi yang di-generate
-        if (!Schema::hasTable('consolidation_reports')) {
+        if (! Schema::hasTable('consolidation_reports')) {
             Schema::create('consolidation_reports', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -93,13 +94,13 @@ return new class extends Migration {
                 $table->string('status')->default('draft'); // draft, finalized, archived
                 $table->timestamp('finalized_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'period_start', 'period_end'], 'consol_reports_group_period_idx');
             });
         }
 
         // Adjustments manual untuk konsolidasi
-        if (!Schema::hasTable('consolidation_adjustments')) {
+        if (! Schema::hasTable('consolidation_adjustments')) {
             Schema::create('consolidation_adjustments', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -111,13 +112,13 @@ return new class extends Migration {
                 $table->string('status')->default('draft'); // draft, posted
                 $table->timestamp('posted_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'consolidation_report_id'], 'consol_adj_group_report_idx');
             });
         }
 
         // Detail adjustment entries
-        if (!Schema::hasTable('consolidation_adjustment_lines')) {
+        if (! Schema::hasTable('consolidation_adjustment_lines')) {
             Schema::create('consolidation_adjustment_lines', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('adjustment_id');
@@ -126,13 +127,13 @@ return new class extends Migration {
                 $table->decimal('credit', 18, 2)->default(0);
                 $table->text('description')->nullable();
                 $table->timestamps();
-    
+
                 $table->index('adjustment_id');
             });
         }
 
         // Ownership percentages untuk partial consolidation
-        if (!Schema::hasTable('consolidation_ownership')) {
+        if (! Schema::hasTable('consolidation_ownership')) {
             Schema::create('consolidation_ownership', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -144,7 +145,7 @@ return new class extends Migration {
                 $table->string('consolidation_method'); // full, proportional, equity
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'parent_tenant_id']);
             });
         }

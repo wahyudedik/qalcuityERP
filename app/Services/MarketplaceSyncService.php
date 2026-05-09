@@ -40,30 +40,30 @@ class MarketplaceSyncService
             ->get();
 
         $successCount = 0;
-        $failedCount  = 0;
-        $errors       = [];
+        $failedCount = 0;
+        $errors = [];
 
         foreach ($mappings as $mapping) {
             try {
                 $qty = ProductStock::where('product_id', $mapping->product_id)->sum('quantity');
 
                 match ($channel->platform) {
-                    'shopee'    => $this->pushShopeeStock($channel, $mapping, (int) $qty),
+                    'shopee' => $this->pushShopeeStock($channel, $mapping, (int) $qty),
                     'tokopedia' => $this->pushTokopediaStock($channel, $mapping, (int) $qty),
-                    'lazada'    => $this->pushLazadaStock($channel, $mapping, (int) $qty),
-                    default     => throw new \RuntimeException("Unsupported platform: {$channel->platform}"),
+                    'lazada' => $this->pushLazadaStock($channel, $mapping, (int) $qty),
+                    default => throw new \RuntimeException("Unsupported platform: {$channel->platform}"),
                 };
 
                 $mapping->update(['last_stock_sync_at' => now()]);
                 $successCount++;
 
                 MarketplaceSyncLog::create([
-                    'tenant_id'  => $channel->tenant_id,
+                    'tenant_id' => $channel->tenant_id,
                     'channel_id' => $channel->id,
                     'mapping_id' => $mapping->id,
-                    'type'       => 'stock',
-                    'status'     => 'success',
-                    'payload'    => ['external_sku' => $mapping->external_sku, 'value' => $qty],
+                    'type' => 'stock',
+                    'status' => 'success',
+                    'payload' => ['external_sku' => $mapping->external_sku, 'value' => $qty],
                 ]);
             } catch (\Throwable $e) {
                 $failedCount++;
@@ -72,23 +72,23 @@ class MarketplaceSyncService
                 Log::error($msg);
 
                 MarketplaceSyncLog::create([
-                    'tenant_id'     => $channel->tenant_id,
-                    'channel_id'    => $channel->id,
-                    'mapping_id'    => $mapping->id,
-                    'type'          => 'stock',
-                    'status'        => 'failed',
+                    'tenant_id' => $channel->tenant_id,
+                    'channel_id' => $channel->id,
+                    'mapping_id' => $mapping->id,
+                    'type' => 'stock',
+                    'status' => 'failed',
                     'error_message' => $e->getMessage(),
                     'attempt_count' => 1,
                     'next_retry_at' => now()->addSeconds(10),
-                    'payload'       => ['external_sku' => $mapping->external_sku, 'value' => $qty ?? 0],
+                    'payload' => ['external_sku' => $mapping->external_sku, 'value' => $qty ?? 0],
                 ]);
             }
         }
 
         return [
             'success' => $successCount,
-            'failed'  => $failedCount,
-            'errors'  => $errors,
+            'failed' => $failedCount,
+            'errors' => $errors,
         ];
     }
 
@@ -108,30 +108,30 @@ class MarketplaceSyncService
             ->get();
 
         $successCount = 0;
-        $failedCount  = 0;
-        $errors       = [];
+        $failedCount = 0;
+        $errors = [];
 
         foreach ($mappings as $mapping) {
             try {
                 $price = $mapping->price_override ?? $mapping->product->price_sell;
 
                 match ($channel->platform) {
-                    'shopee'    => $this->pushShopeePrice($channel, $mapping, (float) $price),
+                    'shopee' => $this->pushShopeePrice($channel, $mapping, (float) $price),
                     'tokopedia' => $this->pushTokopediaPrice($channel, $mapping, (float) $price),
-                    'lazada'    => $this->pushLazadaPrice($channel, $mapping, (float) $price),
-                    default     => throw new \RuntimeException("Unsupported platform: {$channel->platform}"),
+                    'lazada' => $this->pushLazadaPrice($channel, $mapping, (float) $price),
+                    default => throw new \RuntimeException("Unsupported platform: {$channel->platform}"),
                 };
 
                 $mapping->update(['last_price_sync_at' => now()]);
                 $successCount++;
 
                 MarketplaceSyncLog::create([
-                    'tenant_id'  => $channel->tenant_id,
+                    'tenant_id' => $channel->tenant_id,
                     'channel_id' => $channel->id,
                     'mapping_id' => $mapping->id,
-                    'type'       => 'price',
-                    'status'     => 'success',
-                    'payload'    => ['external_sku' => $mapping->external_sku, 'value' => $price],
+                    'type' => 'price',
+                    'status' => 'success',
+                    'payload' => ['external_sku' => $mapping->external_sku, 'value' => $price],
                 ]);
             } catch (\Throwable $e) {
                 $failedCount++;
@@ -140,23 +140,23 @@ class MarketplaceSyncService
                 Log::error($msg);
 
                 MarketplaceSyncLog::create([
-                    'tenant_id'     => $channel->tenant_id,
-                    'channel_id'    => $channel->id,
-                    'mapping_id'    => $mapping->id,
-                    'type'          => 'price',
-                    'status'        => 'failed',
+                    'tenant_id' => $channel->tenant_id,
+                    'channel_id' => $channel->id,
+                    'mapping_id' => $mapping->id,
+                    'type' => 'price',
+                    'status' => 'failed',
                     'error_message' => $e->getMessage(),
                     'attempt_count' => 1,
                     'next_retry_at' => now()->addSeconds(10),
-                    'payload'       => ['external_sku' => $mapping->external_sku, 'value' => $price ?? 0],
+                    'payload' => ['external_sku' => $mapping->external_sku, 'value' => $price ?? 0],
                 ]);
             }
         }
 
         return [
             'success' => $successCount,
-            'failed'  => $failedCount,
-            'errors'  => $errors,
+            'failed' => $failedCount,
+            'errors' => $errors,
         ];
     }
 
@@ -165,7 +165,7 @@ class MarketplaceSyncService
     private function pushShopeeStock(EcommerceChannel $channel, EcommerceProductMapping $mapping, int $qty): void
     {
         $body = [
-            'item_id'   => (int) $mapping->external_product_id,
+            'item_id' => (int) $mapping->external_product_id,
             'stock_list' => [
                 [
                     'model_id' => 0,
@@ -177,7 +177,7 @@ class MarketplaceSyncService
         $response = $this->buildShopeeRequest($channel, '/api/v2/product/update_stock', $body);
 
         if (($response['error'] ?? '') !== '') {
-            throw new \RuntimeException("Shopee stock update error: " . ($response['message'] ?? json_encode($response)));
+            throw new \RuntimeException('Shopee stock update error: '.($response['message'] ?? json_encode($response)));
         }
     }
 
@@ -190,8 +190,8 @@ class MarketplaceSyncService
             'data' => [
                 [
                     'product_id' => (int) $mapping->external_product_id,
-                    'sku'        => $mapping->external_sku,
-                    'stock'      => $qty,
+                    'sku' => $mapping->external_sku,
+                    'stock' => $qty,
                     'warehouse_id' => 0,
                 ],
             ],
@@ -213,9 +213,9 @@ class MarketplaceSyncService
                     'Product' => [
                         'Skus' => [
                             [
-                                'ItemId'            => (int) $mapping->external_product_id,
-                                'SkuId'             => $mapping->external_sku,
-                                'quantity'          => $qty,
+                                'ItemId' => (int) $mapping->external_product_id,
+                                'SkuId' => $mapping->external_sku,
+                                'quantity' => $qty,
                             ],
                         ],
                     ],
@@ -226,7 +226,7 @@ class MarketplaceSyncService
         $response = $this->buildLazadaRequest($channel, $path, $body);
 
         if (($response['code'] ?? '0') !== '0') {
-            throw new \RuntimeException("Lazada stock update error: " . ($response['detail'] ?? json_encode($response)));
+            throw new \RuntimeException('Lazada stock update error: '.($response['detail'] ?? json_encode($response)));
         }
     }
 
@@ -235,10 +235,10 @@ class MarketplaceSyncService
     private function pushShopeePrice(EcommerceChannel $channel, EcommerceProductMapping $mapping, float $price): void
     {
         $body = [
-            'item_id'    => (int) $mapping->external_product_id,
+            'item_id' => (int) $mapping->external_product_id,
             'price_list' => [
                 [
-                    'model_id'      => 0,
+                    'model_id' => 0,
                     'original_price' => $price,
                 ],
             ],
@@ -247,7 +247,7 @@ class MarketplaceSyncService
         $response = $this->buildShopeeRequest($channel, '/api/v2/product/update_price', $body);
 
         if (($response['error'] ?? '') !== '') {
-            throw new \RuntimeException("Shopee price update error: " . ($response['message'] ?? json_encode($response)));
+            throw new \RuntimeException('Shopee price update error: '.($response['message'] ?? json_encode($response)));
         }
     }
 
@@ -260,8 +260,8 @@ class MarketplaceSyncService
             'data' => [
                 [
                     'product_id' => (int) $mapping->external_product_id,
-                    'sku'        => $mapping->external_sku,
-                    'price'      => $price,
+                    'sku' => $mapping->external_sku,
+                    'price' => $price,
                 ],
             ],
         ];
@@ -280,9 +280,9 @@ class MarketplaceSyncService
                     'Product' => [
                         'Skus' => [
                             [
-                                'ItemId'    => (int) $mapping->external_product_id,
-                                'SkuId'     => $mapping->external_sku,
-                                'price'     => $price,
+                                'ItemId' => (int) $mapping->external_product_id,
+                                'SkuId' => $mapping->external_sku,
+                                'price' => $price,
                             ],
                         ],
                     ],
@@ -293,7 +293,7 @@ class MarketplaceSyncService
         $response = $this->buildLazadaRequest($channel, $path, $body);
 
         if (($response['code'] ?? '0') !== '0') {
-            throw new \RuntimeException("Lazada price update error: " . ($response['detail'] ?? json_encode($response)));
+            throw new \RuntimeException('Lazada price update error: '.($response['detail'] ?? json_encode($response)));
         }
     }
 
@@ -309,32 +309,32 @@ class MarketplaceSyncService
      */
     private function buildShopeeRequest(EcommerceChannel $channel, string $path, array $body): array
     {
-        $partnerId   = (int) $channel->api_key;
-        $partnerKey  = $channel->api_secret;
-        $shopId      = (int) $channel->shop_id;
+        $partnerId = (int) $channel->api_key;
+        $partnerKey = $channel->api_secret;
+        $shopId = (int) $channel->shop_id;
         $accessToken = $channel->access_token;
 
-        if (!$partnerId || !$partnerKey || !$shopId || !$accessToken) {
+        if (! $partnerId || ! $partnerKey || ! $shopId || ! $accessToken) {
             throw new \RuntimeException("Shopee: missing credentials for channel #{$channel->id}");
         }
 
-        $timestamp  = time();
+        $timestamp = time();
         $baseString = "{$partnerId}{$path}{$timestamp}{$accessToken}{$shopId}";
-        $sign       = hash_hmac('sha256', $baseString, $partnerKey);
+        $sign = hash_hmac('sha256', $baseString, $partnerKey);
 
-        $url = 'https://partner.shopeemobile.com' . $path;
+        $url = 'https://partner.shopeemobile.com'.$path;
 
         $response = Http::timeout(30)->post($url, array_merge($body, [
-            'partner_id'   => $partnerId,
-            'timestamp'    => $timestamp,
+            'partner_id' => $partnerId,
+            'timestamp' => $timestamp,
             'access_token' => $accessToken,
-            'shop_id'      => $shopId,
-            'sign'         => $sign,
+            'shop_id' => $shopId,
+            'sign' => $sign,
         ]));
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException(
-                "Shopee HTTP {$response->status()} on {$path}: " . $response->body()
+                "Shopee HTTP {$response->status()} on {$path}: ".$response->body()
             );
         }
 
@@ -350,26 +350,26 @@ class MarketplaceSyncService
      */
     private function buildTokopediaRequest(EcommerceChannel $channel, string $path, array $body): array
     {
-        $clientId     = $channel->api_key;
+        $clientId = $channel->api_key;
         $clientSecret = $channel->api_secret;
 
-        if (!$clientId || !$clientSecret) {
+        if (! $clientId || ! $clientSecret) {
             throw new \RuntimeException("Tokopedia: missing credentials for channel #{$channel->id}");
         }
 
         $accessToken = $channel->access_token;
 
         // Obtain token via client credentials if not cached
-        if (!$accessToken) {
+        if (! $accessToken) {
             $tokenResponse = Http::withBasicAuth($clientId, $clientSecret)
                 ->asForm()
                 ->post('https://accounts.tokopedia.com/token', [
                     'grant_type' => 'client_credentials',
                 ]);
 
-            if (!$tokenResponse->successful()) {
+            if (! $tokenResponse->successful()) {
                 throw new \RuntimeException(
-                    "Tokopedia token error for channel #{$channel->id}: " . $tokenResponse->body()
+                    "Tokopedia token error for channel #{$channel->id}: ".$tokenResponse->body()
                 );
             }
 
@@ -379,11 +379,11 @@ class MarketplaceSyncService
             }
         }
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             throw new \RuntimeException("Tokopedia: could not obtain access token for channel #{$channel->id}");
         }
 
-        $url = 'https://fs.tokopedia.net' . $path;
+        $url = 'https://fs.tokopedia.net'.$path;
 
         $response = Http::withToken($accessToken)
             ->timeout(30)
@@ -395,9 +395,9 @@ class MarketplaceSyncService
             throw new \RuntimeException("Tokopedia: access token expired for channel #{$channel->id}");
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException(
-                "Tokopedia HTTP {$response->status()} on {$path}: " . $response->body()
+                "Tokopedia HTTP {$response->status()} on {$path}: ".$response->body()
             );
         }
 
@@ -411,25 +411,25 @@ class MarketplaceSyncService
      */
     private function buildLazadaRequest(EcommerceChannel $channel, string $path, array $body): array
     {
-        $appKey      = $channel->api_key;
+        $appKey = $channel->api_key;
         $accessToken = $channel->access_token;
 
-        if (!$appKey || !$accessToken) {
+        if (! $appKey || ! $accessToken) {
             throw new \RuntimeException("Lazada: missing credentials for channel #{$channel->id}");
         }
 
-        $url = 'https://api.lazada.co.id' . $path;
+        $url = 'https://api.lazada.co.id'.$path;
 
         $response = Http::withToken($accessToken)
             ->timeout(30)
             ->post($url, array_merge($body, [
-                'app_key'      => $appKey,
+                'app_key' => $appKey,
                 'access_token' => $accessToken,
             ]));
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException(
-                "Lazada HTTP {$response->status()} on {$path}: " . $response->body()
+                "Lazada HTTP {$response->status()} on {$path}: ".$response->body()
             );
         }
 

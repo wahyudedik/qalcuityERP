@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Restaurant Menus
-        if (!Schema::hasTable('restaurant_menus'))
+        if (! Schema::hasTable('restaurant_menus')) {
             Schema::create('restaurant_menus', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -24,9 +25,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'type', 'is_active']);
             });
+        }
 
         // Menu Items
-        if (!Schema::hasTable('menu_items'))
+        if (! Schema::hasTable('menu_items')) {
             Schema::create('menu_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -50,9 +52,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'menu_id', 'is_available']);
             });
+        }
 
         // Food & Beverage Orders
-        if (!Schema::hasTable('fb_orders'))
+        if (! Schema::hasTable('fb_orders')) {
             Schema::create('fb_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -84,9 +87,10 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'order_type', 'status']);
                 $table->index(['tenant_id', 'room_number', 'ordered_at']);
             });
+        }
 
         // Order Items
-        if (!Schema::hasTable('fb_order_items'))
+        if (! Schema::hasTable('fb_order_items')) {
             Schema::create('fb_order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -102,9 +106,10 @@ return new class extends Migration {
 
                 $table->index(['order_id', 'status']);
             });
+        }
 
         // Mini-bar Inventory
-        if (!Schema::hasTable('minibar_inventories'))
+        if (! Schema::hasTable('minibar_inventories')) {
             Schema::create('minibar_inventories', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -120,9 +125,10 @@ return new class extends Migration {
                 $table->unique(['tenant_id', 'room_number', 'menu_item_id']);
                 $table->index(['tenant_id', 'room_number']);
             });
+        }
 
         // Mini-bar Transactions (charges to guest)
-        if (!Schema::hasTable('minibar_transactions'))
+        if (! Schema::hasTable('minibar_transactions')) {
             Schema::create('minibar_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -140,9 +146,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'reservation_id', 'consumption_date'], 'minibar_tx_tenant_res_date_idx');
             });
+        }
 
         // Banquet/Event Bookings
-        if (!Schema::hasTable('banquet_events'))
+        if (! Schema::hasTable('banquet_events')) {
             Schema::create('banquet_events', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -176,9 +183,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'event_date', 'status']);
             });
+        }
 
         // Banquet Event Orders (BEO) - Detailed catering orders
-        if (!Schema::hasTable('banquet_event_orders'))
+        if (! Schema::hasTable('banquet_event_orders')) {
             Schema::create('banquet_event_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -193,9 +201,10 @@ return new class extends Migration {
 
                 $table->index(['banquet_event_id']);
             });
+        }
 
         // Tables (for restaurant management)
-        if (!Schema::hasTable('restaurant_tables'))
+        if (! Schema::hasTable('restaurant_tables')) {
             Schema::create('restaurant_tables', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -210,9 +219,10 @@ return new class extends Migration {
                 $table->unique(['tenant_id', 'table_number']);
                 $table->index(['tenant_id', 'status']);
             });
+        }
 
         // Table Reservations
-        if (!Schema::hasTable('table_reservations'))
+        if (! Schema::hasTable('table_reservations')) {
             Schema::create('table_reservations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -230,6 +240,7 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'reservation_date', 'status']);
             });
+        }
     }
 
     public function down(): void

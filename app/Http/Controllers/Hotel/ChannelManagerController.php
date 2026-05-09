@@ -38,7 +38,7 @@ class ChannelManagerController extends Controller
         $tid = $this->tenantId();
 
         // Validate channel
-        if (!in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
+        if (! in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
             abort(404, 'Channel not supported.');
         }
 
@@ -53,7 +53,7 @@ class ChannelManagerController extends Controller
         $tid = $this->tenantId();
 
         // Validate channel
-        if (!in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
+        if (! in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
             abort(404, 'Channel not supported.');
         }
 
@@ -90,7 +90,7 @@ class ChannelManagerController extends Controller
         $tid = $this->tenantId();
 
         // Validate channel
-        if (!in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
+        if (! in_array($channel, ChannelManagerService::SUPPORTED_CHANNELS)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Channel not supported.',
@@ -100,7 +100,7 @@ class ChannelManagerController extends Controller
         try {
             $result = $this->channelService->syncAll($tid, $channel);
 
-            ActivityLog::record('channel_sync', "Channel sync: {$channel} - " . ($result['success'] ? 'Success' : 'Failed'));
+            ActivityLog::record('channel_sync', "Channel sync: {$channel} - ".($result['success'] ? 'Success' : 'Failed'));
 
             return response()->json($result);
         } catch (\Exception $e) {

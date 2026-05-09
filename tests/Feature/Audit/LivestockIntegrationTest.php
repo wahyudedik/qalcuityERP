@@ -2,17 +2,16 @@
 
 namespace Tests\Feature\Audit;
 
+use App\Models\AccountingPeriod;
 use App\Models\ChartOfAccount;
+use App\Models\DairyMilkRecord;
+use App\Models\LivestockFeedLog;
 use App\Models\LivestockHerd;
 use App\Models\LivestockMovement;
-use App\Models\LivestockFeedLog;
-use App\Models\DairyMilkRecord;
 use App\Models\PoultryEggProduction;
-use App\Models\WasteManagementLog;
-use App\Models\AccountingPeriod;
-use App\Models\JournalEntry;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\WasteManagementLog;
 use App\Services\LivestockIntegrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,7 +25,9 @@ class LivestockIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
+
     protected LivestockIntegrationService $service;
 
     protected function setUp(): void
@@ -40,7 +41,7 @@ class LivestockIntegrationTest extends TestCase
         // Create accounting period
         AccountingPeriod::create([
             'tenant_id' => $this->tenant->id,
-            'name' => 'Period ' . now()->format('Y-m'),
+            'name' => 'Period '.now()->format('Y-m'),
             'start_date' => now()->startOfMonth(),
             'end_date' => now()->endOfMonth(),
             'status' => 'open',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Livestock;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnimalPedigree;
 use App\Models\BreedingRecord;
 use App\Models\LivestockHerd;
 use Illuminate\Http\Request;
@@ -66,7 +67,7 @@ class BreedingController extends Controller
         ]);
 
         try {
-            $record = new BreedingRecord();
+            $record = new BreedingRecord;
             $record->tenant_id = auth()->user()->tenant_id;
             $record->fill($validated);
             $record->status = 'pending';
@@ -84,7 +85,7 @@ class BreedingController extends Controller
      */
     public function pedigrees(Request $request)
     {
-        $pedigrees = \App\Models\AnimalPedigree::where('tenant_id', auth()->user()->tenant_id)
+        $pedigrees = AnimalPedigree::where('tenant_id', auth()->user()->tenant_id)
             ->orderBy('breed')
             ->orderBy('birth_date', 'desc')
             ->paginate(20);
@@ -114,7 +115,7 @@ class BreedingController extends Controller
         ]);
 
         try {
-            $pedigree = new \App\Models\AnimalPedigree();
+            $pedigree = new AnimalPedigree;
             $pedigree->tenant_id = auth()->user()->tenant_id;
             $pedigree->fill($validated);
             $pedigree->save();

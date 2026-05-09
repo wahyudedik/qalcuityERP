@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
-use App\Models\PatientVisit;
 use App\Models\PatientAllergy;
-use App\Models\PatientInsurance;
 use App\Services\PatientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,7 +89,7 @@ class PatientController extends Controller
         $patient = $this->patientService->createPatient($validated);
 
         return redirect()->route('healthcare.patients.show', $patient)
-            ->with('success', 'Patient registered successfully. Medical Record Number: ' . $patient->medical_record_number);
+            ->with('success', 'Patient registered successfully. Medical Record Number: '.$patient->medical_record_number);
     }
 
     /**
@@ -183,6 +181,7 @@ class PatientController extends Controller
         } else {
             // Auto search
             $patients = $this->patientService->searchPatients($query, [], 10);
+
             return view('healthcare.patients.search', compact('patients', 'query'));
         }
 
@@ -280,9 +279,9 @@ class PatientController extends Controller
      */
     public function downloadQrCode(Patient $patient)
     {
-        $qrPath = 'patients/qr/' . $patient->qr_code . '.json';
+        $qrPath = 'patients/qr/'.$patient->qr_code.'.json';
 
-        if (!Storage::disk('public')->exists($qrPath)) {
+        if (! Storage::disk('public')->exists($qrPath)) {
             $this->patientService->generateQrCode($patient);
         }
 
@@ -290,7 +289,7 @@ class PatientController extends Controller
 
         return response($content, 200)
             ->header('Content-Type', 'application/json')
-            ->header('Content-Disposition', 'attachment; filename="patient-' . $patient->medical_record_number . '-qr.json"');
+            ->header('Content-Disposition', 'attachment; filename="patient-'.$patient->medical_record_number.'-qr.json"');
     }
 
     /**

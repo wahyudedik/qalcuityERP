@@ -6,12 +6,10 @@ use App\Models\CompetitorRate;
 use App\Models\RoomType;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 /**
  * CompetitorRateTrackingService - Monitor and analyze competitor pricing
- * 
+ *
  * Features:
  * - Manual rate entry
  * - Rate comparison analysis
@@ -288,10 +286,10 @@ class CompetitorRateTrackingService
                 'end' => $endDate->format('Y-m-d'),
             ],
             'total_issues' => count($parityIssues),
-            'high_severity' => count(array_filter($parityIssues, fn($i) => $i['severity'] === 'high')),
-            'medium_severity' => count(array_filter($parityIssues, fn($i) => $i['severity'] === 'medium')),
-            'overpriced_count' => count(array_filter($parityIssues, fn($i) => $i['issue_type'] === 'overpriced')),
-            'underpriced_count' => count(array_filter($parityIssues, fn($i) => $i['issue_type'] === 'underpriced')),
+            'high_severity' => count(array_filter($parityIssues, fn ($i) => $i['severity'] === 'high')),
+            'medium_severity' => count(array_filter($parityIssues, fn ($i) => $i['severity'] === 'medium')),
+            'overpriced_count' => count(array_filter($parityIssues, fn ($i) => $i['issue_type'] === 'overpriced')),
+            'underpriced_count' => count(array_filter($parityIssues, fn ($i) => $i['issue_type'] === 'underpriced')),
             'issues' => $parityIssues,
         ];
     }
@@ -447,7 +445,7 @@ class CompetitorRateTrackingService
 
         return [
             'alert_count' => count($alerts),
-            'high_priority' => count(array_filter($alerts, fn($a) => $a['severity'] === 'high')),
+            'high_priority' => count(array_filter($alerts, fn ($a) => $a['severity'] === 'high')),
             'alerts' => $alerts,
         ];
     }
@@ -462,7 +460,7 @@ class CompetitorRateTrackingService
             ->with('recordedBy')
             ->get();
 
-        $data = $rates->map(fn($r) => [
+        $data = $rates->map(fn ($r) => [
             'competitor_name' => $r->competitor_name,
             'source' => $r->source,
             'rate_date' => $r->rate_date,

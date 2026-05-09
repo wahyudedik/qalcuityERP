@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AgentAuditLog;
 use App\Models\ChatSession;
 use App\Models\ProactiveInsight;
+use App\Models\User;
 use App\Services\Agent\AgentExecutor;
 use App\Services\Agent\AgentOrchestrator;
 use App\Services\Agent\ProactiveInsightEngine;
@@ -28,10 +29,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class AgentController extends Controller
 {
     public function __construct(
-        private readonly AgentOrchestrator    $orchestrator,
-        private readonly AgentExecutor        $executor,
+        private readonly AgentOrchestrator $orchestrator,
+        private readonly AgentExecutor $executor,
         private readonly ProactiveInsightEngine $insightEngine,
-        private readonly AiMemoryService      $memoryService,
+        private readonly AiMemoryService $memoryService,
     ) {}
 
     /**
@@ -43,13 +44,13 @@ class AgentController extends Controller
     public function send(Request $request): JsonResponse
     {
         $request->validate([
-            'message'    => 'required|string|max:4000',
+            'message' => 'required|string|max:4000',
             'session_id' => 'nullable|integer|exists:chat_sessions,id',
-            'confirmed'  => 'nullable|boolean',
+            'confirmed' => 'nullable|boolean',
         ]);
 
-        $user      = $request->user();
-        $session   = $this->resolveSession($user, $request->session_id);
+        $user = $request->user();
+        $session = $this->resolveSession($user, $request->session_id);
         $confirmed = (bool) $request->input('confirmed', false);
 
         try {
@@ -71,20 +72,20 @@ class AgentController extends Controller
 
             return response()->json([
                 'session_id' => $session->id,
-                'events'     => $events,
-                'summary'    => $summary['data'] ?? null,
+                'events' => $events,
+                'summary' => $summary['data'] ?? null,
             ]);
 
         } catch (\Throwable $e) {
             Log::error('AgentController::send error', [
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'session_id' => $session->id,
-                'user_id'    => $user->id,
+                'user_id' => $user->id,
             ]);
 
             return response()->json([
-                'error'   => true,
-                'code'    => 'AGENT_ERROR',
+                'error' => true,
+                'code' => 'AGENT_ERROR',
                 'message' => $e->getMessage() ?: 'Terjadi kesalahan pada agent.',
             ], 500);
         }
@@ -102,15 +103,15 @@ class AgentController extends Controller
     public function stream(Request $request): StreamedResponse
     {
         $request->validate([
-            'message'    => 'required|string|max:4000',
+            'message' => 'required|string|max:4000',
             'session_id' => 'nullable|integer|exists:chat_sessions,id',
-            'confirmed'  => 'nullable|boolean',
+            'confirmed' => 'nullable|boolean',
         ]);
 
-        $user      = $request->user();
-        $session   = $this->resolveSession($user, $request->session_id);
+        $user = $request->user();
+        $session = $this->resolveSession($user, $request->session_id);
         $confirmed = (bool) $request->input('confirmed', false);
-        $message   = $request->message;
+        $message = $request->message;
 
         return response()->stream(function () use ($user, $session, $confirmed, $message) {
             // Kirim acknowledgment segera (< 2 detik) — Requirement 7.6
@@ -130,21 +131,21 @@ class AgentController extends Controller
 
             } catch (\Throwable $e) {
                 Log::error('AgentController::stream error', [
-                    'error'      => $e->getMessage(),
+                    'error' => $e->getMessage(),
                     'session_id' => $session->id,
-                    'user_id'    => $user->id,
+                    'user_id' => $user->id,
                 ]);
 
                 $this->sseEvent('error', [
-                    'code'    => 'STREAM_ERROR',
+                    'code' => 'STREAM_ERROR',
                     'message' => $e->getMessage() ?: 'Terjadi kesalahan pada streaming agent.',
                 ]);
             }
         }, 200, [
-            'Content-Type'      => 'text/event-stream',
-            'Cache-Control'     => 'no-cache',
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
-            'Connection'        => 'keep-alive',
+            'Connection' => 'keep-alive',
         ]);
     }
 
@@ -159,23 +160,23 @@ class AgentController extends Controller
     {
         $request->validate([
             'session_id' => 'required|integer|exists:chat_sessions,id',
-            'message'    => 'nullable|string|max:4000',
+            'message' => 'nullable|string|max:4000',
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
         $session = $this->findUserSession($user, $request->session_id);
 
-        if (!$session) {
+        if (! $session) {
             return response()->json([
-                'error'   => true,
-                'code'    => 'SESSION_NOT_FOUND',
+                'error' => true,
+                'code' => 'SESSION_NOT_FOUND',
                 'message' => 'Session tidak ditemukan atau tidak memiliki akses.',
             ], 404);
         }
 
         // Ambil pesan dari active_plan jika tidak ada pesan baru
         $activePlan = $session->active_plan;
-        $message    = $request->input('message', $activePlan['goal'] ?? 'Lanjutkan eksekusi.');
+        $message = $request->input('message', $activePlan['goal'] ?? 'Lanjutkan eksekusi.');
 
         try {
             $generator = $this->orchestrator->handle(
@@ -194,19 +195,19 @@ class AgentController extends Controller
 
             return response()->json([
                 'session_id' => $session->id,
-                'events'     => $events,
-                'summary'    => $summary['data'] ?? null,
+                'events' => $events,
+                'summary' => $summary['data'] ?? null,
             ]);
 
         } catch (\Throwable $e) {
             Log::error('AgentController::confirm error', [
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'session_id' => $session->id,
             ]);
 
             return response()->json([
-                'error'   => true,
-                'code'    => 'CONFIRM_ERROR',
+                'error' => true,
+                'code' => 'CONFIRM_ERROR',
                 'message' => $e->getMessage() ?: 'Gagal melanjutkan eksekusi.',
             ], 500);
         }
@@ -225,13 +226,13 @@ class AgentController extends Controller
             'session_id' => 'required|integer|exists:chat_sessions,id',
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
         $session = $this->findUserSession($user, $request->session_id);
 
-        if (!$session) {
+        if (! $session) {
             return response()->json([
-                'error'   => true,
-                'code'    => 'SESSION_NOT_FOUND',
+                'error' => true,
+                'code' => 'SESSION_NOT_FOUND',
                 'message' => 'Session tidak ditemukan atau tidak memiliki akses.',
             ], 404);
         }
@@ -239,9 +240,9 @@ class AgentController extends Controller
         $this->orchestrator->cancel($session);
 
         return response()->json([
-            'success'    => true,
+            'success' => true,
             'session_id' => $session->id,
-            'message'    => 'Eksekusi berhasil dibatalkan.',
+            'message' => 'Eksekusi berhasil dibatalkan.',
         ]);
     }
 
@@ -256,10 +257,10 @@ class AgentController extends Controller
     {
         $request->validate([
             'session_id' => 'nullable|integer|exists:chat_sessions,id',
-            'log_id'     => 'nullable|integer|exists:agent_audit_logs,id',
+            'log_id' => 'nullable|integer|exists:agent_audit_logs,id',
         ]);
 
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
         // Cari audit log yang akan di-undo
@@ -291,28 +292,28 @@ class AgentController extends Controller
             $auditLog = $query->first();
         }
 
-        if (!$auditLog) {
+        if (! $auditLog) {
             return response()->json([
-                'error'   => true,
-                'code'    => 'NO_UNDOABLE_ACTION',
+                'error' => true,
+                'code' => 'NO_UNDOABLE_ACTION',
                 'message' => 'Tidak ada aksi yang dapat di-undo dalam 5 menit terakhir.',
             ], 404);
         }
 
-        $registry  = new ToolRegistry($tenantId, $user->id);
+        $registry = new ToolRegistry($tenantId, $user->id);
         $undoResult = $this->executor->undo($auditLog, $registry);
 
-        if (!$undoResult->success) {
+        if (! $undoResult->success) {
             return response()->json([
-                'error'   => true,
-                'code'    => 'UNDO_FAILED',
+                'error' => true,
+                'code' => 'UNDO_FAILED',
                 'message' => $undoResult->message,
             ], 422);
         }
 
         return response()->json([
-            'success'       => true,
-            'message'       => $undoResult->message,
+            'success' => true,
+            'message' => $undoResult->message,
             'restored_data' => $undoResult->restoredData,
         ]);
     }
@@ -326,25 +327,25 @@ class AgentController extends Controller
      */
     public function insights(Request $request): JsonResponse
     {
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return response()->json(['insights' => []]);
         }
 
         $insights = $this->insightEngine->getPendingInsights($tenantId, $user->id);
 
         return response()->json([
-            'insights' => array_map(fn($insight) => [
-                'id'              => $insight->id,
-                'condition_type'  => $insight->condition_type,
-                'urgency'         => $insight->urgency,
-                'title'           => $insight->title,
-                'description'     => $insight->description,
+            'insights' => array_map(fn ($insight) => [
+                'id' => $insight->id,
+                'condition_type' => $insight->condition_type,
+                'urgency' => $insight->urgency,
+                'title' => $insight->title,
+                'description' => $insight->description,
                 'business_impact' => $insight->business_impact,
                 'recommendations' => $insight->recommendations,
-                'created_at'      => $insight->created_at?->toIso8601String(),
+                'created_at' => $insight->created_at?->toIso8601String(),
             ], $insights),
             'count' => count($insights),
         ]);
@@ -363,17 +364,17 @@ class AgentController extends Controller
             'reason' => 'nullable|string|in:dismissed,handled',
         ]);
 
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
         $insight = ProactiveInsight::where('id', $id)
             ->where('tenant_id', $tenantId)
             ->first();
 
-        if (!$insight) {
+        if (! $insight) {
             return response()->json([
-                'error'   => true,
-                'code'    => 'INSIGHT_NOT_FOUND',
+                'error' => true,
+                'code' => 'INSIGHT_NOT_FOUND',
                 'message' => 'Insight tidak ditemukan.',
             ], 404);
         }
@@ -396,10 +397,10 @@ class AgentController extends Controller
      */
     public function memory(Request $request): JsonResponse
     {
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return response()->json(['preferences' => [], 'suggestions' => []]);
         }
 
@@ -421,10 +422,10 @@ class AgentController extends Controller
      */
     public function clearMemory(Request $request): JsonResponse
     {
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return response()->json([
                 'success' => true,
                 'deleted' => 0,
@@ -446,7 +447,7 @@ class AgentController extends Controller
     /**
      * Resolve atau buat session baru untuk user.
      */
-    private function resolveSession(\App\Models\User $user, ?int $sessionId): ChatSession
+    private function resolveSession(User $user, ?int $sessionId): ChatSession
     {
         if ($sessionId) {
             $session = ChatSession::where('id', $sessionId)
@@ -460,19 +461,19 @@ class AgentController extends Controller
 
         // Buat session baru dengan tipe agent
         return ChatSession::create([
-            'user_id'          => $user->id,
-            'tenant_id'        => $user->tenant_id,
-            'title'            => 'Agent Session',
-            'session_type'     => 'agent',
+            'user_id' => $user->id,
+            'tenant_id' => $user->tenant_id,
+            'title' => 'Agent Session',
+            'session_type' => 'agent',
             'execution_status' => null,
-            'is_cancelled'     => false,
+            'is_cancelled' => false,
         ]);
     }
 
     /**
      * Cari session milik user (tanpa membuat baru).
      */
-    private function findUserSession(\App\Models\User $user, int $sessionId): ?ChatSession
+    private function findUserSession(User $user, int $sessionId): ?ChatSession
     {
         return ChatSession::where('id', $sessionId)
             ->where('user_id', $user->id)
@@ -486,7 +487,7 @@ class AgentController extends Controller
     private function sseEvent(string $event, array $data): void
     {
         echo "event: {$event}\n";
-        echo 'data: ' . json_encode($data, JSON_UNESCAPED_UNICODE) . "\n\n";
+        echo 'data: '.json_encode($data, JSON_UNESCAPED_UNICODE)."\n\n";
 
         if (ob_get_level() > 0) {
             ob_flush();

@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\FbOrder;
 use App\Models\FbSupply;
-use App\Models\RecipeIngredient;
 use App\Models\FbSupplyTransaction;
+use App\Models\MenuItem;
+use App\Models\RecipeIngredient;
 use Illuminate\Support\Facades\DB;
 
 class FbInventoryService
@@ -28,8 +29,9 @@ class FbInventoryService
 
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                if (!$item->menuItem)
+                if (! $item->menuItem) {
                     continue;
+                }
 
                 // Get recipe ingredients for this menu item
                 $ingredients = RecipeIngredient::where('menu_item_id', $item->menu_item_id)
@@ -97,8 +99,9 @@ class FbInventoryService
         $purchaseOrders = [];
 
         foreach ($suppliers as $supplierName => $supplies) {
-            if (empty($supplierName))
+            if (empty($supplierName)) {
                 continue;
+            }
 
             $poItems = [];
             $totalEstimatedCost = 0;
@@ -143,7 +146,7 @@ class FbInventoryService
      */
     public function checkMenuAvailability(): array
     {
-        $menuItems = \App\Models\MenuItem::where('tenant_id', $this->tenantId)
+        $menuItems = MenuItem::where('tenant_id', $this->tenantId)
             ->where('is_available', true)
             ->with('recipeIngredients.supply')
             ->get();
@@ -202,7 +205,7 @@ class FbInventoryService
             $totalValue += $value;
 
             $category = $supply->category_id ?? 'Uncategorized';
-            if (!isset($byCategory[$category])) {
+            if (! isset($byCategory[$category])) {
                 $byCategory[$category] = [
                     'category' => $category,
                     'total_value' => 0,
@@ -223,7 +226,7 @@ class FbInventoryService
                     ->where('is_active', true)
                     ->whereColumn('current_stock', '<=', 'minimum_stock')
                     ->get()
-                    ->sum(fn($s) => $s->inventory_value),
+                    ->sum(fn ($s) => $s->inventory_value),
                 2
             ),
         ];

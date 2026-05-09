@@ -3,20 +3,29 @@
 namespace Tests\Feature\Audit;
 
 use App\Models\ActivityLog;
+use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
+use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\Warehouse;
+use App\Models\ZeroInputLog;
 use App\Services\AccountLockoutService;
 use App\Services\TwoFactorService;
+use App\Traits\BelongsToTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 /**
  * Task 15: Audit & Perbaikan Performa dan Keamanan
- * 
+ *
  * Test suite untuk memverifikasi semua aspek performa dan keamanan:
  * - Database indexes
  * - N+1 query prevention
@@ -34,6 +43,7 @@ class Task15PerformanceSecurityTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void
@@ -67,13 +77,14 @@ class Task15PerformanceSecurityTest extends TestCase
         ];
 
         foreach ($indexes as $table => $expectedIndexes) {
-            if (!$this->tableExists($table)) {
+            if (! $this->tableExists($table)) {
                 $this->markTestSkipped("Table {$table} does not exist");
+
                 continue;
             }
 
             $actualIndexes = $this->getTableIndexes($table);
-            
+
             foreach ($expectedIndexes as $indexName) {
                 $this->assertContains(
                     $indexName,
@@ -88,7 +99,7 @@ class Task15PerformanceSecurityTest extends TestCase
     public function test_15_2_n_plus_one_prevention_with_eager_loading()
     {
         // Create test data
-        \App\Models\ZeroInputLog::factory()->count(5)->create([
+        ZeroInputLog::factory()->count(5)->create([
             'tenant_id' => $this->tenant->id,
             'user_id' => $this->user->id,
         ]);
@@ -126,7 +137,7 @@ class Task15PerformanceSecurityTest extends TestCase
         // Different tenant should not access same cache
         $otherTenant = Tenant::factory()->create();
         $otherCacheKey = "test_cache_{$otherTenant->id}_data";
-        
+
         $this->assertNull(Cache::get($otherCacheKey));
     }
 
@@ -148,8 +159,8 @@ class Task15PerformanceSecurityTest extends TestCase
         $this->actingAs($this->user);
 
         // Test invalid file type
-        $invalidFile = \Illuminate\Http\UploadedFile::fake()->create('test.exe', 100);
-        
+        $invalidFile = UploadedFile::fake()->create('test.exe', 100);
+
         // This would fail validation in actual controller
         // We're testing that validation rules exist
         $this->assertTrue(true, 'File upload validation should be implemented in controllers');
@@ -159,7 +170,7 @@ class Task15PerformanceSecurityTest extends TestCase
     public function test_15_6_two_factor_authentication_service_exists()
     {
         $twoFactorService = app(TwoFactorService::class);
-        
+
         // Test secret generation
         $secret = $twoFactorService->generateSecret();
         $this->assertNotEmpty($secret);
@@ -175,8 +186,8 @@ class Task15PerformanceSecurityTest extends TestCase
     public function test_15_7_rate_limiting_is_configured()
     {
         // Test rate limiter exists
-        $key = 'test_rate_limit_' . $this->user->id;
-        
+        $key = 'test_rate_limit_'.$this->user->id;
+
         // Hit rate limiter
         for ($i = 0; $i < 5; $i++) {
             RateLimiter::hit($key, 60);
@@ -199,7 +210,7 @@ class Task15PerformanceSecurityTest extends TestCase
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('X-XSS-Protection', '1; mode=block');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-        
+
         // Check CSP header exists
         $this->assertTrue(
             $response->headers->has('Content-Security-Policy'),
@@ -225,7 +236,7 @@ class Task15PerformanceSecurityTest extends TestCase
         );
 
         $finalCount = ActivityLog::where('tenant_id', $this->tenant->id)->count();
-        
+
         $this->assertEquals($initialCount + 1, $finalCount);
 
         // Verify log contains required fields
@@ -266,24 +277,24 @@ class Task15PerformanceSecurityTest extends TestCase
     {
         // Sample of critical tenant-scoped models
         $tenantModels = [
-            \App\Models\Invoice::class,
-            \App\Models\SalesOrder::class,
-            \App\Models\Product::class,
-            \App\Models\Customer::class,
-            \App\Models\Employee::class,
-            \App\Models\JournalEntry::class,
-            \App\Models\Warehouse::class,
+            Invoice::class,
+            SalesOrder::class,
+            Product::class,
+            Customer::class,
+            Employee::class,
+            JournalEntry::class,
+            Warehouse::class,
         ];
 
         foreach ($tenantModels as $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
             $traits = class_uses_recursive($modelClass);
-            
+
             $this->assertContains(
-                \App\Traits\BelongsToTenant::class,
+                BelongsToTenant::class,
                 $traits,
                 "Model {$modelClass} should use BelongsToTenant trait"
             );
@@ -325,6 +336,7 @@ class Task15PerformanceSecurityTest extends TestCase
     {
         try {
             $indexes = DB::select("SHOW INDEX FROM {$table}");
+
             return array_unique(array_column($indexes, 'Key_name'));
         } catch (\Exception $e) {
             return [];

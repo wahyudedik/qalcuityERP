@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessBankStatementJournals;
+use App\Models\ActivityLog;
 use App\Models\BankAccount;
 use App\Models\BankStatement;
-use App\Models\ActivityLog;
+use App\Models\ChartOfAccount;
+use App\Models\JournalEntryLine;
+use App\Services\BankFormatParser;
 use App\Services\BankReconciliationAiService;
 use App\Services\BankStatementAutoJournalService;
-use App\Services\BankFormatParser;
 use App\Services\BankStatementPdfParser;
-use App\Jobs\ProcessBankStatementJournals;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -19,8 +21,7 @@ class BankReconciliationController extends Controller
     public function __construct(
         private BankReconciliationAiService $ai,
         private BankStatementAutoJournalService $journalService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -67,15 +68,15 @@ class BankReconciliationController extends Controller
         // Unmatched transactions from ERP (journal entries with kas/bank accounts) for manual matching
         $unmatchedErp = collect();
         if ($request->filled('account_id') || $statements->where('status', 'unmatched')->count() > 0) {
-            $cashAccountIds = \App\Models\ChartOfAccount::where('tenant_id', $tenantId)
+            $cashAccountIds = ChartOfAccount::where('tenant_id', $tenantId)
                 ->whereIn('code', ['1101', '1102'])
                 ->pluck('id');
 
             if ($cashAccountIds->isNotEmpty()) {
-                $unmatchedErp = \App\Models\JournalEntryLine::whereIn('account_id', $cashAccountIds)
+                $unmatchedErp = JournalEntryLine::whereIn('account_id', $cashAccountIds)
                     ->whereHas(
                         'journalEntry',
-                        fn($q) => $q
+                        fn ($q) => $q
                             ->where('tenant_id', $tenantId)
                             ->where('status', 'posted')
                     )
@@ -83,7 +84,7 @@ class BankReconciliationController extends Controller
                     ->orderByDesc('id')
                     ->limit(100)
                     ->get()
-                    ->map(fn($line) => [
+                    ->map(fn ($line) => [
                         'id' => $line->journalEntry->id,
                         'number' => $line->journalEntry->number,
                         'date' => $line->journalEntry->date->format('Y-m-d'),
@@ -118,15 +119,15 @@ class BankReconciliationController extends Controller
 
             if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png'])) {
                 // Use PDF/OCR Parser
-                $pdfParser = new BankStatementPdfParser();
+                $pdfParser = new BankStatementPdfParser;
                 $parsedStatements = $pdfParser->parse($file);
 
                 $this->logInfo('PDF/OCR parsing completed', [
-                    'statements_count' => count($parsedStatements)
+                    'statements_count' => count($parsedStatements),
                 ]);
             } else {
                 // Use CSV Parser
-                $parser = new BankFormatParser();
+                $parser = new BankFormatParser;
                 $parsedStatements = $parser->parse($file, $bankFormat);
             }
 
@@ -187,7 +188,7 @@ class BankReconciliationController extends Controller
                 'account_id' => $account->id,
             ]);
 
-            return back()->with('error', 'Gagal mengimpor file: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengimpor file: '.$e->getMessage());
         }
     }
 
@@ -199,7 +200,7 @@ class BankReconciliationController extends Controller
         try {
             Log::info($message, $context);
         } catch (\Throwable $e) {
-            error_log("INFO: {$message} - " . json_encode($context));
+            error_log("INFO: {$message} - ".json_encode($context));
         }
     }
 
@@ -208,7 +209,8 @@ class BankReconciliationController extends Controller
      */
     public function getBankFormats()
     {
-        $parser = new BankFormatParser();
+        $parser = new BankFormatParser;
+
         return response()->json([
             'banks' => $parser->getSupportedBanks(),
             'samples' => [
@@ -228,13 +230,13 @@ class BankReconciliationController extends Controller
     {
         $allowedBanks = ['bca', 'mandiri', 'bni', 'bri', 'generic'];
 
-        if (!in_array($bank, $allowedBanks)) {
+        if (! in_array($bank, $allowedBanks)) {
             abort(404, 'Sample tidak tersedia');
         }
 
         $samplePath = storage_path("app/bank_samples/{$bank}_sample.csv");
 
-        if (!file_exists($samplePath)) {
+        if (! file_exists($samplePath)) {
             abort(404, 'File sample tidak ditemukan');
         }
 
@@ -245,6 +247,7 @@ class BankReconciliationController extends Controller
     {
         abort_if($statement->tenant_id !== $this->tenantId(), 403);
         $statement->update(['status' => 'matched', 'matched_transaction_id' => $request->transaction_id]);
+
         return back()->with('success', 'Transaksi berhasil dicocokkan.');
     }
 
@@ -253,6 +256,7 @@ class BankReconciliationController extends Controller
     public function aiMatchAll()
     {
         $results = $this->ai->matchAll($this->tenantId());
+
         return response()->json($results);
     }
 
@@ -260,6 +264,7 @@ class BankReconciliationController extends Controller
     {
         abort_if($statement->tenant_id !== $this->tenantId(), 403);
         $statement->load('bankAccount');
+
         return response()->json($this->ai->matchStatement($statement, $this->tenantId()));
     }
 
@@ -269,6 +274,7 @@ class BankReconciliationController extends Controller
         $request->validate(['transaction_id' => 'required|integer']);
         $this->ai->applyMatch($statement, $request->transaction_id);
         ActivityLog::record('bank_ai_match', "AI match: statement #{$statement->id} → transaksi #{$request->transaction_id}");
+
         return response()->json(['ok' => true]);
     }
 
@@ -287,11 +293,11 @@ class BankReconciliationController extends Controller
 
             // Validate
             $errors = $preview->validate();
-            if (!empty($errors)) {
+            if (! empty($errors)) {
                 return response()->json([
                     'success' => false,
                     'errors' => $errors,
-                    'preview' => $preview->toArray()
+                    'preview' => $preview->toArray(),
                 ], 422);
             }
 
@@ -300,19 +306,19 @@ class BankReconciliationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Journal berhasil digenerate',
-                'preview' => $preview->toArray()
+                'preview' => $preview->toArray(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('AI journal generation failed', [
                 'statement_id' => $statement->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal generate journal: ' . $e->getMessage()
+                'message' => 'Gagal generate journal: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -326,7 +332,7 @@ class BankReconciliationController extends Controller
         $request->validate([
             'statement_ids' => 'required|array',
             'statement_ids.*' => 'required|integer|exists:bank_statements,id',
-            'auto_post' => 'boolean'
+            'auto_post' => 'boolean',
         ]);
 
         $tenantId = $this->tenantId();
@@ -341,7 +347,7 @@ class BankReconciliationController extends Controller
         if ($statements->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak ada statement yang valid'
+                'message' => 'Tidak ada statement yang valid',
             ], 422);
         }
 
@@ -362,19 +368,19 @@ class BankReconciliationController extends Controller
                 'message' => "Bulk generation completed: {$results['summary']['success']} success, {$results['summary']['failed']} failed",
                 'summary' => $results['summary'],
                 'journals' => $results['journals'],
-                'failed' => $results['failed']
+                'failed' => $results['failed'],
             ]);
 
         } catch (\Exception $e) {
             Log::error('AI bulk journal generation failed', [
                 'statement_ids' => $request->statement_ids,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal bulk generate: ' . $e->getMessage()
+                'message' => 'Gagal bulk generate: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -392,18 +398,18 @@ class BankReconciliationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'preview' => $preview->toArray()
+                'preview' => $preview->toArray(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('AI journal preview failed', [
                 'statement_id' => $statement->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal preview journal: ' . $e->getMessage()
+                'message' => 'Gagal preview journal: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -428,7 +434,7 @@ class BankReconciliationController extends Controller
             if (empty($results['success'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal generate journal'
+                    'message' => 'Gagal generate journal',
                 ], 422);
             }
 
@@ -444,19 +450,19 @@ class BankReconciliationController extends Controller
                 'success' => true,
                 'message' => 'Journal berhasil di-approve dan di-post',
                 'journal_id' => $journalId,
-                'journal_number' => $journalNumber
+                'journal_number' => $journalNumber,
             ]);
 
         } catch (\Exception $e) {
             Log::error('AI journal approve & post failed', [
                 'statement_id' => $statement->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal approve & post: ' . $e->getMessage()
+                'message' => 'Gagal approve & post: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -469,7 +475,7 @@ class BankReconciliationController extends Controller
     {
         $request->validate([
             'statement_ids' => 'required|array',
-            'statement_ids.*' => 'required|integer|exists:bank_statements,id'
+            'statement_ids.*' => 'required|integer|exists:bank_statements,id',
         ]);
 
         $tenantId = $this->tenantId();
@@ -484,7 +490,7 @@ class BankReconciliationController extends Controller
         if ($statements->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak ada statement yang valid untuk di-approve'
+                'message' => 'Tidak ada statement yang valid untuk di-approve',
             ], 422);
         }
 
@@ -510,19 +516,19 @@ class BankReconciliationController extends Controller
                 'success_count' => $successCount,
                 'failed_count' => $failedCount,
                 'journals' => $results['success'] ?? [],
-                'errors' => $results['failed'] ?? []
+                'errors' => $results['failed'] ?? [],
             ]);
 
         } catch (\Exception $e) {
             Log::error('AI bulk journal approve failed', [
                 'statement_ids' => $request->statement_ids,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal bulk approve: ' . $e->getMessage()
+                'message' => 'Gagal bulk approve: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -537,7 +543,7 @@ class BankReconciliationController extends Controller
     {
         $request->validate([
             'auto_post' => 'boolean',
-            'account_id' => 'nullable|integer'
+            'account_id' => 'nullable|integer',
         ]);
 
         $tenantId = $this->tenantId();
@@ -558,7 +564,7 @@ class BankReconciliationController extends Controller
         if ($statements->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak ada statement yang perlu diproses'
+                'message' => 'Tidak ada statement yang perlu diproses',
             ], 422);
         }
 
@@ -583,7 +589,7 @@ class BankReconciliationController extends Controller
             'success' => true,
             'message' => "Background job dimulai untuk {$statements->count()} statements",
             'job_id' => $jobId,
-            'total_statements' => $statements->count()
+            'total_statements' => $statements->count(),
         ]);
     }
 
@@ -595,16 +601,16 @@ class BankReconciliationController extends Controller
     {
         $progress = ProcessBankStatementJournals::getProgress($jobId);
 
-        if (!$progress) {
+        if (! $progress) {
             return response()->json([
                 'success' => false,
-                'message' => 'Job tidak ditemukan atau sudah expired'
+                'message' => 'Job tidak ditemukan atau sudah expired',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'progress' => $progress
+            'progress' => $progress,
         ]);
     }
 
@@ -616,16 +622,16 @@ class BankReconciliationController extends Controller
     {
         $results = ProcessBankStatementJournals::getResults($jobId);
 
-        if (!$results) {
+        if (! $results) {
             return response()->json([
                 'success' => false,
-                'message' => 'Results tidak ditemukan atau sudah expired'
+                'message' => 'Results tidak ditemukan atau sudah expired',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'results' => $results
+            'results' => $results,
         ]);
     }
 
@@ -639,7 +645,7 @@ class BankReconciliationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Job data cleaned up'
+            'message' => 'Job data cleaned up',
         ]);
     }
 }

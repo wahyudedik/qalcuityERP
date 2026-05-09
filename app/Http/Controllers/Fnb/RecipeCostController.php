@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Fnb;
 
 use App\Http\Controllers\Controller;
-use App\Models\MenuItem;
 use App\Models\Recipe;
+use App\Models\RecipeIngredient;
 use App\Services\RecipeCostCalculatorService;
 use Illuminate\Http\Request;
 
@@ -125,7 +125,7 @@ class RecipeCostController extends Controller
         $validated['tenant_id'] = auth()->user()->tenant_id;
         $validated['recipe_id'] = $recipe->id;
 
-        \App\Models\RecipeIngredient::create($validated);
+        RecipeIngredient::create($validated);
 
         return back()->with('success', 'Ingredient added successfully');
     }
@@ -133,7 +133,7 @@ class RecipeCostController extends Controller
     /**
      * Update recipe ingredient
      */
-    public function updateIngredient(Request $request, \App\Models\RecipeIngredient $ingredient)
+    public function updateIngredient(Request $request, RecipeIngredient $ingredient)
     {
         $this->authorizeAccess($ingredient);
 
@@ -151,7 +151,7 @@ class RecipeCostController extends Controller
     /**
      * Delete recipe ingredient
      */
-    public function deleteIngredient(\App\Models\RecipeIngredient $ingredient)
+    public function deleteIngredient(RecipeIngredient $ingredient)
     {
         $this->authorizeAccess($ingredient);
 

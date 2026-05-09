@@ -2,15 +2,18 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessQueuedExport;
 use App\Models\ExportJob;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Service untuk handle large exports dengan queuing
- * 
+ *
  * BUG-REP-002 FIX: Prevents PHP timeout on 100K+ row exports
  * by queueing exports and providing progress tracking
  */
@@ -18,21 +21,21 @@ class ExportService
 {
     /**
      * Queue an export job and return job ID for progress tracking
-     * 
-     * @param string $exportClass Export class to instantiate
-     * @param array $constructorArgs Constructor arguments for export class
-     * @param string $filename Output filename
-     * @param string $disk Storage disk (default: public)
+     *
+     * @param  string  $exportClass  Export class to instantiate
+     * @param  array  $constructorArgs  Constructor arguments for export class
+     * @param  string  $filename  Output filename
+     * @param  string  $disk  Storage disk (default: public)
      * @return string Job ID for tracking progress
      */
     public function queueExport(string $exportClass, array $constructorArgs, string $filename, string $disk = 'public'): string
     {
-        $jobId = (string) \Illuminate\Support\Str::uuid();
+        $jobId = (string) Str::uuid();
         $userId = Auth::id();
         $tenantId = Auth::user()->tenant_id ?? 0;
 
         // Use tenant-isolated file path for storage security (Bug 1.26 fix)
-        $fileUuid = (string) \Illuminate\Support\Str::uuid();
+        $fileUuid = (string) Str::uuid();
         $extension = pathinfo($filename, PATHINFO_EXTENSION) ?: 'xlsx';
         $isolatedFilePath = "exports/{$tenantId}/{$fileUuid}.{$extension}";
 
@@ -61,7 +64,7 @@ class ExportService
         ], now()->addHours(24));
 
         // Dispatch queued export job
-        dispatch(new \App\Jobs\ProcessQueuedExport(
+        dispatch(new ProcessQueuedExport(
             $jobId,
             $exportClass,
             $constructorArgs,
@@ -76,9 +79,6 @@ class ExportService
 
     /**
      * Get export progress by job ID
-     * 
-     * @param string $jobId
-     * @return array
      */
     public function getProgress(string $jobId): array
     {
@@ -92,7 +92,7 @@ class ExportService
         // Fallback to database
         $exportJob = ExportJob::where('job_id', $jobId)->first();
 
-        if (!$exportJob) {
+        if (! $exportJob) {
             return [
                 'status' => 'not_found',
                 'message' => 'Export job not found',
@@ -114,13 +114,6 @@ class ExportService
 
     /**
      * Update export progress (called by job)
-     * 
-     * @param string $jobId
-     * @param string $status
-     * @param int $totalRows
-     * @param int $processedRows
-     * @param string $message
-     * @param array $extra
      */
     public function updateProgress(
         string $jobId,
@@ -166,21 +159,18 @@ class ExportService
 
     /**
      * Check if export should use queue (based on estimated row count)
-     * 
-     * @param int $estimatedRows
-     * @return bool
      */
     public function shouldQueue(int $estimatedRows): bool
     {
         $threshold = config('excel.exports.queue_threshold', 5000);
+
         return $estimatedRows > $threshold;
     }
 
     /**
      * Get estimated row count for a query
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return int
+     *
+     * @param  Builder  $query
      */
     public function estimateRowCount($query): int
     {
@@ -188,6 +178,7 @@ class ExportService
             return $query->count();
         } catch (\Throwable $e) {
             \Log::warning('Failed to estimate row count', ['error' => $e->getMessage()]);
+
             return 0;
         }
     }
@@ -198,8 +189,7 @@ class ExportService
      * Validates that the requesting user's tenant_id matches the export job's tenant_id
      * to prevent cross-tenant file access.
      *
-     * @param string $jobId
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @return BinaryFileResponse
      */
     public function downloadExport(string $jobId)
     {
@@ -216,14 +206,14 @@ class ExportService
 
         $exportJob = $query->first();
 
-        if (!$exportJob) {
+        if (! $exportJob) {
             abort(404, 'File export tidak ditemukan atau Anda tidak memiliki akses.');
         }
 
         $filePath = $exportJob->file_path;
         $disk = $exportJob->disk ?? 'public';
 
-        if (!Storage::disk($disk)->exists($filePath)) {
+        if (! Storage::disk($disk)->exists($filePath)) {
             abort(404, 'File export tidak ditemukan.');
         }
 
@@ -232,8 +222,7 @@ class ExportService
 
     /**
      * Clean up old export jobs and files
-     * 
-     * @param int $daysOld
+     *
      * @return int Number of jobs cleaned up
      */
     public function cleanupOldExports(int $daysOld = 7): int

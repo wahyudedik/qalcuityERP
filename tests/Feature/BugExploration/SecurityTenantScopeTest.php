@@ -3,7 +3,11 @@
 namespace Tests\Feature\BugExploration;
 
 use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
 use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Traits\BelongsToTenant;
@@ -26,8 +30,11 @@ class SecurityTenantScopeTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenantA;
+
     private Tenant $tenantB;
+
     private User $userA;
+
     private User $userB;
 
     protected function setUp(): void
@@ -82,7 +89,7 @@ class SecurityTenantScopeTest extends TestCase
         $this->assertContains(
             $customerA->id,
             $customerIds,
-            "Customer tenant A seharusnya ada dalam hasil query"
+            'Customer tenant A seharusnya ada dalam hasil query'
         );
 
         // Assert: Customer tenant B tidak boleh muncul
@@ -91,8 +98,8 @@ class SecurityTenantScopeTest extends TestCase
         $this->assertEquals(
             0,
             $tenantBCustomers->count(),
-            "Bug 1.24: Customer dari tenant B muncul dalam query Customer::all() " .
-            "yang dijalankan sebagai userA. TenantScope tidak berfungsi dengan benar."
+            'Bug 1.24: Customer dari tenant B muncul dalam query Customer::all() '.
+            'yang dijalankan sebagai userA. TenantScope tidak berfungsi dengan benar.'
         );
     }
 
@@ -105,23 +112,23 @@ class SecurityTenantScopeTest extends TestCase
     public function test_critical_models_use_belongs_to_tenant_trait(): void
     {
         $criticalModels = [
-            \App\Models\Customer::class,
-            \App\Models\Product::class,
-            \App\Models\SalesOrder::class,
-            \App\Models\Invoice::class,
-            \App\Models\JournalEntry::class,
-            \App\Models\Employee::class,
+            Customer::class,
+            Product::class,
+            SalesOrder::class,
+            Invoice::class,
+            JournalEntry::class,
+            Employee::class,
         ];
 
         $missingTrait = [];
 
         foreach ($criticalModels as $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
             $traits = class_uses_recursive($modelClass);
-            if (!in_array(BelongsToTenant::class, $traits)) {
+            if (! in_array(BelongsToTenant::class, $traits)) {
                 $missingTrait[] = $modelClass;
             }
         }
@@ -129,9 +136,9 @@ class SecurityTenantScopeTest extends TestCase
         // Test ini AKAN GAGAL jika ada model kritis yang tidak menggunakan trait
         $this->assertEmpty(
             $missingTrait,
-            "Bug 1.24: Model-model berikut tidak menggunakan BelongsToTenant trait:\n" .
-            implode("\n", $missingTrait) . "\n" .
-            "Model-model ini rentan terhadap kebocoran data antar tenant."
+            "Bug 1.24: Model-model berikut tidak menggunakan BelongsToTenant trait:\n".
+            implode("\n", $missingTrait)."\n".
+            'Model-model ini rentan terhadap kebocoran data antar tenant.'
         );
     }
 
@@ -167,8 +174,8 @@ class SecurityTenantScopeTest extends TestCase
         $this->assertGreaterThanOrEqual(
             2,
             $customers->count(),
-            "Bug 1.24: BelongsToTenant scope memfilter data saat tidak ada user login. " .
-            "Scope seharusnya skip filter untuk CLI/job context."
+            'Bug 1.24: BelongsToTenant scope memfilter data saat tidak ada user login. '.
+            'Scope seharusnya skip filter untuk CLI/job context.'
         );
     }
 }

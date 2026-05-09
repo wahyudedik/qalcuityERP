@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TourPackage extends Model
 {
@@ -93,6 +92,7 @@ class TourPackage extends Model
         }
 
         $profit = $this->price_per_person - $this->cost_per_person;
+
         return round(($profit / $this->price_per_person) * 100, 2);
     }
 
@@ -182,7 +182,7 @@ class TourPackage extends Model
 
     public function canBook(): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 

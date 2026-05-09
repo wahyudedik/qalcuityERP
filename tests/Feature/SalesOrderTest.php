@@ -2,29 +2,32 @@
 
 namespace Tests\Feature;
 
+use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
-use App\Models\ProductStock;
 use App\Models\SalesOrder;
-use App\Models\StockMovement;
 use Tests\TestCase;
 
 class SalesOrderTest extends TestCase
 {
     private $tenant;
+
     private $user;
+
     private $customer;
+
     private $product;
+
     private $warehouse;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tenant    = $this->createTenant();
-        $this->user      = $this->createAdminUser($this->tenant);
-        $this->customer  = $this->createCustomer($this->tenant->id);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
+        $this->customer = $this->createCustomer($this->tenant->id);
         $this->warehouse = $this->createWarehouse($this->tenant->id);
-        $this->product   = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
+        $this->product = $this->createProduct($this->tenant->id, ['price_sell' => 100000]);
         $this->setStock($this->product->id, $this->warehouse->id, 50);
         $this->seedCoa($this->tenant->id);
     }
@@ -36,12 +39,12 @@ class SalesOrderTest extends TestCase
         $this->actingAs($this->user);
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $this->customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $this->customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 5, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -51,25 +54,25 @@ class SalesOrderTest extends TestCase
 
         // SO tersimpan
         $this->assertDatabaseHas('sales_orders', [
-            'tenant_id'   => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'customer_id' => $this->customer->id,
-            'status'      => 'confirmed',
-            'total'       => 500000,
+            'status' => 'confirmed',
+            'total' => 500000,
         ]);
 
         // Stok berkurang dari 50 → 45
         $this->assertDatabaseHas('product_stocks', [
-            'product_id'   => $this->product->id,
+            'product_id' => $this->product->id,
             'warehouse_id' => $this->warehouse->id,
-            'quantity'     => 45,
+            'quantity' => 45,
         ]);
 
         // Stock movement tercatat
         $this->assertDatabaseHas('stock_movements', [
-            'tenant_id'   => $this->tenant->id,
-            'product_id'  => $this->product->id,
-            'type'        => 'out',
-            'quantity'    => 5,
+            'tenant_id' => $this->tenant->id,
+            'product_id' => $this->product->id,
+            'type' => 'out',
+            'quantity' => 5,
         ]);
     }
 
@@ -78,12 +81,12 @@ class SalesOrderTest extends TestCase
         $this->actingAs($this->user);
 
         $this->post(route('sales.store'), [
-            'customer_id'  => $this->customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $this->customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 2, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -118,11 +121,11 @@ class SalesOrderTest extends TestCase
         $this->actingAs($this->user);
 
         $this->post(route('sales.store'), [
-            'customer_id'  => $this->customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $this->customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'cash',
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 1, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -145,17 +148,17 @@ class SalesOrderTest extends TestCase
     public function test_still_creates_so_even_when_coa_missing(): void
     {
         // Hapus semua COA — GL akan gagal tapi SO tetap harus berhasil
-        \App\Models\ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
+        ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
 
         $this->actingAs($this->user);
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $this->customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $this->customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 1, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -180,12 +183,12 @@ class SalesOrderTest extends TestCase
         $this->actingAs($this->user);
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $this->customer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $this->customer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 10, 'price' => 100000, 'discount' => 0],
             ],
         ]);
@@ -195,24 +198,24 @@ class SalesOrderTest extends TestCase
         // Stok tidak berubah
         $this->assertDatabaseHas('product_stocks', [
             'product_id' => $this->product->id,
-            'quantity'   => 2,
+            'quantity' => 2,
         ]);
     }
 
     public function test_rejects_so_from_other_tenant(): void
     {
-        $otherTenant    = $this->createTenant();
-        $otherCustomer  = $this->createCustomer($otherTenant->id);
+        $otherTenant = $this->createTenant();
+        $otherCustomer = $this->createCustomer($otherTenant->id);
 
         $this->actingAs($this->user);
 
         $response = $this->post(route('sales.store'), [
-            'customer_id'  => $otherCustomer->id,
-            'date'         => today()->toDateString(),
+            'customer_id' => $otherCustomer->id,
+            'date' => today()->toDateString(),
             'payment_type' => 'credit',
-            'due_date'     => today()->addDays(30)->toDateString(),
+            'due_date' => today()->addDays(30)->toDateString(),
             'warehouse_id' => $this->warehouse->id,
-            'items'        => [
+            'items' => [
                 ['product_id' => $this->product->id, 'quantity' => 1, 'price' => 100000, 'discount' => 0],
             ],
         ]);

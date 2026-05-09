@@ -13,16 +13,17 @@ class AuditPermissionsCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:permissions {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run permission and route authorization audit.';
 
     public function handle(PermissionAnalyzer $permissionAnalyzer, RouteAnalyzer $routeAnalyzer): int
     {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($permissionAnalyzer->analyze());
         $report->addAll($routeAnalyzer->analyze());
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

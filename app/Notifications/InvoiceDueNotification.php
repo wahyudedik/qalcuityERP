@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\TelecomInvoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class InvoiceDueNotification extends Notification implements ShouldQueue
@@ -21,24 +22,24 @@ class InvoiceDueNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'invoice_due', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $dueDate = $this->invoice->due_date->format('d/m/Y');
-        $amount = 'Rp ' . number_format($this->invoice->total_amount, 0, ',', '.');
+        $amount = 'Rp '.number_format($this->invoice->total_amount, 0, ',', '.');
 
         return (new MailMessage)
             ->subject("⚠️ Tagihan Jatuh Tempo dalam {$this->daysUntilDue} Hari")

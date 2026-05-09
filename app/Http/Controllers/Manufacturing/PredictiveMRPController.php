@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Services\Manufacturing\PredictiveMRPService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class PredictiveMRPController extends Controller
 {
@@ -63,11 +64,11 @@ class PredictiveMRPController extends Controller
 
         // Clear cache
         $cacheKey = "predictive_mrp_forecast_{$tenantId}_{$months}_{$productId}";
-        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        Cache::forget($cacheKey);
 
         // Regenerate
         $forecast = $this->predictiveService->forecastDemand($tenantId, $months, $productId);
 
-        return back()->with('success', 'Forecast refreshed successfully using ' . ($forecast['model'] === 'gemini-2.5-flash' ? 'AI' : 'Statistical') . ' model.');
+        return back()->with('success', 'Forecast refreshed successfully using '.($forecast['model'] === 'gemini-2.5-flash' ? 'AI' : 'Statistical').' model.');
     }
 }

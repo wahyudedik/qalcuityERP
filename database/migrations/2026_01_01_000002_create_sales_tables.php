@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('customers')) {
+        if (! Schema::hasTable('customers')) {
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -23,7 +24,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('quotations')) {
+        if (! Schema::hasTable('quotations')) {
             Schema::create('quotations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -42,7 +43,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('quotation_items')) {
+        if (! Schema::hasTable('quotation_items')) {
             Schema::create('quotation_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('quotation_id')->constrained()->cascadeOnDelete();
@@ -56,7 +57,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('sales_orders')) {
+        if (! Schema::hasTable('sales_orders')) {
             Schema::create('sales_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -78,7 +79,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('sales_order_items')) {
+        if (! Schema::hasTable('sales_order_items')) {
             Schema::create('sales_order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete();

@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RevenueSnapshot extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -80,7 +80,7 @@ class RevenueSnapshot extends Model
             ->where('snapshot_date', $this->snapshot_date->copy()->subDay())
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return ['direction' => 'neutral', 'change' => 0];
         }
 
@@ -113,7 +113,7 @@ class RevenueSnapshot extends Model
     /**
      * Get average metrics for a period
      */
-    public static function getPeriodAverages(int $tenantId, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate): array
+    public static function getPeriodAverages(int $tenantId, Carbon $startDate, Carbon $endDate): array
     {
         $stats = static::where('tenant_id', $tenantId)
             ->whereBetween('snapshot_date', [$startDate, $endDate])

@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Customer;
+use App\Traits\DispatchesWebhooks;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     // tenantId() inherited from parent Controller
 
@@ -19,7 +20,7 @@ class CustomerController extends Controller
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")
                 ->orWhere('company', 'like', "%$s%")
                 ->orWhere('email', 'like', "%$s%")
                 ->orWhere('phone', 'like', "%$s%"));
@@ -116,7 +117,7 @@ class CustomerController extends Controller
 
             return back()->with('success', "Berhasil: {$affected} customer {$actionLabels[$action]}");
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal melakukan bulk action: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal melakukan bulk action: '.$e->getMessage()]);
         }
     }
 
@@ -179,7 +180,7 @@ class CustomerController extends Controller
     {
         abort_unless($customer->tenant_id === $this->tenantId(), 403);
 
-        $customer->update(['is_active' => !$customer->is_active]);
+        $customer->update(['is_active' => ! $customer->is_active]);
         $status = $customer->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
         ActivityLog::record('customer_toggled', "Customer {$customer->name} {$status}", $customer);
@@ -198,7 +199,8 @@ class CustomerController extends Controller
         if ($hasTransactions) {
             $customer->update(['is_active' => false]);
             ActivityLog::record('customer_deactivated', "Customer dinonaktifkan (ada transaksi): {$customer->name}", $customer);
-            return back()->with('success', "Customer dinonaktifkan karena sudah memiliki transaksi.");
+
+            return back()->with('success', 'Customer dinonaktifkan karena sudah memiliki transaksi.');
         }
 
         ActivityLog::record('customer_deleted', "Customer dihapus: {$customer->name}", $customer, $customer->toArray());

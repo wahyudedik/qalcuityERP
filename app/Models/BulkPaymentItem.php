@@ -12,6 +12,13 @@ class BulkPaymentItem extends Model
 
     protected $casts = ['amount' => 'decimal:2'];
 
-    public function bulkPayment(): BelongsTo { return $this->belongsTo(BulkPayment::class); }
-    public function payable(): MorphTo       { return $this->morphTo(); }
+    public function bulkPayment(): BelongsTo
+    {
+        return $this->belongsTo(BulkPayment::class);
+    }
+
+    public function payable(): MorphTo
+    {
+        return $this->morphTo();
+    }
 }

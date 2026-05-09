@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('notification_preferences')) {
+        if (! Schema::hasTable('notification_preferences')) {
             Schema::create('notification_preferences', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -22,7 +23,7 @@ return new class extends Migration {
 
         // Also add digest columns to users table
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'digest_frequency')) {
+            if (! Schema::hasColumn('users', 'digest_frequency')) {
                 $table->string('digest_frequency', 20)->default('weekly')->after('is_active'); // daily, weekly, monthly, off
                 $table->string('digest_day', 10)->default('friday')->after('digest_frequency'); // monday-sunday
                 $table->string('digest_time', 5)->default('17:00')->after('digest_day');

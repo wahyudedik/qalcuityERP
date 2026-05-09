@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
 /**
  * Mix Design Version Tracking
- * 
+ *
  * Tracks all changes to concrete mix designs for compliance & audit
  */
 class MixDesignVersion extends Model
@@ -123,7 +124,7 @@ class MixDesignVersion extends Model
             ->orderByDesc('version_number')
             ->first();
 
-        if (!$previous) {
+        if (! $previous) {
             return ['message' => 'This is the first version'];
         }
 
@@ -167,7 +168,7 @@ class MixDesignVersion extends Model
     /**
      * Get all versions for a mix design
      */
-    public static function getVersionsForMixDesign(int $mixDesignId): \Illuminate\Database\Eloquent\Collection
+    public static function getVersionsForMixDesign(int $mixDesignId): Collection
     {
         return self::where('mix_design_id', $mixDesignId)
             ->with(['createdBy', 'approvedBy'])

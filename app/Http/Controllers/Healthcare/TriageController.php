@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\TriageAssessment;
 use App\Models\CriticalAlert;
-use App\Models\Patient;
+use App\Models\TriageAssessment;
 use Illuminate\Http\Request;
 
 class TriageController extends Controller
@@ -42,7 +41,7 @@ class TriageController extends Controller
                 'patient_id' => $validated['patient_id'],
                 'alert_type' => 'critical_triage',
                 'severity' => 'critical',
-                'description' => 'Critical triage assessment: ' . $validated['chief_complaint'],
+                'description' => 'Critical triage assessment: '.$validated['chief_complaint'],
                 'triage_assessment_id' => $triage->id,
             ]);
         }

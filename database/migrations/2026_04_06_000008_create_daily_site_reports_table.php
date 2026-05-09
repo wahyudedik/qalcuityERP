@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('daily_site_reports')) {
+        if (! Schema::hasTable('daily_site_reports')) {
             Schema::create('daily_site_reports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -32,7 +33,7 @@ return new class extends Migration {
                 $table->timestamp('approved_at')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'project_id']);
                 $table->index(['tenant_id', 'report_date']);
                 $table->index(['project_id', 'report_date']);
@@ -40,7 +41,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('site_labor_logs')) {
+        if (! Schema::hasTable('site_labor_logs')) {
             Schema::create('site_labor_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -53,7 +54,7 @@ return new class extends Migration {
                 $table->decimal('total_cost', 12, 2)->default(0);
                 $table->string('attendance_status')->default('present'); // present, absent, late, overtime
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'daily_report_id']);
                 $table->index(['daily_report_id', 'worker_type']);
             });

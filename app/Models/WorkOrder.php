@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class WorkOrder extends Model
 {
     use BelongsToTenant, HasFactory;
+
     protected $fillable = [
         'tenant_id',
         'product_id',
@@ -98,11 +98,15 @@ class WorkOrder extends Model
     }
 
     // Status constants
-    const STATUS_PENDING     = 'pending';
+    const STATUS_PENDING = 'pending';
+
     const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_ON_HOLD     = 'on_hold';
-    const STATUS_COMPLETED   = 'completed';
-    const STATUS_CANCELLED   = 'cancelled';
+
+    const STATUS_ON_HOLD = 'on_hold';
+
+    const STATUS_COMPLETED = 'completed';
+
+    const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
         self::STATUS_PENDING,
@@ -120,45 +124,53 @@ class WorkOrder extends Model
      * completed / cancelled → tidak bisa berubah
      */
     public const VALID_TRANSITIONS = [
-        'pending'     => ['in_progress', 'on_hold', 'cancelled'],
+        'pending' => ['in_progress', 'on_hold', 'cancelled'],
         'in_progress' => ['on_hold', 'completed', 'cancelled'],
-        'on_hold'     => ['in_progress', 'cancelled'],
-        'completed'   => [],
-        'cancelled'   => [],
+        'on_hold' => ['in_progress', 'cancelled'],
+        'completed' => [],
+        'cancelled' => [],
     ];
 
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
+
     public function recipe(): BelongsTo
     {
         return $this->belongsTo(Recipe::class);
     }
+
     public function bom(): BelongsTo
     {
         return $this->belongsTo(Bom::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function outputs(): HasMany
     {
         return $this->hasMany(ProductionOutput::class);
     }
+
     public function operations(): HasMany
     {
         return $this->hasMany(WorkOrderOperation::class)->orderBy('sequence');
     }
+
     public function journalEntry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class);
     }
+
     // BUG-MFG-002 FIX: Material reservations
     public function materialReservations(): HasMany
     {
@@ -186,6 +198,7 @@ class WorkOrder extends Model
     public function yieldRate(): ?float
     {
         $total = $this->totalGoodQty() + $this->totalRejectQty();
+
         return $total > 0 ? round(($this->totalGoodQty() / $total) * 100, 1) : null;
     }
 
@@ -193,6 +206,7 @@ class WorkOrder extends Model
     public function costPerGoodUnit(): ?float
     {
         $good = $this->totalGoodQty();
+
         return $good > 0 ? round($this->total_cost / $good, 2) : null;
     }
 
@@ -233,7 +247,7 @@ class WorkOrder extends Model
      */
     public function calculateScheduleVariance(): float
     {
-        if (!$this->planned_end_date || !$this->actual_end_date) {
+        if (! $this->planned_end_date || ! $this->actual_end_date) {
             return 0;
         }
 
@@ -248,7 +262,7 @@ class WorkOrder extends Model
      */
     public function calculateEfficiencyRate(): ?float
     {
-        if (!$this->started_at || !$this->completed_at) {
+        if (! $this->started_at || ! $this->completed_at) {
             return null;
         }
 
@@ -351,7 +365,7 @@ class WorkOrder extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->planned_end_date || $this->status === 'completed') {
+        if (! $this->planned_end_date || $this->status === 'completed') {
             return false;
         }
 
@@ -363,7 +377,7 @@ class WorkOrder extends Model
      */
     public function getDaysRemainingAttribute(): ?int
     {
-        if (!$this->planned_end_date) {
+        if (! $this->planned_end_date) {
             return null;
         }
 

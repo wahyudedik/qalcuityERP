@@ -4,15 +4,16 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentTemplate;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\Shared\Html;
 
 /**
  * Document Bulk Generator Service
- * 
+ *
  * Generates multiple documents from templates with batch processing.
  */
 class DocumentBulkGeneratorService
@@ -37,7 +38,7 @@ class DocumentBulkGeneratorService
                 $results['success']++;
             } catch (\Exception $e) {
                 $results['failed']++;
-                $results['errors'][] = "Row " . ($index + 1) . ": " . $e->getMessage();
+                $results['errors'][] = 'Row '.($index + 1).': '.$e->getMessage();
             }
         }
 
@@ -84,7 +85,7 @@ class DocumentBulkGeneratorService
 
         // Replace placeholders {{key}} with values
         foreach ($data as $key => $value) {
-            $placeholder = '{{' . $key . '}}';
+            $placeholder = '{{'.$key.'}}';
             $content = str_replace($placeholder, $value, $content);
         }
 
@@ -97,8 +98,8 @@ class DocumentBulkGeneratorService
     protected function generatePdf(string $content, string $title): array
     {
         $pdf = Pdf::loadHTML($content);
-        $fileName = strtolower(str_replace(' ', '_', $title)) . '_' . time() . '.pdf';
-        $filePath = "documents/" . Auth::user()->tenant_id . "/generated/{$fileName}";
+        $fileName = strtolower(str_replace(' ', '_', $title)).'_'.time().'.pdf';
+        $filePath = 'documents/'.Auth::user()->tenant_id."/generated/{$fileName}";
 
         // Save to storage
         Storage::put($filePath, $pdf->output());
@@ -116,18 +117,18 @@ class DocumentBulkGeneratorService
      */
     protected function generateDocx(string $content, string $title): array
     {
-        $phpWord = new PhpWord();
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         // Add content as HTML
-        \PhpOffice\PhpWord\Shared\Html::addHtml($section, $content);
+        Html::addHtml($section, $content);
 
-        $fileName = strtolower(str_replace(' ', '_', $title)) . '_' . time() . '.docx';
-        $filePath = "documents/" . Auth::user()->tenant_id . "/generated/{$fileName}";
+        $fileName = strtolower(str_replace(' ', '_', $title)).'_'.time().'.docx';
+        $filePath = 'documents/'.Auth::user()->tenant_id."/generated/{$fileName}";
 
         // Save to storage
         $tempFile = tempnam(sys_get_temp_dir(), 'docx_');
-        $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+        $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
         $objWriter->save($tempFile);
 
         Storage::put($filePath, file_get_contents($tempFile));

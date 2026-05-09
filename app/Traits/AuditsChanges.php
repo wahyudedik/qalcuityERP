@@ -3,7 +3,11 @@
 namespace App\Traits;
 
 use App\Models\ActivityLog;
+use App\Models\User;
+use App\Notifications\CriticalAuditChange;
+use App\Services\GamificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Auto-capture before/after values on Eloquent model events.
@@ -17,13 +21,15 @@ trait AuditsChanges
     {
         static::updated(function ($model) {
             $dirty = $model->getDirty();
-            if (empty($dirty))
+            if (empty($dirty)) {
                 return;
+            }
 
             $exclude = $model->auditExclude ?? ['password', 'remember_token', 'two_factor_secret'];
             $dirty = array_diff_key($dirty, array_flip($exclude));
-            if (empty($dirty))
+            if (empty($dirty)) {
                 return;
+            }
 
             $oldValues = [];
             $newValues = [];
@@ -36,7 +42,7 @@ trait AuditsChanges
             $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
-                action: strtolower($label) . '_updated',
+                action: strtolower($label).'_updated',
                 description: "{$label} {$name} diperbarui",
                 model: $model,
                 oldValues: $oldValues,
@@ -44,12 +50,12 @@ trait AuditsChanges
             );
 
             // TASK-022: Send notification for critical changes
-            $model->notifyCriticalChanges($model, $oldValues, $newValues, strtolower($label) . '_updated');
+            $model->notifyCriticalChanges($model, $oldValues, $newValues, strtolower($label).'_updated');
 
             // Evaluate gamification achievements
             $user = Auth::user();
             if ($user) {
-                \App\Services\GamificationService::evaluateAchievements($user, static::class, 'updated');
+                GamificationService::evaluateAchievements($user, static::class, 'updated');
             }
         });
 
@@ -61,7 +67,7 @@ trait AuditsChanges
             $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
-                action: strtolower($label) . '_deleted',
+                action: strtolower($label).'_deleted',
                 description: "{$label} {$name} dihapus",
                 model: $model,
                 oldValues: $snapshot,
@@ -71,7 +77,7 @@ trait AuditsChanges
             // Evaluate gamification achievements
             $user = Auth::user();
             if ($user) {
-                \App\Services\GamificationService::evaluateAchievements($user, static::class, 'deleted');
+                GamificationService::evaluateAchievements($user, static::class, 'deleted');
             }
         });
 
@@ -83,7 +89,7 @@ trait AuditsChanges
             $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
-                action: strtolower($label) . '_created',
+                action: strtolower($label).'_created',
                 description: "{$label} {$name} dibuat",
                 model: $model,
                 oldValues: [],
@@ -93,7 +99,7 @@ trait AuditsChanges
             // Evaluate gamification achievements
             $user = Auth::user();
             if ($user) {
-                \App\Services\GamificationService::evaluateAchievements($user, static::class, 'created');
+                GamificationService::evaluateAchievements($user, static::class, 'created');
             }
         });
     }
@@ -109,7 +115,7 @@ trait AuditsChanges
 
     /**
      * TASK-022: Send notification for critical audit changes.
-     * 
+     *
      * Triggers notifications to admins when sensitive models or fields are modified.
      */
     protected function notifyCriticalChanges($model, array $oldValues, array $newValues, string $action): void
@@ -122,32 +128,32 @@ trait AuditsChanges
             'Tenant',
             'BankAccount',
             'Invoice',
-            'Payment'
+            'Payment',
         ];
 
         $modelClass = class_basename(get_class($model));
 
-        if (!in_array($modelClass, $criticalModels)) {
+        if (! in_array($modelClass, $criticalModels)) {
             return;
         }
 
         // Check for sensitive field changes
         $sensitiveFields = ['password', 'role', 'permissions', 'is_active', 'email', 'status'];
         $changedFields = array_keys($newValues);
-        $hasSensitiveChange = !empty(array_intersect($sensitiveFields, $changedFields));
+        $hasSensitiveChange = ! empty(array_intersect($sensitiveFields, $changedFields));
 
-        if (!$hasSensitiveChange) {
+        if (! $hasSensitiveChange) {
             return;
         }
 
         // Get latest activity log
-        $latestLog = \App\Models\ActivityLog::where('model_type', get_class($model))
+        $latestLog = ActivityLog::where('model_type', get_class($model))
             ->where('model_id', $model->id)
             ->where('action', $action)
             ->latest()
             ->first();
 
-        if (!$latestLog) {
+        if (! $latestLog) {
             return;
         }
 
@@ -159,7 +165,7 @@ trait AuditsChanges
 
         // Get admins — scoped to same tenant as the model if possible
         $tenantId = $model->tenant_id ?? null;
-        $adminQuery = \App\Models\User::where(function ($q) {
+        $adminQuery = User::where(function ($q) {
             $q->where('role', 'admin')->orWhere('role', 'manager');
         });
         if ($tenantId) {
@@ -170,9 +176,9 @@ trait AuditsChanges
         // Send notifications
         foreach ($admins as $admin) {
             try {
-                $admin->notify(new \App\Notifications\CriticalAuditChange($latestLog, $priority));
+                $admin->notify(new CriticalAuditChange($latestLog, $priority));
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Failed to send critical audit notification', [
+                Log::warning('Failed to send critical audit notification', [
                     'user_id' => $admin->id,
                     'error' => $e->getMessage(),
                 ]);

@@ -24,7 +24,7 @@ class TenantScope implements Scope
         $tenantId = $this->resolveTenantId();
 
         if ($tenantId) {
-            $builder->where($model->getTable() . '.tenant_id', $tenantId);
+            $builder->where($model->getTable().'.tenant_id', $tenantId);
         }
     }
 

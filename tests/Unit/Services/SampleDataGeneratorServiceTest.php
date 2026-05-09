@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Models\OnboardingProfile;
 use App\Models\SampleDataLog;
+use App\Models\Tenant;
 use App\Services\DemoData\BaseIndustryGenerator;
 use App\Services\DemoData\CoreDataContext;
 use App\Services\SampleDataGeneratorService;
@@ -22,7 +23,7 @@ class SampleDataGeneratorServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        (new SampleDataTemplateSeeder())->run();
+        (new SampleDataTemplateSeeder)->run();
     }
 
     // ── Helpers ───────────────────────────────────────────────────
@@ -30,29 +31,36 @@ class SampleDataGeneratorServiceTest extends TestCase
     private function makeTenantWithProfile(string $industry = 'retail'): array
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => $industry,
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => $industry,
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
+
         return [$tenant, $user];
     }
 
     /** Service subclass whose industry generator always throws. */
     private function serviceWithFailingIndustry(): SampleDataGeneratorService
     {
-        return new class extends SampleDataGeneratorService {
+        return new class extends SampleDataGeneratorService
+        {
             protected function resolveGenerator(string $industry): BaseIndustryGenerator
             {
-                return new class extends BaseIndustryGenerator {
+                return new class extends BaseIndustryGenerator
+                {
                     public function generate(CoreDataContext $ctx): array
                     {
                         throw new \RuntimeException('Injected industry failure');
                     }
-                    public function getIndustryName(): string { return 'failing'; }
+
+                    public function getIndustryName(): string
+                    {
+                        return 'failing';
+                    }
                 };
             }
         };
@@ -61,27 +69,28 @@ class SampleDataGeneratorServiceTest extends TestCase
     /** Service subclass that simulates a fatal core failure mid-transaction. */
     private function serviceWithFailingCore(): SampleDataGeneratorService
     {
-        return new class extends SampleDataGeneratorService {
+        return new class extends SampleDataGeneratorService
+        {
             public function generateForIndustry(string $industry, int $tenantId, int $userId): array
             {
-                if (!\App\Models\Tenant::where('id', $tenantId)->exists()) {
+                if (! Tenant::where('id', $tenantId)->exists()) {
                     return ['success' => false, 'error' => "Tenant with ID {$tenantId} not found."];
                 }
 
                 $log = SampleDataLog::create([
-                    'tenant_id'  => $tenantId,
-                    'user_id'    => $userId,
-                    'status'     => 'processing',
+                    'tenant_id' => $tenantId,
+                    'user_id' => $userId,
+                    'status' => 'processing',
                     'started_at' => now(),
                 ]);
 
                 try {
                     DB::transaction(function () use ($tenantId) {
                         DB::table('warehouses')->insert([
-                            'tenant_id'  => $tenantId,
-                            'name'       => 'Partial Warehouse',
-                            'code'       => 'PARTIAL-' . $tenantId,
-                            'is_active'  => true,
+                            'tenant_id' => $tenantId,
+                            'name' => 'Partial Warehouse',
+                            'code' => 'PARTIAL-'.$tenantId,
+                            'is_active' => true,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -89,10 +98,11 @@ class SampleDataGeneratorServiceTest extends TestCase
                     });
                 } catch (\Throwable $e) {
                     $log->update([
-                        'status'        => 'failed',
+                        'status' => 'failed',
                         'error_message' => $e->getMessage(),
-                        'completed_at'  => now(),
+                        'completed_at' => now(),
                     ]);
+
                     return ['success' => false, 'error' => $e->getMessage()];
                 }
 
@@ -136,7 +146,7 @@ class SampleDataGeneratorServiceTest extends TestCase
     public function test_no_log_created_when_tenant_is_invalid(): void
     {
         $service = app(SampleDataGeneratorService::class);
-        $before  = SampleDataLog::count();
+        $before = SampleDataLog::count();
 
         $service->generateForIndustry('retail', 999_999_998, 1);
 
@@ -282,8 +292,10 @@ class SampleDataGeneratorServiceTest extends TestCase
         $tenantId = $tenant->id;
         $processingLogObserved = false;
 
-        $service = new class($tenantId, $processingLogObserved) extends SampleDataGeneratorService {
+        $service = new class($tenantId, $processingLogObserved) extends SampleDataGeneratorService
+        {
             private int $tenantId;
+
             private $observed;
 
             public function __construct(int $tenantId, &$observed)
@@ -297,8 +309,10 @@ class SampleDataGeneratorServiceTest extends TestCase
                 $tenantId = $this->tenantId;
                 $observed = &$this->observed;
 
-                return new class($tenantId, $observed) extends BaseIndustryGenerator {
+                return new class($tenantId, $observed) extends BaseIndustryGenerator
+                {
                     private int $tenantId;
+
                     private $observed;
 
                     public function __construct(int $tenantId, &$observed)
@@ -313,10 +327,14 @@ class SampleDataGeneratorServiceTest extends TestCase
                             ->where('status', 'processing')
                             ->first();
                         $this->observed = ($log !== null);
+
                         return ['records_created' => 0, 'generated_data' => []];
                     }
 
-                    public function getIndustryName(): string { return 'retail'; }
+                    public function getIndustryName(): string
+                    {
+                        return 'retail';
+                    }
                 };
             }
         };

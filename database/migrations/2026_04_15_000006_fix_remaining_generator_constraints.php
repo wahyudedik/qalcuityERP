@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -28,22 +29,22 @@ return new class extends Migration {
     {
         // Fix 1: Make doctors.user_id nullable
         if (Schema::hasTable('doctors') && Schema::hasColumn('doctors', 'user_id')) {
-            DB::statement("ALTER TABLE doctors MODIFY COLUMN user_id BIGINT UNSIGNED NULL");
+            DB::statement('ALTER TABLE doctors MODIFY COLUMN user_id BIGINT UNSIGNED NULL');
         }
 
         // Fix 2: Make crop_cycles.farm_plot_id nullable
         if (Schema::hasTable('crop_cycles') && Schema::hasColumn('crop_cycles', 'farm_plot_id')) {
-            DB::statement("ALTER TABLE crop_cycles MODIFY COLUMN farm_plot_id BIGINT UNSIGNED NULL");
+            DB::statement('ALTER TABLE crop_cycles MODIFY COLUMN farm_plot_id BIGINT UNSIGNED NULL');
         }
 
         // Fix 3: Make crop_cycles.number nullable
         if (Schema::hasTable('crop_cycles') && Schema::hasColumn('crop_cycles', 'number')) {
-            DB::statement("ALTER TABLE crop_cycles MODIFY COLUMN `number` VARCHAR(30) NULL");
+            DB::statement('ALTER TABLE crop_cycles MODIFY COLUMN `number` VARCHAR(30) NULL');
         }
 
         // Fix 4: Make farm_plots.rent_cost nullable
         if (Schema::hasTable('farm_plots') && Schema::hasColumn('farm_plots', 'rent_cost')) {
-            DB::statement("ALTER TABLE farm_plots MODIFY COLUMN rent_cost DECIMAL(15,2) NULL DEFAULT 0");
+            DB::statement('ALTER TABLE farm_plots MODIFY COLUMN rent_cost DECIMAL(15,2) NULL DEFAULT 0');
         }
     }
 
@@ -54,22 +55,22 @@ return new class extends Migration {
     {
         // Revert doctors.user_id to NOT NULL (will fail if any rows have NULL user_id)
         if (Schema::hasTable('doctors') && Schema::hasColumn('doctors', 'user_id')) {
-            DB::statement("ALTER TABLE doctors MODIFY COLUMN user_id BIGINT UNSIGNED NOT NULL");
+            DB::statement('ALTER TABLE doctors MODIFY COLUMN user_id BIGINT UNSIGNED NOT NULL');
         }
 
         // Revert crop_cycles.farm_plot_id to NOT NULL
         if (Schema::hasTable('crop_cycles') && Schema::hasColumn('crop_cycles', 'farm_plot_id')) {
-            DB::statement("ALTER TABLE crop_cycles MODIFY COLUMN farm_plot_id BIGINT UNSIGNED NOT NULL");
+            DB::statement('ALTER TABLE crop_cycles MODIFY COLUMN farm_plot_id BIGINT UNSIGNED NOT NULL');
         }
 
         // Revert crop_cycles.number to NOT NULL
         if (Schema::hasTable('crop_cycles') && Schema::hasColumn('crop_cycles', 'number')) {
-            DB::statement("ALTER TABLE crop_cycles MODIFY COLUMN `number` VARCHAR(30) NOT NULL");
+            DB::statement('ALTER TABLE crop_cycles MODIFY COLUMN `number` VARCHAR(30) NOT NULL');
         }
 
         // Revert farm_plots.rent_cost to NOT NULL
         if (Schema::hasTable('farm_plots') && Schema::hasColumn('farm_plots', 'rent_cost')) {
-            DB::statement("ALTER TABLE farm_plots MODIFY COLUMN rent_cost DECIMAL(15,2) NOT NULL DEFAULT 0");
+            DB::statement('ALTER TABLE farm_plots MODIFY COLUMN rent_cost DECIMAL(15,2) NOT NULL DEFAULT 0');
         }
     }
 };

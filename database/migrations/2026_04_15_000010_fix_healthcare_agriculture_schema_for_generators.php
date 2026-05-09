@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -33,15 +34,15 @@ return new class extends Migration {
         // The generator passes doctor IDs from doctors table, not users table
         if (Schema::hasTable('patient_medical_records') && Schema::hasColumn('patient_medical_records', 'doctor_id')) {
             try {
-                DB::statement("ALTER TABLE patient_medical_records DROP FOREIGN KEY patient_medical_records_doctor_id_foreign");
-            } catch (\Exception $e) {
+                DB::statement('ALTER TABLE patient_medical_records DROP FOREIGN KEY patient_medical_records_doctor_id_foreign');
+            } catch (Exception $e) {
                 // FK might not exist or have different name, ignore
             }
         }
 
         // Fix 3: Make harvest_logs.user_id nullable
         if (Schema::hasTable('harvest_logs') && Schema::hasColumn('harvest_logs', 'user_id')) {
-            DB::statement("ALTER TABLE harvest_logs MODIFY COLUMN user_id BIGINT UNSIGNED NULL");
+            DB::statement('ALTER TABLE harvest_logs MODIFY COLUMN user_id BIGINT UNSIGNED NULL');
         }
     }
 
@@ -59,16 +60,16 @@ return new class extends Migration {
         // Restore FK on patient_medical_records.doctor_id
         if (Schema::hasTable('patient_medical_records') && Schema::hasColumn('patient_medical_records', 'doctor_id')) {
             try {
-                DB::statement("ALTER TABLE patient_medical_records ADD CONSTRAINT patient_medical_records_doctor_id_foreign 
-                    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL");
-            } catch (\Exception $e) {
+                DB::statement('ALTER TABLE patient_medical_records ADD CONSTRAINT patient_medical_records_doctor_id_foreign 
+                    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL');
+            } catch (Exception $e) {
                 // Ignore if restore fails
             }
         }
 
         // Revert harvest_logs.user_id to NOT NULL
         if (Schema::hasTable('harvest_logs') && Schema::hasColumn('harvest_logs', 'user_id')) {
-            DB::statement("ALTER TABLE harvest_logs MODIFY COLUMN user_id BIGINT UNSIGNED NOT NULL");
+            DB::statement('ALTER TABLE harvest_logs MODIFY COLUMN user_id BIGINT UNSIGNED NOT NULL');
         }
     }
 };

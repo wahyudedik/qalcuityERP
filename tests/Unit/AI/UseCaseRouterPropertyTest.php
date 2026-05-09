@@ -3,9 +3,9 @@
 namespace Tests\Unit\AI;
 
 use App\Enums\AiUseCase;
+use App\Exceptions\AllProvidersUnavailableException;
 use App\Exceptions\InsufficientPlanException;
 use App\Models\AiUsageCostLog;
-use App\Models\AiUseCaseRoute;
 use App\Models\Tenant;
 use App\Services\AI\UseCaseRouter;
 use Eris\Generator;
@@ -44,13 +44,14 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 1.6, 11.3
      */
-    public function testUnknownUseCaseAlwaysFallsBackToDefault(): void
+    public function test_unknown_use_case_always_falls_back_to_default(): void
     {
         $this->forAll(
             Generator\string()->suchthat(function ($s) {
                 // Pastikan string bukan salah satu use case yang dikenal
                 $knownUseCases = array_column(AiUseCase::cases(), 'value');
-                return !in_array($s, $knownUseCases) && strlen($s) > 0;
+
+                return ! in_array($s, $knownUseCases) && strlen($s) > 0;
             })
         )->then(function ($unknownUseCase) {
             try {
@@ -65,7 +66,7 @@ class UseCaseRouterPropertyTest extends TestCase
                 );
             } catch (\Throwable $e) {
                 // Tidak boleh melempar exception untuk unknown use case
-                $this->fail("Unknown use case '{$unknownUseCase}' should not throw exception, but got: " . get_class($e) . " - " . $e->getMessage());
+                $this->fail("Unknown use case '{$unknownUseCase}' should not throw exception, but got: ".get_class($e).' - '.$e->getMessage());
             }
         });
     }
@@ -81,7 +82,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 2.2, 5.3
      */
-    public function testTenantSpecificRuleAlwaysOverridesGlobalRule(): void
+    public function test_tenant_specific_rule_always_overrides_global_rule(): void
     {
         $this->forAll(
             Generator\elements(...array_column(AiUseCase::cases(), 'value')),
@@ -92,22 +93,22 @@ class UseCaseRouterPropertyTest extends TestCase
 
             // Buat global rule
             DB::table('ai_use_case_routes')->insert([
-                'tenant_id'  => null,
-                'use_case'   => $useCase,
-                'provider'   => 'gemini',
-                'model'      => 'gemini-2.5-flash',
-                'is_active'  => true,
+                'tenant_id' => null,
+                'use_case' => $useCase,
+                'provider' => 'gemini',
+                'model' => 'gemini-2.5-flash',
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             // Buat tenant-specific rule dengan provider berbeda
             DB::table('ai_use_case_routes')->insert([
-                'tenant_id'  => $tenantId,
-                'use_case'   => $useCase,
-                'provider'   => 'anthropic',
-                'model'      => 'claude-3-5-sonnet-20241022',
-                'is_active'  => true,
+                'tenant_id' => $tenantId,
+                'use_case' => $useCase,
+                'provider' => 'anthropic',
+                'model' => 'claude-3-5-sonnet-20241022',
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -144,7 +145,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 3.3
      */
-    public function testPlanHierarchyIsTransitive(): void
+    public function test_plan_hierarchy_is_transitive(): void
     {
         $hierarchy = config('ai.plan_hierarchy', ['trial', 'starter', 'business', 'professional', 'enterprise']);
 
@@ -194,7 +195,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 3.2, 3.4
      */
-    public function testTierGateAlwaysRejectsInsufficientPlans(): void
+    public function test_tier_gate_always_rejects_insufficient_plans(): void
     {
         $hierarchy = config('ai.plan_hierarchy', ['trial', 'starter', 'business', 'professional', 'enterprise']);
 
@@ -218,12 +219,12 @@ class UseCaseRouterPropertyTest extends TestCase
 
             // Buat routing rule dengan min_plan
             DB::table('ai_use_case_routes')->insert([
-                'tenant_id'  => null,
-                'use_case'   => $useCase,
-                'provider'   => 'anthropic',
-                'model'      => 'claude-3-5-sonnet-20241022',
-                'min_plan'   => $minPlan,
-                'is_active'  => true,
+                'tenant_id' => null,
+                'use_case' => $useCase,
+                'provider' => 'anthropic',
+                'model' => 'claude-3-5-sonnet-20241022',
+                'min_plan' => $minPlan,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -253,7 +254,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 3.8
      */
-    public function testEnterpriseTenantAlwaysAllowed(): void
+    public function test_enterprise_tenant_always_allowed(): void
     {
         $this->forAll(
             Generator\elements(...array_column(AiUseCase::cases(), 'value')),
@@ -264,12 +265,12 @@ class UseCaseRouterPropertyTest extends TestCase
 
             // Buat routing rule dengan min_plan apapun
             DB::table('ai_use_case_routes')->insert([
-                'tenant_id'  => null,
-                'use_case'   => $useCase,
-                'provider'   => 'anthropic',
-                'model'      => 'claude-3-5-sonnet-20241022',
-                'min_plan'   => $minPlan,
-                'is_active'  => true,
+                'tenant_id' => null,
+                'use_case' => $useCase,
+                'provider' => 'anthropic',
+                'model' => 'claude-3-5-sonnet-20241022',
+                'min_plan' => $minPlan,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -300,12 +301,12 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 6.5
      */
-    public function testCostFormulaAlwaysAccurate(): void
+    public function test_cost_formula_always_accurate(): void
     {
         $this->forAll(
             Generator\choose(0, 10000), // input_tokens
             Generator\choose(0, 10000), // output_tokens
-            Generator\choose(1, 1000)->map(fn($x) => $x / 100) // cost_per_1k_tokens (0.01 - 10.00)
+            Generator\choose(1, 1000)->map(fn ($x) => $x / 100) // cost_per_1k_tokens (0.01 - 10.00)
         )->then(function ($inputTokens, $outputTokens, $costPer1kTokens) {
             $expectedCost = (($inputTokens + $outputTokens) / 1000) * $costPer1kTokens;
 
@@ -332,7 +333,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 6.6
      */
-    public function testTokenEstimationUsesFourCharsPerTokenRatio(): void
+    public function test_token_estimation_uses_four_chars_per_token_ratio(): void
     {
         $this->forAll(
             Generator\string()
@@ -361,7 +362,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 6.3
      */
-    public function testEverySuccessfulExecutionProducesExactlyOneCostLog(): void
+    public function test_every_successful_execution_produces_exactly_one_cost_log(): void
     {
         $this->forAll(
             Generator\elements('chatbot', 'crud_ai', 'financial_report'), // Use cases yang ada di config
@@ -380,9 +381,9 @@ class UseCaseRouterPropertyTest extends TestCase
             try {
                 $this->router->routeAndExecute($useCase, function ($provider) {
                     return [
-                        'text'          => 'Test response',
-                        'model'         => 'test-model',
-                        'input_tokens'  => 100,
+                        'text' => 'Test response',
+                        'model' => 'test-model',
+                        'input_tokens' => 100,
                         'output_tokens' => 50,
                     ];
                 }, $tenantId);
@@ -401,7 +402,7 @@ class UseCaseRouterPropertyTest extends TestCase
                 );
             } catch (\Throwable $e) {
                 // Skip jika provider tidak tersedia (bukan fokus property ini)
-                if (!($e instanceof \App\Exceptions\AllProvidersUnavailableException)) {
+                if (! ($e instanceof AllProvidersUnavailableException)) {
                     throw $e;
                 }
             }
@@ -422,7 +423,7 @@ class UseCaseRouterPropertyTest extends TestCase
      * Note: Property ini sulit ditest secara pure property-based karena memerlukan
      * simulasi provider unavailability. Kita test konsep dasarnya.
      */
-    public function testFallbackAlwaysRecordsActualProviderUsed(): void
+    public function test_fallback_always_records_actual_provider_used(): void
     {
         $this->forAll(
             Generator\elements('gemini', 'anthropic'),
@@ -453,12 +454,12 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Validates: Requirements 7.6
      */
-    public function testDegradedFallbackAlwaysMarked(): void
+    public function test_degraded_fallback_always_marked(): void
     {
         $this->forAll(
             Generator\elements(...array_filter(
                 array_column(AiUseCase::cases(), 'value'),
-                fn($uc) => AiUseCase::tryFrom($uc)?->isHeavyweight() ?? false
+                fn ($uc) => AiUseCase::tryFrom($uc)?->isHeavyweight() ?? false
             )) // Hanya heavyweight use cases
         )->then(function ($heavyweightUseCase) {
             // Verifikasi konsep: Jika heavyweight use case menggunakan gemini (lightweight provider),
@@ -491,7 +492,7 @@ class UseCaseRouterPropertyTest extends TestCase
      *
      * Note: Property ini memerlukan mock config, jadi kita test konsep dasarnya.
      */
-    public function testUnconfiguredProviderSkipsToFallback(): void
+    public function test_unconfigured_provider_skips_to_fallback(): void
     {
         $this->forAll(
             Generator\elements('gemini', 'anthropic'),
@@ -502,10 +503,10 @@ class UseCaseRouterPropertyTest extends TestCase
 
             // Simulasi check: empty API key = skip provider
             $apiKey = config("ai.providers.{$provider}.api_key");
-            $isConfigured = !empty($apiKey);
+            $isConfigured = ! empty($apiKey);
 
             // Jika tidak dikonfigurasi, harus di-skip (tidak dicoba)
-            if (!$isConfigured) {
+            if (! $isConfigured) {
                 $this->assertTrue(
                     true,
                     "Provider '{$provider}' with empty API key should be skipped for use case '{$useCase}'"

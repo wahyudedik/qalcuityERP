@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Models\SalesOrder;
-use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\HelpdeskTicket;
+use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\SalesOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerPortalController extends Controller
 {
@@ -22,7 +22,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
@@ -64,7 +64,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
@@ -96,7 +96,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -126,7 +126,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
@@ -157,7 +157,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -184,7 +184,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -212,7 +212,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -223,7 +223,7 @@ class CustomerPortalController extends Controller
 
         // Validate payment
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $invoice->remaining_amount,
+            'amount' => 'required|numeric|min:1|max:'.$invoice->remaining_amount,
             'payment_method' => 'required|in:bank_transfer,credit_card,qris',
             'payment_reference' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',
@@ -259,7 +259,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
@@ -277,13 +277,13 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:customers,email,' . $customer->id,
+            'email' => 'required|email|max:255|unique:customers,email,'.$customer->id,
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
             'company' => 'nullable|string|max:255',
@@ -301,7 +301,7 @@ class CustomerPortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -310,7 +310,7 @@ class CustomerPortalController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return back()->withErrors(['current_password' => 'Password saat ini salah']);
         }
 
@@ -328,7 +328,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
@@ -350,7 +350,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -386,7 +386,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -411,7 +411,7 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(403, 'Pelanggan tidak ditemukan');
         }
 
@@ -450,7 +450,7 @@ class CustomerPortalController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -469,7 +469,7 @@ class CustomerPortalController extends Controller
                 ->where('name', $user->name)
                 ->first();
 
-            if (!$customer) {
+            if (! $customer) {
                 \Log::warning('Customer record not found for user', [
                     'user_id' => $user->id,
                     'tenant_id' => $user->tenant_id,

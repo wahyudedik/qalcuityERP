@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\TransactionException;
+use App\Models\ActivityLog;
+use App\Models\Customer;
+use App\Models\ErpNotification;
 use App\Models\Invoice;
 use App\Models\SalesOrder;
-use App\Models\Customer;
-use App\Models\ActivityLog;
-use App\Models\ErpNotification;
 use App\Models\TaxRate;
-use App\Models\User;
 use App\Services\CurrencyService;
 use App\Services\DocumentNumberService;
 use App\Services\GlPostingService;
 use App\Services\InvoicePaymentService;
+use App\Services\PeriodLockService;
 use App\Services\TaxService;
 use App\Services\TransactionStateMachine;
-use App\Exceptions\TransactionException;
+use App\Traits\DispatchesWebhooks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Mail;
 
 class InvoiceController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     // tenantId() inherited from parent Controller
 
@@ -37,8 +38,8 @@ class InvoiceController extends Controller
         }
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('number', 'like', '%' . $request->search . '%')
-                    ->orWhereHas('customer', fn($c) => $c->where('name', 'like', '%' . $request->search . '%'));
+                $q->where('number', 'like', '%'.$request->search.'%')
+                    ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', '%'.$request->search.'%'));
             });
         }
 
@@ -68,7 +69,7 @@ class InvoiceController extends Controller
             ->orderByDesc('date')
             ->get();
         $taxRates = TaxRate::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
-        $currencies = (new CurrencyService())->activeCurrencies($tid);
+        $currencies = (new CurrencyService)->activeCurrencies($tid);
 
         return view('invoices.create', compact('customers', 'orders', 'taxRates', 'currencies'));
     }
@@ -86,10 +87,10 @@ class InvoiceController extends Controller
         ]);
 
         $tid = $this->tenantId();
-        $taxService = new TaxService();
+        $taxService = new TaxService;
 
         // Cek period lock
-        app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, now()->toDateString(), 'Invoice');
+        app(PeriodLockService::class)->assertNotLocked($tid, now()->toDateString(), 'Invoice');
 
         // BUG-SALES-003 FIX: Gunakan accounting-compliant calculation
         $subtotal = (float) $data['subtotal_amount'];
@@ -99,7 +100,7 @@ class InvoiceController extends Controller
         $total = $taxService->calculateTotal($subtotal, $taxAmount);
 
         $currCode = $data['currency_code'] ?? 'IDR';
-        $currRate = (new CurrencyService())->getRate($currCode);
+        $currRate = (new CurrencyService)->getRate($currCode);
 
         // Task 37: Nomor sequential via DocumentNumberService
         $numberSvc = app(DocumentNumberService::class);
@@ -126,7 +127,7 @@ class InvoiceController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        ActivityLog::record('invoice_created', "Invoice dibuat: {$number} (Rp " . number_format($data['total_amount'], 0, ',', '.') . ")", $invoice, [], $invoice->toArray());
+        ActivityLog::record('invoice_created', "Invoice dibuat: {$number} (Rp ".number_format($data['total_amount'], 0, ',', '.').')', $invoice, [], $invoice->toArray());
 
         // GL Auto-Posting — hanya untuk invoice standalone (bukan dari SO, SO sudah di-post saat dibuat)
         if (empty($data['sales_order_id'])) {
@@ -151,7 +152,7 @@ class InvoiceController extends Controller
             'user_id' => auth()->id(),
             'type' => 'invoice_created',
             'title' => '🧾 Invoice Dibuat',
-            'body' => "Invoice {$number} senilai Rp " . number_format($data['total_amount'], 0, ',', '.') . " berhasil dibuat.",
+            'body' => "Invoice {$number} senilai Rp ".number_format($data['total_amount'], 0, ',', '.').' berhasil dibuat.',
             'data' => ['number' => $number],
         ]);
 
@@ -164,6 +165,7 @@ class InvoiceController extends Controller
     {
         abort_if($invoice->tenant_id !== $this->tenantId(), 403);
         $invoice->load(['customer', 'salesOrder.items.product', 'payments']);
+
         return view('invoices.show', compact('invoice'));
     }
 
@@ -172,7 +174,7 @@ class InvoiceController extends Controller
         abort_if($invoice->tenant_id !== $this->tenantId(), 403);
 
         $data = $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $invoice->remaining_amount,
+            'amount' => 'required|numeric|min:1|max:'.$invoice->remaining_amount,
             'method' => 'required|in:cash,transfer,qris,other',
             'notes' => 'nullable|string|max:500',
         ]);
@@ -187,7 +189,7 @@ class InvoiceController extends Controller
             );
 
             // Show GL warning if posting failed (but payment succeeded)
-            if (!$result['gl_success']) {
+            if (! $result['gl_success']) {
                 return back()->with('success', 'Pembayaran berhasil dicatat.')
                     ->with('warning', $result['gl_result']->warningMessage());
             }
@@ -204,13 +206,13 @@ class InvoiceController extends Controller
             return back()->with('success', 'Pembayaran berhasil dicatat.');
 
         } catch (TransactionException $e) {
-            Log::error("Payment transaction failed", [
+            Log::error('Payment transaction failed', [
                 'invoice_id' => $invoice->id,
                 'error' => $e->getMessage(),
-                'context' => $e->getContext()
+                'context' => $e->getContext(),
             ]);
 
-            return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses pembayaran: '.$e->getMessage());
         }
     }
 
@@ -285,14 +287,14 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('invoice-' . $invoice->number . '.pdf');
+        return $pdf->download('invoice-'.$invoice->number.'.pdf');
     }
 
     public function sendEmail(Invoice $invoice)
     {
         abort_if($invoice->tenant_id !== $this->tenantId(), 403);
 
-        if (!$invoice->customer?->email) {
+        if (! $invoice->customer?->email) {
             return back()->with('error', 'Customer tidak memiliki alamat email.');
         }
 
@@ -302,7 +304,7 @@ class InvoiceController extends Controller
             ->setPaper('a4', 'portrait');
 
         $pdfContent = $pdf->output();
-        $filename = 'invoice-' . $invoice->number . '.pdf';
+        $filename = 'invoice-'.$invoice->number.'.pdf';
         $tenantName = $invoice->tenant->name;
         $customerName = $invoice->customer->name;
 

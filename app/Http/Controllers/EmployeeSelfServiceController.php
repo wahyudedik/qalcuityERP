@@ -8,6 +8,9 @@ use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Models\PayrollItem;
 use App\Models\PerformanceReview;
+use App\Services\AttendanceService;
+use App\Services\LeaveBalanceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +28,10 @@ class EmployeeSelfServiceController extends Controller
     private function myEmployee(): ?Employee
     {
         $user = auth()->user();
-        if (!$user) return null;
+        if (! $user) {
+            return null;
+        }
+
         return Employee::where('tenant_id', $user->tenant_id)
             ->where('user_id', $user->id)
             ->first();
@@ -38,7 +44,7 @@ class EmployeeSelfServiceController extends Controller
         $user = auth()->user();
         $employee = $this->myEmployee();
 
-        if (!$employee) {
+        if (! $employee) {
             return view('self-service.dashboard', ['employee' => null]);
         }
 
@@ -90,6 +96,7 @@ class EmployeeSelfServiceController extends Controller
     {
         $employee = $this->myEmployee();
         $user = auth()->user();
+
         return view('self-service.profile', compact('employee', 'user'));
     }
 
@@ -108,12 +115,13 @@ class EmployeeSelfServiceController extends Controller
 
         // Update User
         $userUpdate = ['name' => $data['name'], 'phone' => $data['phone'] ?? $user->phone];
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $userUpdate['password'] = Hash::make($data['password']);
         }
         if ($request->hasFile('avatar')) {
-            if ($user->avatar)
+            if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
+            }
             $userUpdate['avatar'] = $request->file('avatar')->store("avatars/{$user->tenant_id}", 'public');
         }
         $user->update($userUpdate);
@@ -135,7 +143,7 @@ class EmployeeSelfServiceController extends Controller
     {
         $employee = $this->myEmployee();
 
-        if (!$employee) {
+        if (! $employee) {
             return view('self-service.leave', ['employee' => null, 'leaves' => collect(), 'quota' => 0, 'usedDays' => 0]);
         }
 
@@ -144,7 +152,7 @@ class EmployeeSelfServiceController extends Controller
             ->paginate(15);
 
         // BUG-HRM-003 FIX: Use accurate leave balance calculation
-        $leaveService = new \App\Services\LeaveBalanceService();
+        $leaveService = new LeaveBalanceService;
         $leaveBalance = $leaveService->calculateLeaveBalance($employee);
 
         $quota = $leaveBalance['total_available'];
@@ -165,21 +173,21 @@ class EmployeeSelfServiceController extends Controller
             'reason' => 'nullable|string|max:500',
         ]);
 
-        $start = \Carbon\Carbon::parse($data['start_date']);
-        $end = \Carbon\Carbon::parse($data['end_date']);
+        $start = Carbon::parse($data['start_date']);
+        $end = Carbon::parse($data['end_date']);
         $days = $start->diffInWeekdays($end) + 1;
 
         // BUG-HRM-003 FIX: Check leave balance with pro-rata calculation
         if ($data['type'] === 'annual') {
-            $leaveService = new \App\Services\LeaveBalanceService();
+            $leaveService = new LeaveBalanceService;
             $balanceCheck = $leaveService->checkLeaveBalance($employee, $days);
 
-            if (!$balanceCheck['has_enough']) {
+            if (! $balanceCheck['has_enough']) {
                 return back()->withErrors([
-                    'quota' => "Sisa kuota cuti tahunan tidak mencukupi. " .
-                        "Tersedia: {$balanceCheck['available']} hari, " .
-                        "Dibutuhkan: {$days} hari. " .
-                        "Kurang: {$balanceCheck['shortage']} hari."
+                    'quota' => 'Sisa kuota cuti tahunan tidak mencukupi. '.
+                        "Tersedia: {$balanceCheck['available']} hari, ".
+                        "Dibutuhkan: {$days} hari. ".
+                        "Kurang: {$balanceCheck['shortage']} hari.",
                 ]);
             }
         }
@@ -205,6 +213,7 @@ class EmployeeSelfServiceController extends Controller
         abort_if($leave->status !== 'pending', 403, 'Hanya pengajuan pending yang bisa dibatalkan.');
 
         $leave->delete();
+
         return back()->with('success', 'Pengajuan cuti dibatalkan.');
     }
 
@@ -214,7 +223,7 @@ class EmployeeSelfServiceController extends Controller
     {
         $employee = $this->myEmployee();
 
-        if (!$employee) {
+        if (! $employee) {
             return view('self-service.attendance', ['employee' => null, 'today' => null, 'history' => collect()]);
         }
 
@@ -252,7 +261,7 @@ class EmployeeSelfServiceController extends Controller
         }
 
         // BUG-HRM-002 FIX: Use timezone-aware time and employee's shift
-        $attendanceService = new \App\Services\AttendanceService();
+        $attendanceService = new AttendanceService;
         $result = $attendanceService->clockIn($employee);
 
         if ($result['error']) {
@@ -271,7 +280,7 @@ class EmployeeSelfServiceController extends Controller
             ->whereDate('date', today())
             ->first();
 
-        if (!$attendance || !$attendance->check_in) {
+        if (! $attendance || ! $attendance->check_in) {
             return back()->withErrors(['clock' => 'Anda belum clock in hari ini.']);
         }
 
@@ -282,7 +291,7 @@ class EmployeeSelfServiceController extends Controller
         $now = now();
         $attendance->update(['check_out' => $now->format('H:i:s')]);
 
-        return back()->with('success', 'Clock out berhasil pukul ' . $now->format('H:i') . '.');
+        return back()->with('success', 'Clock out berhasil pukul '.$now->format('H:i').'.');
     }
 
     // ── Lembur Self-Service ───────────────────────────────────────
@@ -291,7 +300,7 @@ class EmployeeSelfServiceController extends Controller
     {
         $employee = $this->myEmployee();
 
-        if (!$employee) {
+        if (! $employee) {
             return view('self-service.overtime', ['employee' => null, 'overtimes' => collect()]);
         }
 
@@ -300,7 +309,7 @@ class EmployeeSelfServiceController extends Controller
             ->paginate(15);
 
         $stats = [
-            'pending'  => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'pending')->count(),
+            'pending' => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'pending')->count(),
             'approved' => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'approved')
                 ->whereYear('date', now()->year)->count(),
             'total_hours' => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'approved')
@@ -316,33 +325,33 @@ class EmployeeSelfServiceController extends Controller
         abort_unless($employee, 403, 'Akun Anda belum terhubung ke data karyawan.');
 
         $data = $request->validate([
-            'date'       => 'required|date',
+            'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
-            'end_time'   => 'required|date_format:H:i|after:start_time',
-            'reason'     => 'required|string|max:500',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'reason' => 'required|string|max:500',
         ]);
 
-        $start    = \Carbon\Carbon::parse($data['date'] . ' ' . $data['start_time']);
-        $end      = \Carbon\Carbon::parse($data['date'] . ' ' . $data['end_time']);
-        $minutes  = $start->diffInMinutes($end);
+        $start = Carbon::parse($data['date'].' '.$data['start_time']);
+        $end = Carbon::parse($data['date'].' '.$data['end_time']);
+        $minutes = $start->diffInMinutes($end);
 
         // Hitung upah lembur berdasarkan gaji karyawan
         $hourlyRate = (float) $employee->salary / 173;
-        $hours      = $minutes / 60;
+        $hours = $minutes / 60;
         $overtimePay = $hours <= 1
             ? round($hourlyRate * 1.5 * $hours, 2)
             : round(($hourlyRate * 1.5) + ($hourlyRate * 2 * ($hours - 1)), 2);
 
         OvertimeRequest::create([
-            'tenant_id'        => $employee->tenant_id,
-            'employee_id'      => $employee->id,
-            'date'             => $data['date'],
-            'start_time'       => $data['start_time'],
-            'end_time'         => $data['end_time'],
+            'tenant_id' => $employee->tenant_id,
+            'employee_id' => $employee->id,
+            'date' => $data['date'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
             'duration_minutes' => $minutes,
-            'reason'           => $data['reason'],
-            'status'           => 'pending',
-            'overtime_pay'     => $overtimePay,
+            'reason' => $data['reason'],
+            'status' => 'pending',
+            'overtime_pay' => $overtimePay,
         ]);
 
         return back()->with('success', "Pengajuan lembur {$minutes} menit berhasil dikirim. Menunggu persetujuan.");
@@ -355,6 +364,7 @@ class EmployeeSelfServiceController extends Controller
         abort_if($overtime->status !== 'pending', 403, 'Hanya pengajuan pending yang bisa dibatalkan.');
 
         $overtime->delete();
+
         return back()->with('success', 'Pengajuan lembur dibatalkan.');
     }
 }

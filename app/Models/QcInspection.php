@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * QC Inspection Model
- * 
+ *
  * TASK-2.19 & 2.20: Quality inspection records with test results
  */
 class QcInspection extends Model
@@ -53,10 +53,10 @@ class QcInspection extends Model
         parent::boot();
 
         static::creating(function ($inspection) {
-            if (!$inspection->inspection_number) {
-                $inspection->inspection_number = 'QCI-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            if (! $inspection->inspection_number) {
+                $inspection->inspection_number = 'QCI-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
-            if (!$inspection->inspector_id) {
+            if (! $inspection->inspector_id) {
                 $inspection->inspector_id = Auth::id();
             }
         });
@@ -96,21 +96,26 @@ class QcInspection extends Model
     {
         $passRate = $this->calculatePassRate();
 
-        if ($passRate >= 98)
+        if ($passRate >= 98) {
             return 'A';
-        if ($passRate >= 95)
+        }
+        if ($passRate >= 95) {
             return 'B';
-        if ($passRate >= 90)
+        }
+        if ($passRate >= 90) {
             return 'C';
-        if ($passRate >= 85)
+        }
+        if ($passRate >= 85) {
             return 'D';
+        }
+
         return 'F';
     }
 
     /**
      * Pass inspection
      */
-    public function pass(string $notes = null): void
+    public function pass(?string $notes = null): void
     {
         $this->update([
             'status' => 'passed',
@@ -134,7 +139,7 @@ class QcInspection extends Model
     /**
      * Fail inspection
      */
-    public function fail(string $correctiveAction, string $defects = null): void
+    public function fail(string $correctiveAction, ?string $defects = null): void
     {
         $this->update([
             'status' => 'failed',

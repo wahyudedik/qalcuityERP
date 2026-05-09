@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 
 class CheckErpNotifications extends Command
 {
-    protected $signature   = 'erp:check-notifications';
+    protected $signature = 'erp:check-notifications';
+
     protected $description = 'Dispatch jobs untuk cek stok menipis dan laporan belum masuk per tenant.';
 
     public function handle(): void

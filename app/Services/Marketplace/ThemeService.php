@@ -15,8 +15,8 @@ class ThemeService
         $query = Theme::where('status', 'published')
             ->with('author');
 
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        if (! empty($filters['search'])) {
+            $query->where('name', 'like', '%'.$filters['search'].'%');
         }
 
         $sortBy = $filters['sort_by'] ?? 'published_at';

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Tracking penggunaan AI per tenant per bulan
-        if (!Schema::hasTable('ai_usage_logs')) {
+        if (! Schema::hasTable('ai_usage_logs')) {
             Schema::create('ai_usage_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->integer('message_count')->default(0);
                 $table->integer('token_count')->default(0);
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id', 'month']);
                 $table->index(['tenant_id', 'month']);
             });

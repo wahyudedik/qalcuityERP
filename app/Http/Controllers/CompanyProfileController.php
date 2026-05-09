@@ -22,26 +22,26 @@ class CompanyProfileController extends Controller
         $tenant = auth()->user()->tenant;
 
         $data = $request->validate([
-            'name'                  => 'required|string|max:255',
-            'email'                 => 'nullable|email|max:255',
-            'phone'                 => 'nullable|string|max:30',
-            'address'               => 'nullable|string|max:500',
-            'city'                  => 'nullable|string|max:100',
-            'province'              => 'nullable|string|max:100',
-            'postal_code'           => 'nullable|string|max:10',
-            'npwp'                  => 'nullable|string|max:30',
-            'website'               => 'nullable|url|max:255',
-            'tagline'               => 'nullable|string|max:255',
-            'bank_name'             => 'nullable|string|max:100',
-            'bank_account'          => 'nullable|string|max:50',
-            'bank_account_name'     => 'nullable|string|max:255',
-            'invoice_footer_notes'  => 'nullable|string|max:1000',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+            'npwp' => 'nullable|string|max:30',
+            'website' => 'nullable|url|max:255',
+            'tagline' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account' => 'nullable|string|max:50',
+            'bank_account_name' => 'nullable|string|max:255',
+            'invoice_footer_notes' => 'nullable|string|max:1000',
             'invoice_payment_terms' => 'nullable|string|max:255',
-            'letter_head_color'     => 'nullable|string|max:7',
-            'doc_number_prefix'     => 'nullable|string|max:20',
-            'logo'                  => 'nullable|image|max:2048',
-            'stamp_image'           => 'nullable|image|max:2048',
-            'director_signature'    => 'nullable|image|max:2048',
+            'letter_head_color' => 'nullable|string|max:7',
+            'doc_number_prefix' => 'nullable|string|max:20',
+            'logo' => 'nullable|image|max:2048',
+            'stamp_image' => 'nullable|image|max:2048',
+            'director_signature' => 'nullable|image|max:2048',
         ]);
 
         // Handle file uploads
@@ -67,7 +67,7 @@ class CompanyProfileController extends Controller
         $tenant = auth()->user()->tenant;
         $allowed = ['logo', 'stamp_image', 'director_signature'];
 
-        if (!in_array($field, $allowed)) {
+        if (! in_array($field, $allowed)) {
             abort(422);
         }
 
@@ -85,13 +85,13 @@ class CompanyProfileController extends Controller
         $tenant = auth()->user()->tenant;
 
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'doc_type'     => 'required|in:invoice,po,quotation,letter,memo',
+            'name' => 'required|string|max:255',
+            'doc_type' => 'required|in:invoice,po,quotation,letter,memo',
             'html_content' => 'required|string',
-            'is_default'   => 'boolean',
+            'is_default' => 'boolean',
         ]);
 
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             DocumentTemplate::where('tenant_id', $tenant->id)
                 ->where('doc_type', $data['doc_type'])
                 ->update(['is_default' => false]);
@@ -107,12 +107,12 @@ class CompanyProfileController extends Controller
         $this->authorizeTemplate($template);
 
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'html_content' => 'required|string',
-            'is_default'   => 'boolean',
+            'is_default' => 'boolean',
         ]);
 
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             DocumentTemplate::where('tenant_id', $template->tenant_id)
                 ->where('doc_type', $template->doc_type)
                 ->where('id', '!=', $template->id)

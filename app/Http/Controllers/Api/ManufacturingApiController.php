@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\WorkOrder;
 use App\Models\Bom;
-use App\Models\QualityCheck;
 use App\Models\DefectRecord;
+use App\Models\MixDesign;
+use App\Models\QualityCheck;
+use App\Models\WorkOrder;
 use App\Services\MrpService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -57,7 +57,7 @@ class ManufacturingApiController extends ApiBaseController
 
         $workOrder = WorkOrder::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'number' => 'WO-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'number' => 'WO-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => 'pending',
         ]));
 
@@ -379,11 +379,11 @@ class ManufacturingApiController extends ApiBaseController
     public function mixDesigns(Request $request)
     {
         // Check if MixDesign model exists
-        if (!class_exists(\App\Models\MixDesign::class)) {
+        if (! class_exists(MixDesign::class)) {
             return $this->error('Mix design feature not available', 501);
         }
 
-        $query = \App\Models\MixDesign::where('tenant_id', $this->getTenantId())
+        $query = MixDesign::where('tenant_id', $this->getTenantId())
             ->with(['product']);
 
         if ($request->filled('product_id')) {
@@ -401,11 +401,11 @@ class ManufacturingApiController extends ApiBaseController
     public function mixDesignDetail($id)
     {
         // Check if MixDesign model exists
-        if (!class_exists(\App\Models\MixDesign::class)) {
+        if (! class_exists(MixDesign::class)) {
             return $this->error('Mix design feature not available', 501);
         }
 
-        $mixDesign = \App\Models\MixDesign::where('tenant_id', $this->getTenantId())
+        $mixDesign = MixDesign::where('tenant_id', $this->getTenantId())
             ->with(['product', 'components'])
             ->findOrFail($id);
 
@@ -418,7 +418,7 @@ class ManufacturingApiController extends ApiBaseController
     public function calculateMixDesign(Request $request)
     {
         // Check if MixDesign model exists
-        if (!class_exists(\App\Models\MixDesign::class)) {
+        if (! class_exists(MixDesign::class)) {
             return $this->error('Mix design feature not available', 501);
         }
 

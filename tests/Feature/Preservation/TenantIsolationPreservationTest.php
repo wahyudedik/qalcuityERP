@@ -7,6 +7,7 @@ use App\Models\JournalEntry;
 use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Traits\BelongsToTenant;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -26,16 +27,19 @@ class TenantIsolationPreservationTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenantA;
+
     private Tenant $tenantB;
+
     private User $userA;
+
     private User $userB;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tenantA = $this->createTenant(['name' => 'Tenant A', 'slug' => 'tenant-a-' . uniqid()]);
-        $this->tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-' . uniqid()]);
+        $this->tenantA = $this->createTenant(['name' => 'Tenant A', 'slug' => 'tenant-a-'.uniqid()]);
+        $this->tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-'.uniqid()]);
 
         $this->userA = $this->createAdminUser($this->tenantA);
         $this->userB = $this->createAdminUser($this->tenantB);
@@ -55,16 +59,16 @@ class TenantIsolationPreservationTest extends TestCase
         // Buat customer untuk tenant A
         $customerA = Customer::create([
             'tenant_id' => $this->tenantA->id,
-            'name'      => 'Customer Tenant A',
-            'email'     => 'customer-a-' . uniqid() . '@example.com',
+            'name' => 'Customer Tenant A',
+            'email' => 'customer-a-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
         // Buat customer untuk tenant B (bypass scope)
         Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantB->id,
-            'name'      => 'Customer Tenant B',
-            'email'     => 'customer-b-' . uniqid() . '@example.com',
+            'name' => 'Customer Tenant B',
+            'email' => 'customer-b-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
@@ -76,7 +80,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertContains(
             $customerA->id,
             $customers->pluck('id')->toArray(),
-            "Customer tenant A harus ada dalam hasil query"
+            'Customer tenant A harus ada dalam hasil query'
         );
 
         // Customer tenant B tidak boleh ada
@@ -84,7 +88,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertEquals(
             0,
             $tenantBCustomers->count(),
-            "Customer tenant B tidak boleh muncul dalam query Customer::all() sebagai userA"
+            'Customer tenant B tidak boleh muncul dalam query Customer::all() sebagai userA'
         );
     }
 
@@ -99,15 +103,15 @@ class TenantIsolationPreservationTest extends TestCase
         // Buat customer untuk kedua tenant (bypass scope)
         Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantA->id,
-            'name'      => 'Customer A',
-            'email'     => 'ca-' . uniqid() . '@example.com',
+            'name' => 'Customer A',
+            'email' => 'ca-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
         $customerB = Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantB->id,
-            'name'      => 'Customer B',
-            'email'     => 'cb-' . uniqid() . '@example.com',
+            'name' => 'Customer B',
+            'email' => 'cb-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
@@ -119,7 +123,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertContains(
             $customerB->id,
             $customers->pluck('id')->toArray(),
-            "Customer tenant B harus ada dalam hasil query sebagai userB"
+            'Customer tenant B harus ada dalam hasil query sebagai userB'
         );
 
         // Customer tenant A tidak boleh ada
@@ -127,7 +131,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertEquals(
             0,
             $tenantACustomers->count(),
-            "Customer tenant A tidak boleh muncul dalam query sebagai userB"
+            'Customer tenant A tidak boleh muncul dalam query sebagai userB'
         );
     }
 
@@ -145,13 +149,13 @@ class TenantIsolationPreservationTest extends TestCase
 
         // Buat produk untuk tenant B (bypass scope)
         Product::withoutGlobalScope('tenant')->create([
-            'tenant_id'  => $this->tenantB->id,
-            'name'       => 'Produk B',
-            'sku'        => 'SKU-B-' . uniqid(),
-            'unit'       => 'pcs',
+            'tenant_id' => $this->tenantB->id,
+            'name' => 'Produk B',
+            'sku' => 'SKU-B-'.uniqid(),
+            'unit' => 'pcs',
             'price_sell' => 50000,
-            'price_buy'  => 30000,
-            'is_active'  => true,
+            'price_buy' => 30000,
+            'is_active' => true,
         ]);
 
         $this->actingAs($this->userA);
@@ -161,7 +165,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertContains(
             $productA->id,
             $products->pluck('id')->toArray(),
-            "Produk tenant A harus ada dalam hasil query"
+            'Produk tenant A harus ada dalam hasil query'
         );
 
         // Produk tenant B tidak boleh ada
@@ -169,7 +173,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertEquals(
             0,
             $tenantBProducts->count(),
-            "Produk tenant B tidak boleh muncul dalam query Product::all() sebagai userA"
+            'Produk tenant B tidak boleh muncul dalam query Product::all() sebagai userA'
         );
     }
 
@@ -188,30 +192,30 @@ class TenantIsolationPreservationTest extends TestCase
 
         // Buat jurnal untuk tenant A
         $journalA = JournalEntry::create([
-            'tenant_id'      => $this->tenantA->id,
-            'user_id'        => $this->userA->id,
-            'number'         => 'JE-A-001',
-            'date'           => today(),
-            'description'    => 'Jurnal Tenant A',
-            'reference'      => 'REF-A-001',
+            'tenant_id' => $this->tenantA->id,
+            'user_id' => $this->userA->id,
+            'number' => 'JE-A-001',
+            'date' => today(),
+            'description' => 'Jurnal Tenant A',
+            'reference' => 'REF-A-001',
             'reference_type' => 'test',
-            'currency_code'  => 'IDR',
-            'currency_rate'  => 1,
-            'status'         => 'posted',
+            'currency_code' => 'IDR',
+            'currency_rate' => 1,
+            'status' => 'posted',
         ]);
 
         // Buat jurnal untuk tenant B (bypass scope)
         JournalEntry::withoutGlobalScope('tenant')->create([
-            'tenant_id'      => $this->tenantB->id,
-            'user_id'        => $this->userB->id,
-            'number'         => 'JE-B-001',
-            'date'           => today(),
-            'description'    => 'Jurnal Tenant B',
-            'reference'      => 'REF-B-001',
+            'tenant_id' => $this->tenantB->id,
+            'user_id' => $this->userB->id,
+            'number' => 'JE-B-001',
+            'date' => today(),
+            'description' => 'Jurnal Tenant B',
+            'reference' => 'REF-B-001',
             'reference_type' => 'test',
-            'currency_code'  => 'IDR',
-            'currency_rate'  => 1,
-            'status'         => 'posted',
+            'currency_code' => 'IDR',
+            'currency_rate' => 1,
+            'status' => 'posted',
         ]);
 
         // Query sebagai userA
@@ -222,7 +226,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertContains(
             $journalA->id,
             $journals->pluck('id')->toArray(),
-            "Jurnal tenant A harus ada dalam hasil query"
+            'Jurnal tenant A harus ada dalam hasil query'
         );
 
         // Jurnal tenant B tidak boleh ada
@@ -230,7 +234,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertEquals(
             0,
             $tenantBJournals->count(),
-            "Jurnal tenant B tidak boleh muncul dalam query JournalEntry::all() sebagai userA"
+            'Jurnal tenant B tidak boleh muncul dalam query JournalEntry::all() sebagai userA'
         );
     }
 
@@ -245,19 +249,19 @@ class TenantIsolationPreservationTest extends TestCase
     public function test_critical_models_use_belongs_to_tenant_trait(): void
     {
         $criticalModels = [
-            \App\Models\Customer::class,
-            \App\Models\Product::class,
-            \App\Models\JournalEntry::class,
+            Customer::class,
+            Product::class,
+            JournalEntry::class,
         ];
 
         foreach ($criticalModels as $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
             $traits = class_uses_recursive($modelClass);
             $this->assertContains(
-                \App\Traits\BelongsToTenant::class,
+                BelongsToTenant::class,
                 $traits,
                 "Model {$modelClass} harus menggunakan BelongsToTenant trait untuk isolasi data"
             );
@@ -275,15 +279,15 @@ class TenantIsolationPreservationTest extends TestCase
         // Buat data untuk kedua tenant (bypass scope)
         Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantA->id,
-            'name'      => 'Customer A CLI',
-            'email'     => 'cli-a-' . uniqid() . '@example.com',
+            'name' => 'Customer A CLI',
+            'email' => 'cli-a-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
         Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantB->id,
-            'name'      => 'Customer B CLI',
-            'email'     => 'cli-b-' . uniqid() . '@example.com',
+            'name' => 'Customer B CLI',
+            'email' => 'cli-b-'.uniqid().'@example.com',
             'is_active' => true,
         ]);
 
@@ -294,7 +298,7 @@ class TenantIsolationPreservationTest extends TestCase
         $this->assertGreaterThanOrEqual(
             2,
             $allCustomers->count(),
-            "withoutGlobalScope harus bisa mengakses semua data dari semua tenant (CLI context)"
+            'withoutGlobalScope harus bisa mengakses semua data dari semua tenant (CLI context)'
         );
     }
 }

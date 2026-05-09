@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MaterialDelivery extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'project_id',
@@ -79,7 +79,7 @@ class MaterialDelivery extends Model
      */
     public function isOnTime(): bool
     {
-        if (!$this->actual_delivery_date || !$this->expected_date) {
+        if (! $this->actual_delivery_date || ! $this->expected_date) {
             return true;
         }
 
@@ -91,7 +91,7 @@ class MaterialDelivery extends Model
      */
     public function getDaysDelayed(): int
     {
-        if (!$this->actual_delivery_date || !$this->expected_date) {
+        if (! $this->actual_delivery_date || ! $this->expected_date) {
             return 0;
         }
 

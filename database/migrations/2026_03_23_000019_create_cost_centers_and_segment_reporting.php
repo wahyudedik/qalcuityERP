@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Cost Centers / Divisi
-        if (!Schema::hasTable('cost_centers')) {
+        if (! Schema::hasTable('cost_centers')) {
             Schema::create('cost_centers', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -20,16 +20,16 @@ return new class extends Migration
                 $table->text('description')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'code']);
                 $table->unique(['tenant_id', 'code']);
             });
         }
 
         // Tambah cost_center_id ke journal_entry_lines (sudah ada kolom, pastikan ada FK)
-        if (!Schema::hasColumn('journal_entry_lines', 'cost_center_id')) {
+        if (! Schema::hasColumn('journal_entry_lines', 'cost_center_id')) {
             Schema::table('journal_entry_lines', function (Blueprint $table) {
-                if (!Schema::hasColumn('journal_entry_lines', 'cost_center_id')) {
+                if (! Schema::hasColumn('journal_entry_lines', 'cost_center_id')) {
                     $table->unsignedBigInteger('cost_center_id')->nullable()->after('description');
                 }
             });
@@ -38,9 +38,9 @@ return new class extends Migration
         // Tambah cost_center_id ke transaksi utama
         $tables = ['sales_orders', 'invoices', 'purchase_orders', 'expenses'];
         foreach ($tables as $tbl) {
-            if (Schema::hasTable($tbl) && !Schema::hasColumn($tbl, 'cost_center_id')) {
+            if (Schema::hasTable($tbl) && ! Schema::hasColumn($tbl, 'cost_center_id')) {
                 Schema::table($tbl, function (Blueprint $table) {
-                    if (!Schema::hasColumn('cost_center_id', 'cost_center_id')) {
+                    if (! Schema::hasColumn('cost_center_id', 'cost_center_id')) {
                         $table->unsignedBigInteger('cost_center_id')->nullable()->after('tenant_id');
                     }
                 });

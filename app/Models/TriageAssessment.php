@@ -74,9 +74,9 @@ class TriageAssessment extends Model
     public static function generateTriageNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'TRI-' . $date;
+        $prefix = 'TRI-'.$date;
 
-        $lastTriage = static::where('triage_number', 'like', $prefix . '%')
+        $lastTriage = static::where('triage_number', 'like', $prefix.'%')
             ->orderBy('triage_number', 'desc')
             ->first();
 
@@ -87,7 +87,7 @@ class TriageAssessment extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -164,52 +164,57 @@ class TriageAssessment extends Model
 
         // Respiratory rate
         if ($this->respiratory_rate) {
-            if ($this->respiratory_rate <= 8 || $this->respiratory_rate >= 25)
+            if ($this->respiratory_rate <= 8 || $this->respiratory_rate >= 25) {
                 $score += 3;
-            elseif ($this->respiratory_rate <= 11 || $this->respiratory_rate >= 21)
+            } elseif ($this->respiratory_rate <= 11 || $this->respiratory_rate >= 21) {
                 $score += 2;
-            elseif ($this->respiratory_rate == 12 || $this->respiratory_rate == 20)
+            } elseif ($this->respiratory_rate == 12 || $this->respiratory_rate == 20) {
                 $score += 1;
+            }
         }
 
         // SpO2
         if ($this->spo2) {
-            if ($this->spo2 <= 91)
+            if ($this->spo2 <= 91) {
                 $score += 3;
-            elseif ($this->spo2 <= 93)
+            } elseif ($this->spo2 <= 93) {
                 $score += 2;
-            elseif ($this->spo2 <= 94)
+            } elseif ($this->spo2 <= 94) {
                 $score += 1;
+            }
         }
 
         // Temperature
         if ($this->temperature) {
-            if ($this->temperature <= 35.0 || $this->temperature >= 39.1)
+            if ($this->temperature <= 35.0 || $this->temperature >= 39.1) {
                 $score += 3;
-            elseif ($this->temperature <= 36.0 || $this->temperature >= 38.1)
+            } elseif ($this->temperature <= 36.0 || $this->temperature >= 38.1) {
                 $score += 2;
-            elseif ($this->temperature <= 36.5 || $this->temperature >= 38.0)
+            } elseif ($this->temperature <= 36.5 || $this->temperature >= 38.0) {
                 $score += 1;
+            }
         }
 
         // Blood pressure
         if ($this->systolic_bp) {
-            if ($this->systolic_bp <= 90 || $this->systolic_bp >= 220)
+            if ($this->systolic_bp <= 90 || $this->systolic_bp >= 220) {
                 $score += 3;
-            elseif ($this->systolic_bp <= 100 || $this->systolic_bp >= 180)
+            } elseif ($this->systolic_bp <= 100 || $this->systolic_bp >= 180) {
                 $score += 2;
-            elseif ($this->systolic_bp <= 110 || $this->systolic_bp >= 160)
+            } elseif ($this->systolic_bp <= 110 || $this->systolic_bp >= 160) {
                 $score += 1;
+            }
         }
 
         // Heart rate
         if ($this->heart_rate) {
-            if ($this->heart_rate <= 40 || $this->heart_rate >= 131)
+            if ($this->heart_rate <= 40 || $this->heart_rate >= 131) {
                 $score += 3;
-            elseif ($this->heart_rate <= 50 || $this->heart_rate >= 111)
+            } elseif ($this->heart_rate <= 50 || $this->heart_rate >= 111) {
                 $score += 2;
-            elseif ($this->heart_rate <= 60 || $this->heart_rate >= 91)
+            } elseif ($this->heart_rate <= 60 || $this->heart_rate >= 91) {
                 $score += 1;
+            }
         }
 
         return $score;

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
-use App\Models\ProductStock;
 use Illuminate\Http\Request;
 
 class ApiProductController extends ApiBaseController

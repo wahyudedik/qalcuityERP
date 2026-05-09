@@ -20,7 +20,7 @@ class AccountingAiController extends Controller
     public function suggestAccounts(Request $request)
     {
         $description = $request->string('description')->trim()->value();
-        $amount      = (float) $request->input('amount', 0);
+        $amount = (float) $request->input('amount', 0);
 
         if (strlen($description) < 3) {
             return response()->json(['suggestions' => []]);
@@ -38,9 +38,9 @@ class AccountingAiController extends Controller
     public function checkJournal(Request $request)
     {
         $data = $request->validate([
-            'lines'        => 'required|array',
-            'date'         => 'required|date',
-            'description'  => 'nullable|string',
+            'lines' => 'required|array',
+            'date' => 'required|date',
+            'description' => 'nullable|string',
             'total_amount' => 'nullable|numeric|min:0',
         ]);
 
@@ -61,8 +61,8 @@ class AccountingAiController extends Controller
     public function categorizeStatement(Request $request)
     {
         $description = $request->string('description')->trim()->value();
-        $type        = $request->input('type', 'debit'); // debit | credit
-        $amount      = (float) $request->input('amount', 0);
+        $type = $request->input('type', 'debit'); // debit | credit
+        $amount = (float) $request->input('amount', 0);
 
         if (empty($description)) {
             return response()->json(['result' => null]);

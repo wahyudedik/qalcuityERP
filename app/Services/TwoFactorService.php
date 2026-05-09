@@ -15,7 +15,7 @@ class TwoFactorService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     /**
@@ -52,9 +52,9 @@ class TwoFactorService
      */
     public function enable(User $user, string $secret): void
     {
-        $user->two_factor_secret         = encrypt($secret);
-        $user->two_factor_enabled        = true;
-        $user->two_factor_confirmed_at   = now();
+        $user->two_factor_secret = encrypt($secret);
+        $user->two_factor_enabled = true;
+        $user->two_factor_confirmed_at = now();
         $user->two_factor_recovery_codes = $this->generateRecoveryCodes();
         $user->save();
     }
@@ -64,9 +64,9 @@ class TwoFactorService
      */
     public function disable(User $user): void
     {
-        $user->two_factor_secret         = null;
-        $user->two_factor_enabled        = false;
-        $user->two_factor_confirmed_at   = null;
+        $user->two_factor_secret = null;
+        $user->two_factor_enabled = false;
+        $user->two_factor_confirmed_at = null;
         $user->two_factor_recovery_codes = null;
         $user->save();
     }
@@ -79,7 +79,9 @@ class TwoFactorService
         $codes = $user->two_factor_recovery_codes ?? [];
         $index = array_search(trim($code), $codes);
 
-        if ($index === false) return false;
+        if ($index === false) {
+            return false;
+        }
 
         // Hapus kode yang sudah dipakai
         unset($codes[$index]);
@@ -93,7 +95,9 @@ class TwoFactorService
      */
     public function getSecret(User $user): ?string
     {
-        if (!$user->two_factor_secret) return null;
+        if (! $user->two_factor_secret) {
+            return null;
+        }
         try {
             return decrypt($user->two_factor_secret);
         } catch (\Throwable) {
@@ -107,7 +111,7 @@ class TwoFactorService
     public function generateRecoveryCodes(): array
     {
         return array_map(
-            fn() => strtoupper(substr(str_replace(['+', '/', '='], '', base64_encode(random_bytes(10))), 0, 10)),
+            fn () => strtoupper(substr(str_replace(['+', '/', '='], '', base64_encode(random_bytes(10))), 0, 10)),
             range(1, 8)
         );
     }
@@ -120,6 +124,7 @@ class TwoFactorService
         $codes = $this->generateRecoveryCodes();
         $user->two_factor_recovery_codes = $codes;
         $user->save();
+
         return $codes;
     }
 }

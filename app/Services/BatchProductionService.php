@@ -2,21 +2,22 @@
 
 namespace App\Services;
 
+use App\Models\BatchQualityCheck;
+use App\Models\ChartOfAccount;
 use App\Models\CosmeticBatchRecord;
 use App\Models\CosmeticFormula;
-use App\Models\BatchQualityCheck;
-use App\Models\StockMovement;
-use App\Models\Warehouse;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
-use App\Models\ChartOfAccount;
+use App\Models\StockMovement;
+use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Batch Production Service
- * 
+ *
  * @note Linter may show false positives for auth()->user() and auth()->id() - standard Laravel
  */
 class BatchProductionService
@@ -33,7 +34,7 @@ class BatchProductionService
         }
 
         return DB::transaction(function () use ($formula, $data) {
-            $batch = new CosmeticBatchRecord();
+            $batch = new CosmeticBatchRecord;
             $batch->tenant_id = Auth::check() ? Auth::user()->tenant_id : null;
             $batch->batch_number = $data['batch_number'] ?? CosmeticBatchRecord::getNextBatchNumber();
             $batch->formula_id = $formula->id;
@@ -65,7 +66,7 @@ class BatchProductionService
      */
     public function startProduction(CosmeticBatchRecord $batch, int $userId): CosmeticBatchRecord
     {
-        if (!$batch->isDraft()) {
+        if (! $batch->isDraft()) {
             throw new \InvalidArgumentException('Batch must be in draft status');
         }
 
@@ -86,7 +87,7 @@ class BatchProductionService
      */
     public function recordProductionQuantity(CosmeticBatchRecord $batch, float $actualQuantity): CosmeticBatchRecord
     {
-        if (!$batch->isInProgress()) {
+        if (! $batch->isInProgress()) {
             throw new \InvalidArgumentException('Batch must be in progress');
         }
 
@@ -108,11 +109,11 @@ class BatchProductionService
      */
     public function submitForQC(CosmeticBatchRecord $batch): CosmeticBatchRecord
     {
-        if (!$batch->isInProgress()) {
+        if (! $batch->isInProgress()) {
             throw new \InvalidArgumentException('Batch must be in progress');
         }
 
-        if (!$batch->actual_quantity || $batch->actual_quantity <= 0) {
+        if (! $batch->actual_quantity || $batch->actual_quantity <= 0) {
             throw new \InvalidArgumentException('Actual quantity must be recorded');
         }
 
@@ -143,9 +144,9 @@ class BatchProductionService
             ->pluck('yield_percentage')
             ->toArray();
 
-        $averageYield = !empty($historicalYields) ? array_sum($historicalYields) / count($historicalYields) : null;
-        $bestYield = !empty($historicalYields) ? max($historicalYields) : null;
-        $worstYield = !empty($historicalYields) ? min($historicalYields) : null;
+        $averageYield = ! empty($historicalYields) ? array_sum($historicalYields) / count($historicalYields) : null;
+        $bestYield = ! empty($historicalYields) ? max($historicalYields) : null;
+        $worstYield = ! empty($historicalYields) ? min($historicalYields) : null;
 
         // Determine yield status
         $yieldStatus = 'unknown';
@@ -208,9 +209,9 @@ class BatchProductionService
 
         return [
             'trends' => $trends,
-            'average' => !empty($yields) ? round(array_sum($yields) / count($yields), 2) : 0,
-            'min' => !empty($yields) ? min($yields) : 0,
-            'max' => !empty($yields) ? max($yields) : 0,
+            'average' => ! empty($yields) ? round(array_sum($yields) / count($yields), 2) : 0,
+            'min' => ! empty($yields) ? min($yields) : 0,
+            'max' => ! empty($yields) ? max($yields) : 0,
             'total_batches' => count($trends),
         ];
     }
@@ -220,7 +221,7 @@ class BatchProductionService
      */
     public function releaseBatch(CosmeticBatchRecord $batch, int $userId): CosmeticBatchRecord
     {
-        if (!$batch->canBeReleased()) {
+        if (! $batch->canBeReleased()) {
             throw new \InvalidArgumentException('Batch cannot be released. Check QC and rework status.');
         }
 
@@ -293,7 +294,7 @@ class BatchProductionService
         ];
 
         foreach ($checkpoints as $checkpoint) {
-            $check = new BatchQualityCheck();
+            $check = new BatchQualityCheck;
             $check->tenant_id = $batch->tenant_id;
             $check->batch_id = $batch->id;
             $check->check_point = $checkpoint['check_point'];
@@ -313,10 +314,11 @@ class BatchProductionService
     {
         try {
             $formula = $batch->formula;
-            if (!$formula) {
+            if (! $formula) {
                 Log::warning('Formula not found for batch journal creation', [
                     'batch_id' => $batch->id,
                 ]);
+
                 return;
             }
 
@@ -326,13 +328,14 @@ class BatchProductionService
             $finishedGoodsAccount = $this->getFinishedGoodsAccount($batch->tenant_id);
             $wipAccount = $this->getWIPAccount($batch->tenant_id);
 
-            if (!$finishedGoodsAccount || !$wipAccount) {
+            if (! $finishedGoodsAccount || ! $wipAccount) {
                 Log::warning('Missing accounting accounts for batch production', [
                     'batch_id' => $batch->id,
                     'tenant_id' => $batch->tenant_id,
                     'has_fg_account' => (bool) $finishedGoodsAccount,
                     'has_wip_account' => (bool) $wipAccount,
                 ]);
+
                 return;
             }
 
@@ -420,11 +423,12 @@ class BatchProductionService
             ->where('is_active', true)
             ->first();
 
-        if (!$warehouse) {
+        if (! $warehouse) {
             Log::warning('No active warehouse found for batch inventory update', [
                 'batch_id' => $batch->id,
                 'tenant_id' => $batch->tenant_id,
             ]);
+
             return;
         }
 
@@ -459,11 +463,11 @@ class BatchProductionService
      */
     protected function calculateExpiryDate(CosmeticFormula $formula, string $productionDate): string
     {
-        if (!$formula->shelf_life_months) {
+        if (! $formula->shelf_life_months) {
             return now()->addMonths(24)->format('Y-m-d');
         }
 
-        return \Carbon\Carbon::parse($productionDate)
+        return Carbon::parse($productionDate)
             ->addMonths($formula->shelf_life_months)
             ->format('Y-m-d');
     }

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
+use App\Models\Doctor;
+use App\Models\Patient;
+use App\Models\PaymentTransaction;
 use App\Models\Teleconsultation;
-use App\Services\Healthcare\TelemedicinePaymentService;
-use App\Services\TelemedicineVideoService;
-use App\Services\TelemedicineFeedbackService;
 use App\Models\TelemedicineSetting;
+use App\Services\Healthcare\TelemedicinePaymentService;
+use App\Services\TelemedicineFeedbackService;
+use App\Services\TelemedicineVideoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +18,9 @@ use Illuminate\Support\Facades\Log;
 class TelemedicineController extends Controller
 {
     protected $paymentService;
+
     protected $videoService;
+
     protected $feedbackService;
 
     public function __construct(
@@ -27,6 +32,7 @@ class TelemedicineController extends Controller
         $this->videoService = $videoService;
         $this->feedbackService = $feedbackService;
     }
+
     /**
      * Display telemedicine dashboard / consultation list.
      */
@@ -78,12 +84,12 @@ class TelemedicineController extends Controller
     {
         $tenantId = Auth::user()->tenant_id;
 
-        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+        $patients = Patient::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->orderBy('full_name')
             ->get();
 
-        $doctors = \App\Models\Doctor::where('tenant_id', $tenantId)
+        $doctors = Doctor::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -391,7 +397,7 @@ class TelemedicineController extends Controller
     {
         $payload = $request->all();
 
-        Log::info("Payment callback received", [
+        Log::info('Payment callback received', [
             'provider' => $provider,
             'payload' => $payload,
         ]);
@@ -411,11 +417,11 @@ class TelemedicineController extends Controller
     public function processRefund(Request $request, $id)
     {
         $consultation = Teleconsultation::findOrFail($id);
-        $paymentTransaction = \App\Models\PaymentTransaction::where('teleconsultation_id', $consultation->id)
+        $paymentTransaction = PaymentTransaction::where('teleconsultation_id', $consultation->id)
             ->where('status', 'paid')
             ->first();
 
-        if (!$paymentTransaction) {
+        if (! $paymentTransaction) {
             return back()->with('error', 'No payment found for this consultation.');
         }
 
@@ -429,7 +435,7 @@ class TelemedicineController extends Controller
             return back()->with('success', 'Refund processed successfully.');
         }
 
-        return back()->with('error', 'Refund failed: ' . $result['error']);
+        return back()->with('error', 'Refund failed: '.$result['error']);
     }
 
     // ========================================
@@ -444,13 +450,13 @@ class TelemedicineController extends Controller
         $consultation = Teleconsultation::with(['patient', 'doctor'])->findOrFail($id);
 
         // Check if user can join
-        if (!$consultation->canJoin()) {
+        if (! $consultation->canJoin()) {
             return redirect()->route('healthcare.telemedicine.consultations')
                 ->with('error', 'This consultation cannot be joined at this time.');
         }
 
         // Generate or get meeting details
-        if (!$consultation->meeting_url) {
+        if (! $consultation->meeting_url) {
             $meetingData = $this->videoService->generateMeetingRoom($consultation);
         } else {
             $settings = TelemedicineSetting::getForTenant($consultation->patient?->tenant_id ?? 1);
@@ -590,6 +596,7 @@ class TelemedicineController extends Controller
                 ->with('success', 'Thank you for your feedback!');
         } catch (\Exception $e) {
             Log::error('Failed to submit feedback', ['error' => $e->getMessage()]);
+
             return back()->with('error', 'Failed to submit feedback. Please try again.');
         }
     }
@@ -602,7 +609,7 @@ class TelemedicineController extends Controller
         $consultation = Teleconsultation::findOrFail($id);
         $feedback = $this->feedbackService->getConsultationFeedback($consultation->id);
 
-        if (!$feedback) {
+        if (! $feedback) {
             return response()->json(['message' => 'No feedback found'], 404);
         }
 

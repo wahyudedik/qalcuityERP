@@ -14,6 +14,7 @@ class AuditCoreCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:core {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run core audit analyzers (controller, query, model).';
 
     public function handle(
@@ -21,13 +22,13 @@ class AuditCoreCommand extends Command
         QueryAnalyzer $queryAnalyzer,
         ModelAnalyzer $modelAnalyzer
     ): int {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($controllerAnalyzer->analyze());
         $report->addAll($queryAnalyzer->analyze());
         $report->addAll($modelAnalyzer->analyze());
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

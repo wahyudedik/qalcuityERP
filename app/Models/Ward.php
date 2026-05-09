@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ward extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'ward_code',
@@ -105,6 +105,14 @@ class Ward extends Model
     public function availableBeds()
     {
         return $this->hasMany(Bed::class)->where('status', 'available');
+    }
+
+    /**
+     * Relation: Occupied beds
+     */
+    public function occupiedBeds()
+    {
+        return $this->hasMany(Bed::class)->where('status', 'occupied');
     }
 
     /**

@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\HL7Message;
 use App\Models\BPJSClaim;
+use App\Models\HL7Message;
 use App\Models\LabEquipmentIntegration;
-use App\Models\PharmacyIntegrationLog;
 use App\Models\NotificationLog;
+use App\Models\PharmacyIntegrationLog;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class HealthcareIntegrationService
 {
@@ -41,7 +41,7 @@ class HealthcareIntegrationService
             try {
                 $this->processHL7Message($hl7Message);
 
-                Log::info("HL7 message sent", [
+                Log::info('HL7 message sent', [
                     'message_id' => $hl7Message->message_id,
                     'type' => $hl7Message->message_type,
                     'event' => $hl7Message->trigger_event,
@@ -52,7 +52,7 @@ class HealthcareIntegrationService
                     'error_message' => $e->getMessage(),
                 ]);
 
-                Log::error("HL7 message failed", [
+                Log::error('HL7 message failed', [
                     'message_id' => $hl7Message->message_id,
                     'error' => $e->getMessage(),
                 ]);
@@ -94,7 +94,7 @@ class HealthcareIntegrationService
                 'status' => 'acknowledged',
             ]);
 
-            Log::info("HL7 message received", [
+            Log::info('HL7 message received', [
                 'message_id' => $hl7Message->message_id,
                 'type' => $hl7Message->message_type,
             ]);
@@ -139,7 +139,7 @@ class HealthcareIntegrationService
                     'verified_at' => now(),
                 ]);
 
-                Log::info("BPJS claim submitted", [
+                Log::info('BPJS claim submitted', [
                     'claim_number' => $claim->claim_number,
                     'amount' => $claim->claimed_amount,
                 ]);
@@ -149,7 +149,7 @@ class HealthcareIntegrationService
                     'response_data' => json_encode(['error' => $e->getMessage()]),
                 ]);
 
-                Log::error("BPJS claim submission failed", [
+                Log::error('BPJS claim submission failed', [
                     'claim_number' => $claim->claim_number,
                     'error' => $e->getMessage(),
                 ]);
@@ -169,7 +169,7 @@ class HealthcareIntegrationService
                 'X-cons-id' => config('services.bpjs.cons_id'),
                 'X-timestamp' => $this->getBPJSTimestamp(),
                 'X-signature' => $this->generateBPJSSignature(),
-            ])->get(config('services.bpjs.base_url') . '/Peserta/nokartu/' . $bpjsNumber . '/tglSEP/' . $cardDate);
+            ])->get(config('services.bpjs.base_url').'/Peserta/nokartu/'.$bpjsNumber.'/tglSEP/'.$cardDate);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -233,7 +233,7 @@ class HealthcareIntegrationService
                 $imported++;
             } catch (Exception $e) {
                 $failed++;
-                Log::error("Lab result import failed", [
+                Log::error('Lab result import failed', [
                     'equipment' => $equipment->equipment_name,
                     'error' => $e->getMessage(),
                 ]);
@@ -280,7 +280,7 @@ class HealthcareIntegrationService
                     'response_time_ms' => $response['response_time'] ?? 0,
                 ]);
 
-                Log::info("Prescription sent to pharmacy", [
+                Log::info('Prescription sent to pharmacy', [
                     'prescription_id' => $prescriptionData['prescription_id'],
                     'pharmacy_id' => $prescriptionData['pharmacy_id'],
                 ]);
@@ -290,7 +290,7 @@ class HealthcareIntegrationService
                     'error_message' => $e->getMessage(),
                 ]);
 
-                Log::error("Pharmacy integration failed", [
+                Log::error('Pharmacy integration failed', [
                     'prescription_id' => $prescriptionData['prescription_id'],
                     'error' => $e->getMessage(),
                 ]);
@@ -360,7 +360,7 @@ class HealthcareIntegrationService
                     'sent_at' => now(),
                 ]);
 
-                Log::info("Notification sent", [
+                Log::info('Notification sent', [
                     'notification_number' => $notification->notification_number,
                     'channel' => $channel,
                     'recipient' => $notification->recipient_phone ?? $notification->recipient_email,
@@ -373,7 +373,7 @@ class HealthcareIntegrationService
                     'next_retry_at' => now()->addMinutes(5),
                 ]);
 
-                Log::error("Notification failed", [
+                Log::error('Notification failed', [
                     'notification_number' => $notification->notification_number,
                     'error' => $e->getMessage(),
                 ]);
@@ -390,13 +390,13 @@ class HealthcareIntegrationService
     protected function generateHL7MessageId(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'HL7-' . $date;
+        $prefix = 'HL7-'.$date;
 
-        $last = HL7Message::where('message_id', 'like', $prefix . '%')
+        $last = HL7Message::where('message_id', 'like', $prefix.'%')
             ->orderBy('message_id', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->message_id, -6) + 1 : 1,
             6,
             '0',
@@ -407,13 +407,13 @@ class HealthcareIntegrationService
     protected function generateBPJSClaimNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'BPJS-' . $date;
+        $prefix = 'BPJS-'.$date;
 
-        $last = BPJSClaim::where('claim_number', 'like', $prefix . '%')
+        $last = BPJSClaim::where('claim_number', 'like', $prefix.'%')
             ->orderBy('claim_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->claim_number, -4) + 1 : 1,
             4,
             '0',
@@ -424,13 +424,13 @@ class HealthcareIntegrationService
     protected function generateNotificationNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'NOTIF-' . $date;
+        $prefix = 'NOTIF-'.$date;
 
-        $last = NotificationLog::where('notification_number', 'like', $prefix . '%')
+        $last = NotificationLog::where('notification_number', 'like', $prefix.'%')
             ->orderBy('notification_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->notification_number, -6) + 1 : 1,
             6,
             '0',
@@ -440,7 +440,7 @@ class HealthcareIntegrationService
 
     protected function generatePharmacyTransactionNumber(): string
     {
-        return 'PHARM-' . uniqid();
+        return 'PHARM-'.uniqid();
     }
 
     protected function parseHL7Message(string $rawMessage): array
@@ -511,7 +511,7 @@ class HealthcareIntegrationService
         $secretKey = config('services.bpjs.secret_key');
         $timestamp = $this->getBPJSTimestamp();
 
-        return hash_hmac('sha256', $consId . '&' . $timestamp, $secretKey);
+        return hash_hmac('sha256', $consId.'&'.$timestamp, $secretKey);
     }
 
     protected function sendToPharmacyAPI(array $prescriptionData): array
@@ -576,6 +576,7 @@ class HealthcareIntegrationService
     protected function mapTestCode(LabEquipmentIntegration $equipment, string $testCode): string
     {
         $mapping = $equipment->test_code_mapping ?? [];
+
         return $mapping[$testCode] ?? $testCode;
     }
 

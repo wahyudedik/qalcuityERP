@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Models\CosmeticBatchRecord;
 use App\Models\ProductRecall;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Recall Management Service
- * 
+ *
  * @note Linter may show false positive for auth()->id() - this is standard Laravel
  */
 class RecallManagementService
@@ -21,7 +22,7 @@ class RecallManagementService
     public function createRecall(int $tenantId, array $data)
     {
         return DB::transaction(function () use ($tenantId, $data) {
-            $recall = new ProductRecall();
+            $recall = new ProductRecall;
             $recall->tenant_id = $tenantId;
             $recall->recall_number = $this->generateRecallNumber();
             $recall->product_id = $data['product_id'];
@@ -60,7 +61,7 @@ class RecallManagementService
     public function updateRecallStatus(ProductRecall $recall, string $status, string $notes = ''): ProductRecall
     {
         $recall->status = $status;
-        $recall->resolution_notes = ($recall->resolution_notes ? $recall->resolution_notes . "\n\n" : '') . $notes;
+        $recall->resolution_notes = ($recall->resolution_notes ? $recall->resolution_notes."\n\n" : '').$notes;
 
         if ($status === 'completed') {
             $recall->completion_date = now()->format('Y-m-d');
@@ -79,7 +80,7 @@ class RecallManagementService
     /**
      * Get active recalls
      */
-    public function getActiveRecalls(int $tenantId): \Illuminate\Database\Eloquent\Collection
+    public function getActiveRecalls(int $tenantId): Collection
     {
         return ProductRecall::where('tenant_id', $tenantId)
             ->whereIn('status', ['initiated', 'in_progress'])
@@ -169,7 +170,8 @@ class RecallManagementService
     {
         $year = now()->format('Y');
         $count = ProductRecall::whereYear('created_at', $year)->count() + 1;
-        return 'RCL-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'RCL-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -188,7 +190,7 @@ class RecallManagementService
 
         // Note: ProductRecallNotification should be created if needed
         // For now, we log the notification attempt
-        Log::info('Recall notification would be sent to ' . $notifiableUsers->count() . ' users', [
+        Log::info('Recall notification would be sent to '.$notifiableUsers->count().' users', [
             'recall_id' => $recall->id,
             'recall_number' => $recall->recall_number,
         ]);

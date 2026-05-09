@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Project;
-use App\Models\ProjectTask;
 use Carbon\Carbon;
 
 /**
@@ -21,7 +20,7 @@ class GanttChartService
             ->with([
                 'tasks' => function ($query) {
                     $query->orderBy('due_date');
-                }
+                },
             ])
             ->firstOrFail();
 
@@ -72,10 +71,10 @@ class GanttChartService
             ];
         }
 
-        $startDate = $project->start_date ?? $tasks->min(fn($t) => $t->created_at);
-        $endDate = $project->end_date ?? $tasks->max(fn($t) => $t->due_date);
+        $startDate = $project->start_date ?? $tasks->min(fn ($t) => $t->created_at);
+        $endDate = $project->end_date ?? $tasks->max(fn ($t) => $t->due_date);
 
-        if (!$startDate || !$endDate) {
+        if (! $startDate || ! $endDate) {
             return [
                 'total_days' => 0,
                 'elapsed_days' => 0,
@@ -113,7 +112,7 @@ class GanttChartService
             ->limit(5)
             ->get();
 
-        return $tasks->map(fn($task) => [
+        return $tasks->map(fn ($task) => [
             'id' => $task->id,
             'name' => $task->name,
             'weight' => $task->weight,
@@ -136,8 +135,9 @@ class GanttChartService
         $tasks = $project->tasks->sortBy('due_date');
 
         foreach ($tasks as $index => $task) {
-            if ($index === 0)
+            if ($index === 0) {
                 continue;
+            }
 
             $prevTask = $tasks[$index - 1];
 
@@ -155,7 +155,7 @@ class GanttChartService
         }
 
         return [
-            'has_conflicts' => !empty($conflicts),
+            'has_conflicts' => ! empty($conflicts),
             'conflicts' => $conflicts,
             'total_tasks' => $tasks->count(),
         ];
@@ -167,6 +167,7 @@ class GanttChartService
     public function exportToJson(int $projectId, int $tenantId): string
     {
         $data = $this->generateGanttData($projectId, $tenantId);
+
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 }

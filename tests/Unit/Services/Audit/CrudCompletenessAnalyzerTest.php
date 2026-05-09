@@ -25,7 +25,7 @@ class CrudCompletenessAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/crud_analyzer_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/crud_analyzer_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -160,7 +160,7 @@ PHP);
 
     public function test_detects_all_seven_crud_methods(): void
     {
-        $controllerFile = $this->fixtureDir . '/controller.php';
+        $controllerFile = $this->fixtureDir.'/controller.php';
         file_put_contents($controllerFile, <<<'PHP'
 <?php
 namespace App\Http\Controllers;
@@ -186,7 +186,7 @@ PHP);
 
     public function test_detects_missing_crud_methods(): void
     {
-        $controllerFile = $this->fixtureDir . '/controller.php';
+        $controllerFile = $this->fixtureDir.'/controller.php';
         file_put_contents($controllerFile, <<<'PHP'
 <?php
 namespace App\Http\Controllers;
@@ -213,7 +213,7 @@ PHP);
     {
         // Create a file then delete it to simulate a missing file
         // without triggering PHPUnit's warning handler
-        $tempFile = $this->fixtureDir . '/missing_controller.php';
+        $tempFile = $this->fixtureDir.'/missing_controller.php';
         file_put_contents($tempFile, '<?php // empty');
         unlink($tempFile);
 
@@ -226,7 +226,7 @@ PHP);
 
     public function test_ignores_private_and_protected_methods(): void
     {
-        $controllerFile = $this->fixtureDir . '/controller.php';
+        $controllerFile = $this->fixtureDir.'/controller.php';
         file_put_contents($controllerFile, <<<'PHP'
 <?php
 namespace App\Http\Controllers;
@@ -364,7 +364,7 @@ PHP);
 
         $customerFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Customer')
+            fn (AuditFinding $f) => str_contains($f->title, 'Customer')
                 && $f->metadata['check'] === 'crud_completeness'
         );
 
@@ -391,7 +391,7 @@ PHP);
 
         $widgetFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Widget')
+            fn (AuditFinding $f) => str_contains($f->title, 'Widget')
                 && ($f->metadata['check'] ?? '') === 'crud_completeness'
         );
 
@@ -428,7 +428,7 @@ PHP);
 
         $invoiceFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Invoice')
+            fn (AuditFinding $f) => str_contains($f->title, 'Invoice')
                 && ($f->metadata['check'] ?? '') === 'crud_completeness'
         );
 
@@ -471,7 +471,7 @@ PHP);
 
         $thingCrudFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Thing')
+            fn (AuditFinding $f) => str_contains($f->title, 'Thing')
                 && ($f->metadata['check'] ?? '') === 'crud_completeness'
         );
 
@@ -494,15 +494,15 @@ class Customer extends Model
 PHP);
 
         // Empty imports/exports directories
-        mkdir($this->fixtureDir . '/app/Imports', 0777, true);
-        mkdir($this->fixtureDir . '/app/Exports', 0777, true);
+        mkdir($this->fixtureDir.'/app/Imports', 0777, true);
+        mkdir($this->fixtureDir.'/app/Exports', 0777, true);
 
         $analyzer = $this->makeAnalyzer();
         $findings = $analyzer->analyze();
 
         $importExportFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
                 && ($f->metadata['entity'] ?? '') === 'Customer'
         );
 
@@ -544,7 +544,7 @@ PHP);
 
         $productImportExportFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
                 && ($f->metadata['entity'] ?? '') === 'Product'
         );
 
@@ -563,7 +563,7 @@ class Employee extends Model
 }
 PHP);
 
-        mkdir($this->fixtureDir . '/app/Imports', 0777, true);
+        mkdir($this->fixtureDir.'/app/Imports', 0777, true);
 
         $this->writeFixture('app/Exports/EmployeeExport.php', <<<'PHP'
 <?php
@@ -579,7 +579,7 @@ PHP);
 
         $employeeFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? '') === 'import_export'
                 && ($f->metadata['entity'] ?? '') === 'Employee'
         );
 
@@ -595,10 +595,10 @@ PHP);
     public function test_returns_empty_for_empty_directories(): void
     {
         // Create empty model and controller directories
-        mkdir($this->fixtureDir . '/app/Models', 0777, true);
-        mkdir($this->fixtureDir . '/app/Http/Controllers', 0777, true);
-        mkdir($this->fixtureDir . '/app/Imports', 0777, true);
-        mkdir($this->fixtureDir . '/app/Exports', 0777, true);
+        mkdir($this->fixtureDir.'/app/Models', 0777, true);
+        mkdir($this->fixtureDir.'/app/Http/Controllers', 0777, true);
+        mkdir($this->fixtureDir.'/app/Imports', 0777, true);
+        mkdir($this->fixtureDir.'/app/Exports', 0777, true);
 
         $analyzer = $this->makeAnalyzer();
         $matrix = $analyzer->generateCrudMatrix();
@@ -641,20 +641,20 @@ PHP);
     private function makeAnalyzer(): CrudCompletenessAnalyzer
     {
         return new CrudCompletenessAnalyzer(
-            modelPath: $this->fixtureDir . '/app/Models',
-            controllerPath: $this->fixtureDir . '/app/Http/Controllers',
-            viewPath: $this->fixtureDir . '/resources/views',
-            importPath: $this->fixtureDir . '/app/Imports',
-            exportPath: $this->fixtureDir . '/app/Exports',
+            modelPath: $this->fixtureDir.'/app/Models',
+            controllerPath: $this->fixtureDir.'/app/Http/Controllers',
+            viewPath: $this->fixtureDir.'/resources/views',
+            importPath: $this->fixtureDir.'/app/Imports',
+            exportPath: $this->fixtureDir.'/app/Exports',
             basePath: $this->fixtureDir,
         );
     }
 
     private function writeFixture(string $relativePath, string $content): void
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -667,12 +667,13 @@ PHP);
                 return $entry;
             }
         }
+
         return null;
     }
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

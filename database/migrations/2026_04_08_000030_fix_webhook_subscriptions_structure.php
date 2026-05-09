@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -28,13 +29,13 @@ return new class extends Migration {
                 }
 
                 // Add new columns if they don't exist
-                if (!Schema::hasColumn('webhook_subscriptions', 'integration_id')) {
+                if (! Schema::hasColumn('webhook_subscriptions', 'integration_id')) {
                     $table->foreignId('integration_id')->after('tenant_id')->constrained()->onDelete('cascade');
                 }
-                if (!Schema::hasColumn('webhook_subscriptions', 'endpoint_url')) {
+                if (! Schema::hasColumn('webhook_subscriptions', 'endpoint_url')) {
                     $table->string('endpoint_url')->after('integration_id');
                 }
-                if (!Schema::hasColumn('webhook_subscriptions', 'secret_key')) {
+                if (! Schema::hasColumn('webhook_subscriptions', 'secret_key')) {
                     $table->string('secret_key')->nullable()->after('endpoint_url');
                 }
             });
@@ -44,7 +45,7 @@ return new class extends Migration {
                 Schema::table('webhook_subscriptions', function (Blueprint $table) {
                     $table->index(['tenant_id', 'is_active']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
 
@@ -52,7 +53,7 @@ return new class extends Migration {
                 Schema::table('webhook_subscriptions', function (Blueprint $table) {
                     $table->index(['integration_id', 'is_active']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
         }

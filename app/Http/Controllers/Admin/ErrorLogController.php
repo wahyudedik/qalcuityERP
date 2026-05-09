@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ErrorLog;
 use App\Services\ErrorAlertingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ErrorLogController extends Controller
 {
@@ -115,7 +114,7 @@ class ErrorLogController extends Controller
         $count = 0;
         foreach ($request->error_ids as $errorId) {
             $errorLog = ErrorLog::find($errorId);
-            if ($errorLog && !$errorLog->is_resolved) {
+            if ($errorLog && ! $errorLog->is_resolved) {
                 $errorLog->resolve(auth()->id(), $request->resolution_notes);
                 $count++;
             }
@@ -134,9 +133,10 @@ class ErrorLogController extends Controller
 
         try {
             $alertingService->testAlert();
+
             return back()->with('success', 'Test alert sent successfully!');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Failed to send test alert: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send test alert: '.$e->getMessage());
         }
     }
 

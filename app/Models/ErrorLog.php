@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class ErrorLog extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'uuid',
@@ -208,6 +208,7 @@ use HasFactory, BelongsToTenant;
         }
 
         $lines = explode("\n", $this->stack_trace);
+
         return implode("\n", array_slice($lines, 0, 10));
     }
 }

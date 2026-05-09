@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
+use App\Models\CosmeticFormula;
 use App\Models\ProductVariant;
 use App\Models\VariantAttribute;
 use App\Models\VariantInventory;
-use App\Models\CosmeticFormula;
 use Illuminate\Http\Request;
 
 class VariantController extends Controller
@@ -67,8 +67,8 @@ class VariantController extends Controller
         // Variants with filters
         $variants = ProductVariant::where('tenant_id', $tenantId)
             ->with(['formula', 'inventoryTransactions'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->search, fn($q) => $q->where(function ($query) use ($request) {
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->search, fn ($q) => $q->where(function ($query) use ($request) {
                 $query->where('variant_name', 'like', "%{$request->search}%")
                     ->orWhere('sku', 'like', "%{$request->search}%");
             }))
@@ -114,7 +114,7 @@ class VariantController extends Controller
         ]);
 
         // Auto-generate SKU if not provided
-        if (!$validated['sku']) {
+        if (! $validated['sku']) {
             $formula = CosmeticFormula::find($validated['formula_id']);
             $validated['sku'] = ProductVariant::generateSKU($formula->formula_code, $validated['variant_attributes']);
         }
@@ -146,7 +146,7 @@ class VariantController extends Controller
         }
 
         return redirect()->route('cosmetic.variants.index')
-            ->with('success', 'Product variant created with SKU: ' . $variant->sku);
+            ->with('success', 'Product variant created with SKU: '.$variant->sku);
     }
 
     /**
@@ -216,7 +216,7 @@ class VariantController extends Controller
         return response()->json([
             'formula' => $formula,
             'combinations' => $combinations,
-            'total' => count($combinations)
+            'total' => count($combinations),
         ]);
     }
 

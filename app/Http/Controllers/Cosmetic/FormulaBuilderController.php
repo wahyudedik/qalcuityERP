@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
 use App\Models\CosmeticFormula;
-use App\Models\Product;
 use App\Models\IngredientRestriction;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FormulaBuilderController extends Controller
 {
@@ -112,20 +112,20 @@ class FormulaBuilderController extends Controller
                 $errors[] = [
                     'type' => 'banned',
                     'message' => "Ingredient is banned: {$restriction->reason}",
-                    'severity' => 'error'
+                    'severity' => 'error',
                 ];
             } elseif ($restriction->restriction_type === 'limited' && $validated['percentage']) {
                 if ($validated['percentage'] > $restriction->max_limit) {
                     $errors[] = [
                         'type' => 'exceeds_limit',
                         'message' => "Percentage exceeds maximum limit ({$restriction->max_limit}%)",
-                        'severity' => 'error'
+                        'severity' => 'error',
                     ];
                 } elseif ($validated['percentage'] > $restriction->max_limit * 0.8) {
                     $warnings[] = [
                         'type' => 'approaching_limit',
                         'message' => "Approaching maximum limit ({$restriction->max_limit}%)",
-                        'severity' => 'warning'
+                        'severity' => 'warning',
                     ];
                 }
             }
@@ -140,7 +140,7 @@ class FormulaBuilderController extends Controller
                     $warnings[] = [
                         'type' => 'function_limit',
                         'message' => "Percentage exceeds recommended safe limit for {$validated['function']} ({$limit}%)",
-                        'severity' => 'warning'
+                        'severity' => 'warning',
                     ];
                 }
             }

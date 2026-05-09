@@ -23,6 +23,7 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
     use TestTrait;
 
     private string $tempDir;
+
     private string $basePath;
 
     /**
@@ -42,12 +43,12 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/crud_analyzer_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Models', 0777, true);
-        mkdir($this->tempDir . '/app/Http/Controllers', 0777, true);
-        mkdir($this->tempDir . '/resources/views', 0777, true);
-        mkdir($this->tempDir . '/app/Imports', 0777, true);
-        mkdir($this->tempDir . '/app/Exports', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/crud_analyzer_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Models', 0777, true);
+        mkdir($this->tempDir.'/app/Http/Controllers', 0777, true);
+        mkdir($this->tempDir.'/resources/views', 0777, true);
+        mkdir($this->tempDir.'/app/Imports', 0777, true);
+        mkdir($this->tempDir.'/app/Exports', 0777, true);
         $this->basePath = $this->tempDir;
     }
 
@@ -94,16 +95,16 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
             $this->cleanTempFiles();
 
             $uniqueSuffix = uniqid();
-            $uniqueModelName = $modelName . 'C' . $uniqueSuffix;
+            $uniqueModelName = $modelName.'C'.$uniqueSuffix;
 
             // Always create the model file
-            $modelPath = $this->basePath . '/app/Models/' . $uniqueModelName . '.php';
+            $modelPath = $this->basePath.'/app/Models/'.$uniqueModelName.'.php';
             file_put_contents($modelPath, $this->generateModelStub($uniqueModelName));
 
             // Create controller based on scenario
             if ($scenario !== 'missing') {
-                $controllerName = $uniqueModelName . 'Controller';
-                $controllerPath = $this->basePath . '/app/Http/Controllers/' . $controllerName . '.php';
+                $controllerName = $uniqueModelName.'Controller';
+                $controllerPath = $this->basePath.'/app/Http/Controllers/'.$controllerName.'.php';
 
                 if ($scenario === 'complete') {
                     // All 7 CRUD methods
@@ -118,11 +119,11 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
 
             // Run the analyzer
             $analyzer = new CrudCompletenessAnalyzer(
-                modelPath: $this->basePath . '/app/Models',
-                controllerPath: $this->basePath . '/app/Http/Controllers',
-                viewPath: $this->basePath . '/resources/views',
-                importPath: $this->basePath . '/app/Imports',
-                exportPath: $this->basePath . '/app/Exports',
+                modelPath: $this->basePath.'/app/Models',
+                controllerPath: $this->basePath.'/app/Http/Controllers',
+                viewPath: $this->basePath.'/resources/views',
+                importPath: $this->basePath.'/app/Imports',
+                exportPath: $this->basePath.'/app/Exports',
                 basePath: $this->basePath,
             );
 
@@ -148,7 +149,7 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
                         'Complete',
                         $entry['status'],
                         "Model with ALL 7 CRUD methods should be classified as 'Complete'. "
-                            . "model={$uniqueModelName}, present=" . implode(',', $entry['present_methods'])
+                            ."model={$uniqueModelName}, present=".implode(',', $entry['present_methods'])
                     );
                     $this->assertEmpty(
                         $entry['missing_methods'],
@@ -166,8 +167,8 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
                         'Partial',
                         $entry['status'],
                         "Model with SOME CRUD methods should be classified as 'Partial'. "
-                            . "model={$uniqueModelName}, methodCount={$partialMethodCount}, "
-                            . "present=" . implode(',', $entry['present_methods'])
+                            ."model={$uniqueModelName}, methodCount={$partialMethodCount}, "
+                            .'present='.implode(',', $entry['present_methods'])
                     );
                     $this->assertNotEmpty(
                         $entry['missing_methods'],
@@ -177,13 +178,13 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
                         $partialMethodCount,
                         $entry['present_methods'],
                         "Partial model should have exactly {$partialMethodCount} methods present. "
-                            . "model={$uniqueModelName}"
+                            ."model={$uniqueModelName}"
                     );
                     $this->assertCount(
                         7 - $partialMethodCount,
                         $entry['missing_methods'],
-                        "Partial model should have exactly " . (7 - $partialMethodCount) . " missing methods. "
-                            . "model={$uniqueModelName}"
+                        'Partial model should have exactly '.(7 - $partialMethodCount).' missing methods. '
+                            ."model={$uniqueModelName}"
                     );
                     break;
 
@@ -192,7 +193,7 @@ class CrudCompletenessAnalyzerPropertyTest extends TestCase
                         'Missing',
                         $entry['status'],
                         "Model WITHOUT a controller should be classified as 'Missing'. "
-                            . "model={$uniqueModelName}"
+                            ."model={$uniqueModelName}"
                     );
                     $this->assertNull(
                         $entry['controller'],
@@ -236,8 +237,8 @@ PHP;
     /**
      * Generate a controller stub with the specified public CRUD methods.
      *
-     * @param string   $className The controller class name
-     * @param string[] $methods   Which CRUD methods to include
+     * @param  string  $className  The controller class name
+     * @param  string[]  $methods  Which CRUD methods to include
      */
     private function generateControllerStub(string $className, array $methods): string
     {
@@ -274,15 +275,15 @@ PHP;
     private function cleanTempFiles(): void
     {
         $dirs = [
-            $this->basePath . '/app/Models',
-            $this->basePath . '/app/Http/Controllers',
+            $this->basePath.'/app/Models',
+            $this->basePath.'/app/Http/Controllers',
         ];
 
         foreach ($dirs as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 continue;
             }
-            foreach (glob($dir . '/*.php') as $file) {
+            foreach (glob($dir.'/*.php') as $file) {
                 @unlink($file);
             }
         }
@@ -293,7 +294,7 @@ PHP;
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

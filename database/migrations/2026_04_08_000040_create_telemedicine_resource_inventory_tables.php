@@ -2,10 +2,11 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -58,7 +59,7 @@ return new class extends Migration {
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Teleconsultation Recordings table
-        if (!Schema::hasTable('teleconsultation_recordings')) {
+        if (! Schema::hasTable('teleconsultation_recordings')) {
             Schema::create('teleconsultation_recordings', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('teleconsultation_id'); // FK to teleconsultations
@@ -76,13 +77,13 @@ return new class extends Migration {
                 $table->timestamp('expires_at')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['teleconsultation_id', 'created_at']);
             });
         }
 
         // Telemedicine Prescriptions table
-        if (!Schema::hasTable('telemedicine_prescriptions')) {
+        if (! Schema::hasTable('telemedicine_prescriptions')) {
             Schema::create('telemedicine_prescriptions', function (Blueprint $table) {
                 $table->id();
                 $table->string('prescription_number')->unique(); // TELE-RX-YYYYMMDD-XXXX
@@ -101,14 +102,14 @@ return new class extends Migration {
                 $table->timestamp('dispensed_at')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'created_at']);
                 $table->index(['patient_id', 'created_at']);
             });
         }
 
         // Teleconsultation Payments table
-        if (!Schema::hasTable('teleconsultation_payments')) {
+        if (! Schema::hasTable('teleconsultation_payments')) {
             Schema::create('teleconsultation_payments', function (Blueprint $table) {
                 $table->id();
                 $table->string('payment_number')->unique(); // PAY-TELE-YYYYMMDD-XXXX
@@ -127,13 +128,13 @@ return new class extends Migration {
                 $table->timestamp('paid_at')->nullable();
                 $table->text('payment_notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['payment_status', 'created_at']);
             });
         }
 
         // Teleconsultation Feedback table
-        if (!Schema::hasTable('teleconsultation_feedbacks')) {
+        if (! Schema::hasTable('teleconsultation_feedbacks')) {
             Schema::create('teleconsultation_feedbacks', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('teleconsultation_id'); // FK to teleconsultations
@@ -149,14 +150,14 @@ return new class extends Migration {
                 $table->boolean('would_recommend')->default(true);
                 $table->enum('consultation_outcome', ['resolved', 'partially_resolved', 'not_resolved', 'needs_followup'])->nullable();
                 $table->timestamps();
-    
+
                 $table->unique('teleconsultation_id'); // One feedback per consultation
                 $table->index(['overall_rating', 'created_at']);
             });
         }
 
         // Surgery Schedules table
-        if (!Schema::hasTable('surgery_schedules')) {
+        if (! Schema::hasTable('surgery_schedules')) {
             Schema::create('surgery_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->string('schedule_number')->unique(); // SURG-YYYYMMDD-XXXX
@@ -185,14 +186,14 @@ return new class extends Migration {
                 $table->text('complications')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'surgery_date']);
                 $table->index(['primary_surgeon_id', 'surgery_date']);
             });
         }
 
         // Surgery Teams table
-        if (!Schema::hasTable('surgery_teams')) {
+        if (! Schema::hasTable('surgery_teams')) {
             Schema::create('surgery_teams', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('surgery_schedule_id'); // FK to surgery_schedules
@@ -202,13 +203,13 @@ return new class extends Migration {
                 $table->timestamp('check_in_time')->nullable();
                 $table->timestamp('check_out_time')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['surgery_schedule_id', 'doctor_id', 'role']);
             });
         }
 
         // Medical Equipment table
-        if (!Schema::hasTable('medical_equipment')) {
+        if (! Schema::hasTable('medical_equipment')) {
             Schema::create('medical_equipment', function (Blueprint $table) {
                 $table->id();
                 $table->string('equipment_code')->unique(); // EQP-XXXX
@@ -234,14 +235,14 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'equipment_type']);
                 $table->index(['next_maintenance_date', 'status']);
             });
         }
 
         // Equipment Maintenance Logs table
-        if (!Schema::hasTable('equipment_maintenance_logs')) {
+        if (! Schema::hasTable('equipment_maintenance_logs')) {
             Schema::create('equipment_maintenance_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('equipment_id'); // FK to medical_equipment
@@ -260,14 +261,14 @@ return new class extends Migration {
                 $table->text('recommendations')->nullable();
                 $table->date('next_maintenance_date')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['equipment_id', 'maintenance_date']);
                 $table->index(['status', 'maintenance_date']);
             });
         }
 
         // OR Utilization Logs table
-        if (!Schema::hasTable('or_utilization_logs')) {
+        if (! Schema::hasTable('or_utilization_logs')) {
             Schema::create('or_utilization_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('operating_room_id'); // FK to medical_equipment (OR)
@@ -285,13 +286,13 @@ return new class extends Migration {
                 $table->decimal('utilization_percentage', 5, 2)->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['operating_room_id', 'log_date']);
             });
         }
 
         // Medical Supply Transactions table
-        if (!Schema::hasTable('medical_supply_transactions')) {
+        if (! Schema::hasTable('medical_supply_transactions')) {
             Schema::create('medical_supply_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->string('transaction_number')->unique(); // TRX-MED-YYYYMMDD-XXXX
@@ -311,14 +312,14 @@ return new class extends Migration {
                 $table->decimal('total_cost', 12, 2)->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['supply_id', 'transaction_date']);
                 $table->index(['transaction_type', 'transaction_date'], 'med_supply_trx_type_date_idx');
             });
         }
 
         // Medical Supply Requests table
-        if (!Schema::hasTable('medical_supply_requests')) {
+        if (! Schema::hasTable('medical_supply_requests')) {
             Schema::create('medical_supply_requests', function (Blueprint $table) {
                 $table->id();
                 $table->string('request_number')->unique(); // REQ-MED-YYYYMMDD-XXXX
@@ -336,14 +337,14 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'request_date']);
                 $table->index(['urgency', 'status']);
             });
         }
 
         // Medical Supply Request Items table
-        if (!Schema::hasTable('medical_supply_request_items')) {
+        if (! Schema::hasTable('medical_supply_request_items')) {
             Schema::create('medical_supply_request_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('request_id')->constrained('medical_supply_requests')->onDelete('cascade');
@@ -353,13 +354,13 @@ return new class extends Migration {
                 $table->integer('fulfilled_quantity')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['request_id', 'supply_id']);
             });
         }
 
         // Sterilization Logs table
-        if (!Schema::hasTable('sterilization_logs')) {
+        if (! Schema::hasTable('sterilization_logs')) {
             Schema::create('sterilization_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('sterilization_number')->unique(); // STER-YYYYMMDD-XXXX
@@ -384,14 +385,14 @@ return new class extends Migration {
                 $table->boolean('passed_validation')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['sterilization_date', 'status']);
                 $table->index(['equipment_id', 'sterilization_date']);
             });
         }
 
         // Medical Waste Logs table
-        if (!Schema::hasTable('medical_waste_logs')) {
+        if (! Schema::hasTable('medical_waste_logs')) {
             Schema::create('medical_waste_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('waste_number')->unique(); // WASTE-YYYYMMDD-XXXX
@@ -412,7 +413,7 @@ return new class extends Migration {
                 $table->boolean('is_compliant')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['waste_type', 'generation_date']);
                 $table->index(['generation_date', 'is_compliant']);
             });

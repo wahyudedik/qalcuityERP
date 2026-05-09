@@ -2,17 +2,18 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Quality Check Standards/Templates
-        if (!Schema::hasTable('quality_check_standards')) {
+        if (! Schema::hasTable('quality_check_standards')) {
             Schema::create('quality_check_standards', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -30,7 +31,7 @@ return new class extends Migration {
         }
 
         // Quality Checks/Inspections
-        if (!Schema::hasTable('quality_checks')) {
+        if (! Schema::hasTable('quality_checks')) {
             Schema::create('quality_checks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -62,7 +63,7 @@ return new class extends Migration {
         }
 
         // Defect Records
-        if (!Schema::hasTable('defect_records')) {
+        if (! Schema::hasTable('defect_records')) {
             Schema::create('defect_records', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');

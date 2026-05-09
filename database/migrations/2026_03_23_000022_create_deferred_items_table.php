@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('deferred_items')) {
+        if (! Schema::hasTable('deferred_items')) {
             Schema::create('deferred_items', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -32,7 +32,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('reference_id')->nullable();
                 $table->string('reference_number')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'type', 'status']);
                 $table->index(['tenant_id', 'status']);
                 $table->foreign('deferred_account_id')->references('id')->on('chart_of_accounts');
@@ -40,7 +40,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('deferred_item_schedules')) {
+        if (! Schema::hasTable('deferred_item_schedules')) {
             Schema::create('deferred_item_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('deferred_item_id');
@@ -50,7 +50,7 @@ return new class extends Migration
                 $table->enum('status', ['pending', 'posted', 'skipped'])->default('pending');
                 $table->unsignedBigInteger('journal_entry_id')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['deferred_item_id', 'status']);
                 $table->index(['recognition_date', 'status']);
                 $table->foreign('deferred_item_id')->references('id')->on('deferred_items')->cascadeOnDelete();

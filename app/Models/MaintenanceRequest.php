@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MaintenanceRequest extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -145,7 +144,7 @@ class MaintenanceRequest extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->created_at) {
+        if (! $this->created_at) {
             return false;
         }
 
@@ -157,7 +156,7 @@ class MaintenanceRequest extends Model
             default => 24,
         };
 
-        return now()->diffInHours($this->created_at) > $hoursLimit && !$this->completed_at;
+        return now()->diffInHours($this->created_at) > $hoursLimit && ! $this->completed_at;
     }
 
     /**

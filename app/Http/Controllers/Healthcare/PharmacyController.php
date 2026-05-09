@@ -159,8 +159,8 @@ class PharmacyController extends Controller
 
         // Check stock availability
         $inventory = PharmacyInventory::where('item_name', $prescription->medication_name)->first();
-        
-        if (!$inventory || $inventory->stock_quantity < $validated['quantity_dispensed']) {
+
+        if (! $inventory || $inventory->stock_quantity < $validated['quantity_dispensed']) {
             return back()->with('error', 'Insufficient stock');
         }
 
@@ -246,7 +246,7 @@ class PharmacyController extends Controller
 
             if ($difference !== 0) {
                 $inventory->adjustStock($item['actual_quantity'], 'stock_opname', auth()->id(), $validated['notes'] ?? null);
-                
+
                 $adjustments[] = [
                     'item' => $inventory->item_name,
                     'previous' => $inventory->stock_quantity,
@@ -256,7 +256,7 @@ class PharmacyController extends Controller
             }
         }
 
-        return back()->with('success', 'Stock opname completed. ' . count($adjustments) . ' adjustments made');
+        return back()->with('success', 'Stock opname completed. '.count($adjustments).' adjustments made');
     }
 
     /**

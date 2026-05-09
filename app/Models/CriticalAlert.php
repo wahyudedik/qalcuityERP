@@ -61,9 +61,9 @@ class CriticalAlert extends Model
     public static function generateAlertNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'ALERT-' . $date;
+        $prefix = 'ALERT-'.$date;
 
-        $lastAlert = static::where('alert_number', 'like', $prefix . '%')
+        $lastAlert = static::where('alert_number', 'like', $prefix.'%')
             ->orderBy('alert_number', 'desc')
             ->first();
 
@@ -74,7 +74,7 @@ class CriticalAlert extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -285,7 +285,7 @@ class CriticalAlert extends Model
             'status' => $this->status_label,
             'patient_name' => $this->patient?->full_name,
             'created_at' => $this->created_at,
-            'response_time' => $this->response_time_minutes ? $this->response_time_minutes . ' min' : 'Pending',
+            'response_time' => $this->response_time_minutes ? $this->response_time_minutes.' min' : 'Pending',
         ];
     }
 }

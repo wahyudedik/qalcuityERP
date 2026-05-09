@@ -2,16 +2,6 @@
 
 namespace Tests\Unit\Services\Agent;
 
-use App\Models\Attendance;
-use App\Models\CrmLead;
-use App\Models\Employee;
-use App\Models\Invoice;
-use App\Models\PayrollRun;
-use App\Models\Product;
-use App\Models\ProductStock;
-use App\Models\Project;
-use App\Models\SalesOrder;
-use App\Models\Transaction;
 use App\Services\Agent\CrossModuleQueryService;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
@@ -59,7 +49,7 @@ class CrossModuleQueryPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 30)]
-    public function testPartialResultsWhenSomeModulesInactive(): void
+    public function test_partial_results_when_some_modules_inactive(): void
     {
         $this->forAll(
             // Pilih query method secara acak
@@ -73,12 +63,13 @@ class CrossModuleQueryPropertyTest extends TestCase
                             $selected[] = $module;
                         }
                     }
+
                     return $selected;
                 },
                 Generators::choose(0, (1 << count($this->allModules)) - 1)
             )
         )->then(function (string $method, array $activeModules) {
-            $tenant  = $this->createTenant();
+            $tenant = $this->createTenant();
             $service = new CrossModuleQueryService($tenant->id, $activeModules);
 
             // Eksekusi query — tidak boleh throw exception apapun
@@ -111,7 +102,7 @@ class CrossModuleQueryPropertyTest extends TestCase
             );
 
             // ── Assert: jika ada modul tidak aktif, 'partial' = true dan ada 'message' ──
-            if (!empty($result['unavailable_modules'])) {
+            if (! empty($result['unavailable_modules'])) {
                 $this->assertTrue(
                     $result['partial'] ?? false,
                     "Jika ada modul tidak tersedia, 'partial' harus true"
@@ -123,7 +114,7 @@ class CrossModuleQueryPropertyTest extends TestCase
                 );
                 $this->assertNotEmpty(
                     $result['message'],
-                    "Pesan modul tidak tersedia tidak boleh kosong"
+                    'Pesan modul tidak tersedia tidak boleh kosong'
                 );
             }
 
@@ -146,14 +137,14 @@ class CrossModuleQueryPropertyTest extends TestCase
     // Validates: Requirements 3.5
     // =========================================================================
 
-    public function testAllModulesInactiveReturnsPartialNotError(): void
+    public function test_all_modules_inactive_returns_partial_not_error(): void
     {
         $tenant = $this->createTenant();
 
         foreach ($this->queryMethods as $method) {
             // Berikan modul yang tidak relevan sama sekali
             $service = new CrossModuleQueryService($tenant->id, ['nonexistent_module']);
-            $result  = $service->$method([]);
+            $result = $service->$method([]);
 
             $this->assertSame(
                 'success',
@@ -181,14 +172,14 @@ class CrossModuleQueryPropertyTest extends TestCase
     // Validates: Requirements 3.5
     // =========================================================================
 
-    public function testAllModulesActiveReturnsNoUnavailableModules(): void
+    public function test_all_modules_active_returns_no_unavailable_modules(): void
     {
         $tenant = $this->createTenant();
 
         foreach ($this->queryMethods as $method) {
             // Berikan semua modul sebagai aktif
             $service = new CrossModuleQueryService($tenant->id, $this->allModules);
-            $result  = $service->$method([]);
+            $result = $service->$method([]);
 
             $this->assertSame('success', $result['status']);
             $this->assertEmpty(
@@ -212,13 +203,13 @@ class CrossModuleQueryPropertyTest extends TestCase
     // Validates: Requirements 3.5
     // =========================================================================
 
-    public function testEmptyActiveModulesAllowsAllModules(): void
+    public function test_empty_active_modules_allows_all_modules(): void
     {
         $tenant = $this->createTenant();
 
         foreach ($this->queryMethods as $method) {
             $service = new CrossModuleQueryService($tenant->id, []);
-            $result  = $service->$method([]);
+            $result = $service->$method([]);
 
             $this->assertSame('success', $result['status']);
             $this->assertEmpty(
@@ -238,13 +229,13 @@ class CrossModuleQueryPropertyTest extends TestCase
     // Validates: Requirements 3.5
     // =========================================================================
 
-    public function testPartialModulesReturnPartialDataWithUnavailableList(): void
+    public function test_partial_modules_return_partial_data_with_unavailable_list(): void
     {
         $tenant = $this->createTenant();
 
         // Hanya accounting aktif, inventory tidak aktif
         $service = new CrossModuleQueryService($tenant->id, ['accounting']);
-        $result  = $service->queryAkuntansiInventory([]);
+        $result = $service->queryAkuntansiInventory([]);
 
         $this->assertSame('success', $result['status']);
         $this->assertArrayHasKey('akuntansi', $result['data'],
@@ -257,7 +248,7 @@ class CrossModuleQueryPropertyTest extends TestCase
 
         // Hanya inventory aktif, accounting tidak aktif
         $service2 = new CrossModuleQueryService($tenant->id, ['inventory']);
-        $result2  = $service2->queryAkuntansiInventory([]);
+        $result2 = $service2->queryAkuntansiInventory([]);
 
         $this->assertSame('success', $result2['status']);
         $this->assertArrayHasKey('inventory', $result2['data'],

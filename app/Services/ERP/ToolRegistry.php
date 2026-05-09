@@ -3,28 +3,34 @@
 namespace App\Services\ERP;
 
 use App\Models\ActivityLog;
-use App\Services\AiCommandValidator;
 use App\Services\AI\IntentDetector;
+use App\Services\AiCommandValidator;
 use Illuminate\Support\Facades\Log;
 
 class ToolRegistry
 {
     // BUG-AI-002 FIX: Static cache to prevent unnecessary object creation
     protected static array $registryCache = [];
+
     protected static array $toolsCache = [];
+
     protected static array $executorsCache = [];
 
     protected int $tenantId;
+
     protected int $userId;
+
     protected array $tools = [];
+
     protected array $executors = [];
+
     protected AiCommandValidator $validator;
 
     public function __construct(int $tenantId, int $userId)
     {
         $this->tenantId = $tenantId;
         $this->userId = $userId;
-        $this->validator = new AiCommandValidator();
+        $this->validator = new AiCommandValidator;
 
         // BUG-AI-002 FIX: Use cache key based on tenant+user
         $cacheKey = "{$tenantId}:{$userId}";
@@ -35,6 +41,7 @@ class ToolRegistry
             $this->executors = self::$executorsCache[$cacheKey];
             // Always feed definitions to validator (even from cache)
             $this->validator->setToolDefinitions($this->tools);
+
             return; // Skip expensive object creation!
         }
 
@@ -115,18 +122,18 @@ class ToolRegistry
 
         return array_values(array_filter(
             $this->tools,
-            fn($def) => in_array($def['name'], $allowedTools)
+            fn ($def) => in_array($def['name'], $allowedTools)
         ));
     }
 
     /**
      * Get tool declarations filtered by intent.
-     * 
+     *
      * This optimizes AI response time by only sending relevant tools
      * instead of all 100+ tools every request.
-     * 
-     * @param string $intent Detected intent (e.g., 'sales', 'inventory')
-     * @param array|null $allowedTools User's allowed tools (optional filter)
+     *
+     * @param  string  $intent  Detected intent (e.g., 'sales', 'inventory')
+     * @param  array|null  $allowedTools  User's allowed tools (optional filter)
      * @return array Filtered tool declarations
      */
     public function getDeclarationsForIntent(string $intent, ?array $allowedTools = null): array
@@ -137,12 +144,13 @@ class ToolRegistry
         }
 
         // Get tool classes for this intent
-        $detector = new IntentDetector();
+        $detector = new IntentDetector;
         $toolClasses = $detector->getToolClassesForIntent($intent);
 
         // If no mapping found, fallback to all tools
         if (empty($toolClasses)) {
             Log::info("ToolRegistry: No tool mapping for intent '{$intent}', using all tools");
+
             return $this->getDeclarations($allowedTools);
         }
 
@@ -152,7 +160,7 @@ class ToolRegistry
             function ($def) use ($toolClasses) {
                 // Get the class name from executor
                 $toolName = $def['name'];
-                if (!isset($this->executors[$toolName])) {
+                if (! isset($this->executors[$toolName])) {
                     return false;
                 }
 
@@ -167,7 +175,7 @@ class ToolRegistry
         if ($allowedTools !== null) {
             $relevantTools = array_filter(
                 $relevantTools,
-                fn($def) => in_array($def['name'], $allowedTools)
+                fn ($def) => in_array($def['name'], $allowedTools)
             );
         }
 
@@ -186,14 +194,14 @@ class ToolRegistry
      */
     public function execute(string $toolName, array $args): array
     {
-        if (!isset($this->executors[$toolName])) {
+        if (! isset($this->executors[$toolName])) {
             return ['status' => 'error', 'message' => "Tool '{$toolName}' tidak dikenali."];
         }
 
         // VALIDATION: Validate and sanitize command before execution
         $validationResult = $this->validator->validate($toolName, $args);
 
-        if (!$validationResult['valid']) {
+        if (! $validationResult['valid']) {
             Log::warning('ToolRegistry: Blocked invalid AI command', [
                 'tool' => $toolName,
                 'user_id' => $this->userId,
@@ -204,7 +212,7 @@ class ToolRegistry
 
             return [
                 'status' => 'error',
-                'message' => 'Validasi perintah gagal: ' . implode(', ', $validationResult['errors']),
+                'message' => 'Validasi perintah gagal: '.implode(', ', $validationResult['errors']),
             ];
         }
 
@@ -215,7 +223,7 @@ class ToolRegistry
         $method = lcfirst(str_replace('_', '', ucwords($toolName, '_')));
         $executor = $this->executors[$toolName];
 
-        if (!method_exists($executor, $method)) {
+        if (! method_exists($executor, $method)) {
             return ['status' => 'error', 'message' => "Method '{$method}' tidak ditemukan."];
         }
 
@@ -235,7 +243,7 @@ class ToolRegistry
                 );
             } catch (\Throwable $e) {
                 // Jangan sampai audit log failure mengganggu tool execution
-                \Illuminate\Support\Facades\Log::warning("ToolRegistry: failed to write AI audit log for [{$toolName}]: " . $e->getMessage());
+                Log::warning("ToolRegistry: failed to write AI audit log for [{$toolName}]: ".$e->getMessage());
             }
         }
 
@@ -253,6 +261,7 @@ class ToolRegistry
             // Strip markdown bold/italic untuk audit log
             $clean = preg_replace('/\*\*(.*?)\*\*/', '$1', $resultMsg);
             $clean = preg_replace('/\*(.*?)\*/', '$1', $clean);
+
             // Potong jika terlalu panjang
             return mb_substr(strip_tags($clean), 0, 500);
         }
@@ -261,7 +270,8 @@ class ToolRegistry
         $label = str_replace('_', ' ', $toolName);
         $key = array_key_first($args);
         $val = is_string($args[$key] ?? null) ? $args[$key] : '';
-        return ucfirst($label) . ($val ? ": {$val}" : '');
+
+        return ucfirst($label).($val ? ": {$val}" : '');
     }
 
     /**
@@ -385,6 +395,7 @@ class ToolRegistry
     public static function isCached(int $tenantId, int $userId): bool
     {
         $cacheKey = "{$tenantId}:{$userId}";
+
         return isset(self::$toolsCache[$cacheKey]);
     }
 }

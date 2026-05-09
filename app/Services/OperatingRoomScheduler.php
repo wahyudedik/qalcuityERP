@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\MedicalEquipment;
 use App\Models\OperatingRoom;
+use App\Models\OrUtilizationLog;
 use App\Models\SurgerySchedule;
 use App\Models\SurgeryTeam;
-use App\Models\MedicalEquipment;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,15 +29,15 @@ class OperatingRoomScheduler
                 $surgeryData['anesthesiologist_id'] ?? null
             );
 
-            if (!empty($conflicts['room_conflicts'])) {
+            if (! empty($conflicts['room_conflicts'])) {
                 throw new Exception('Operating room is not available at the selected time.');
             }
 
-            if (!empty($conflicts['surgeon_conflicts'])) {
+            if (! empty($conflicts['surgeon_conflicts'])) {
                 throw new Exception('Surgeon has another surgery scheduled at this time.');
             }
 
-            if (!empty($conflicts['anesthesiologist_conflicts'])) {
+            if (! empty($conflicts['anesthesiologist_conflicts'])) {
                 throw new Exception('Anesthesiologist has another surgery scheduled at this time.');
             }
 
@@ -65,13 +66,13 @@ class OperatingRoomScheduler
             ]);
 
             // Add surgery team
-            if (!empty($surgeryData['team'])) {
+            if (! empty($surgeryData['team'])) {
                 foreach ($surgeryData['team'] as $teamMember) {
                     $this->addTeamMember($surgery->id, $teamMember);
                 }
             }
 
-            Log::info("Surgery scheduled", [
+            Log::info('Surgery scheduled', [
                 'surgery_number' => $surgery->surgery_number,
                 'date' => $surgery->scheduled_date,
                 'room' => $surgery->operating_room_id,
@@ -192,7 +193,7 @@ class OperatingRoomScheduler
                 'status' => 'occupied',
             ]);
 
-            Log::info("Surgery started", [
+            Log::info('Surgery started', [
                 'surgery_number' => $surgery->surgery_number,
                 'start_time' => $surgery->actual_start_time,
             ]);
@@ -236,7 +237,7 @@ class OperatingRoomScheduler
             // Log OR utilization
             $this->logUtilization($surgery);
 
-            Log::info("Surgery completed", [
+            Log::info('Surgery completed', [
                 'surgery_number' => $surgery->surgery_number,
                 'duration' => $duration,
                 'outcome' => $surgery->outcome,
@@ -276,7 +277,7 @@ class OperatingRoomScheduler
                 'maintenance_notes' => $maintenanceData['notes'] ?? null,
             ]);
 
-            Log::info("Equipment maintenance scheduled", [
+            Log::info('Equipment maintenance scheduled', [
                 'equipment_code' => $equipment->equipment_code,
                 'maintenance_date' => $equipment->last_maintenance,
             ]);
@@ -300,7 +301,7 @@ class OperatingRoomScheduler
                     now()->addDays($equipment->maintenance_interval_days),
             ]);
 
-            Log::info("Equipment maintenance completed", [
+            Log::info('Equipment maintenance completed', [
                 'equipment_code' => $equipment->equipment_code,
                 'condition' => $equipment->condition,
             ]);
@@ -323,6 +324,7 @@ class OperatingRoomScheduler
             ->get()
             ->map(function ($equipment) {
                 $equipment->days_until_due = now()->diffInDays($equipment->next_maintenance, false);
+
                 return $equipment;
             })
             ->toArray();
@@ -417,13 +419,13 @@ class OperatingRoomScheduler
     protected function generateSurgeryNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'SUR-' . $date;
+        $prefix = 'SUR-'.$date;
 
-        $last = SurgerySchedule::where('surgery_number', 'like', $prefix . '%')
+        $last = SurgerySchedule::where('surgery_number', 'like', $prefix.'%')
             ->orderBy('surgery_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->surgery_number, -4) + 1 : 1,
             4,
             '0',
@@ -436,7 +438,7 @@ class OperatingRoomScheduler
      */
     protected function logUtilization(SurgerySchedule $surgery): void
     {
-        \App\Models\OrUtilizationLog::create([
+        OrUtilizationLog::create([
             'operating_room_id' => $surgery->operating_room_id,
             'surgery_id' => $surgery->id,
             'log_date' => $surgery->scheduled_date,

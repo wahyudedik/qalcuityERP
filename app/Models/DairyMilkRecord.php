@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DairyMilkRecord extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -25,7 +24,7 @@ use HasFactory, BelongsToTenant;
         'somatic_cell_count',
         'quality_grade',
         'notes',
-        'recorded_by'
+        'recorded_by',
     ];
 
     protected $casts = [
@@ -78,8 +77,8 @@ use HasFactory, BelongsToTenant;
     public function isGoodQuality(): bool
     {
         // Good quality: SCC < 400,000 cells/ml and fat > 3.5%
-        $sccGood = !$this->somatic_cell_count || $this->somatic_cell_count < 400000;
-        $fatGood = !$this->fat_percentage || $this->fat_percentage >= 3.5;
+        $sccGood = ! $this->somatic_cell_count || $this->somatic_cell_count < 400000;
+        $fatGood = ! $this->fat_percentage || $this->fat_percentage >= 3.5;
 
         return $sccGood && $fatGood;
     }

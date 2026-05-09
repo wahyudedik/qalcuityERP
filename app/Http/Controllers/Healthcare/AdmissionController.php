@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\Admission;
 use App\Models\Bed;
+use App\Models\Doctor;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class AdmissionController extends Controller
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'medical_record_number']);
 
-        $doctors = \App\Models\Doctor::where('status', 'active')
+        $doctors = Doctor::where('status', 'active')
             ->orderBy('id')
             ->get();
 
@@ -114,7 +115,8 @@ class AdmissionController extends Controller
                 ->with('success', 'Patient admitted successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Failed to admit patient: ' . $e->getMessage());
+
+            return back()->withInput()->with('error', 'Failed to admit patient: '.$e->getMessage());
         }
     }
 
@@ -159,7 +161,8 @@ class AdmissionController extends Controller
                 ->with('success', 'Patient discharged successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to discharge patient: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to discharge patient: '.$e->getMessage());
         }
     }
 
@@ -183,7 +186,8 @@ class AdmissionController extends Controller
             return back()->with('success', 'Patient transferred successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to transfer patient: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to transfer patient: '.$e->getMessage());
         }
     }
 

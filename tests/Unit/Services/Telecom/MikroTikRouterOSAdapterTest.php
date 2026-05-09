@@ -13,6 +13,7 @@ class MikroTikRouterOSAdapterTest extends TestCase
     use RefreshDatabase;
 
     protected NetworkDevice $device;
+
     protected MikroTikRouterOSAdapter $adapter;
 
     protected function setUp(): void

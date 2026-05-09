@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Filterable Trait
- * 
+ *
  * Provides advanced filtering capabilities to Eloquent models.
  * Usage: Add `use Filterable;` to your model
- * 
+ *
  * Example:
  * Product::filter(['status' => 'active', 'search' => 'laptop'])->get();
  */
@@ -18,10 +18,6 @@ trait Filterable
 {
     /**
      * Apply filters to query
-     *
-     * @param Builder $query
-     * @param array $filters
-     * @return Builder
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
@@ -134,6 +130,7 @@ trait Filterable
     public static function loadFilterPreset($userId, string $name): ?array
     {
         $preset = Cache::get("filter_preset:{$userId}:{$name}");
+
         return $preset['filters'] ?? null;
     }
 

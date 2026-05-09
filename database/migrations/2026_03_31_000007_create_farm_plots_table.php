@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('farm_plots')) {
+        if (! Schema::hasTable('farm_plots')) {
             Schema::create('farm_plots', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -36,14 +36,14 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'code']);
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Activity log per plot (input pupuk, pestisida, pengairan, dll)
-        if (!Schema::hasTable('farm_plot_activities')) {
+        if (! Schema::hasTable('farm_plot_activities')) {
             Schema::create('farm_plot_activities', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('farm_plot_id')->constrained()->cascadeOnDelete();
@@ -61,7 +61,7 @@ return new class extends Migration
                 $table->string('harvest_grade', 30)->nullable();       // A, B, C / premium, standar
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['farm_plot_id', 'date']);
                 $table->index(['farm_plot_id', 'activity_type']);
             });

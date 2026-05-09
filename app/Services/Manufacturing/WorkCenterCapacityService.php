@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 /**
  * Work Center Capacity Planning Service
- * 
+ *
  * Features:
  * - Daily/weekly/monthly capacity planning
  * - Utilization tracking and forecasting
@@ -21,9 +21,9 @@ class WorkCenterCapacityService
 {
     /**
      * Get capacity overview for all work centers
-     * 
-     * @param int $tenantId Tenant ID
-     * @param string|null $date Specific date (default: today)
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  string|null  $date  Specific date (default: today)
      * @return array Capacity overview
      */
     public function getCapacityOverview(int $tenantId, ?string $date = null): array
@@ -84,10 +84,10 @@ class WorkCenterCapacityService
 
     /**
      * Find available work center for scheduling
-     * 
-     * @param int $tenantId Tenant ID
-     * @param float $requiredHours Hours needed
-     * @param string|null $preferredDate Preferred date
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  float  $requiredHours  Hours needed
+     * @param  string|null  $preferredDate  Preferred date
      * @return WorkCenter|null Best available work center
      */
     public function findAvailableWorkCenter(int $tenantId, float $requiredHours, ?string $preferredDate = null): ?WorkCenter
@@ -114,11 +114,11 @@ class WorkCenterCapacityService
 
     /**
      * Schedule work order operation
-     * 
-     * @param WorkOrder $workOrder Work order
-     * @param int $workCenterId Work center ID
-     * @param float $estimatedHours Estimated hours
-     * @param string|null $scheduledDate Scheduled date
+     *
+     * @param  WorkOrder  $workOrder  Work order
+     * @param  int  $workCenterId  Work center ID
+     * @param  float  $estimatedHours  Estimated hours
+     * @param  string|null  $scheduledDate  Scheduled date
      * @return array Scheduling result
      */
     public function scheduleOperation(
@@ -129,7 +129,7 @@ class WorkCenterCapacityService
     ): array {
         $workCenter = WorkCenter::find($workCenterId);
 
-        if (!$workCenter || $workCenter->tenant_id !== $workOrder->tenant_id) {
+        if (! $workCenter || $workCenter->tenant_id !== $workOrder->tenant_id) {
             return [
                 'success' => false,
                 'error' => 'Work center not found or unauthorized',
@@ -172,9 +172,9 @@ class WorkCenterCapacityService
 
     /**
      * Detect bottlenecks in work centers
-     * 
-     * @param int $tenantId Tenant ID
-     * @param int $daysAhead Days to look ahead
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  int  $daysAhead  Days to look ahead
      * @return array Bottleneck analysis
      */
     public function detectBottlenecks(int $tenantId, int $daysAhead = 7): array
@@ -220,9 +220,9 @@ class WorkCenterCapacityService
 
     /**
      * Generate maintenance schedule
-     * 
-     * @param int $tenantId Tenant ID
-     * @param int $daysAhead Days to look ahead
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  int  $daysAhead  Days to look ahead
      * @return array Maintenance schedule
      */
     public function generateMaintenanceSchedule(int $tenantId, int $daysAhead = 30): array
@@ -270,10 +270,10 @@ class WorkCenterCapacityService
 
     /**
      * Calculate work center efficiency
-     * 
-     * @param WorkCenter $workCenter Work center
-     * @param string|null $startDate Start date
-     * @param string|null $endDate End date
+     *
+     * @param  WorkCenter  $workCenter  Work center
+     * @param  string|null  $startDate  Start date
+     * @param  string|null  $endDate  End date
      * @return array Efficiency metrics
      */
     public function calculateEfficiency(
@@ -316,8 +316,8 @@ class WorkCenterCapacityService
 
     /**
      * Reset daily capacity tracking
-     * 
-     * @param int $tenantId Tenant ID
+     *
+     * @param  int  $tenantId  Tenant ID
      */
     public function resetDailyTracking(int $tenantId): void
     {

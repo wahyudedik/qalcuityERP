@@ -25,13 +25,13 @@ class LogModelSwitchJob implements ShouldQueue
     public function handle(): void
     {
         AiModelSwitchLog::create([
-            'from_model'             => $this->fromModel,
-            'to_model'               => $this->toModel,
-            'reason'                 => $this->reason,
-            'error_message'          => $this->errorMessage,
-            'request_context'        => $this->requestContext,
+            'from_model' => $this->fromModel,
+            'to_model' => $this->toModel,
+            'reason' => $this->reason,
+            'error_message' => $this->errorMessage,
+            'request_context' => $this->requestContext,
             'triggered_by_tenant_id' => $this->triggeredByTenantId,
-            'switched_at'            => now(),
+            'switched_at' => now(),
         ]);
     }
 }

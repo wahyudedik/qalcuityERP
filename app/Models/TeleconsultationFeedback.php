@@ -84,7 +84,7 @@ class TeleconsultationFeedback extends Model
      */
     public function getRatingStars(): string
     {
-        return str_repeat('★', $this->rating) . str_repeat('☆', 5 - $this->rating);
+        return str_repeat('★', $this->rating).str_repeat('☆', 5 - $this->rating);
     }
 
     /**

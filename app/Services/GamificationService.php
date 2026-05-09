@@ -8,6 +8,8 @@ use App\Models\ErpNotification;
 use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserPointsLog;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -31,8 +33,9 @@ class GamificationService
                 $existing = $existingMap->get($achievement->id);
 
                 // Skip if already earned
-                if ($existing && $existing->isEarned())
+                if ($existing && $existing->isEarned()) {
                     continue;
+                }
 
                 $progress = self::calculateProgress($user, $achievement, $modelType, $action);
 
@@ -42,7 +45,7 @@ class GamificationService
             }
         } catch (\Throwable $e) {
             // Silently fail — gamification should never break core business logic
-            Log::warning('Gamification evaluation failed: ' . $e->getMessage());
+            Log::warning('Gamification evaluation failed: '.$e->getMessage());
         }
     }
 
@@ -74,8 +77,9 @@ class GamificationService
         // For model-based achievements
         if ($achievement->requirement_model) {
             $modelClass = $achievement->requirement_model;
-            if (!class_exists($modelClass))
+            if (! class_exists($modelClass)) {
                 return 0;
+            }
 
             $query = $modelClass::query();
 
@@ -124,18 +128,18 @@ class GamificationService
             ->distinct()
             ->orderByDesc('activity_date')
             ->pluck('activity_date')
-            ->map(fn($d) => \Carbon\Carbon::parse($d)->startOfDay())
+            ->map(fn ($d) => Carbon::parse($d)->startOfDay())
             ->values()
             ->all();
 
-        if (empty($dates) || !\Carbon\Carbon::instance($dates[0])->isToday()) {
+        if (empty($dates) || ! Carbon::instance($dates[0])->isToday()) {
             return 0;
         }
 
         $streak = 1;
         for ($i = 1; $i < count($dates); $i++) {
-            $expected = \Carbon\Carbon::instance($dates[$i - 1])->subDay()->startOfDay();
-            if (\Carbon\Carbon::instance($dates[$i])->equalTo($expected)) {
+            $expected = Carbon::instance($dates[$i - 1])->subDay()->startOfDay();
+            if (Carbon::instance($dates[$i])->equalTo($expected)) {
                 $streak++;
             } else {
                 break;
@@ -155,7 +159,7 @@ class GamificationService
             ->latest()
             ->first();
 
-        if (!$lastLowStock) {
+        if (! $lastLowStock) {
             // No low stock ever — count as 30 (full streak)
             return 30;
         }
@@ -178,7 +182,7 @@ class GamificationService
         $userAchievement->current_progress = $progress;
 
         // Check if achievement is now complete
-        if ($progress >= $achievement->requirement_value && !$userAchievement->isEarned()) {
+        if ($progress >= $achievement->requirement_value && ! $userAchievement->isEarned()) {
             $userAchievement->earned_at = now();
             $userAchievement->save();
             self::unlockAchievement($user, $achievement);
@@ -202,7 +206,7 @@ class GamificationService
                 'type' => 'achievement_unlocked',
                 'module' => 'gamification',
                 'title' => "Achievement Unlocked: {$achievement->icon} {$achievement->name}",
-                'body' => $achievement->description . " (+{$achievement->points} poin)",
+                'body' => $achievement->description." (+{$achievement->points} poin)",
             ]);
         } catch (\Throwable $e) {
             // Notification failure should not break the flow
@@ -239,7 +243,7 @@ class GamificationService
     /**
      * Get tenant leaderboard
      */
-    public static function getLeaderboard(int $tenantId, int $limit = 10): \Illuminate\Support\Collection
+    public static function getLeaderboard(int $tenantId, int $limit = 10): Collection
     {
         return User::where('tenant_id', $tenantId)
             ->where('is_active', true)
@@ -252,7 +256,7 @@ class GamificationService
     /**
      * Get recent points log for a user (for points history page)
      */
-    public static function getPointsHistory(User $user, int $limit = 30): \Illuminate\Support\Collection
+    public static function getPointsHistory(User $user, int $limit = 30): Collection
     {
         return UserPointsLog::where('user_id', $user->id)
             ->where('tenant_id', $user->tenant_id)
@@ -280,14 +284,15 @@ class GamificationService
 
             foreach ($streakAchievements as $achievement) {
                 $existing = $existingMap->get($achievement->id);
-                if ($existing && $existing->isEarned())
+                if ($existing && $existing->isEarned()) {
                     continue;
+                }
                 if ($streak > 0) {
                     self::updateProgress($user, $achievement, $streak, $existing);
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('Gamification onLogin failed: ' . $e->getMessage());
+            Log::warning('Gamification onLogin failed: '.$e->getMessage());
         }
     }
 

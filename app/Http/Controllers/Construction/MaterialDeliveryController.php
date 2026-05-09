@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Construction;
 
 use App\Http\Controllers\Controller;
-use App\Services\MaterialDeliveryService;
 use App\Models\MaterialDelivery;
 use App\Models\Project;
+use App\Services\MaterialDeliveryService;
 use Illuminate\Http\Request;
 
 class MaterialDeliveryController extends Controller

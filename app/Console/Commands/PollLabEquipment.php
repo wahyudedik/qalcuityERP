@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\LabEquipment;
+use App\Models\LabOrder;
+use App\Models\LabResult;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class PollLabEquipment extends Command
@@ -33,14 +37,14 @@ class PollLabEquipment extends Command
         $equipmentId = $this->option('equipment');
         $dryRun = $this->option('dry-run');
 
-        $this->info("🔬 Polling lab equipment for results...");
+        $this->info('🔬 Polling lab equipment for results...');
 
         if ($dryRun) {
             $this->warn('⚠️ DRY RUN MODE - No data will be imported');
         }
 
         // Get lab equipment to poll
-        $query = \App\Models\LabEquipment::where('is_active', true)
+        $query = LabEquipment::where('is_active', true)
             ->where('auto_poll', true);
 
         if ($tenantId) {
@@ -54,7 +58,8 @@ class PollLabEquipment extends Command
         $equipment = $query->get();
 
         if ($equipment->isEmpty()) {
-            $this->info("✅ No lab equipment to poll");
+            $this->info('✅ No lab equipment to poll');
+
             return Command::SUCCESS;
         }
 
@@ -77,14 +82,16 @@ class PollLabEquipment extends Command
 
                 if (empty($results)) {
                     $this->line("  No new results from {$device->name}");
+
                     continue;
                 }
 
-                $this->info("  Found " . count($results) . " result(s)");
+                $this->info('  Found '.count($results).' result(s)');
 
                 if ($dryRun) {
-                    $this->line("  Would import " . count($results) . " result(s)");
+                    $this->line('  Would import '.count($results).' result(s)');
                     $importedCount += count($results);
+
                     continue;
                 }
 
@@ -141,7 +148,7 @@ class PollLabEquipment extends Command
     protected function pollAPIDevice($device): array
     {
         // HTTP API call to device
-        $response = \Illuminate\Support\Facades\Http::timeout(30)
+        $response = Http::timeout(30)
             ->get("http://{$device->ip_address}:{$device->port}/api/results", [
                 'from' => $device->last_polled_at?->toIso8601String(),
             ]);
@@ -161,7 +168,7 @@ class PollLabEquipment extends Command
         // Read results from shared folder or FTP
         $directory = $device->file_path;
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return [];
         }
 
@@ -169,7 +176,7 @@ class PollLabEquipment extends Command
         $results = [];
 
         foreach ($files as $file) {
-            if (($handle = fopen($file, "r")) !== false) {
+            if (($handle = fopen($file, 'r')) !== false) {
                 while (($data = fgetcsv($handle)) !== false) {
                     $results[] = $this->parseCSVRow($data);
                 }
@@ -204,21 +211,22 @@ class PollLabEquipment extends Command
     protected function importLabResult($device, array $resultData): void
     {
         // Find matching lab order
-        $order = \App\Models\LabOrder::where('tenant_id', $device->tenant_id)
+        $order = LabOrder::where('tenant_id', $device->tenant_id)
             ->where('accession_number', $resultData['patient_id'])
             ->where('status', 'pending')
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             Log::warning('No matching lab order found', [
                 'accession_number' => $resultData['patient_id'],
                 'equipment_id' => $device->id,
             ]);
+
             return;
         }
 
         // Create lab result
-        \App\Models\LabResult::create([
+        LabResult::create([
             'tenant_id' => $device->tenant_id,
             'lab_order_id' => $order->id,
             'patient_id' => $order->patient_id,

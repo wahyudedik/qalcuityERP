@@ -15,14 +15,21 @@ use Illuminate\Support\Facades\DB;
 
 class DownPaymentController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
         $query = DownPayment::where('tenant_id', $this->tid());
 
-        if ($request->filled('type'))   $query->where('type', $request->type);
-        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where('number', 'like', "%$s%");
@@ -44,12 +51,12 @@ class DownPaymentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'type'           => 'required|in:customer,supplier',
-            'party_id'       => 'required|integer',
-            'payment_date'   => 'required|date',
-            'amount'         => 'required|numeric|min:1',
+            'type' => 'required|in:customer,supplier',
+            'party_id' => 'required|integer',
+            'payment_date' => 'required|date',
+            'amount' => 'required|numeric|min:1',
             'payment_method' => 'required|in:cash,transfer,qris,other',
-            'notes'          => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $tid = $this->tid();
@@ -67,19 +74,19 @@ class DownPaymentController extends Controller
             $number = app(DocumentNumberService::class)->generate($tid, 'DP');
 
             $dp = DownPayment::create([
-                'tenant_id'        => $tid,
-                'number'           => $number,
-                'type'             => $data['type'],
-                'party_id'         => $data['party_id'],
-                'party_type'       => $partyType,
-                'payment_date'     => $data['payment_date'],
-                'amount'           => $data['amount'],
-                'applied_amount'   => 0,
+                'tenant_id' => $tid,
+                'number' => $number,
+                'type' => $data['type'],
+                'party_id' => $data['party_id'],
+                'party_type' => $partyType,
+                'payment_date' => $data['payment_date'],
+                'amount' => $data['amount'],
+                'applied_amount' => 0,
                 'remaining_amount' => $data['amount'],
-                'status'           => 'pending',
-                'payment_method'   => $data['payment_method'],
-                'created_by'       => auth()->id(),
-                'notes'            => $data['notes'] ?? null,
+                'status' => 'pending',
+                'payment_method' => $data['payment_method'],
+                'created_by' => auth()->id(),
+                'notes' => $data['notes'] ?? null,
             ]);
 
             // GL Posting
@@ -93,7 +100,7 @@ class DownPaymentController extends Controller
                 session()->flash('warning', $glResult->warningMessage());
             }
 
-            ActivityLog::record('down_payment_created', "Uang muka {$number} dibuat (Rp " . number_format($data['amount'], 0, ',', '.') . ")", $dp);
+            ActivityLog::record('down_payment_created', "Uang muka {$number} dibuat (Rp ".number_format($data['amount'], 0, ',', '.').')', $dp);
         });
 
         return back()->with('success', 'Uang muka berhasil dicatat.');
@@ -108,10 +115,10 @@ class DownPaymentController extends Controller
 
         $data = $request->validate([
             'invoice_id' => 'required|exists:invoices,id',
-            'amount'     => 'required|numeric|min:1|max:' . $downPayment->remaining_amount,
+            'amount' => 'required|numeric|min:1|max:'.$downPayment->remaining_amount,
         ]);
 
-        $tid     = $this->tid();
+        $tid = $this->tid();
         $invoice = Invoice::where('tenant_id', $tid)->findOrFail($data['invoice_id']);
 
         abort_if($data['amount'] > $invoice->remaining_amount, 422, 'Jumlah melebihi sisa tagihan invoice.');
@@ -119,22 +126,22 @@ class DownPaymentController extends Controller
         DB::transaction(function () use ($downPayment, $invoice, $data, $tid) {
             DownPaymentApplication::create([
                 'down_payment_id' => $downPayment->id,
-                'invoice_id'      => $invoice->id,
-                'amount'          => $data['amount'],
-                'applied_at'      => now(),
-                'applied_by'      => auth()->id(),
+                'invoice_id' => $invoice->id,
+                'amount' => $data['amount'],
+                'applied_at' => now(),
+                'applied_by' => auth()->id(),
             ]);
 
             $downPayment->recalculate();
 
             // Update invoice payment
             $invoice->payments()->create([
-                'tenant_id'      => $tid,
-                'amount'         => $data['amount'],
+                'tenant_id' => $tid,
+                'amount' => $data['amount'],
                 'payment_method' => 'down_payment',
-                'notes'          => "Aplikasi DP {$downPayment->number}",
-                'payment_date'   => today(),
-                'user_id'        => auth()->id(),
+                'notes' => "Aplikasi DP {$downPayment->number}",
+                'payment_date' => today(),
+                'user_id' => auth()->id(),
             ]);
             $invoice->updatePaymentStatus();
 
@@ -150,7 +157,7 @@ class DownPaymentController extends Controller
                 session()->flash('warning', $glResult->warningMessage());
             }
 
-            ActivityLog::record('down_payment_applied', "DP {$downPayment->number} diaplikasikan ke invoice {$invoice->number} (Rp " . number_format($data['amount'], 0, ',', '.') . ")", $downPayment);
+            ActivityLog::record('down_payment_applied', "DP {$downPayment->number} diaplikasikan ke invoice {$invoice->number} (Rp ".number_format($data['amount'], 0, ',', '.').')', $downPayment);
         });
 
         return back()->with('success', "DP {$downPayment->number} berhasil diaplikasikan ke invoice {$invoice->number}.");

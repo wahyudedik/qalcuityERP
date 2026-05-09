@@ -10,7 +10,10 @@ class HrmAiController extends Controller
 {
     public function __construct(private HrmAiService $ai) {}
 
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     /**
      * GET /hrm/ai/attendance-anomalies?months=3
@@ -25,8 +28,8 @@ class HrmAiController extends Controller
 
         return response()->json([
             'anomalies' => array_values($anomalies),
-            'total'     => count($anomalies),
-            'months'    => $months,
+            'total' => count($anomalies),
+            'months' => $months,
         ]);
     }
 
@@ -66,9 +69,9 @@ class HrmAiController extends Controller
 
         return response()->json([
             'employees' => $results,
-            'total'     => count($results),
-            'critical'  => collect($results)->where('risk_level', 'critical')->count(),
-            'high'      => collect($results)->where('risk_level', 'high')->count(),
+            'total' => count($results),
+            'critical' => collect($results)->where('risk_level', 'critical')->count(),
+            'high' => collect($results)->where('risk_level', 'high')->count(),
         ]);
     }
 }

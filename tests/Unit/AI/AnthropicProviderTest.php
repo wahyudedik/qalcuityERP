@@ -3,7 +3,6 @@
 namespace Tests\Unit\AI;
 
 use App\Services\AI\Providers\AnthropicProvider;
-use App\Exceptions\RateLimitException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Handler\MockHandler;
@@ -42,14 +41,11 @@ class AnthropicProviderTest extends TestCase
         Config::set('ai.providers.anthropic.max_tokens', 8192);
         Config::set('ai.providers.anthropic.timeout', 60);
 
-        return new AnthropicProvider();
+        return new AnthropicProvider;
     }
 
     /**
      * Inject mock Guzzle client ke dalam provider via reflection.
-     *
-     * @param  AnthropicProvider  $provider
-     * @param  Client             $mockClient
      */
     private function injectMockClient(AnthropicProvider $provider, Client $mockClient): void
     {
@@ -64,8 +60,7 @@ class AnthropicProviderTest extends TestCase
      * Mengembalikan [$mockClient, &$container] untuk inspeksi request.
      *
      * @param  array  $responses  Array of Response/Exception
-     * @param  array  &$container History container (diisi oleh Middleware::history)
-     * @return Client
+     * @param  array  &$container  History container (diisi oleh Middleware::history)
      */
     private function buildMockClient(array $responses, array &$container = []): Client
     {
@@ -85,7 +80,7 @@ class AnthropicProviderTest extends TestCase
     {
         return new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'content' => [['type' => 'text', 'text' => $text]],
-            'model'   => $model,
+            'model' => $model,
         ]));
     }
 
@@ -112,7 +107,7 @@ class AnthropicProviderTest extends TestCase
         // Requirements: 2.8
         Config::set('ai.providers.anthropic.api_key', '');
 
-        $provider = new AnthropicProvider();
+        $provider = new AnthropicProvider;
 
         $this->assertFalse($provider->isAvailable());
     }
@@ -123,7 +118,7 @@ class AnthropicProviderTest extends TestCase
         // Requirements: 2.8
         Config::set('ai.providers.anthropic.api_key', 'sk-ant-some-valid-key');
 
-        $provider = new AnthropicProvider();
+        $provider = new AnthropicProvider;
 
         $this->assertTrue($provider->isAvailable());
     }
@@ -223,7 +218,7 @@ class AnthropicProviderTest extends TestCase
     {
         // Requirements: 2.5
         $mockResponse = new Response(401, [], json_encode(['error' => ['message' => 'Unauthorized']]));
-        $mockRequest  = new Request('POST', 'https://api.anthropic.com/v1/messages');
+        $mockRequest = new Request('POST', 'https://api.anthropic.com/v1/messages');
         $clientException = new ClientException('Unauthorized', $mockRequest, $mockResponse);
 
         $mockClient = $this->buildMockClient([$clientException]);
@@ -246,7 +241,7 @@ class AnthropicProviderTest extends TestCase
     {
         // Requirements: 2.5
         $mockResponse = new Response(403, [], json_encode(['error' => ['message' => 'Forbidden']]));
-        $mockRequest  = new Request('POST', 'https://api.anthropic.com/v1/messages');
+        $mockRequest = new Request('POST', 'https://api.anthropic.com/v1/messages');
         $clientException = new ClientException('Forbidden', $mockRequest, $mockResponse);
 
         $mockClient = $this->buildMockClient([$clientException]);

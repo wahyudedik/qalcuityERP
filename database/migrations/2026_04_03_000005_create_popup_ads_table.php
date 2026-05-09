@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('popup_ads')) {
+        if (! Schema::hasTable('popup_ads')) {
             Schema::create('popup_ads', function (Blueprint $table) {
                 $table->id();
                 $table->string('title');
@@ -27,7 +27,7 @@ return new class extends Migration
         }
 
         // Track which users have already dismissed (for once/daily logic)
-        if (!Schema::hasTable('popup_ad_views')) {
+        if (! Schema::hasTable('popup_ad_views')) {
             Schema::create('popup_ad_views', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('popup_ad_id')->constrained()->cascadeOnDelete();

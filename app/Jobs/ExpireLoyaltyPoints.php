@@ -18,7 +18,8 @@ class ExpireLoyaltyPoints implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 120;
 
     public function handle(): void
@@ -30,14 +31,16 @@ class ExpireLoyaltyPoints implements ShouldQueue
             ->whereNotExists(function ($q) {
                 // Belum ada transaksi expire yang mereferensikan txn ini
                 $q->select(DB::raw(1))
-                  ->from('loyalty_transactions as lt2')
-                  ->where('lt2.type', 'expire')
-                  ->whereRaw("lt2.reference = CONCAT('expire:', loyalty_transactions.id)");
+                    ->from('loyalty_transactions as lt2')
+                    ->where('lt2.type', 'expire')
+                    ->whereRaw("lt2.reference = CONCAT('expire:', loyalty_transactions.id)");
             })
             ->with('customer')
             ->get();
 
-        if ($expiredTxns->isEmpty()) return;
+        if ($expiredTxns->isEmpty()) {
+            return;
+        }
 
         $grouped = $expiredTxns->groupBy('tenant_id');
         $totalExpired = 0;
@@ -47,14 +50,14 @@ class ExpireLoyaltyPoints implements ShouldQueue
                 DB::transaction(function () use ($txn, $tenantId, &$totalExpired) {
                     // Catat transaksi expire
                     LoyaltyTransaction::create([
-                        'tenant_id'          => $tenantId,
-                        'customer_id'        => $txn->customer_id,
-                        'program_id'         => $txn->program_id,
-                        'type'               => 'expire',
-                        'points'             => -$txn->points,
+                        'tenant_id' => $tenantId,
+                        'customer_id' => $txn->customer_id,
+                        'program_id' => $txn->program_id,
+                        'type' => 'expire',
+                        'points' => -$txn->points,
                         'transaction_amount' => 0,
-                        'reference'          => 'expire:' . $txn->id,
-                        'notes'              => 'Poin kadaluarsa otomatis',
+                        'reference' => 'expire:'.$txn->id,
+                        'notes' => 'Poin kadaluarsa otomatis',
                     ]);
 
                     // Kurangi total_points di LoyaltyPoint
@@ -78,11 +81,11 @@ class ExpireLoyaltyPoints implements ShouldQueue
                 $totalPoints = $txns->sum('points');
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $admin->id,
-                    'type'      => 'loyalty_expired',
-                    'title'     => '⭐ Poin Loyalitas Kadaluarsa',
-                    'body'      => "{$txns->count()} transaksi poin ({$totalPoints} poin total) telah kadaluarsa hari ini.",
-                    'data'      => ['count' => $txns->count(), 'total_points' => $totalPoints],
+                    'user_id' => $admin->id,
+                    'type' => 'loyalty_expired',
+                    'title' => '⭐ Poin Loyalitas Kadaluarsa',
+                    'body' => "{$txns->count()} transaksi poin ({$totalPoints} poin total) telah kadaluarsa hari ini.",
+                    'data' => ['count' => $txns->count(), 'total_points' => $totalPoints],
                 ]);
             }
         }

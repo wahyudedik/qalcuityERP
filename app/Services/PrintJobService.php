@@ -13,7 +13,7 @@ class PrintJobService
     public function createJob(array $data): PrintJob
     {
         return DB::transaction(function () use ($data) {
-            $job = new PrintJob();
+            $job = new PrintJob;
             $job->tenant_id = auth()->user()->tenant_id;
             $job->job_number = $this->generateJobNumber();
             $job->customer_id = $data['customer_id'] ?? null;
@@ -81,7 +81,7 @@ class PrintJobService
 
         if (
             isset($validTransitions[$job->status]) &&
-            !in_array($status, $validTransitions[$job->status])
+            ! in_array($status, $validTransitions[$job->status])
         ) {
             throw new \InvalidArgumentException(
                 "Cannot transition from {$job->status} to {$status}"
@@ -90,7 +90,7 @@ class PrintJobService
 
         $job->status = $status;
 
-        if ($status === 'on_press' && !$job->started_at) {
+        if ($status === 'on_press' && ! $job->started_at) {
             $job->started_at = now();
         }
 
@@ -132,7 +132,7 @@ class PrintJobService
     /**
      * Get job queue
      */
-    public function getJobQueue(string $status = null, string $priority = null)
+    public function getJobQueue(?string $status = null, ?string $priority = null)
     {
         $query = PrintJob::where('tenant_id', auth()->user()->tenant_id)
             ->with(['customer', 'assignedOperator'])

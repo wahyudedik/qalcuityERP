@@ -2,7 +2,7 @@
 
 /**
  * Bank Format Configuration
- * 
+ *
  * Konfigurasi format CSV untuk berbagai bank di Indonesia
  */
 return [

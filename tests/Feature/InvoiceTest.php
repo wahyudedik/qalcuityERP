@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ChartOfAccount;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\Payment;
@@ -11,20 +12,24 @@ use Tests\TestCase;
 class InvoiceTest extends TestCase
 {
     private $tenant;
+
     private $user;
+
     private $customer;
+
     private $warehouse;
+
     private $product;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tenant    = $this->createTenant();
-        $this->user      = $this->createAdminUser($this->tenant);
-        $this->customer  = $this->createCustomer($this->tenant->id);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
+        $this->customer = $this->createCustomer($this->tenant->id);
         $this->warehouse = $this->createWarehouse($this->tenant->id);
-        $this->product   = $this->createProduct($this->tenant->id);
+        $this->product = $this->createProduct($this->tenant->id);
         $this->setStock($this->product->id, $this->warehouse->id, 100);
         $this->seedCoa($this->tenant->id);
     }
@@ -33,36 +38,36 @@ class InvoiceTest extends TestCase
     {
         // Create a SO first since sales_order_id is NOT NULL
         $so = SalesOrder::create([
-            'tenant_id'   => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'customer_id' => $this->customer->id,
-            'user_id'     => $this->user->id,
-            'number'      => 'SO-TEST-' . uniqid(),
-            'status'      => 'confirmed',
-            'date'        => today(),
-            'subtotal'    => $total,
-            'discount'    => 0,
-            'tax_amount'  => 0,
-            'tax'         => 0,
-            'total'       => $total,
-            'payment_type'=> 'credit',
-            'due_date'    => today()->addDays(30),
-            'source'      => 'order',
+            'user_id' => $this->user->id,
+            'number' => 'SO-TEST-'.uniqid(),
+            'status' => 'confirmed',
+            'date' => today(),
+            'subtotal' => $total,
+            'discount' => 0,
+            'tax_amount' => 0,
+            'tax' => 0,
+            'total' => $total,
+            'payment_type' => 'credit',
+            'due_date' => today()->addDays(30),
+            'source' => 'order',
         ]);
 
         return Invoice::create([
-            'tenant_id'        => $this->tenant->id,
-            'number'           => 'INV-TEST-' . uniqid(),
-            'customer_id'      => $this->customer->id,
-            'sales_order_id'   => $so->id,
-            'subtotal_amount'  => $total,
-            'tax_amount'       => 0,
-            'total_amount'     => $total,
-            'paid_amount'      => 0,
+            'tenant_id' => $this->tenant->id,
+            'number' => 'INV-TEST-'.uniqid(),
+            'customer_id' => $this->customer->id,
+            'sales_order_id' => $so->id,
+            'subtotal_amount' => $total,
+            'tax_amount' => 0,
+            'total_amount' => $total,
+            'paid_amount' => 0,
             'remaining_amount' => $total,
-            'status'           => 'unpaid',
-            'due_date'         => today()->addDays(30),
-            'currency_code'    => 'IDR',
-            'currency_rate'    => 1,
+            'status' => 'unpaid',
+            'due_date' => today()->addDays(30),
+            'currency_code' => 'IDR',
+            'currency_rate' => 1,
         ]);
     }
 
@@ -84,16 +89,16 @@ class InvoiceTest extends TestCase
 
         // Invoice status → paid
         $this->assertDatabaseHas('invoices', [
-            'id'           => $invoice->id,
-            'status'       => 'paid',
-            'paid_amount'  => 500000,
+            'id' => $invoice->id,
+            'status' => 'paid',
+            'paid_amount' => 500000,
             'remaining_amount' => 0,
         ]);
 
         // Payment record tersimpan
         $this->assertDatabaseHas('payments', [
             'tenant_id' => $this->tenant->id,
-            'amount'    => 500000,
+            'amount' => 500000,
         ]);
     }
 
@@ -167,16 +172,16 @@ class InvoiceTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('invoices', [
-            'id'               => $invoice->id,
-            'status'           => 'partial',
-            'paid_amount'      => 400000,
+            'id' => $invoice->id,
+            'status' => 'partial',
+            'paid_amount' => 400000,
             'remaining_amount' => 600000,
         ]);
     }
 
     public function test_still_records_payment_even_when_coa_missing(): void
     {
-        \App\Models\ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
+        ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
 
         $invoice = $this->createInvoice(100000);
 
@@ -195,7 +200,7 @@ class InvoiceTest extends TestCase
 
         // Tidak ada jurnal
         $this->assertDatabaseMissing('journal_entries', [
-            'tenant_id'      => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'reference_type' => 'invoice_payment',
         ]);
     }
@@ -217,42 +222,42 @@ class InvoiceTest extends TestCase
 
     public function test_prevents_accessing_other_tenant_invoice(): void
     {
-        $otherTenant    = $this->createTenant(['slug' => 'other-' . uniqid()]);
-        $otherUser      = $this->createAdminUser($otherTenant);
-        $otherCustomer  = $this->createCustomer($otherTenant->id);
+        $otherTenant = $this->createTenant(['slug' => 'other-'.uniqid()]);
+        $otherUser = $this->createAdminUser($otherTenant);
+        $otherCustomer = $this->createCustomer($otherTenant->id);
         $otherWarehouse = $this->createWarehouse($otherTenant->id);
 
         $otherSo = SalesOrder::create([
-            'tenant_id'   => $otherTenant->id,
+            'tenant_id' => $otherTenant->id,
             'customer_id' => $otherCustomer->id,
-            'user_id'     => $otherUser->id,
-            'number'      => 'SO-OTHER-001',
-            'status'      => 'confirmed',
-            'date'        => today(),
-            'subtotal'    => 100000,
-            'discount'    => 0,
-            'tax_amount'  => 0,
-            'tax'         => 0,
-            'total'       => 100000,
-            'payment_type'=> 'credit',
-            'due_date'    => today()->addDays(30),
-            'source'      => 'order',
+            'user_id' => $otherUser->id,
+            'number' => 'SO-OTHER-001',
+            'status' => 'confirmed',
+            'date' => today(),
+            'subtotal' => 100000,
+            'discount' => 0,
+            'tax_amount' => 0,
+            'tax' => 0,
+            'total' => 100000,
+            'payment_type' => 'credit',
+            'due_date' => today()->addDays(30),
+            'source' => 'order',
         ]);
 
-        $otherInvoice  = Invoice::create([
-            'tenant_id'        => $otherTenant->id,
-            'number'           => 'INV-OTHER-001',
-            'customer_id'      => $otherCustomer->id,
-            'sales_order_id'   => $otherSo->id,
-            'subtotal_amount'  => 100000,
-            'tax_amount'       => 0,
-            'total_amount'     => 100000,
-            'paid_amount'      => 0,
+        $otherInvoice = Invoice::create([
+            'tenant_id' => $otherTenant->id,
+            'number' => 'INV-OTHER-001',
+            'customer_id' => $otherCustomer->id,
+            'sales_order_id' => $otherSo->id,
+            'subtotal_amount' => 100000,
+            'tax_amount' => 0,
+            'total_amount' => 100000,
+            'paid_amount' => 0,
             'remaining_amount' => 100000,
-            'status'           => 'unpaid',
-            'due_date'         => today()->addDays(30),
-            'currency_code'    => 'IDR',
-            'currency_rate'    => 1,
+            'status' => 'unpaid',
+            'due_date' => today()->addDays(30),
+            'currency_code' => 'IDR',
+            'currency_rate' => 1,
         ]);
 
         $this->actingAs($this->user);

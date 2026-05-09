@@ -87,7 +87,7 @@ class GeofencingController extends Controller
             ]);
 
             // Assign devices to zone
-            if (!empty($validated['device_ids'])) {
+            if (! empty($validated['device_ids'])) {
                 $alertType = $validated['alert_type'] ?? 'both';
                 $zone->devices()->attach($validated['device_ids'], [
                     'alert_type' => $alertType,
@@ -102,7 +102,8 @@ class GeofencingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to create zone: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to create zone: '.$e->getMessage()]);
         }
     }
 
@@ -118,7 +119,7 @@ class GeofencingController extends Controller
                 'devices',
                 'alerts' => function ($query) {
                     $query->latest()->limit(50);
-                }
+                },
             ])
             ->findOrFail($id);
 
@@ -213,7 +214,8 @@ class GeofencingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to update zone: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to update zone: '.$e->getMessage()]);
         }
     }
 
@@ -239,7 +241,7 @@ class GeofencingController extends Controller
         $tenantId = Auth::user()->tenant_id;
         $zone = GeofenceZone::where('tenant_id', $tenantId)->findOrFail($id);
 
-        $zone->update(['is_active' => !$zone->is_active]);
+        $zone->update(['is_active' => ! $zone->is_active]);
 
         return back()->with('success', 'Zone status updated');
     }

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ForecastService
@@ -191,14 +190,14 @@ class ForecastService
     {
         $unpaid = Invoice::where('tenant_id', $tenantId)
             ->whereIn('status', ['unpaid', 'partial'])
-            ->selectRaw("
+            ->selectRaw('
                 SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) <= 0 THEN remaining_amount ELSE 0 END) as current_amount,
                 SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 1 AND 30 THEN remaining_amount ELSE 0 END) as days_1_30,
                 SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 31 AND 60 THEN remaining_amount ELSE 0 END) as days_31_60,
                 SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 61 AND 90 THEN remaining_amount ELSE 0 END) as days_61_90,
                 SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) > 90 THEN remaining_amount ELSE 0 END) as days_90_plus,
                 SUM(remaining_amount) as total
-            ")->first();
+            ')->first();
 
         // Collection rate from last 3 months
         $collected = Invoice::where('tenant_id', $tenantId)

@@ -50,11 +50,11 @@ class RateLimitAiRequests
      */
     public function handle(Request $request, Closure $next, string $type = 'read'): Response
     {
-        $user     = auth()->user();
+        $user = auth()->user();
         $tenantId = $user?->tenant_id;
 
         // Super admin and unauthenticated users bypass rate limiting
-        if (!$user || !$tenantId || $user->isSuperAdmin()) {
+        if (! $user || ! $tenantId || $user->isSuperAdmin()) {
             return $next($request);
         }
 
@@ -63,8 +63,8 @@ class RateLimitAiRequests
 
         if ($this->limiter->tooManyAttempts($basicKey, 60)) {
             return response()->json([
-                'error'       => 'too_many_requests',
-                'message'     => 'Terlalu banyak permintaan AI. Silakan coba beberapa saat lagi.',
+                'error' => 'too_many_requests',
+                'message' => 'Terlalu banyak permintaan AI. Silakan coba beberapa saat lagi.',
                 'retry_after' => $this->limiter->availableIn($basicKey),
             ], 429);
         }
@@ -90,18 +90,18 @@ class RateLimitAiRequests
     {
         // Check if tenant is already throttled due to prior suspicious activity
         if (Cache::has($this->throttleKey($tenantId))) {
-            $retryAfter = Cache::get($this->throttleKey($tenantId) . '_ttl', self::THROTTLE_TTL);
+            $retryAfter = Cache::get($this->throttleKey($tenantId).'_ttl', self::THROTTLE_TTL);
 
             return response()->json([
-                'error'       => 'suspicious_activity_throttled',
-                'message'     => 'Akun Anda dibatasi sementara karena terdeteksi pola aktivitas yang tidak biasa. '
-                    . 'Silakan coba lagi dalam beberapa menit atau hubungi administrator.',
+                'error' => 'suspicious_activity_throttled',
+                'message' => 'Akun Anda dibatasi sementara karena terdeteksi pola aktivitas yang tidak biasa. '
+                    .'Silakan coba lagi dalam beberapa menit atau hubungi administrator.',
                 'retry_after' => $retryAfter,
             ], 429);
         }
 
         // Increment write-op counter for this tenant in the detection window
-        $writeKey   = $this->writeOpsKey($tenantId);
+        $writeKey = $this->writeOpsKey($tenantId);
         $writeCount = $this->limiter->attempts($writeKey);
 
         $this->limiter->hit($writeKey, self::WRITE_OPS_WINDOW);
@@ -113,16 +113,16 @@ class RateLimitAiRequests
             $this->notifyAdmins($tenantId, $user, $writeCount);
 
             Log::warning('RateLimitAiRequests: Suspicious write-op pattern detected', [
-                'tenant_id'       => $tenantId,
-                'user_id'         => $user->id,
+                'tenant_id' => $tenantId,
+                'user_id' => $user->id,
                 'write_ops_count' => $writeCount,
-                'window_seconds'  => self::WRITE_OPS_WINDOW,
+                'window_seconds' => self::WRITE_OPS_WINDOW,
             ]);
 
             return response()->json([
-                'error'       => 'suspicious_activity_throttled',
-                'message'     => 'Terdeteksi pola aktivitas yang tidak biasa. Akun Anda dibatasi sementara. '
-                    . 'Administrator telah diberitahu. Silakan coba lagi dalam beberapa menit.',
+                'error' => 'suspicious_activity_throttled',
+                'message' => 'Terdeteksi pola aktivitas yang tidak biasa. Akun Anda dibatasi sementara. '
+                    .'Administrator telah diberitahu. Silakan coba lagi dalam beberapa menit.',
                 'retry_after' => self::THROTTLE_TTL,
             ], 429);
         }
@@ -137,7 +137,7 @@ class RateLimitAiRequests
     {
         $key = $this->throttleKey($tenantId);
         Cache::put($key, true, self::THROTTLE_TTL);
-        Cache::put($key . '_ttl', self::THROTTLE_TTL, self::THROTTLE_TTL);
+        Cache::put($key.'_ttl', self::THROTTLE_TTL, self::THROTTLE_TTL);
     }
 
     /**
@@ -155,18 +155,18 @@ class RateLimitAiRequests
         try {
             $tenant = Tenant::with('admins')->find($tenantId);
 
-            if (!$tenant || $tenant->admins->isEmpty()) {
+            if (! $tenant || $tenant->admins->isEmpty()) {
                 return;
             }
 
             $notification = new SuspiciousAiActivityNotification(
-                tenantId:      $tenantId,
-                tenantName:    $tenant->name,
-                userId:        $user->id,
-                userName:      $user->name,
+                tenantId: $tenantId,
+                tenantName: $tenant->name,
+                userId: $user->id,
+                userName: $user->name,
                 writeOpsCount: $writeCount,
                 windowSeconds: self::WRITE_OPS_WINDOW,
-                detectedAt:    now()->format('d/m/Y H:i:s'),
+                detectedAt: now()->format('d/m/Y H:i:s'),
             );
 
             foreach ($tenant->admins as $admin) {
@@ -178,7 +178,7 @@ class RateLimitAiRequests
         } catch (\Throwable $e) {
             Log::error('RateLimitAiRequests: Failed to notify admins of suspicious activity', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }

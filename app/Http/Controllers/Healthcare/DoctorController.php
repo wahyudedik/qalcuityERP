@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use App\Models\MedicalStaffSchedule;
-use App\Models\Appointment;
 use Illuminate\Http\Request;
 
 class DoctorController extends Controller
@@ -17,7 +16,7 @@ class DoctorController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
 
-        $query = Doctor::with(['department', 'schedules'])
+        $query = Doctor::with(['schedules'])
             ->where('tenant_id', $tenantId);
 
         // Filters
@@ -51,7 +50,7 @@ class DoctorController extends Controller
             'available_today' => Doctor::where('tenant_id', $tenantId)
                 ->where('status', 'active')
                 ->whereHas('schedules', function ($q) {
-                    $q->where('day_of_week', now()->dayOfWeek)->where('is_active', true);
+                    $q->where('schedule_date', today())->where('is_available', true);
                 })
                 ->count(),
             'on_leave' => Doctor::where('tenant_id', $tenantId)->where('status', 'on_leave')->count(),

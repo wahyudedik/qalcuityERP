@@ -2,11 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\SalesOrder;
 use App\Models\ScheduledReport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ProcessScheduledReports extends Command
 {
@@ -35,6 +40,7 @@ class ProcessScheduledReports extends Command
 
         if ($dueReports->isEmpty()) {
             $this->info('No scheduled reports due.');
+
             return 0;
         }
 
@@ -57,7 +63,7 @@ class ProcessScheduledReports extends Command
                 $report->markAsExecuted();
 
                 $processed++;
-                $this->info("✓ Report sent successfully");
+                $this->info('✓ Report sent successfully');
 
             } catch (\Throwable $e) {
                 $failed++;
@@ -114,7 +120,7 @@ class ProcessScheduledReports extends Command
         foreach ($report->recipients as $email) {
             // TODO: Create ScheduledReportEmail mailable
             // For now, send simple notification
-            Mail::raw("Report: {$report->name}\n\nGenerated at: " . now()->format('Y-m-d H:i:s'), function ($message) use ($email, $report) {
+            Mail::raw("Report: {$report->name}\n\nGenerated at: ".now()->format('Y-m-d H:i:s'), function ($message) use ($email, $report) {
                 $message->to($email)
                     ->subject("Scheduled Report: {$report->name}");
             });
@@ -130,11 +136,11 @@ class ProcessScheduledReports extends Command
         $endDate = $filters['end_date'] ?? now()->format('Y-m-d');
 
         return [
-            'total' => \App\Models\Invoice::where('tenant_id', $tenantId)
+            'total' => Invoice::where('tenant_id', $tenantId)
                 ->whereBetween('invoice_date', [$startDate, $endDate])
                 ->sum('total_amount'),
             'growth' => 0, // Calculate growth
-            'by_day' => \App\Models\Invoice::where('tenant_id', $tenantId)
+            'by_day' => Invoice::where('tenant_id', $tenantId)
                 ->whereBetween('invoice_date', [$startDate, $endDate])
                 ->selectRaw('DATE(invoice_date) as date, SUM(total_amount) as total')
                 ->groupBy('date')
@@ -152,14 +158,14 @@ class ProcessScheduledReports extends Command
         $endDate = $filters['end_date'] ?? now()->format('Y-m-d');
 
         return [
-            'total' => \App\Models\SalesOrder::where('tenant_id', $tenantId)
+            'total' => SalesOrder::where('tenant_id', $tenantId)
                 ->whereBetween('order_date', [$startDate, $endDate])
                 ->count(),
-            'completed' => \App\Models\SalesOrder::where('tenant_id', $tenantId)
+            'completed' => SalesOrder::where('tenant_id', $tenantId)
                 ->whereBetween('order_date', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->count(),
-            'avg_value' => \App\Models\SalesOrder::where('tenant_id', $tenantId)
+            'avg_value' => SalesOrder::where('tenant_id', $tenantId)
                 ->whereBetween('order_date', [$startDate, $endDate])
                 ->avg('total_amount') ?? 0,
         ];
@@ -171,11 +177,11 @@ class ProcessScheduledReports extends Command
     protected function getCustomersData(int $tenantId, array $filters): array
     {
         return [
-            'total' => \App\Models\Customer::where('tenant_id', $tenantId)->count(),
-            'new_this_month' => \App\Models\Customer::where('tenant_id', $tenantId)
+            'total' => Customer::where('tenant_id', $tenantId)->count(),
+            'new_this_month' => Customer::where('tenant_id', $tenantId)
                 ->whereMonth('created_at', now()->month)
                 ->count(),
-            'active' => \App\Models\Customer::where('tenant_id', $tenantId)
+            'active' => Customer::where('tenant_id', $tenantId)
                 ->whereHas('salesOrders', function ($q) use ($tenantId) {
                     $q->where('tenant_id', $tenantId)
                         ->where('order_date', '>=', now()->subDays(30)->format('Y-m-d'));
@@ -190,14 +196,14 @@ class ProcessScheduledReports extends Command
     protected function getInventoryData(int $tenantId, array $filters): array
     {
         return [
-            'total_products' => \App\Models\Product::where('tenant_id', $tenantId)->count(),
-            'in_stock' => \App\Models\ProductStock::where('tenant_id', $tenantId)
+            'total_products' => Product::where('tenant_id', $tenantId)->count(),
+            'in_stock' => ProductStock::where('tenant_id', $tenantId)
                 ->where('quantity', '>', 0)
                 ->count(),
-            'low_stock' => \App\Models\ProductStock::where('tenant_id', $tenantId)
+            'low_stock' => ProductStock::where('tenant_id', $tenantId)
                 ->where('quantity', '<=', DB::raw('reorder_level'))
                 ->count(),
-            'out_of_stock' => \App\Models\ProductStock::where('tenant_id', $tenantId)
+            'out_of_stock' => ProductStock::where('tenant_id', $tenantId)
                 ->where('quantity', '<=', 0)
                 ->count(),
         ];

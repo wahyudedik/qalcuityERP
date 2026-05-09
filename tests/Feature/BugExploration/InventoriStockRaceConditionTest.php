@@ -25,9 +25,13 @@ class InventoriStockRaceConditionTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
+
     private Product $product;
+
     private Warehouse $warehouse;
+
     private ProductStock $stock;
 
     protected function setUp(): void
@@ -99,10 +103,10 @@ class InventoriStockRaceConditionTest extends TestCase
         $this->assertGreaterThanOrEqual(
             0,
             $finalStock,
-            "Bug 1.15: Race condition menyebabkan stok negatif! " .
-            "Stok awal: {$initialStock}, dua request masing-masing mengurangi {$deductAmount}. " .
-            "Stok akhir: {$finalStock} (seharusnya >= 0). " .
-            "Tidak ada pessimistic locking (lockForUpdate()) yang mencegah race condition."
+            'Bug 1.15: Race condition menyebabkan stok negatif! '.
+            "Stok awal: {$initialStock}, dua request masing-masing mengurangi {$deductAmount}. ".
+            "Stok akhir: {$finalStock} (seharusnya >= 0). ".
+            'Tidak ada pessimistic locking (lockForUpdate()) yang mencegah race condition.'
         );
     }
 
@@ -141,10 +145,10 @@ class InventoriStockRaceConditionTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada service dengan transaction + lockForUpdate
         $this->assertTrue(
             $hasTransactionWithLock,
-            "Bug 1.15: Tidak ditemukan service yang menggunakan DB::transaction() dengan " .
-            "lockForUpdate() untuk operasi pengurangan stok. " .
-            "File yang dicari: " . implode(', ', $serviceFiles) . ". " .
-            "Tanpa pessimistic locking, race condition bisa menyebabkan stok negatif."
+            'Bug 1.15: Tidak ditemukan service yang menggunakan DB::transaction() dengan '.
+            'lockForUpdate() untuk operasi pengurangan stok. '.
+            'File yang dicari: '.implode(', ', $serviceFiles).'. '.
+            'Tanpa pessimistic locking, race condition bisa menyebabkan stok negatif.'
         );
     }
 }

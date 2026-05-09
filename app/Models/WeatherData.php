@@ -3,19 +3,18 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * WeatherData Model
- * 
+ *
  * Menyimpan data cuaca dari API external untuk prediksi panen
  * dan rekomendasi aktivitas pertanian.
  */
 class WeatherData extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -85,12 +84,15 @@ use HasFactory, BelongsToTenant;
     public function isSuitableForFarming(): bool
     {
         // Not suitable if heavy rain or extreme conditions
-        if ($this->rainfall > 50)
-            return false; // Heavy rain
-        if ($this->wind_speed > 40)
-            return false; // Strong wind
-        if ($this->temperature < 5 || $this->temperature > 40)
-            return false; // Extreme temp
+        if ($this->rainfall > 50) {
+            return false;
+        } // Heavy rain
+        if ($this->wind_speed > 40) {
+            return false;
+        } // Strong wind
+        if ($this->temperature < 5 || $this->temperature > 40) {
+            return false;
+        } // Extreme temp
 
         return true;
     }
@@ -106,7 +108,7 @@ use HasFactory, BelongsToTenant;
             $recommendations[] = [
                 'type' => 'warning',
                 'message' => 'Hujan deras diprediksi. Tunda penyemprotan pestisida.',
-                'action' => 'postpone_spraying'
+                'action' => 'postpone_spraying',
             ];
         }
 
@@ -114,7 +116,7 @@ use HasFactory, BelongsToTenant;
             $recommendations[] = [
                 'type' => 'alert',
                 'message' => 'Kelembaban tinggi. Waspadai serangan jamur.',
-                'action' => 'check_fungal_disease'
+                'action' => 'check_fungal_disease',
             ];
         }
 
@@ -122,7 +124,7 @@ use HasFactory, BelongsToTenant;
             $recommendations[] = [
                 'type' => 'info',
                 'message' => 'Suhu tinggi. Tingkatkan frekuensi irigasi.',
-                'action' => 'increase_irrigation'
+                'action' => 'increase_irrigation',
             ];
         }
 
@@ -130,7 +132,7 @@ use HasFactory, BelongsToTenant;
             $recommendations[] = [
                 'type' => 'warning',
                 'message' => 'Angin kencang. Amankan tanaman muda.',
-                'action' => 'secure_young_plants'
+                'action' => 'secure_young_plants',
             ];
         }
 
@@ -138,7 +140,7 @@ use HasFactory, BelongsToTenant;
             $recommendations[] = [
                 'type' => 'success',
                 'message' => 'Cuaca ideal untuk aktivitas pertanian.',
-                'action' => 'proceed_normal'
+                'action' => 'proceed_normal',
             ];
         }
 

@@ -82,7 +82,7 @@ class AgentPlannerPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testPlanStepCountInvariantIndonesian(): void
+    public function test_plan_step_count_invariant_indonesian(): void
     {
         $allInstructions = $this->indonesianInstructions;
 
@@ -90,7 +90,7 @@ class AgentPlannerPropertyTest extends TestCase
             Generators::elements(...$allInstructions),
         )->then(function (string $instruction) {
             $context = $this->buildMockContext();
-            $tools   = $this->buildMockTools();
+            $tools = $this->buildMockTools();
 
             $plan = $this->planner->plan($instruction, $context, $tools, 'id');
 
@@ -152,7 +152,7 @@ class AgentPlannerPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 20)]
-    public function testPlanStepCountInvariantEnglish(): void
+    public function test_plan_step_count_invariant_english(): void
     {
         $allInstructions = $this->englishInstructions;
 
@@ -160,7 +160,7 @@ class AgentPlannerPropertyTest extends TestCase
             Generators::elements(...$allInstructions),
         )->then(function (string $instruction) {
             $context = $this->buildMockContext();
-            $tools   = $this->buildMockTools();
+            $tools = $this->buildMockTools();
 
             $plan = $this->planner->plan($instruction, $context, $tools, 'en');
 
@@ -181,7 +181,7 @@ class AgentPlannerPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 20)]
-    public function testPlanStepCountInvariantWithVariableStepCount(): void
+    public function test_plan_step_count_invariant_with_variable_step_count(): void
     {
         $this->forAll(
             // Generate jumlah langkah antara 1 dan 10
@@ -196,7 +196,7 @@ class AgentPlannerPropertyTest extends TestCase
 
             $planner = new AgentPlanner($geminiMock);
             $context = $this->buildMockContext();
-            $tools   = $this->buildMockTools();
+            $tools = $this->buildMockTools();
 
             $plan = $planner->plan($instruction, $context, $tools, 'id');
 
@@ -216,7 +216,7 @@ class AgentPlannerPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 10)]
-    public function testPlanNeverExceedsMaxStepsEvenIfGeminiReturnsMore(): void
+    public function test_plan_never_exceeds_max_steps_even_if_gemini_returns_more(): void
     {
         $this->forAll(
             // Generate jumlah langkah yang melebihi batas (11-20)
@@ -229,7 +229,7 @@ class AgentPlannerPropertyTest extends TestCase
 
             $planner = new AgentPlanner($geminiMock);
             $context = $this->buildMockContext();
-            $tools   = $this->buildMockTools();
+            $tools = $this->buildMockTools();
 
             $plan = $planner->plan('instruksi kompleks dengan banyak langkah', $context, $tools, 'id');
 
@@ -249,9 +249,9 @@ class AgentPlannerPropertyTest extends TestCase
         return new ErpContext(
             tenantId: 1,
             kpiSummary: [
-                'revenue'          => 50000000.0,
-                'critical_stock'   => 3,
-                'overdue_ar'       => 10000000.0,
+                'revenue' => 50000000.0,
+                'critical_stock' => 3,
+                'overdue_ar' => 10000000.0,
                 'active_employees' => 25,
             ],
             activeModules: ['accounting', 'inventory', 'hrm', 'sales'],
@@ -281,6 +281,7 @@ class AgentPlannerPropertyTest extends TestCase
     private function generateMockPlanJson(string $prompt): string
     {
         $stepCount = rand(2, 5);
+
         return $this->generateMockPlanJsonWithSteps($stepCount);
     }
 
@@ -295,19 +296,19 @@ class AgentPlannerPropertyTest extends TestCase
         for ($i = 1; $i <= $stepCount; $i++) {
             $tool = $tools[($i - 1) % count($tools)];
             $steps[] = [
-                'order'         => $i,
-                'name'          => "Langkah {$i}",
-                'toolName'      => $tool,
-                'args'          => ['param' => "value_{$i}"],
-                'isWriteOp'     => str_starts_with($tool, 'create'),
-                'dependsOnStep' => $i > 1 ? "Langkah " . ($i - 1) : null,
+                'order' => $i,
+                'name' => "Langkah {$i}",
+                'toolName' => $tool,
+                'args' => ['param' => "value_{$i}"],
+                'isWriteOp' => str_starts_with($tool, 'create'),
+                'dependsOnStep' => $i > 1 ? 'Langkah '.($i - 1) : null,
             ];
         }
 
         return json_encode([
-            'goal'    => 'Tujuan plan mock',
+            'goal' => 'Tujuan plan mock',
             'summary' => "Plan dengan {$stepCount} langkah",
-            'steps'   => $steps,
+            'steps' => $steps,
         ]);
     }
 }

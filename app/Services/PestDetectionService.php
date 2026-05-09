@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\PestDetection;
-use App\Services\GeminiService;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PestDetectionService
 {
@@ -61,7 +60,7 @@ class PestDetectionService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('PestDetectionService::analyzePhoto failed: ' . $e->getMessage());
+            Log::error('PestDetectionService::analyzePhoto failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -101,9 +100,10 @@ PROMPT;
 
         try {
             $response = $this->gemini->generateWithImage($prompt, $imageData, $mimeType);
+
             return $response['text'] ?? '';
         } catch (\Throwable $e) {
-            Log::error('Gemini Vision API call failed: ' . $e->getMessage());
+            Log::error('Gemini Vision API call failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -116,7 +116,7 @@ PROMPT;
         // Try to extract JSON from response
         preg_match('/\{.*\}/s', $analysis, $matches);
 
-        if (!empty($matches)) {
+        if (! empty($matches)) {
             try {
                 $data = json_decode($matches[0], true);
 

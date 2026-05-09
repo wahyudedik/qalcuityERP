@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class RatePlan extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -70,7 +71,7 @@ class RatePlan extends Model
     /**
      * Get the effective rate for a specific date after applying rules
      */
-    public function getEffectiveRate(\Carbon\Carbon $date): float
+    public function getEffectiveRate(Carbon $date): float
     {
         $rate = $this->base_rate;
 
@@ -104,9 +105,9 @@ class RatePlan extends Model
     /**
      * Check if rate plan is valid for given date
      */
-    public function isValidForDate(\Carbon\Carbon $date): bool
+    public function isValidForDate(Carbon $date): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -123,8 +124,8 @@ class RatePlan extends Model
 
     /**
      * BUG-HOTEL-004 FIX: Check if this rate plan overlaps with another rate plan
-     * 
-     * @param RatePlan $other The other rate plan to check against
+     *
+     * @param  RatePlan  $other  The other rate plan to check against
      * @return bool True if there is an overlap
      */
     public function overlapsWith(RatePlan $other): bool
@@ -140,11 +141,11 @@ class RatePlan extends Model
         }
 
         // If either has no date range, they overlap (infinite range)
-        if (!$this->valid_from && !$this->valid_to) {
+        if (! $this->valid_from && ! $this->valid_to) {
             return true;
         }
 
-        if (!$other->valid_from && !$other->valid_to) {
+        if (! $other->valid_from && ! $other->valid_to) {
             return true;
         }
 
@@ -160,13 +161,13 @@ class RatePlan extends Model
 
     /**
      * BUG-HOTEL-004 FIX: Find all overlapping rate plans for the same room type
-     * 
-     * @param int $tenantId Tenant ID
-     * @param int $roomTypeId Room type ID
-     * @param string|null $validFrom Start date
-     * @param string|null $validTo End date
-     * @param int|null $excludeId Exclude specific rate plan ID (for updates)
-     * @return \Illuminate\Support\Collection Collection of overlapping rate plans
+     *
+     * @param  int  $tenantId  Tenant ID
+     * @param  int  $roomTypeId  Room type ID
+     * @param  string|null  $validFrom  Start date
+     * @param  string|null  $validTo  End date
+     * @param  int|null  $excludeId  Exclude specific rate plan ID (for updates)
+     * @return Collection Collection of overlapping rate plans
      */
     public static function findOverlapping(
         int $tenantId,
@@ -174,9 +175,9 @@ class RatePlan extends Model
         ?string $validFrom = null,
         ?string $validTo = null,
         ?int $excludeId = null
-    ): \Illuminate\Support\Collection {
+    ): Collection {
         // If no date range specified, it overlaps with everything
-        if (!$validFrom && !$validTo) {
+        if (! $validFrom && ! $validTo) {
             $query = self::where('tenant_id', $tenantId)
                 ->where('room_type_id', $roomTypeId)
                 ->where('is_active', true);
@@ -194,22 +195,22 @@ class RatePlan extends Model
                     })
                         // Case 2: Date ranges overlap
                         ->orWhere(function ($q2) use ($validFrom, $validTo) {
-                        if ($validFrom) {
-                            // Other's end >= our start
-                            $q2->where(function ($q3) use ($validFrom) {
-                                $q3->whereNull('valid_to')
-                                    ->orWhere('valid_to', '>=', $validFrom);
-                            });
-                        }
+                            if ($validFrom) {
+                                // Other's end >= our start
+                                $q2->where(function ($q3) use ($validFrom) {
+                                    $q3->whereNull('valid_to')
+                                        ->orWhere('valid_to', '>=', $validFrom);
+                                });
+                            }
 
-                        if ($validTo) {
-                            // Other's start <= our end
-                            $q2->where(function ($q3) use ($validTo) {
-                                $q3->whereNull('valid_from')
-                                    ->orWhere('valid_from', '<=', $validTo);
-                            });
-                        }
-                    });
+                            if ($validTo) {
+                                // Other's start <= our end
+                                $q2->where(function ($q3) use ($validTo) {
+                                    $q3->whereNull('valid_from')
+                                        ->orWhere('valid_from', '<=', $validTo);
+                                });
+                            }
+                        });
                 });
         }
 
@@ -224,7 +225,7 @@ class RatePlan extends Model
     /**
      * Calculate total for stay duration
      */
-    public function calculateTotal(\Carbon\Carbon $checkIn, \Carbon\Carbon $checkOut): float
+    public function calculateTotal(Carbon $checkIn, Carbon $checkOut): float
     {
         $nights = $checkIn->diffInDays($checkOut);
         $total = 0;

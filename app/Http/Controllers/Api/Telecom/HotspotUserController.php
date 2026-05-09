@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api\Telecom;
 
-use App\Models\NetworkDevice;
 use App\Models\HotspotUser;
+use App\Models\NetworkDevice;
 use App\Services\Telecom\HotspotManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class HotspotUserController extends TelecomApiController
 {
@@ -14,12 +15,12 @@ class HotspotUserController extends TelecomApiController
 
     public function __construct()
     {
-        $this->hotspotService = new HotspotManagementService();
+        $this->hotspotService = new HotspotManagementService;
     }
 
     /**
      * Create a new hotspot user.
-     * 
+     *
      * POST /api/telecom/hotspot/users
      */
     public function store(Request $request)
@@ -55,32 +56,33 @@ class HotspotUserController extends TelecomApiController
                 'subscription_id' => $validated['subscription_id'] ?? null,
             ]);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return $this->error($result['error'], 400);
             }
 
             $this->logApiRequest($request, 'POST /api/telecom/hotspot/users', [
-                'username' => $result['user']->username
+                'username' => $result['user']->username,
             ]);
 
             return $this->success([
                 'user' => $result['user'],
             ], 'Hotspot user created successfully', 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
-            Log::error("Failed to create hotspot user", [
+            Log::error('Failed to create hotspot user', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Failed to create hotspot user: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to create hotspot user: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get user statistics.
-     * 
+     *
      * GET /api/telecom/hotspot/users/{id}/stats
      */
     public function stats(HotspotUser $user)
@@ -98,17 +100,18 @@ class HotspotUserController extends TelecomApiController
             return $this->success($stats);
 
         } catch (\Exception $e) {
-            Log::error("Failed to get user stats", [
+            Log::error('Failed to get user stats', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to get user stats: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to get user stats: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Suspend a user.
-     * 
+     *
      * POST /api/telecom/hotspot/users/{id}/suspend
      */
     public function suspend(HotspotUser $user)
@@ -120,7 +123,7 @@ class HotspotUserController extends TelecomApiController
         try {
             $success = $this->hotspotService->suspendUser($user);
 
-            if (!$success) {
+            if (! $success) {
                 return $this->error('Failed to suspend user', 500);
             }
 
@@ -129,17 +132,18 @@ class HotspotUserController extends TelecomApiController
             return $this->success(['user' => $user->fresh()], 'User suspended successfully');
 
         } catch (\Exception $e) {
-            Log::error("Failed to suspend user", [
+            Log::error('Failed to suspend user', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to suspend user: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to suspend user: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Reactivate a suspended user.
-     * 
+     *
      * POST /api/telecom/hotspot/users/{id}/reactivate
      */
     public function reactivate(HotspotUser $user)
@@ -151,7 +155,7 @@ class HotspotUserController extends TelecomApiController
         try {
             $success = $this->hotspotService->reactivateUser($user);
 
-            if (!$success) {
+            if (! $success) {
                 return $this->error('Failed to reactivate user', 500);
             }
 
@@ -160,11 +164,12 @@ class HotspotUserController extends TelecomApiController
             return $this->success(['user' => $user->fresh()], 'User reactivated successfully');
 
         } catch (\Exception $e) {
-            Log::error("Failed to reactivate user", [
+            Log::error('Failed to reactivate user', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to reactivate user: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to reactivate user: '.$e->getMessage(), 500);
         }
     }
 }

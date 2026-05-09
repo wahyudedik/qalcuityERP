@@ -10,13 +10,13 @@ return new class extends Migration
     {
         // Tambah kolom to_warehouse_id ke stock_movements untuk tracking transfer
         Schema::table('stock_movements', function (Blueprint $table) {
-            if (!Schema::hasColumn('stock_movements', 'to_warehouse_id')) {
+            if (! Schema::hasColumn('stock_movements', 'to_warehouse_id')) {
                 $table->foreignId('to_warehouse_id')->nullable()->constrained('warehouses')->nullOnDelete()->after('warehouse_id');
             }
         });
 
         // Tabel transfer antar gudang
-        if (!Schema::hasTable('stock_transfers')) {
+        if (! Schema::hasTable('stock_transfers')) {
             Schema::create('stock_transfers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -31,7 +31,7 @@ return new class extends Migration
                 $table->timestamp('shipped_at')->nullable();
                 $table->timestamp('received_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }

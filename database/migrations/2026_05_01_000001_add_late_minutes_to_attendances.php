@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            if (!Schema::hasColumn('attendances', 'late_minutes')) {
+            if (! Schema::hasColumn('attendances', 'late_minutes')) {
                 $table->unsignedSmallInteger('late_minutes')->nullable()->default(0)
                     ->after('overtime_minutes')
                     ->comment('Jumlah menit keterlambatan karyawan');

@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Integrations;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Integrations\SyncInventoryJob;
+use App\Jobs\Integrations\SyncOrdersJob;
+use App\Jobs\Integrations\SyncProductsJob;
 use App\Models\Integration;
 use App\Models\IntegrationSyncLog;
-use App\Jobs\Integrations\SyncProductsJob;
-use App\Jobs\Integrations\SyncOrdersJob;
-use App\Jobs\Integrations\SyncInventoryJob;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class IntegrationController extends Controller
 {
     use AuthorizesRequests;
+
     /**
      * Display integrations marketplace
      */
@@ -24,8 +25,8 @@ class IntegrationController extends Controller
         $type = $request->query('type', 'all');
 
         $integrations = Integration::where('tenant_id', Auth::user()->tenant_id)
-            ->when($type !== 'all', fn($q) => $q->where('type', $type))
-            ->with(['syncLogs' => fn($q) => $q->latest()->limit(5)])
+            ->when($type !== 'all', fn ($q) => $q->where('type', $type))
+            ->with(['syncLogs' => fn ($q) => $q->latest()->limit(5)])
             ->latest()
             ->paginate(20);
 
@@ -59,7 +60,7 @@ class IntegrationController extends Controller
     {
         $this->authorize('view', $integration);
 
-        $integration->load(['syncLogs' => fn($q) => $q->latest()->limit(50), 'webhooks']);
+        $integration->load(['syncLogs' => fn ($q) => $q->latest()->limit(50), 'webhooks']);
 
         $stats = [
             'total_syncs' => $integration->syncLogs()->count(),
@@ -201,7 +202,7 @@ class IntegrationController extends Controller
 
         $syncType = $request->input('type', 'products');
 
-        if (!$integration->isConnected()) {
+        if (! $integration->isConnected()) {
             return response()->json([
                 'success' => false,
                 'error' => 'Integration not connected',
@@ -375,6 +376,7 @@ class IntegrationController extends Controller
 
         return false;
     }
+
     /**
      * WebhookLogs.
      * Route: integrations/webhook-logs
@@ -383,13 +385,13 @@ class IntegrationController extends Controller
     {
         // TODO: Add authorization
         // $this->authorize('ACTION', MODEL::class);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement WebhookLogs logic
-        
+
         return back()->with('success', 'WebhookLogs completed successfully.');
     }
 }

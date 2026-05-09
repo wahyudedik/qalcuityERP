@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,7 +15,7 @@ return new class extends Migration {
         // COLD CHAIN MANAGEMENT
         // ==========================================
 
-        if (!Schema::hasTable('cold_storage_units')) {
+        if (! Schema::hasTable('cold_storage_units')) {
             Schema::create('cold_storage_units', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -34,7 +35,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('temperature_logs')) {
+        if (! Schema::hasTable('temperature_logs')) {
             Schema::create('temperature_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -52,7 +53,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('cold_chain_alerts')) {
+        if (! Schema::hasTable('cold_chain_alerts')) {
             Schema::create('cold_chain_alerts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -76,7 +77,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('refrigerated_transports')) {
+        if (! Schema::hasTable('refrigerated_transports')) {
             Schema::create('refrigerated_transports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -99,7 +100,7 @@ return new class extends Migration {
         // FISH SPECIES & QUALITY GRADING
         // ==========================================
 
-        if (!Schema::hasTable('fish_species')) {
+        if (! Schema::hasTable('fish_species')) {
             Schema::create('fish_species', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -123,7 +124,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('quality_grades')) {
+        if (! Schema::hasTable('quality_grades')) {
             Schema::create('quality_grades', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -144,7 +145,7 @@ return new class extends Migration {
         // FISHING TRIP & CATCH LOGGING
         // ==========================================
 
-        if (!Schema::hasTable('fishing_vessels')) {
+        if (! Schema::hasTable('fishing_vessels')) {
             Schema::create('fishing_vessels', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -164,7 +165,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('fishing_zones')) {
+        if (! Schema::hasTable('fishing_zones')) {
             Schema::create('fishing_zones', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -185,7 +186,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('fishing_trips')) {
+        if (! Schema::hasTable('fishing_trips')) {
             Schema::create('fishing_trips', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -209,7 +210,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('fishing_trip_crew')) {
+        if (! Schema::hasTable('fishing_trip_crew')) {
             Schema::create('fishing_trip_crew', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('fishing_trip_id')->constrained('fishing_trips')->onDelete('cascade');
@@ -221,7 +222,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('catch_logs')) {
+        if (! Schema::hasTable('catch_logs')) {
             Schema::create('catch_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -251,7 +252,7 @@ return new class extends Migration {
         // fish_species and quality_grades tables are already created earlier
         // to avoid foreign key reference errors in catch_logs
 
-        if (!Schema::hasTable('freshness_assessments')) {
+        if (! Schema::hasTable('freshness_assessments')) {
             Schema::create('freshness_assessments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -275,7 +276,7 @@ return new class extends Migration {
         // AQUACULTURE ENHANCEMENTS
         // ==========================================
 
-        if (!Schema::hasTable('aquaculture_ponds')) {
+        if (! Schema::hasTable('aquaculture_ponds')) {
             Schema::create('aquaculture_ponds', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -299,7 +300,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('water_quality_logs')) {
+        if (! Schema::hasTable('water_quality_logs')) {
             Schema::create('water_quality_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -324,7 +325,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('feeding_schedules')) {
+        if (! Schema::hasTable('feeding_schedules')) {
             Schema::create('feeding_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -345,7 +346,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('mortality_logs')) {
+        if (! Schema::hasTable('mortality_logs')) {
             Schema::create('mortality_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -359,7 +360,7 @@ return new class extends Migration {
                 $table->foreignId('reported_by_user_id')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamp('reported_at');
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'reported_at']);
                 $table->index(['pond_id', 'reported_at']);
             });
@@ -369,7 +370,7 @@ return new class extends Migration {
         // EXPORT DOCUMENTATION
         // ==========================================
 
-        if (!Schema::hasTable('export_permits')) {
+        if (! Schema::hasTable('export_permits')) {
             Schema::create('export_permits', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -386,13 +387,13 @@ return new class extends Migration {
                 $table->text('conditions')->nullable();
                 $table->string('document_path')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['expiry_date']);
             });
         }
 
-        if (!Schema::hasTable('health_certificates')) {
+        if (! Schema::hasTable('health_certificates')) {
             Schema::create('health_certificates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -410,13 +411,13 @@ return new class extends Migration {
                 $table->string('status')->default('valid'); // valid, expired, revoked
                 $table->string('document_path')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['expiry_date']);
             });
         }
 
-        if (!Schema::hasTable('customs_declarations')) {
+        if (! Schema::hasTable('customs_declarations')) {
             Schema::create('customs_declarations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -439,13 +440,13 @@ return new class extends Migration {
                 $table->timestamp('cleared_at')->nullable();
                 $table->string('document_path')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['declaration_date']);
             });
         }
 
-        if (!Schema::hasTable('export_shipments')) {
+        if (! Schema::hasTable('export_shipments')) {
             Schema::create('export_shipments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
@@ -465,7 +466,7 @@ return new class extends Migration {
                 $table->string('status')->default('preparing'); // preparing, in_transit, arrived, delivered, cancelled
                 $table->text('shipping_documents')->nullable()->comment('JSON array of document paths');
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['shipment_date']);
             });

@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Workflows table
-        if (!Schema::hasTable('workflows')) {
+        if (! Schema::hasTable('workflows')) {
             Schema::create('workflows', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -25,14 +26,14 @@ return new class extends Migration {
                 $table->timestamp('last_executed_at')->nullable();
                 $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
                 $table->index('trigger_type');
             });
         }
 
         // Workflow Actions table
-        if (!Schema::hasTable('workflow_actions')) {
+        if (! Schema::hasTable('workflow_actions')) {
             Schema::create('workflow_actions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -43,13 +44,13 @@ return new class extends Migration {
                 $table->json('condition')->nullable()->comment('Optional condition');
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index(['workflow_id', 'order']);
             });
         }
 
         // Workflow Execution Logs table
-        if (!Schema::hasTable('workflow_execution_logs')) {
+        if (! Schema::hasTable('workflow_execution_logs')) {
             Schema::create('workflow_execution_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -62,7 +63,7 @@ return new class extends Migration {
                 $table->timestamp('completed_at')->nullable();
                 $table->integer('duration_ms')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['workflow_id', 'started_at']);
             });

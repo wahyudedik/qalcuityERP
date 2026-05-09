@@ -16,10 +16,10 @@ class AgricultureGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId      = $ctx->tenantId;
-        $warehouseId   = $ctx->warehouseId;
+        $tenantId = $ctx->tenantId;
+        $warehouseId = $ctx->warehouseId;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // ── 1. Farm Plots (3 — padi, jagung, sayuran) ─────────────────────
         $farmPlotIds = [];
@@ -30,7 +30,7 @@ class AgricultureGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('AgricultureGenerator: failed to seed farm plots', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['farm_plots'] = 0;
         }
@@ -38,7 +38,7 @@ class AgricultureGenerator extends BaseIndustryGenerator
         // ── 2. Crop Cycles (3 — seedling, vegetative, flowering) ──────────
         $cropCycleIds = [];
         try {
-            if (!empty($farmPlotIds)) {
+            if (! empty($farmPlotIds)) {
                 $cropCycleIds = $this->seedCropCycles($tenantId, $farmPlotIds);
                 $recordsCreated += count($cropCycleIds);
                 $generatedData['crop_cycles'] = count($cropCycleIds);
@@ -51,14 +51,14 @@ class AgricultureGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('AgricultureGenerator: failed to seed crop cycles', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['crop_cycles'] = 0;
         }
 
         // ── 3. Harvest Logs (2 — linked to crop cycles) ───────────────────
         try {
-            if (!empty($cropCycleIds) && !empty($farmPlotIds)) {
+            if (! empty($cropCycleIds) && ! empty($farmPlotIds)) {
                 $harvestCount = $this->seedHarvestLogs($tenantId, $farmPlotIds, $cropCycleIds);
                 $recordsCreated += $harvestCount;
                 $generatedData['harvest_logs'] = $harvestCount;
@@ -71,7 +71,7 @@ class AgricultureGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('AgricultureGenerator: failed to seed harvest logs', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['harvest_logs'] = 0;
         }
@@ -84,7 +84,7 @@ class AgricultureGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('AgricultureGenerator: failed to seed inventory', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['inventory'] = 0;
         }
@@ -97,14 +97,14 @@ class AgricultureGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('AgricultureGenerator: failed to seed field employees', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['field_employees'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -116,50 +116,50 @@ class AgricultureGenerator extends BaseIndustryGenerator
     {
         $plots = [
             [
-                'code'             => 'AGR-PLOT-001',
-                'name'             => 'Lahan Padi Blok A',
-                'area_size'        => 2.5,
-                'area_unit'        => 'hectare',
-                'location'         => 'Blok A, Desa Sukamaju, Kec. Cianjur',
-                'soil_type'        => 'clay',
-                'irrigation_type'  => 'irigasi_teknis',
-                'ownership'        => 'owned',
-                'current_crop'     => 'Padi IR64',
-                'status'           => 'growing',
-                'planted_at'       => Carbon::now()->subDays(45)->format('Y-m-d'),
+                'code' => 'AGR-PLOT-001',
+                'name' => 'Lahan Padi Blok A',
+                'area_size' => 2.5,
+                'area_unit' => 'hectare',
+                'location' => 'Blok A, Desa Sukamaju, Kec. Cianjur',
+                'soil_type' => 'clay',
+                'irrigation_type' => 'irigasi_teknis',
+                'ownership' => 'owned',
+                'current_crop' => 'Padi IR64',
+                'status' => 'growing',
+                'planted_at' => Carbon::now()->subDays(45)->format('Y-m-d'),
                 'expected_harvest' => Carbon::now()->addDays(60)->format('Y-m-d'),
-                'notes'            => 'Lahan utama untuk budidaya padi sawah varietas IR64.',
+                'notes' => 'Lahan utama untuk budidaya padi sawah varietas IR64.',
             ],
             [
-                'code'             => 'AGR-PLOT-002',
-                'name'             => 'Lahan Jagung Blok B',
-                'area_size'        => 1.8,
-                'area_unit'        => 'hectare',
-                'location'         => 'Blok B, Desa Sukamaju, Kec. Cianjur',
-                'soil_type'        => 'loam',
-                'irrigation_type'  => 'tadah_hujan',
-                'ownership'        => 'owned',
-                'current_crop'     => 'Jagung Hibrida NK212',
-                'status'           => 'planted',
-                'planted_at'       => Carbon::now()->subDays(10)->format('Y-m-d'),
+                'code' => 'AGR-PLOT-002',
+                'name' => 'Lahan Jagung Blok B',
+                'area_size' => 1.8,
+                'area_unit' => 'hectare',
+                'location' => 'Blok B, Desa Sukamaju, Kec. Cianjur',
+                'soil_type' => 'loam',
+                'irrigation_type' => 'tadah_hujan',
+                'ownership' => 'owned',
+                'current_crop' => 'Jagung Hibrida NK212',
+                'status' => 'planted',
+                'planted_at' => Carbon::now()->subDays(10)->format('Y-m-d'),
                 'expected_harvest' => Carbon::now()->addDays(80)->format('Y-m-d'),
-                'notes'            => 'Lahan jagung hibrida untuk kebutuhan pakan ternak.',
+                'notes' => 'Lahan jagung hibrida untuk kebutuhan pakan ternak.',
             ],
             [
-                'code'             => 'AGR-PLOT-003',
-                'name'             => 'Lahan Sayuran Blok C',
-                'area_size'        => 0.75,
-                'area_unit'        => 'hectare',
-                'location'         => 'Blok C, Desa Sukamaju, Kec. Cianjur',
-                'soil_type'        => 'sandy_loam',
-                'irrigation_type'  => 'drip',
-                'ownership'        => 'rent',
-                'rent_cost'        => 3500000,
-                'current_crop'     => 'Sayuran Campuran (Bayam, Kangkung)',
-                'status'           => 'ready_harvest',
-                'planted_at'       => Carbon::now()->subDays(30)->format('Y-m-d'),
+                'code' => 'AGR-PLOT-003',
+                'name' => 'Lahan Sayuran Blok C',
+                'area_size' => 0.75,
+                'area_unit' => 'hectare',
+                'location' => 'Blok C, Desa Sukamaju, Kec. Cianjur',
+                'soil_type' => 'sandy_loam',
+                'irrigation_type' => 'drip',
+                'ownership' => 'rent',
+                'rent_cost' => 3500000,
+                'current_crop' => 'Sayuran Campuran (Bayam, Kangkung)',
+                'status' => 'ready_harvest',
+                'planted_at' => Carbon::now()->subDays(30)->format('Y-m-d'),
                 'expected_harvest' => Carbon::now()->addDays(5)->format('Y-m-d'),
-                'notes'            => 'Lahan sayuran organik dengan sistem irigasi tetes.',
+                'notes' => 'Lahan sayuran organik dengan sistem irigasi tetes.',
             ],
         ];
 
@@ -173,28 +173,29 @@ class AgricultureGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $plotIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('farm_plots')->insertGetId([
-                'tenant_id'        => $tenantId,
-                'code'             => $p['code'],
-                'name'             => $p['name'],
-                'area_size'        => $p['area_size'],
-                'area_unit'        => $p['area_unit'],
-                'location'         => $p['location'],
-                'soil_type'        => $p['soil_type'],
-                'irrigation_type'  => $p['irrigation_type'],
-                'ownership'        => $p['ownership'],
-                'rent_cost'        => $p['rent_cost'] ?? null,
-                'current_crop'     => $p['current_crop'],
-                'status'           => $p['status'],
-                'planted_at'       => $p['planted_at'],
+                'tenant_id' => $tenantId,
+                'code' => $p['code'],
+                'name' => $p['name'],
+                'area_size' => $p['area_size'],
+                'area_unit' => $p['area_unit'],
+                'location' => $p['location'],
+                'soil_type' => $p['soil_type'],
+                'irrigation_type' => $p['irrigation_type'],
+                'ownership' => $p['ownership'],
+                'rent_cost' => $p['rent_cost'] ?? null,
+                'current_crop' => $p['current_crop'],
+                'status' => $p['status'],
+                'planted_at' => $p['planted_at'],
                 'expected_harvest' => $p['expected_harvest'],
-                'is_active'        => true,
-                'notes'            => $p['notes'],
-                'created_at'       => now(),
-                'updated_at'       => now(),
+                'is_active' => true,
+                'notes' => $p['notes'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $plotIds[] = (int) $id;
@@ -211,49 +212,49 @@ class AgricultureGenerator extends BaseIndustryGenerator
     {
         $cycles = [
             [
-                'crop_name'             => 'Padi IR64',
-                'variety'               => 'IR64',
-                'area_hectares'         => 2.5,
-                'field_location'        => 'Blok A, Desa Sukamaju',
-                'planting_date'         => Carbon::now()->subDays(45)->format('Y-m-d'),
+                'crop_name' => 'Padi IR64',
+                'variety' => 'IR64',
+                'area_hectares' => 2.5,
+                'field_location' => 'Blok A, Desa Sukamaju',
+                'planting_date' => Carbon::now()->subDays(45)->format('Y-m-d'),
                 'expected_harvest_date' => Carbon::now()->addDays(60)->format('Y-m-d'),
-                'actual_harvest_date'   => null,
-                'growth_stage'          => 'vegetative',
-                'estimated_yield_tons'  => 15.0,
-                'actual_yield_tons'     => null,
-                'status'                => 'active',
-                'notes'                 => 'Siklus tanam padi musim hujan. Fase vegetatif berjalan baik.',
-                'farm_plot_idx'         => 0,
+                'actual_harvest_date' => null,
+                'growth_stage' => 'vegetative',
+                'estimated_yield_tons' => 15.0,
+                'actual_yield_tons' => null,
+                'status' => 'active',
+                'notes' => 'Siklus tanam padi musim hujan. Fase vegetatif berjalan baik.',
+                'farm_plot_idx' => 0,
             ],
             [
-                'crop_name'             => 'Jagung Hibrida NK212',
-                'variety'               => 'NK212',
-                'area_hectares'         => 1.8,
-                'field_location'        => 'Blok B, Desa Sukamaju',
-                'planting_date'         => Carbon::now()->subDays(10)->format('Y-m-d'),
+                'crop_name' => 'Jagung Hibrida NK212',
+                'variety' => 'NK212',
+                'area_hectares' => 1.8,
+                'field_location' => 'Blok B, Desa Sukamaju',
+                'planting_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
                 'expected_harvest_date' => Carbon::now()->addDays(80)->format('Y-m-d'),
-                'actual_harvest_date'   => null,
-                'growth_stage'          => 'seedling',
-                'estimated_yield_tons'  => 10.8,
-                'actual_yield_tons'     => null,
-                'status'                => 'active',
-                'notes'                 => 'Bibit jagung baru ditanam. Fase perkecambahan berlangsung normal.',
-                'farm_plot_idx'         => 1,
+                'actual_harvest_date' => null,
+                'growth_stage' => 'seedling',
+                'estimated_yield_tons' => 10.8,
+                'actual_yield_tons' => null,
+                'status' => 'active',
+                'notes' => 'Bibit jagung baru ditanam. Fase perkecambahan berlangsung normal.',
+                'farm_plot_idx' => 1,
             ],
             [
-                'crop_name'             => 'Bayam & Kangkung',
-                'variety'               => 'Lokal',
-                'area_hectares'         => 0.75,
-                'field_location'        => 'Blok C, Desa Sukamaju',
-                'planting_date'         => Carbon::now()->subDays(30)->format('Y-m-d'),
+                'crop_name' => 'Bayam & Kangkung',
+                'variety' => 'Lokal',
+                'area_hectares' => 0.75,
+                'field_location' => 'Blok C, Desa Sukamaju',
+                'planting_date' => Carbon::now()->subDays(30)->format('Y-m-d'),
                 'expected_harvest_date' => Carbon::now()->addDays(5)->format('Y-m-d'),
-                'actual_harvest_date'   => null,
-                'growth_stage'          => 'flowering',
-                'estimated_yield_tons'  => 2.25,
-                'actual_yield_tons'     => null,
-                'status'                => 'active',
-                'notes'                 => 'Sayuran hampir siap panen. Fase berbunga menandakan kematangan.',
-                'farm_plot_idx'         => 2,
+                'actual_harvest_date' => null,
+                'growth_stage' => 'flowering',
+                'estimated_yield_tons' => 2.25,
+                'actual_yield_tons' => null,
+                'status' => 'active',
+                'notes' => 'Sayuran hampir siap panen. Fase berbunga menandakan kematangan.',
+                'farm_plot_idx' => 2,
             ],
         ];
 
@@ -268,25 +269,26 @@ class AgricultureGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $cycleIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('crop_cycles')->insertGetId([
-                'tenant_id'             => $tenantId,
-                'crop_name'             => $c['crop_name'],
-                'variety'               => $c['variety'],
-                'area_hectares'         => $c['area_hectares'],
-                'field_location'        => $c['field_location'],
-                'planting_date'         => $c['planting_date'],
+                'tenant_id' => $tenantId,
+                'crop_name' => $c['crop_name'],
+                'variety' => $c['variety'],
+                'area_hectares' => $c['area_hectares'],
+                'field_location' => $c['field_location'],
+                'planting_date' => $c['planting_date'],
                 'expected_harvest_date' => $c['expected_harvest_date'],
-                'actual_harvest_date'   => $c['actual_harvest_date'],
-                'growth_stage'          => $c['growth_stage'],
-                'estimated_yield_tons'  => $c['estimated_yield_tons'],
-                'actual_yield_tons'     => $c['actual_yield_tons'],
-                'status'                => $c['status'],
-                'notes'                 => $c['notes'],
-                'created_at'            => now(),
-                'updated_at'            => now(),
+                'actual_harvest_date' => $c['actual_harvest_date'],
+                'growth_stage' => $c['growth_stage'],
+                'estimated_yield_tons' => $c['estimated_yield_tons'],
+                'actual_yield_tons' => $c['actual_yield_tons'],
+                'status' => $c['status'],
+                'notes' => $c['notes'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $cycleIds[] = (int) $id;
@@ -303,36 +305,36 @@ class AgricultureGenerator extends BaseIndustryGenerator
     {
         $logs = [
             [
-                'number'          => 'HRV-AGR-PLOT001-' . date('Ymd') . '-01',
-                'farm_plot_id'    => $farmPlotIds[0],
-                'crop_cycle_id'   => $cropCycleIds[0],
-                'harvest_date'    => Carbon::now()->subDays(90)->format('Y-m-d'),
-                'crop_name'       => 'Padi IR64',
-                'total_qty'       => 14.5,
-                'unit'            => 'ton',
-                'reject_qty'      => 0.5,
-                'moisture_pct'    => 14.0,
-                'storage_location'=> 'Gudang Utama',
-                'labor_cost'      => 2500000,
-                'transport_cost'  => 750000,
-                'weather'         => 'cerah',
-                'notes'           => 'Panen musim sebelumnya. Hasil baik, kadar air sesuai standar.',
+                'number' => 'HRV-AGR-PLOT001-'.date('Ymd').'-01',
+                'farm_plot_id' => $farmPlotIds[0],
+                'crop_cycle_id' => $cropCycleIds[0],
+                'harvest_date' => Carbon::now()->subDays(90)->format('Y-m-d'),
+                'crop_name' => 'Padi IR64',
+                'total_qty' => 14.5,
+                'unit' => 'ton',
+                'reject_qty' => 0.5,
+                'moisture_pct' => 14.0,
+                'storage_location' => 'Gudang Utama',
+                'labor_cost' => 2500000,
+                'transport_cost' => 750000,
+                'weather' => 'cerah',
+                'notes' => 'Panen musim sebelumnya. Hasil baik, kadar air sesuai standar.',
             ],
             [
-                'number'          => 'HRV-AGR-PLOT003-' . date('Ymd') . '-02',
-                'farm_plot_id'    => $farmPlotIds[2 % count($farmPlotIds)],
-                'crop_cycle_id'   => $cropCycleIds[2 % count($cropCycleIds)],
-                'harvest_date'    => Carbon::now()->subDays(5)->format('Y-m-d'),
-                'crop_name'       => 'Bayam & Kangkung',
-                'total_qty'       => 2.1,
-                'unit'            => 'ton',
-                'reject_qty'      => 0.1,
-                'moisture_pct'    => 85.0,
-                'storage_location'=> 'Cold Storage',
-                'labor_cost'      => 800000,
-                'transport_cost'  => 300000,
-                'weather'         => 'berawan',
-                'notes'           => 'Panen sayuran segar. Kualitas grade A 95%.',
+                'number' => 'HRV-AGR-PLOT003-'.date('Ymd').'-02',
+                'farm_plot_id' => $farmPlotIds[2 % count($farmPlotIds)],
+                'crop_cycle_id' => $cropCycleIds[2 % count($cropCycleIds)],
+                'harvest_date' => Carbon::now()->subDays(5)->format('Y-m-d'),
+                'crop_name' => 'Bayam & Kangkung',
+                'total_qty' => 2.1,
+                'unit' => 'ton',
+                'reject_qty' => 0.1,
+                'moisture_pct' => 85.0,
+                'storage_location' => 'Cold Storage',
+                'labor_cost' => 800000,
+                'transport_cost' => 300000,
+                'weather' => 'berawan',
+                'notes' => 'Panen sayuran segar. Kualitas grade A 95%.',
             ],
         ];
 
@@ -349,23 +351,23 @@ class AgricultureGenerator extends BaseIndustryGenerator
             }
 
             DB::table('harvest_logs')->insert([
-                'tenant_id'        => $tenantId,
-                'farm_plot_id'     => $log['farm_plot_id'],
-                'crop_cycle_id'    => $log['crop_cycle_id'],
-                'number'           => $log['number'],
-                'harvest_date'     => $log['harvest_date'],
-                'crop_name'        => $log['crop_name'],
-                'total_qty'        => $log['total_qty'],
-                'unit'             => $log['unit'],
-                'reject_qty'       => $log['reject_qty'],
-                'moisture_pct'     => $log['moisture_pct'],
+                'tenant_id' => $tenantId,
+                'farm_plot_id' => $log['farm_plot_id'],
+                'crop_cycle_id' => $log['crop_cycle_id'],
+                'number' => $log['number'],
+                'harvest_date' => $log['harvest_date'],
+                'crop_name' => $log['crop_name'],
+                'total_qty' => $log['total_qty'],
+                'unit' => $log['unit'],
+                'reject_qty' => $log['reject_qty'],
+                'moisture_pct' => $log['moisture_pct'],
                 'storage_location' => $log['storage_location'],
-                'labor_cost'       => $log['labor_cost'],
-                'transport_cost'   => $log['transport_cost'],
-                'weather'          => $log['weather'],
-                'notes'            => $log['notes'],
-                'created_at'       => now(),
-                'updated_at'       => now(),
+                'labor_cost' => $log['labor_cost'],
+                'transport_cost' => $log['transport_cost'],
+                'weather' => $log['weather'],
+                'notes' => $log['notes'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -396,7 +398,7 @@ class AgricultureGenerator extends BaseIndustryGenerator
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($supplies as $s) {
             $existing = DB::table('products')
@@ -406,19 +408,20 @@ class AgricultureGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $s['name'],
-                'sku'        => $s['sku'],
-                'category'   => 'agriculture_supply',
-                'unit'       => $s['unit'],
-                'price_buy'  => $s['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $s['name'],
+                'sku' => $s['sku'],
+                'category' => 'agriculture_supply',
+                'unit' => $s['unit'],
+                'price_buy' => $s['price_buy'],
                 'price_sell' => $s['price_sell'],
-                'stock_min'  => $s['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $s['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -426,15 +429,15 @@ class AgricultureGenerator extends BaseIndustryGenerator
             $productIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $s['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $s['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -450,36 +453,36 @@ class AgricultureGenerator extends BaseIndustryGenerator
         $employees = [
             [
                 'employee_id' => 'AGR-EMP-001',
-                'name'        => 'Slamet Riyadi',
-                'email'       => 'slamet.riyadi@demo-agr.local',
-                'phone'       => '0812-3001-4001',
-                'position'    => 'Mandor Lapangan',
-                'department'  => 'Produksi Pertanian',
-                'join_date'   => Carbon::now()->subYears(3)->format('Y-m-d'),
-                'salary'      => 3500000,
-                'status'      => 'active',
+                'name' => 'Slamet Riyadi',
+                'email' => 'slamet.riyadi@demo-agr.local',
+                'phone' => '0812-3001-4001',
+                'position' => 'Mandor Lapangan',
+                'department' => 'Produksi Pertanian',
+                'join_date' => Carbon::now()->subYears(3)->format('Y-m-d'),
+                'salary' => 3500000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'AGR-EMP-002',
-                'name'        => 'Warsito Hadi',
-                'email'       => 'warsito.hadi@demo-agr.local',
-                'phone'       => '0813-3002-5002',
-                'position'    => 'Pekerja Lapangan',
-                'department'  => 'Produksi Pertanian',
-                'join_date'   => Carbon::now()->subYears(2)->format('Y-m-d'),
-                'salary'      => 2500000,
-                'status'      => 'active',
+                'name' => 'Warsito Hadi',
+                'email' => 'warsito.hadi@demo-agr.local',
+                'phone' => '0813-3002-5002',
+                'position' => 'Pekerja Lapangan',
+                'department' => 'Produksi Pertanian',
+                'join_date' => Carbon::now()->subYears(2)->format('Y-m-d'),
+                'salary' => 2500000,
+                'status' => 'active',
             ],
             [
                 'employee_id' => 'AGR-EMP-003',
-                'name'        => 'Sumiati Dewi',
-                'email'       => 'sumiati.dewi@demo-agr.local',
-                'phone'       => '0814-3003-6003',
-                'position'    => 'Pekerja Lapangan',
-                'department'  => 'Produksi Pertanian',
-                'join_date'   => Carbon::now()->subMonths(8)->format('Y-m-d'),
-                'salary'      => 2500000,
-                'status'      => 'active',
+                'name' => 'Sumiati Dewi',
+                'email' => 'sumiati.dewi@demo-agr.local',
+                'phone' => '0814-3003-6003',
+                'position' => 'Pekerja Lapangan',
+                'department' => 'Produksi Pertanian',
+                'join_date' => Carbon::now()->subMonths(8)->format('Y-m-d'),
+                'salary' => 2500000,
+                'status' => 'active',
             ],
         ];
 
@@ -496,18 +499,18 @@ class AgricultureGenerator extends BaseIndustryGenerator
             }
 
             DB::table('employees')->insert([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'employee_id' => $emp['employee_id'],
-                'name'        => $emp['name'],
-                'email'       => $emp['email'],
-                'phone'       => $emp['phone'],
-                'position'    => $emp['position'],
-                'department'  => $emp['department'],
-                'join_date'   => $emp['join_date'],
-                'salary'      => $emp['salary'],
-                'status'      => $emp['status'],
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'name' => $emp['name'],
+                'email' => $emp['email'],
+                'phone' => $emp['phone'],
+                'position' => $emp['position'],
+                'department' => $emp['department'],
+                'join_date' => $emp['join_date'],
+                'salary' => $emp['salary'],
+                'status' => $emp['status'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;

@@ -4,13 +4,13 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('cosmetic.formulas.builder') }}"
-                    class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition">
-                    <i class="fas fa-flask mr-2"></i>Formula Builder
-                </a>
+            class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition">
+            <i class="fas fa-flask mr-2"></i>Formula Builder
+        </a>
         <a href="{{ route('cosmetic.formulas.create') }}"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
-                    <i class="fas fa-plus mr-2"></i>Create Formula
-                </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
+            <i class="fas fa-plus mr-2"></i>Create Formula
+        </a>
     </div>
 
     <div class="py-6">
@@ -162,7 +162,7 @@
                                                 class="text-blue-600 hover:text-blue-900">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('cosmetic.formulas.edit', $formula) }}"
+                                            <a href="{{ route('cosmetic.formulas.builder.edit', $formula->id) }}"
                                                 class="text-green-600 hover:text-green-900">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -172,8 +172,7 @@
                                                 onsubmit="return confirm('Are you sure you want to delete this formula?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="text-red-600 hover:text-red-900">
+                                                <button type="submit" class="text-red-600 hover:text-red-900">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>

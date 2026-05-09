@@ -19,12 +19,12 @@ class SuspiciousAiActivityNotification extends Notification implements ShouldQue
     use Queueable;
 
     public function __construct(
-        public readonly int    $tenantId,
+        public readonly int $tenantId,
         public readonly string $tenantName,
-        public readonly int    $userId,
+        public readonly int $userId,
         public readonly string $userName,
-        public readonly int    $writeOpsCount,
-        public readonly int    $windowSeconds,
+        public readonly int $writeOpsCount,
+        public readonly int $windowSeconds,
         public readonly string $detectedAt,
     ) {}
 
@@ -54,15 +54,15 @@ class SuspiciousAiActivityNotification extends Notification implements ShouldQue
     public function toArray(object $notifiable): array
     {
         return [
-            'type'            => 'suspicious_ai_activity',
-            'tenant_id'       => $this->tenantId,
-            'user_id'         => $this->userId,
-            'user_name'       => $this->userName,
+            'type' => 'suspicious_ai_activity',
+            'tenant_id' => $this->tenantId,
+            'user_id' => $this->userId,
+            'user_name' => $this->userName,
             'write_ops_count' => $this->writeOpsCount,
-            'window_seconds'  => $this->windowSeconds,
-            'detected_at'     => $this->detectedAt,
-            'message'         => "Terdeteksi {$this->writeOpsCount} operasi write AI dalam {$this->windowSeconds} detik oleh {$this->userName}.",
-            'url'             => '/agent/audit',
+            'window_seconds' => $this->windowSeconds,
+            'detected_at' => $this->detectedAt,
+            'message' => "Terdeteksi {$this->writeOpsCount} operasi write AI dalam {$this->windowSeconds} detik oleh {$this->userName}.",
+            'url' => '/agent/audit',
         ];
     }
 }

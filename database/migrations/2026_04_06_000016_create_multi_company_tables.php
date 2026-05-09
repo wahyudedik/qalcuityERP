@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Company Groups (Parent Companies)
-        if (!Schema::hasTable('company_groups')) {
+        if (! Schema::hasTable('company_groups')) {
             Schema::create('company_groups', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -27,7 +28,7 @@ return new class extends Migration {
         }
 
         // 2. Tenant-Group Relationships (Subsidiaries)
-        if (!Schema::hasTable('tenant_group_members')) {
+        if (! Schema::hasTable('tenant_group_members')) {
             Schema::create('tenant_group_members', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -45,7 +46,7 @@ return new class extends Migration {
         }
 
         // 3. Inter-Company Transactions
-        if (!Schema::hasTable('inter_company_transactions')) {
+        if (! Schema::hasTable('inter_company_transactions')) {
             Schema::create('inter_company_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -75,7 +76,7 @@ return new class extends Migration {
         }
 
         // 4. Inter-Company Accounts (Receivables/Payables)
-        if (!Schema::hasTable('inter_company_accounts')) {
+        if (! Schema::hasTable('inter_company_accounts')) {
             Schema::create('inter_company_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -94,7 +95,7 @@ return new class extends Migration {
         }
 
         // 5. Consolidated Financial Reports
-        if (!Schema::hasTable('consolidated_reports')) {
+        if (! Schema::hasTable('consolidated_reports')) {
             Schema::create('consolidated_reports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -119,7 +120,7 @@ return new class extends Migration {
         }
 
         // 6. Shared Services
-        if (!Schema::hasTable('shared_services')) {
+        if (! Schema::hasTable('shared_services')) {
             Schema::create('shared_services', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -136,7 +137,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('shared_service_subscriptions')) {
+        if (! Schema::hasTable('shared_service_subscriptions')) {
             Schema::create('shared_service_subscriptions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('shared_service_id')->constrained()->onDelete('cascade');
@@ -153,7 +154,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('shared_service_billings')) {
+        if (! Schema::hasTable('shared_service_billings')) {
             Schema::create('shared_service_billings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('shared_service_id')->constrained()->onDelete('cascade');
@@ -173,7 +174,7 @@ return new class extends Migration {
         }
 
         // 7. Cross-Entity Inventory Transfers
-        if (!Schema::hasTable('inventory_transfers')) {
+        if (! Schema::hasTable('inventory_transfers')) {
             Schema::create('inventory_transfers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('company_group_id')->constrained()->onDelete('cascade');
@@ -197,7 +198,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('inventory_transfer_items')) {
+        if (! Schema::hasTable('inventory_transfer_items')) {
             Schema::create('inventory_transfer_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('inventory_transfer_id')->constrained()->onDelete('cascade');
@@ -216,7 +217,7 @@ return new class extends Migration {
         }
 
         // 8. Inter-Company Elimination Entries
-        if (!Schema::hasTable('elimination_entries')) {
+        if (! Schema::hasTable('elimination_entries')) {
             Schema::create('elimination_entries', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('consolidated_report_id')->constrained()->onDelete('cascade');

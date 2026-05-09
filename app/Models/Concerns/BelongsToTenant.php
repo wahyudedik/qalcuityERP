@@ -3,7 +3,9 @@
 namespace App\Models\Concerns;
 
 use App\Models\Scopes\TenantScope;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * BelongsToTenant — Trait untuk model yang memiliki kolom tenant_id.
@@ -34,11 +36,11 @@ trait BelongsToTenant
     protected static function bootBelongsToTenant(): void
     {
         // 1. GLOBAL SCOPE: Daftarkan TenantScope
-        static::addGlobalScope(new TenantScope());
+        static::addGlobalScope(new TenantScope);
 
         // 2. CREATING: Auto-fill tenant_id dari user yang login
         static::creating(function ($model) {
-            if (!$model->tenant_id && auth()->check()) {
+            if (! $model->tenant_id && auth()->check()) {
                 $user = auth()->user();
                 if ($user->tenant_id) {
                     $model->tenant_id = $user->tenant_id;
@@ -62,14 +64,14 @@ trait BelongsToTenant
     public function scopeForTenant(Builder $query, int $tenantId): Builder
     {
         return $query->withoutGlobalScope(TenantScope::class)
-            ->where($this->getTable() . '.tenant_id', $tenantId);
+            ->where($this->getTable().'.tenant_id', $tenantId);
     }
 
     /**
      * Relasi ke model Tenant.
      */
-    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function tenant(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 }

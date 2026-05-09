@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('documents')) {
+        if (! Schema::hasTable('documents')) {
             Schema::create('documents', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -28,7 +29,7 @@ return new class extends Migration {
         }
 
         // Document templates base table
-        if (!Schema::hasTable('document_templates')) {
+        if (! Schema::hasTable('document_templates')) {
             Schema::create('document_templates', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -38,7 +39,7 @@ return new class extends Migration {
                 $table->text('css_content')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->index(['tenant_id', 'is_active']);
             });

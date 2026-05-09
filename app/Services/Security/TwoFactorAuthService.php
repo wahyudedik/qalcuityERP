@@ -3,7 +3,7 @@
 namespace App\Services\Security;
 
 use App\Models\TwoFactorAuth;
-use App\Models\UserSession;
+use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -13,7 +13,7 @@ class TwoFactorAuthService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     /**
@@ -40,7 +40,7 @@ class TwoFactorAuthService
             );
 
             // Generate QR code URL
-            $user = \App\Models\User::find($userId);
+            $user = User::find($userId);
             $qrCodeUrl = $this->google2fa->getQRCodeUrl(
                 config('app.name'),
                 $user->email,
@@ -71,7 +71,7 @@ class TwoFactorAuthService
         try {
             $twoFactor = TwoFactorAuth::where('user_id', $userId)->first();
 
-            if (!$twoFactor) {
+            if (! $twoFactor) {
                 return false;
             }
 
@@ -108,7 +108,7 @@ class TwoFactorAuthService
                 ->where('enabled', true)
                 ->first();
 
-            if (!$twoFactor) {
+            if (! $twoFactor) {
                 return false;
             }
 
@@ -138,7 +138,7 @@ class TwoFactorAuthService
         try {
             $twoFactor = TwoFactorAuth::where('user_id', $userId)->first();
 
-            if (!$twoFactor || !$twoFactor->enabled) {
+            if (! $twoFactor || ! $twoFactor->enabled) {
                 return false;
             }
 

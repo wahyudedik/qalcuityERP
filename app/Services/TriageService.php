@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\EmergencyCase;
-use App\Models\TriageAssessment;
 use App\Models\EmergencyTreatment;
 use App\Models\ErAlert;
-use Exception;
+use App\Models\TriageAssessment;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -29,7 +29,7 @@ class TriageService
                 'status' => 'triaged',
             ]);
 
-            Log::info("Emergency case registered", [
+            Log::info('Emergency case registered', [
                 'case_number' => $case->case_number,
                 'patient_id' => $case->patient_id,
             ]);
@@ -54,7 +54,7 @@ class TriageService
             $case->update([
                 'triage_time' => now(),
                 'triage_level' => $triageLevel,
-                'triage_code' => 'ESI-' . $esiLevel,
+                'triage_code' => 'ESI-'.$esiLevel,
                 'door_to_triage_minutes' => $case->calculateDoorToTriage(),
                 'is_critical' => in_array($triageLevel, ['red', 'orange']),
                 'requires_immediate_intervention' => $assessmentData['requires_immediate_intervention'] ?? false,
@@ -97,7 +97,7 @@ class TriageService
                 $this->sendCriticalAlert($case, $assessment);
             }
 
-            Log::info("Triage assessment completed", [
+            Log::info('Triage assessment completed', [
                 'case_number' => $case->case_number,
                 'triage_level' => $triageLevel,
                 'esi_level' => $esiLevel,
@@ -179,7 +179,7 @@ class TriageService
                 'status' => $case->is_critical ? 'critical' : 'in_treatment',
             ]);
 
-            Log::info("Emergency treatment started", [
+            Log::info('Emergency treatment started', [
                 'case_number' => $case->case_number,
                 'doctor_id' => $doctorId,
             ]);
@@ -237,7 +237,7 @@ class TriageService
                 $case->update(['admission_id' => $treatmentData['admission_id']]);
             }
 
-            Log::info("Emergency treatment completed", [
+            Log::info('Emergency treatment completed', [
                 'case_number' => $case->case_number,
                 'outcome' => $treatmentData['outcome'],
                 'disposition' => $treatmentData['disposition'],
@@ -257,9 +257,9 @@ class TriageService
             'patient_id' => $case->patient_id,
             'alerted_by' => $assessment->assessed_by,
             'alert_type' => 'critical_patient',
-            'alert_title' => 'CRITICAL: ' . $case->case_number,
+            'alert_title' => 'CRITICAL: '.$case->case_number,
             'alert_message' => "Patient requires immediate attention. Triage: {$case->triage_level}. "
-                . "Chief complaint: {$case->chief_complaint}",
+                ."Chief complaint: {$case->chief_complaint}",
             'priority' => 'critical',
             'status' => 'active',
             'alerted_at' => now(),
@@ -286,12 +286,12 @@ class TriageService
                 'green' => $activeCases->where('triage_level', 'green')->count(),
             ],
 
-            'critical_cases' => $activeCases->filter(fn($c) => $c->requiresImmediateAttention())
-                ->map(fn($c) => $c->summary),
+            'critical_cases' => $activeCases->filter(fn ($c) => $c->requiresImmediateAttention())
+                ->map(fn ($c) => $c->summary),
 
             'waiting_patients' => $activeCases->where('status', 'waiting')
                 ->sortBy('triage_level')
-                ->map(fn($c) => $c->summary),
+                ->map(fn ($c) => $c->summary),
 
             'active_alerts' => ErAlert::where('status', 'active')
                 ->orderBy('priority')
@@ -311,7 +311,7 @@ class TriageService
      */
     public function generateDailyAnalytics($date = null): array
     {
-        $date = $date ? \Carbon\Carbon::parse($date) : today();
+        $date = $date ? Carbon::parse($date) : today();
 
         $cases = EmergencyCase::whereDate('arrival_time', $date)->get();
 
@@ -354,8 +354,8 @@ class TriageService
      */
     public function getThroughputMetrics($startDate = null, $endDate = null): array
     {
-        $startDate = $startDate ? \Carbon\Carbon::parse($startDate) : today()->startOfMonth();
-        $endDate = $endDate ? \Carbon\Carbon::parse($endDate) : today()->endOfMonth();
+        $startDate = $startDate ? Carbon::parse($startDate) : today()->startOfMonth();
+        $endDate = $endDate ? Carbon::parse($endDate) : today()->endOfMonth();
 
         $cases = EmergencyCase::whereBetween('arrival_time', [$startDate, $endDate])->get();
         $treatments = EmergencyTreatment::whereBetween('treatment_end', [$startDate, $endDate])->get();
@@ -391,12 +391,15 @@ class TriageService
         $spo2 = $data['oxygen_saturation'] ?? null;
         $gcs = $data['gcs_total'] ?? null;
 
-        if ($hr && ($hr < 40 || $hr > 150))
+        if ($hr && ($hr < 40 || $hr > 150)) {
             return true;
-        if ($spo2 && $spo2 < 90)
+        }
+        if ($spo2 && $spo2 < 90) {
             return true;
-        if ($gcs && $gcs <= 8)
+        }
+        if ($gcs && $gcs <= 8) {
             return true;
+        }
 
         return false;
     }
@@ -406,10 +409,12 @@ class TriageService
         $pain = $data['pain_scale'] ?? 0;
         $hr = $data['heart_rate'] ?? null;
 
-        if ($pain >= 8)
+        if ($pain >= 8) {
             return true;
-        if ($hr && ($hr < 50 || $hr > 130))
+        }
+        if ($hr && ($hr < 50 || $hr > 130)) {
             return true;
+        }
 
         return false;
     }
@@ -438,16 +443,21 @@ class TriageService
     {
         $resources = 0;
 
-        if (isset($data['requires_lab']))
+        if (isset($data['requires_lab'])) {
             $resources++;
-        if (isset($data['requires_imaging']))
+        }
+        if (isset($data['requires_imaging'])) {
             $resources++;
-        if (isset($data['requires_iv']))
+        }
+        if (isset($data['requires_iv'])) {
             $resources++;
-        if (isset($data['requires_medication']))
+        }
+        if (isset($data['requires_medication'])) {
             $resources++;
-        if (isset($data['requires_specialist']))
+        }
+        if (isset($data['requires_specialist'])) {
             $resources++;
+        }
 
         return $resources;
     }

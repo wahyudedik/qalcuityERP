@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Reservation;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 /**
  * HotelNightAuditService
@@ -27,15 +27,13 @@ class HotelNightAuditService
      * Bug Condition: module = 'hotel' AND NOT rateValidated(input) — posting dengan nilai 0
      * Expected Behavior: DomainException with list of problematic reservations before posting starts.
      *
-     * @param  int                    $tenantId
-     * @param  \DateTimeInterface     $auditDate
-     * @return array                  Audit result summary
+     * @return array Audit result summary
      *
-     * @throws \DomainException       when any checked-in reservation has an invalid/zero room rate
+     * @throws \DomainException when any checked-in reservation has an invalid/zero room rate
      */
     public function runNightAudit(int $tenantId, \DateTimeInterface $auditDate): array
     {
-        $auditCarbon = \Carbon\Carbon::instance($auditDate);
+        $auditCarbon = Carbon::instance($auditDate);
 
         // --- Pre-validation phase ---
         // Collect ALL errors before touching any data (fail-fast, atomic validation)
@@ -54,7 +52,7 @@ class HotelNightAuditService
                     ?? $room->roomType?->base_rate
                     ?? 0;
 
-                if (!$rate || $rate <= 0) {
+                if (! $rate || $rate <= 0) {
                     $errors[] = sprintf(
                         'Reservasi #%d (Kamar %s): room rate tidak valid atau 0.',
                         $reservation->id,
@@ -64,9 +62,9 @@ class HotelNightAuditService
             }
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             throw new \DomainException(
-                "Night Audit dibatalkan. Perbaiki item berikut sebelum melanjutkan:\n" .
+                "Night Audit dibatalkan. Perbaiki item berikut sebelum melanjutkan:\n".
                 implode("\n", $errors)
             );
         }
@@ -74,19 +72,19 @@ class HotelNightAuditService
         // --- Posting phase (only reached when validation passes) ---
         $batch = $this->nightAuditService->startAudit($tenantId, $auditCarbon);
 
-        $roomResult     = $this->nightAuditService->postRoomCharges($batch);
-        $fbResult       = $this->nightAuditService->postFBRevenue($batch);
-        $minibarResult  = $this->nightAuditService->postMinibarCharges($batch);
+        $roomResult = $this->nightAuditService->postRoomCharges($batch);
+        $fbResult = $this->nightAuditService->postFBRevenue($batch);
+        $minibarResult = $this->nightAuditService->postMinibarCharges($batch);
 
         $this->nightAuditService->calculateOccupancyStats($batch);
         $this->nightAuditService->completeAudit($batch);
 
         return [
-            'batch_id'       => $batch->id,
-            'batch_number'   => $batch->batch_number,
-            'audit_date'     => $auditCarbon->toDateString(),
-            'room_charges'   => $roomResult,
-            'fb_revenue'     => $fbResult,
+            'batch_id' => $batch->id,
+            'batch_number' => $batch->batch_number,
+            'audit_date' => $auditCarbon->toDateString(),
+            'room_charges' => $roomResult,
+            'fb_revenue' => $fbResult,
             'minibar_charges' => $minibarResult,
         ];
     }
@@ -99,7 +97,7 @@ class HotelNightAuditService
      */
     public function validateReservations(int $tenantId, \DateTimeInterface $auditDate): array
     {
-        $auditCarbon = \Carbon\Carbon::instance($auditDate);
+        $auditCarbon = Carbon::instance($auditDate);
 
         $activeReservations = Reservation::where('tenant_id', $tenantId)
             ->where('check_in_date', '<=', $auditCarbon)
@@ -116,7 +114,7 @@ class HotelNightAuditService
                     ?? $room->roomType?->base_rate
                     ?? 0;
 
-                if (!$rate || $rate <= 0) {
+                if (! $rate || $rate <= 0) {
                     $errors[] = sprintf(
                         'Reservasi #%d (Kamar %s): room rate tidak valid atau 0.',
                         $reservation->id,
@@ -127,7 +125,7 @@ class HotelNightAuditService
         }
 
         return [
-            'valid'  => empty($errors),
+            'valid' => empty($errors),
             'errors' => $errors,
         ];
     }

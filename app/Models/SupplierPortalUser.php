@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierPortalUser extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -22,7 +21,7 @@ use HasFactory, BelongsToTenant;
         'phone',
         'position',
         'is_active',
-        'last_login_at'
+        'last_login_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];

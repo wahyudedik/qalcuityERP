@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\LivestockHerd;
-use App\Models\LivestockHealthRecord;
 use App\Models\BreedingRecord;
+use App\Models\LivestockHealthRecord;
+use App\Models\LivestockHerd;
 use Illuminate\Http\Request;
 
 class LivestockApiController extends ApiBaseController
@@ -24,6 +23,7 @@ class LivestockApiController extends ApiBaseController
         }
 
         $animals = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($animals);
     }
 
@@ -32,6 +32,7 @@ class LivestockApiController extends ApiBaseController
         $animal = LivestockHerd::where('tenant_id', $this->getTenantId())
             ->with(['healthRecords', 'movements', 'vaccinations', 'feedLogs'])
             ->findOrFail($id);
+
         return $this->success($animal);
     }
 
@@ -71,6 +72,7 @@ class LivestockApiController extends ApiBaseController
         }
 
         $records = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($records);
     }
 
@@ -106,6 +108,7 @@ class LivestockApiController extends ApiBaseController
             ->with(['herd', 'recordedBy']);
 
         $records = $query->latest('mating_date')->paginate($request->get('per_page', 20));
+
         return $this->success($records);
     }
 

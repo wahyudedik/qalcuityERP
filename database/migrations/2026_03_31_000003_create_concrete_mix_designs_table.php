@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('concrete_mix_designs')) {
+        if (! Schema::hasTable('concrete_mix_designs')) {
             Schema::create('concrete_mix_designs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -19,14 +19,14 @@ return new class extends Migration
                 $table->decimal('slump_min', 5, 1)->default(8);       // cm
                 $table->decimal('slump_max', 5, 1)->default(12);      // cm
                 $table->decimal('water_cement_ratio', 4, 2)->default(0.50);
-    
+
                 // Komposisi per 1 m³ beton
                 $table->decimal('cement_kg', 8, 2)->default(0);       // Semen (kg)
                 $table->decimal('water_liter', 8, 2)->default(0);     // Air (liter)
                 $table->decimal('fine_agg_kg', 8, 2)->default(0);     // Agregat halus / Pasir (kg)
                 $table->decimal('coarse_agg_kg', 8, 2)->default(0);   // Agregat kasar / Kerikil/Split (kg)
                 $table->decimal('admixture_liter', 8, 3)->default(0); // Admixture/Additive (liter)
-    
+
                 $table->string('cement_type', 50)->default('PCC');     // PCC, OPC, PPC
                 $table->string('agg_max_size', 20)->default('20mm');   // Ukuran maks agregat kasar
                 $table->boolean('is_standard')->default(false);        // template standar vs custom
@@ -34,7 +34,7 @@ return new class extends Migration
                 $table->foreignId('bom_id')->nullable()->constrained('boms')->nullOnDelete(); // linked BOM
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'grade']);
                 $table->index(['tenant_id', 'is_active']);
             });

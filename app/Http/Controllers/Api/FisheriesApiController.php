@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Pond;
-use App\Models\FishStock;
 use App\Models\FisheryHarvest;
+use App\Models\FishStock;
+use App\Models\Pond;
 use App\Models\WaterQuality;
 use Illuminate\Http\Request;
 
@@ -21,6 +20,7 @@ class FisheriesApiController extends ApiBaseController
         }
 
         $ponds = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($ponds);
     }
 
@@ -52,6 +52,7 @@ class FisheriesApiController extends ApiBaseController
         }
 
         $stocks = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($stocks);
     }
 
@@ -79,6 +80,7 @@ class FisheriesApiController extends ApiBaseController
             ->with(['pond']);
 
         $harvests = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($harvests);
     }
 
@@ -109,6 +111,7 @@ class FisheriesApiController extends ApiBaseController
         }
 
         $records = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($records);
     }
 

@@ -4,41 +4,42 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Geofencing zones table
-        if (!Schema::hasTable('geofence_zones')) {
+        if (! Schema::hasTable('geofence_zones')) {
             Schema::create('geofence_zones', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
                 $table->string('name'); // e.g., "Jakarta Operational Area"
                 $table->text('description')->nullable();
                 $table->enum('zone_type', ['circular', 'polygon'])->default('circular');
-    
+
                 // For circular zones
                 $table->decimal('center_latitude', 10, 7)->nullable();
                 $table->decimal('center_longitude', 10, 7)->nullable();
                 $table->integer('radius_meters')->nullable(); // Radius for circular zones
-    
+
                 // For polygon zones (GeoJSON format)
                 $table->json('polygon_coordinates')->nullable(); // [[lat, lng], [lat, lng], ...]
-    
+
                 $table->boolean('is_active')->default(true);
                 $table->json('alert_settings')->nullable(); // Notification settings
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Device geofence assignments
-        if (!Schema::hasTable('device_geofence_assignments')) {
+        if (! Schema::hasTable('device_geofence_assignments')) {
             Schema::create('device_geofence_assignments', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('device_id');
@@ -46,7 +47,7 @@ return new class extends Migration {
                 $table->enum('alert_type', ['enter', 'exit', 'both'])->default('both');
                 $table->boolean('is_enabled')->default(true);
                 $table->timestamps();
-    
+
                 $table->foreign('device_id')->references('id')->on('network_devices')->onDelete('cascade');
                 $table->foreign('zone_id')->references('id')->on('geofence_zones')->onDelete('cascade');
                 $table->unique(['device_id', 'zone_id']);
@@ -54,7 +55,7 @@ return new class extends Migration {
         }
 
         // Geofence alerts log
-        if (!Schema::hasTable('geofence_alerts')) {
+        if (! Schema::hasTable('geofence_alerts')) {
             Schema::create('geofence_alerts', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -68,7 +69,7 @@ return new class extends Migration {
                 $table->boolean('is_notified')->default(false);
                 $table->timestamp('triggered_at');
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->foreign('device_id')->references('id')->on('network_devices')->onDelete('cascade');
                 $table->foreign('zone_id')->references('id')->on('geofence_zones')->onDelete('cascade');
@@ -78,7 +79,7 @@ return new class extends Migration {
         }
 
         // Location history for tracking device movement
-        if (!Schema::hasTable('location_history')) {
+        if (! Schema::hasTable('location_history')) {
             Schema::create('location_history', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -93,7 +94,7 @@ return new class extends Migration {
                 $table->json('metadata')->nullable(); // Additional data
                 $table->timestamp('recorded_at');
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->foreign('device_id')->references('id')->on('network_devices')->onDelete('cascade');
                 $table->index(['tenant_id', 'device_id', 'recorded_at']);
@@ -102,7 +103,7 @@ return new class extends Migration {
         }
 
         // Mobile device tracking for route history
-        if (!Schema::hasTable('mobile_device_tracks')) {
+        if (! Schema::hasTable('mobile_device_tracks')) {
             Schema::create('mobile_device_tracks', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -116,7 +117,7 @@ return new class extends Migration {
                 $table->json('route_metadata')->nullable();
                 $table->timestamp('tracked_at');
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->foreign('device_id')->references('id')->on('network_devices')->onDelete('cascade');
                 $table->index(['tenant_id', 'device_id', 'tracked_at']);

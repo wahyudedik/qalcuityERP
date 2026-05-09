@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Dashboard Cache Service
- * 
+ *
  * Provides caching functionality for dashboard statistics to reduce database queries.
  * Use this service to cache expensive stats queries with automatic TTL management.
  */
@@ -15,9 +15,9 @@ class DashboardCacheService
     /**
      * Get cached stats or execute callback to generate and cache them.
      *
-     * @param string $cacheKey Unique cache key (e.g., "stats:bpjs_claims:123")
-     * @param callable $callback Function to generate stats if not cached
-     * @param int $ttl Time to live in seconds (default: 300 = 5 minutes)
+     * @param  string  $cacheKey  Unique cache key (e.g., "stats:bpjs_claims:123")
+     * @param  callable  $callback  Function to generate stats if not cached
+     * @param  int  $ttl  Time to live in seconds (default: 300 = 5 minutes)
      * @return mixed
      */
     public static function getStats(string $cacheKey, callable $callback, int $ttl = 300)
@@ -29,8 +29,7 @@ class DashboardCacheService
      * Clear cached stats by key.
      * Call this when data changes (store/update/destroy).
      *
-     * @param string $cacheKey Cache key to clear
-     * @return bool
+     * @param  string  $cacheKey  Cache key to clear
      */
     public static function clearStats(string $cacheKey): bool
     {
@@ -41,8 +40,7 @@ class DashboardCacheService
      * Clear multiple cache keys by pattern.
      * Useful when you need to clear all stats for a tenant.
      *
-     * @param string $pattern Pattern to match (e.g., "stats:*:123")
-     * @return void
+     * @param  string  $pattern  Pattern to match (e.g., "stats:*:123")
      */
     public static function clearStatsByPattern(string $pattern): void
     {
@@ -58,8 +56,6 @@ class DashboardCacheService
 
     /**
      * Get cache statistics for monitoring.
-     *
-     * @return array
      */
     public static function getCacheInfo(): array
     {

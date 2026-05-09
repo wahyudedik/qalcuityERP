@@ -46,7 +46,7 @@ class CooldownExpiryTest extends TestCase
      */
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
 
         return new ProviderSwitcher($cache);
     }
@@ -98,8 +98,8 @@ class CooldownExpiryTest extends TestCase
                 $this->assertFalse(
                     $switcher->isProviderAvailable('gemini'),
                     sprintf(
-                        "Provider 'gemini' harus tidak tersedia segera setelah di-mark unavailable " .
-                            "dengan cooldown %d detik. Property 4 dilanggar.",
+                        "Provider 'gemini' harus tidak tersedia segera setelah di-mark unavailable ".
+                            'dengan cooldown %d detik. Property 4 dilanggar.',
                         $cooldownSeconds
                     )
                 );
@@ -112,8 +112,8 @@ class CooldownExpiryTest extends TestCase
                     $this->assertFalse(
                         $switcher->isProviderAvailable('gemini'),
                         sprintf(
-                            "Provider 'gemini' harus masih tidak tersedia setelah %d detik " .
-                                "(cooldown %d detik belum habis). Property 4 dilanggar.",
+                            "Provider 'gemini' harus masih tidak tersedia setelah %d detik ".
+                                '(cooldown %d detik belum habis). Property 4 dilanggar.',
                             $cooldownSeconds - 1,
                             $cooldownSeconds
                         )
@@ -127,8 +127,8 @@ class CooldownExpiryTest extends TestCase
                 $this->assertTrue(
                     $switcher->isProviderAvailable('gemini'),
                     sprintf(
-                        "Provider 'gemini' harus tersedia kembali setelah cooldown %d detik habis " .
-                            "(waktu saat ini: %d detik setelah di-mark). Property 4 dilanggar.",
+                        "Provider 'gemini' harus tersedia kembali setelah cooldown %d detik habis ".
+                            '(waktu saat ini: %d detik setelah di-mark). Property 4 dilanggar.',
                         $cooldownSeconds,
                         $cooldownSeconds + 1
                     )
@@ -156,7 +156,7 @@ class CooldownExpiryTest extends TestCase
                 Generators::choose(1, 3600)
             )
             ->then(function (int $cooldownSeconds) {
-                $switcher  = $this->makeSwitcher();
+                $switcher = $this->makeSwitcher();
                 $startTime = Carbon::now();
                 Carbon::setTestNow($startTime);
 
@@ -170,8 +170,8 @@ class CooldownExpiryTest extends TestCase
                 $this->assertFalse(
                     $switcher->isProviderAvailable('gemini'),
                     sprintf(
-                        "Provider 'gemini' harus tidak tersedia segera setelah di-mark unavailable " .
-                            "dengan quota_exceeded cooldown %d detik. Property 4 dilanggar.",
+                        "Provider 'gemini' harus tidak tersedia segera setelah di-mark unavailable ".
+                            'dengan quota_exceeded cooldown %d detik. Property 4 dilanggar.',
                         $cooldownSeconds
                     )
                 );
@@ -182,8 +182,8 @@ class CooldownExpiryTest extends TestCase
                 $this->assertTrue(
                     $switcher->isProviderAvailable('gemini'),
                     sprintf(
-                        "Provider 'gemini' harus tersedia kembali setelah quota_exceeded cooldown " .
-                            "%d detik habis. Property 4 dilanggar.",
+                        "Provider 'gemini' harus tersedia kembali setelah quota_exceeded cooldown ".
+                            '%d detik habis. Property 4 dilanggar.',
                         $cooldownSeconds
                     )
                 );
@@ -210,7 +210,7 @@ class CooldownExpiryTest extends TestCase
 
         $this->assertFalse(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus tidak tersedia segera setelah di-mark unavailable."
+            'Provider harus tidak tersedia segera setelah di-mark unavailable.'
         );
     }
 
@@ -223,9 +223,9 @@ class CooldownExpiryTest extends TestCase
      */
     public function test_provider_available_just_after_expiry(): void
     {
-        $switcher        = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $cooldownSeconds = 60;
-        $startTime       = Carbon::now();
+        $startTime = Carbon::now();
 
         Carbon::setTestNow($startTime);
         Config::set('ai.providers.gemini.rate_limit_cooldown', $cooldownSeconds);
@@ -237,7 +237,7 @@ class CooldownExpiryTest extends TestCase
 
         $this->assertTrue(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus tersedia kembali 1 detik setelah cooldown 60 detik habis."
+            'Provider harus tersedia kembali 1 detik setelah cooldown 60 detik habis.'
         );
     }
 
@@ -248,7 +248,7 @@ class CooldownExpiryTest extends TestCase
      */
     public function test_minimum_cooldown_one_second(): void
     {
-        $switcher  = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $startTime = Carbon::now();
 
         Carbon::setTestNow($startTime);
@@ -259,7 +259,7 @@ class CooldownExpiryTest extends TestCase
         // Segera → tidak tersedia
         $this->assertFalse(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus tidak tersedia segera setelah di-mark dengan cooldown 1 detik."
+            'Provider harus tidak tersedia segera setelah di-mark dengan cooldown 1 detik.'
         );
 
         // Setelah 2 detik → tersedia
@@ -267,7 +267,7 @@ class CooldownExpiryTest extends TestCase
 
         $this->assertTrue(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus tersedia kembali setelah cooldown 1 detik habis (2 detik kemudian)."
+            'Provider harus tersedia kembali setelah cooldown 1 detik habis (2 detik kemudian).'
         );
     }
 
@@ -278,7 +278,7 @@ class CooldownExpiryTest extends TestCase
      */
     public function test_maximum_cooldown_one_hour(): void
     {
-        $switcher  = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $startTime = Carbon::now();
 
         Carbon::setTestNow($startTime);
@@ -291,7 +291,7 @@ class CooldownExpiryTest extends TestCase
 
         $this->assertFalse(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus masih tidak tersedia setelah 3599 detik (cooldown 3600 detik)."
+            'Provider harus masih tidak tersedia setelah 3599 detik (cooldown 3600 detik).'
         );
 
         // Setelah 3601 detik → tersedia
@@ -299,7 +299,7 @@ class CooldownExpiryTest extends TestCase
 
         $this->assertTrue(
             $switcher->isProviderAvailable('gemini'),
-            "Provider harus tersedia kembali setelah cooldown 3600 detik habis (3601 detik kemudian)."
+            'Provider harus tersedia kembali setelah cooldown 3600 detik habis (3601 detik kemudian).'
         );
     }
 
@@ -312,7 +312,7 @@ class CooldownExpiryTest extends TestCase
      */
     public function test_different_providers_have_independent_cooldowns(): void
     {
-        $switcher  = $this->makeSwitcher();
+        $switcher = $this->makeSwitcher();
         $startTime = Carbon::now();
 
         Carbon::setTestNow($startTime);

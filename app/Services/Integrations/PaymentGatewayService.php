@@ -19,7 +19,7 @@ class PaymentGatewayService
             ->where('is_active', true)
             ->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             throw new \Exception('Midtrans gateway not configured');
         }
 
@@ -45,7 +45,7 @@ class PaymentGatewayService
                 'credit_card',
                 'bank_transfer',
                 'gopay',
-                'shopeepay'
+                'shopeepay',
             ],
         ];
 
@@ -53,8 +53,8 @@ class PaymentGatewayService
             $response = Http::withBasicAuth($serverKey, '')
                 ->post("{$baseUrl}/charge", $payload);
 
-            if (!$response->ok()) {
-                throw new \Exception('Midtrans API error: ' . $response->body());
+            if (! $response->ok()) {
+                throw new \Exception('Midtrans API error: '.$response->body());
             }
 
             $result = $response->json();
@@ -84,7 +84,7 @@ class PaymentGatewayService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Midtrans payment creation failed: ' . $e->getMessage());
+            Log::error('Midtrans payment creation failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -103,7 +103,7 @@ class PaymentGatewayService
             ->where('is_active', true)
             ->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             throw new \Exception('Xendit gateway not configured');
         }
 
@@ -127,8 +127,8 @@ class PaymentGatewayService
                     'failure_redirect_url' => $orderData['failure_url'] ?? null,
                 ]);
 
-            if (!$response->ok()) {
-                throw new \Exception('Xendit API error: ' . $response->body());
+            if (! $response->ok()) {
+                throw new \Exception('Xendit API error: '.$response->body());
             }
 
             $result = $response->json();
@@ -153,7 +153,7 @@ class PaymentGatewayService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Xendit payment creation failed: ' . $e->getMessage());
+            Log::error('Xendit payment creation failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -179,7 +179,8 @@ class PaymentGatewayService
                     throw new \Exception("Unsupported provider: {$provider}");
             }
         } catch (\Throwable $e) {
-            Log::error("Payment webhook handling failed ({$provider}): " . $e->getMessage());
+            Log::error("Payment webhook handling failed ({$provider}): ".$e->getMessage());
+
             return false;
         }
     }
@@ -196,8 +197,9 @@ class PaymentGatewayService
 
         $transaction = PaymentTransaction::where('order_id', $orderId)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             Log::warning("Midtrans webhook: Transaction not found for order {$orderId}");
+
             return false;
         }
 
@@ -215,6 +217,7 @@ class PaymentGatewayService
         ]);
 
         Log::info("Midtrans webhook processed for order: {$orderId}, status: {$transactionStatus}");
+
         return true;
     }
 
@@ -228,8 +231,9 @@ class PaymentGatewayService
 
         $transaction = PaymentTransaction::where('order_id', $externalId)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             Log::warning("Xendit webhook: Transaction not found for order {$externalId}");
+
             return false;
         }
 
@@ -244,6 +248,7 @@ class PaymentGatewayService
         ]);
 
         Log::info("Xendit webhook processed for order: {$externalId}, status: {$status}");
+
         return true;
     }
 
@@ -253,7 +258,8 @@ class PaymentGatewayService
     protected function handleDuitkuWebhook(array $payload): bool
     {
         // Similar implementation for Duitku
-        Log::info("Duitku webhook received", $payload);
+        Log::info('Duitku webhook received', $payload);
+
         return true;
     }
 
@@ -267,7 +273,7 @@ class PaymentGatewayService
             ->where('tenant_id', $tenantId)
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return null;
         }
 

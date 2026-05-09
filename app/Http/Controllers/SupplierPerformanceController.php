@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\SupplierPerformance;
-use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +35,7 @@ class SupplierPerformanceController extends Controller
                     "{$period} days"
                 );
                 $supplier->performance = $performance;
+
                 return $supplier;
             });
 

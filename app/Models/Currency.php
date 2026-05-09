@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Currency Model
- * 
+ *
  * BUG-FIN-003 FIX: Added stale rate detection methods
  */
 class Currency extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'code',
@@ -31,6 +31,7 @@ class Currency extends Model
     {
         return $amount * $this->rate_to_idr;
     }
+
     public function fromIdr(float $idrAmount): float
     {
         return $this->rate_to_idr > 0 ? $idrAmount / $this->rate_to_idr : 0;
@@ -38,13 +39,13 @@ class Currency extends Model
 
     /**
      * BUG-FIN-003 FIX: Check if exchange rate is stale
-     * 
+     *
      * Rate dianggap stale jika:
      * - Lebih dari 7 hari tidak diupdate (warning)
      * - Lebih dari 30 hari tidak diupdate (critical)
-     * 
-     * @param int $warningDays Warning threshold (default: 7 days)
-     * @param int $criticalDays Critical threshold (default: 30 days)
+     *
+     * @param  int  $warningDays  Warning threshold (default: 7 days)
+     * @param  int  $criticalDays  Critical threshold (default: 30 days)
      * @return string 'fresh', 'stale_warning', 'stale_critical'
      */
     public function getRateStalenessStatus(int $warningDays = 7, int $criticalDays = 30): string
@@ -55,7 +56,7 @@ class Currency extends Model
         }
 
         // No rate_updated_at means never updated
-        if (!$this->rate_updated_at) {
+        if (! $this->rate_updated_at) {
             return 'stale_critical';
         }
 
@@ -74,12 +75,12 @@ class Currency extends Model
 
     /**
      * BUG-FIN-003 FIX: Get days since last rate update
-     * 
+     *
      * @return int|null Days since update, null if never updated
      */
     public function getDaysSinceLastUpdate(): ?int
     {
-        if (!$this->rate_updated_at) {
+        if (! $this->rate_updated_at) {
             return null;
         }
 
@@ -88,9 +89,8 @@ class Currency extends Model
 
     /**
      * BUG-FIN-003 FIX: Check if rate needs update
-     * 
-     * @param int $maxDays Maximum allowed days (default: 7)
-     * @return bool
+     *
+     * @param  int  $maxDays  Maximum allowed days (default: 7)
      */
     public function needsUpdate(int $maxDays = 7): bool
     {

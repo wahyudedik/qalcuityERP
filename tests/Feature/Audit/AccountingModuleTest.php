@@ -9,13 +9,12 @@ use App\Models\JournalEntryLine;
 use App\Models\RecurringJournal;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\FinancialStatementService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
  * Task 10: Audit & Perbaikan Modul Akuntansi
- * 
+ *
  * Test suite untuk memverifikasi semua fitur akuntansi berfungsi dengan benar:
  * - 10.1: Chart of Accounts CRUD
  * - 10.2: Journal entry balance validation
@@ -31,6 +30,7 @@ class AccountingModuleTest extends TestCase
     use RefreshDatabase;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void

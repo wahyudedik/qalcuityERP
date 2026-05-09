@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - Batch Production Records (BMR)
      */
     public function up(): void
     {
         // 1. Cosmetic Batch Records - Manufacturing execution records
-        if (!Schema::hasTable('cosmetic_batch_records')) {
+        if (! Schema::hasTable('cosmetic_batch_records')) {
             Schema::create('cosmetic_batch_records', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -40,7 +41,7 @@ return new class extends Migration {
         }
 
         // 2. Batch Quality Checks - In-process QC checks
-        if (!Schema::hasTable('batch_quality_checks')) {
+        if (! Schema::hasTable('batch_quality_checks')) {
             Schema::create('batch_quality_checks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -64,7 +65,7 @@ return new class extends Migration {
         }
 
         // 3. Batch Rework Logs - Rework tracking
-        if (!Schema::hasTable('batch_rework_logs')) {
+        if (! Schema::hasTable('batch_rework_logs')) {
             Schema::create('batch_rework_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

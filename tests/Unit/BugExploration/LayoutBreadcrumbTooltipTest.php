@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 class LayoutBreadcrumbTooltipTest extends TestCase
 {
     private string $breadcrumbFile = 'resources/views/components/breadcrumbs.blade.php';
+
     private string $appBladeFile = 'resources/views/layouts/app.blade.php';
 
     /**
@@ -38,8 +39,8 @@ class LayoutBreadcrumbTooltipTest extends TestCase
 
         $this->assertTrue(
             $hasTooltip,
-            "Bug 1.13: Breadcrumb tidak memiliki tooltip implementation untuk teks panjang. " .
-            "Teks breadcrumb yang terpotong (truncate) tidak bisa dilihat teks lengkapnya."
+            'Bug 1.13: Breadcrumb tidak memiliki tooltip implementation untuk teks panjang. '.
+            'Teks breadcrumb yang terpotong (truncate) tidak bisa dilihat teks lengkapnya.'
         );
     }
 
@@ -66,9 +67,9 @@ class LayoutBreadcrumbTooltipTest extends TestCase
 
         $this->assertTrue(
             $hasAlpineTooltip,
-            "Bug 1.13: Tidak ditemukan Alpine.js tooltip di breadcrumb. " .
-            "Seharusnya ada x-data dengan show state dan @mouseenter/@mouseleave handler " .
-            "untuk menampilkan tooltip saat hover pada breadcrumb yang terpotong."
+            'Bug 1.13: Tidak ditemukan Alpine.js tooltip di breadcrumb. '.
+            'Seharusnya ada x-data dengan show state dan @mouseenter/@mouseleave handler '.
+            'untuk menampilkan tooltip saat hover pada breadcrumb yang terpotong.'
         );
     }
 
@@ -95,8 +96,8 @@ class LayoutBreadcrumbTooltipTest extends TestCase
 
         $this->assertTrue(
             $hasLengthCondition,
-            "Bug 1.13: Tidak ditemukan kondisi panjang teks untuk tooltip di breadcrumb. " .
-            "Tooltip seharusnya hanya muncul jika teks breadcrumb > 20 karakter."
+            'Bug 1.13: Tidak ditemukan kondisi panjang teks untuk tooltip di breadcrumb. '.
+            'Tooltip seharusnya hanya muncul jika teks breadcrumb > 20 karakter.'
         );
     }
 }

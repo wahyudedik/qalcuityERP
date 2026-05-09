@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CashierSession extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
     // Status constants — harus sesuai dengan ENUM di migration
-    const STATUS_OPEN   = 'open';
+    const STATUS_OPEN = 'open';
+
     const STATUS_CLOSED = 'closed';
 
     const STATUSES = [
@@ -49,19 +50,19 @@ class CashierSession extends Model
     protected function casts(): array
     {
         return [
-            'opened_at'          => 'datetime',
-            'closed_at'          => 'datetime',
-            'opening_balance'    => 'decimal:2',
-            'closing_balance'    => 'decimal:2',
-            'expected_balance'   => 'decimal:2',
+            'opened_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'opening_balance' => 'decimal:2',
+            'closing_balance' => 'decimal:2',
+            'expected_balance' => 'decimal:2',
             'balance_difference' => 'decimal:2',
-            'total_sales'        => 'decimal:2',
-            'total_cash'         => 'decimal:2',
-            'total_card'         => 'decimal:2',
-            'total_qris'         => 'decimal:2',
-            'total_transfer'     => 'decimal:2',
-            'total_discount'     => 'decimal:2',
-            'total_tax'          => 'decimal:2',
+            'total_sales' => 'decimal:2',
+            'total_cash' => 'decimal:2',
+            'total_card' => 'decimal:2',
+            'total_qris' => 'decimal:2',
+            'total_transfer' => 'decimal:2',
+            'total_discount' => 'decimal:2',
+            'total_tax' => 'decimal:2',
             'total_transactions' => 'integer',
         ];
     }
@@ -126,14 +127,14 @@ class CashierSession extends Model
 
         return [
             'total_transactions' => (int) ($transactions->total_transactions ?? 0),
-            'total_sales'        => (float) ($transactions->total_sales ?? 0),
-            'total_cash'         => $totalCash,
-            'total_card'         => (float) ($transactions->total_card ?? 0),
-            'total_qris'         => (float) ($transactions->total_qris ?? 0),
-            'total_transfer'     => (float) ($transactions->total_transfer ?? 0),
-            'total_discount'     => (float) ($transactions->total_discount ?? 0),
-            'total_tax'          => (float) ($transactions->total_tax ?? 0),
-            'expected_balance'   => $expectedBalance,
+            'total_sales' => (float) ($transactions->total_sales ?? 0),
+            'total_cash' => $totalCash,
+            'total_card' => (float) ($transactions->total_card ?? 0),
+            'total_qris' => (float) ($transactions->total_qris ?? 0),
+            'total_transfer' => (float) ($transactions->total_transfer ?? 0),
+            'total_discount' => (float) ($transactions->total_discount ?? 0),
+            'total_tax' => (float) ($transactions->total_tax ?? 0),
+            'expected_balance' => $expectedBalance,
         ];
     }
 

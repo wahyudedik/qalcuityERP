@@ -3,21 +3,22 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <form method="POST" action="{{ route('manufacturing.mix-design.export-pdf') }}" target="_blank"
-                        class="inline">
-                        @csrf
-                        <input type="hidden" name="mix_design_id" value="{{ $selectedMix->id }}">
-                        <input type="hidden" name="volume" value="{{ $calculation['adjusted']['volume_m3'] }}">
-                        <input type="hidden" name="waste_percent"
-                            value="{{ $calculation['adjusted']['waste_percent'] }}">
-                        <button type="submit"
-                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                            📄 Export PDF
-                        </button>
-        <button onclick="document.getElementById('addMixModal').showModal()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                    + Tambah Custom Mix
+        @if ($selectedMix && $calculation)
+            <form method="POST" action="{{ route('manufacturing.mix-design.export-pdf') }}" target="_blank" class="inline">
+                @csrf
+                <input type="hidden" name="mix_design_id" value="{{ $selectedMix->id }}">
+                <input type="hidden" name="volume" value="{{ $calculation['adjusted']['volume_m3'] }}">
+                <input type="hidden" name="waste_percent" value="{{ $calculation['adjusted']['waste_percent'] }}">
+                <button type="submit"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                    📄 Export PDF
                 </button>
+            </form>
+        @endif
+        <button onclick="document.getElementById('addMixModal').showModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+            + Tambah Custom Mix
+        </button>
     </div>
 
     <div class="py-12">
@@ -118,8 +119,7 @@
                                     </div>
                                 </div>
                                 @if ($calculation['adjusted']['admixture_liter'] > 0)
-                                    <div
-                                        class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                         <span class="font-medium">⚗️ Admixture</span>
                                         <div class="text-right">
                                             <div class="font-bold">
@@ -474,7 +474,8 @@
                 <div class="modal-action">
                     <button type="button" onclick="document.getElementById('addMixModal').close()"
                         class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm transition">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Simpan</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Simpan</button>
                 </div>
             </form>
         </div>
@@ -626,8 +627,7 @@
                     <label class="block text-sm font-medium mb-1">Catatan</label>
                     <textarea id="edit_notes" name="notes" rows="2" class="w-full border rounded px-3 py-2"></textarea>
                 </div>
-                <div
-                    class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <label class="block text-sm font-medium mb-1 text-yellow-800">
                         ⚠️ Change Reason (Required for Version Tracking)
                     </label>
@@ -641,9 +641,13 @@
                 <div class="modal-action">
                     <button type="button" onclick="document.getElementById('editMixModal').close()"
                         class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm transition">Batal</button>
-                    <a href="#" id="viewVersionsLink" target="_blank" class="px-4 py-2 border border-sky-500 text-sky-600 hover:bg-sky-50 rounded-xl text-sm transition">📋 View
+                    <a href="#" id="viewVersionsLink" target="_blank"
+                        class="px-4 py-2 border border-sky-500 text-sky-600 hover:bg-sky-50 rounded-xl text-sm transition">📋
+                        View
                         Versions</a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Update & Create Version</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Update
+                        & Create Version</button>
                 </div>
             </form>
         </div>

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
 use App\Services\HotelReportsService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 
 class HotelReportsController extends Controller
@@ -121,7 +121,7 @@ class HotelReportsController extends Controller
         $pdf = Pdf::loadView('hotel.reports.exports.daily-operations-pdf', compact('report', 'date'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('daily-operations-' . $date->format('Y-m-d') . '.pdf');
+        return $pdf->download('daily-operations-'.$date->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -132,7 +132,7 @@ class HotelReportsController extends Controller
         $pdf = Pdf::loadView('hotel.reports.exports.revenue-pdf', compact('report', 'startDate', 'endDate'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('revenue-report-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf');
+        return $pdf->download('revenue-report-'.$startDate->format('Y-m-d').'-to-'.$endDate->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -152,7 +152,7 @@ class HotelReportsController extends Controller
         $pdf = Pdf::loadView('hotel.reports.exports.occupancy-pdf', compact('analytics', 'startDate', 'endDate'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('occupancy-analytics-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf');
+        return $pdf->download('occupancy-analytics-'.$startDate->format('Y-m-d').'-to-'.$endDate->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -163,7 +163,7 @@ class HotelReportsController extends Controller
         $pdf = Pdf::loadView('hotel.reports.exports.guest-analytics-pdf', compact('analytics', 'startDate', 'endDate'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('guest-analytics-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf');
+        return $pdf->download('guest-analytics-'.$startDate->format('Y-m-d').'-to-'.$endDate->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -174,6 +174,6 @@ class HotelReportsController extends Controller
         $pdf = Pdf::loadView('hotel.reports.exports.staff-performance-pdf', compact('report', 'startDate', 'endDate'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('staff-performance-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf');
+        return $pdf->download('staff-performance-'.$startDate->format('Y-m-d').'-to-'.$endDate->format('Y-m-d').'.pdf');
     }
 }

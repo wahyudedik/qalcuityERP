@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class CommissionController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     // ── Dashboard ─────────────────────────────────────────────────
 
@@ -35,9 +38,9 @@ class CommissionController extends Controller
 
         $stats = [
             'total_commission' => $calculations->sum('total_payout'),
-            'total_sales'      => $calculations->sum('total_sales'),
-            'salespeople'      => $calculations->count(),
-            'approved'         => $calculations->where('status', 'approved')->count(),
+            'total_sales' => $calculations->sum('total_sales'),
+            'salespeople' => $calculations->count(),
+            'approved' => $calculations->where('status', 'approved')->count(),
         ];
 
         $rules = CommissionRule::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
@@ -51,15 +54,16 @@ class CommissionController extends Controller
     public function rules(Request $request)
     {
         $rules = CommissionRule::where('tenant_id', $this->tid())->latest()->paginate(20);
+
         return view('commission.rules', compact('rules'));
     }
 
     public function storeRule(Request $request)
     {
         $data = $request->validate([
-            'name'  => 'required|string|max:255',
-            'type'  => 'required|in:flat_pct,tiered,flat_amount',
-            'rate'  => 'nullable|numeric|min:0',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:flat_pct,tiered,flat_amount',
+            'rate' => 'nullable|numeric|min:0',
             'basis' => 'required|in:revenue,profit,quantity',
             'tiers' => 'nullable|json',
             'notes' => 'nullable|string|max:1000',
@@ -67,13 +71,13 @@ class CommissionController extends Controller
 
         CommissionRule::create([
             'tenant_id' => $this->tid(),
-            'name'      => $data['name'],
-            'type'      => $data['type'],
-            'rate'      => $data['rate'] ?? 0,
-            'basis'     => $data['basis'],
-            'tiers'     => $data['tiers'] ? json_decode($data['tiers'], true) : null,
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'rate' => $data['rate'] ?? 0,
+            'basis' => $data['basis'],
+            'tiers' => $data['tiers'] ? json_decode($data['tiers'], true) : null,
             'is_active' => true,
-            'notes'     => $data['notes'] ?? null,
+            'notes' => $data['notes'] ?? null,
         ]);
 
         return back()->with('success', 'Rule komisi berhasil dibuat.');
@@ -83,6 +87,7 @@ class CommissionController extends Controller
     {
         abort_if($commissionRule->tenant_id !== $this->tid(), 403);
         $commissionRule->delete();
+
         return back()->with('success', 'Rule berhasil dihapus.');
     }
 
@@ -91,10 +96,10 @@ class CommissionController extends Controller
     public function storeTarget(Request $request)
     {
         $data = $request->validate([
-            'user_id'            => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id',
             'commission_rule_id' => 'nullable|exists:commission_rules,id',
-            'period'             => 'required|string|size:7',
-            'target_amount'      => 'required|numeric|min:0',
+            'period' => 'required|string|size:7',
+            'target_amount' => 'required|numeric|min:0',
         ]);
 
         SalesTarget::updateOrCreate(
@@ -155,12 +160,12 @@ class CommissionController extends Controller
                     ['tenant_id' => $this->tid(), 'user_id' => $sd->user_id, 'period' => $period],
                     [
                         'commission_rule_id' => $rule?->id,
-                        'total_sales'        => $totalSales,
-                        'total_orders'       => $sd->total_orders,
-                        'commission_amount'  => $commission,
-                        'bonus_amount'       => $bonus,
-                        'total_payout'       => $commission + $bonus,
-                        'status'             => 'draft',
+                        'total_sales' => $totalSales,
+                        'total_orders' => $sd->total_orders,
+                        'commission_amount' => $commission,
+                        'bonus_amount' => $bonus,
+                        'total_payout' => $commission + $bonus,
+                        'status' => 'draft',
                     ]
                 );
             }
@@ -174,10 +179,12 @@ class CommissionController extends Controller
     public function approve(CommissionCalculation $commissionCalculation)
     {
         abort_if($commissionCalculation->tenant_id !== $this->tid(), 403);
-        if ($commissionCalculation->status !== 'draft') return back()->with('error', 'Hanya draft yang bisa di-approve.');
+        if ($commissionCalculation->status !== 'draft') {
+            return back()->with('error', 'Hanya draft yang bisa di-approve.');
+        }
 
         $commissionCalculation->update([
-            'status'      => 'approved',
+            'status' => 'approved',
             'approved_by' => auth()->id(),
         ]);
 
@@ -187,13 +194,17 @@ class CommissionController extends Controller
     public function pay(CommissionCalculation $commissionCalculation, GlPostingService $glService)
     {
         abort_if($commissionCalculation->tenant_id !== $this->tid(), 403);
-        if ($commissionCalculation->status !== 'approved') return back()->with('error', 'Approve dulu sebelum bayar.');
+        if ($commissionCalculation->status !== 'approved') {
+            return back()->with('error', 'Approve dulu sebelum bayar.');
+        }
 
         $amount = (float) $commissionCalculation->total_payout;
-        if ($amount <= 0) return back()->with('error', 'Total payout = 0.');
+        if ($amount <= 0) {
+            return back()->with('error', 'Total payout = 0.');
+        }
 
         $user = $commissionCalculation->user;
-        $ref = 'COM-' . $commissionCalculation->period . '-' . ($user->id ?? 0);
+        $ref = 'COM-'.$commissionCalculation->period.'-'.($user->id ?? 0);
 
         // GL: Dr Beban Komisi Sales (5205) / Cr Kas (1101)
         $glResult = $glService->postSalesCommission(
@@ -202,15 +213,17 @@ class CommissionController extends Controller
 
         if ($glResult->isSuccess()) {
             $commissionCalculation->update([
-                'status'           => 'paid',
+                'status' => 'paid',
                 'journal_entry_id' => $glResult->journal->id,
             ]);
-            return back()->with('success', 'Komisi dibayar. Jurnal: ' . $glResult->journal->number);
+
+            return back()->with('success', 'Komisi dibayar. Jurnal: '.$glResult->journal->number);
         }
 
         if ($glResult->isFailed()) {
             session()->flash('gl_warning', $glResult->warningMessage());
         }
+
         return back()->with('error', 'Gagal posting jurnal.');
     }
 }

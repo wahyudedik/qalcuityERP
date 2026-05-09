@@ -2,10 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Integrations\PaymentGatewayService;
+use App\Models\AccountingIntegration;
+use App\Models\AccountingSyncLog;
+use App\Models\BankAccount;
+use App\Models\CommunicationChannel;
+use App\Models\EcommercePlatform;
+use App\Models\LogisticsProvider;
+use App\Models\PaymentGateway;
+use App\Models\Shipment;
+use App\Services\AccountingIntegrationService;
 use App\Services\Integrations\EcommerceIntegrationService;
 use App\Services\Integrations\LogisticsTrackingService;
+use App\Services\Integrations\PaymentGatewayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class IntegrationController extends Controller
 {
@@ -13,14 +23,14 @@ class IntegrationController extends Controller
         protected PaymentGatewayService $paymentService,
         protected EcommerceIntegrationService $ecommerceService,
         protected LogisticsTrackingService $logisticsService,
-    ) {
-    }
+    ) {}
 
     // ==================== PAYMENT GATEWAYS ====================
 
     public function paymentGateways()
     {
-        $gateways = \App\Models\PaymentGateway::where('tenant_id', auth()->user()->tenant_id)->get();
+        $gateways = PaymentGateway::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['gateways' => $gateways]);
     }
 
@@ -33,7 +43,7 @@ class IntegrationController extends Controller
             'secret_key' => 'nullable|string',
         ]);
 
-        $gateway = \App\Models\PaymentGateway::updateOrCreate(
+        $gateway = PaymentGateway::updateOrCreate(
             [
                 'tenant_id' => auth()->user()->tenant_id,
                 'provider' => $request->provider,
@@ -78,7 +88,8 @@ class IntegrationController extends Controller
 
     public function ecommercePlatforms()
     {
-        $platforms = \App\Models\EcommercePlatform::where('tenant_id', auth()->user()->tenant_id)->get();
+        $platforms = EcommercePlatform::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['platforms' => $platforms]);
     }
 
@@ -91,7 +102,7 @@ class IntegrationController extends Controller
             'access_token' => 'nullable|string',
         ]);
 
-        $platform = \App\Models\EcommercePlatform::create(array_merge($request->all(), [
+        $platform = EcommercePlatform::create(array_merge($request->all(), [
             'tenant_id' => auth()->user()->tenant_id,
         ]));
 
@@ -100,7 +111,7 @@ class IntegrationController extends Controller
 
     public function syncEcommerceOrders(Request $request, int $platformId)
     {
-        $platform = \App\Models\EcommercePlatform::findOrFail($platformId);
+        $platform = EcommercePlatform::findOrFail($platformId);
 
         $result = match ($platform->platform) {
             'shopify' => $this->ecommerceService->syncShopifyOrders($platformId),
@@ -124,7 +135,8 @@ class IntegrationController extends Controller
 
     public function logisticsProviders()
     {
-        $providers = \App\Models\LogisticsProvider::where('tenant_id', auth()->user()->tenant_id)->get();
+        $providers = LogisticsProvider::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['providers' => $providers]);
     }
 
@@ -186,7 +198,8 @@ class IntegrationController extends Controller
 
     public function accountingIntegrations()
     {
-        $integrations = \App\Models\AccountingIntegration::where('tenant_id', auth()->user()->tenant_id)->get();
+        $integrations = AccountingIntegration::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['integrations' => $integrations]);
     }
 
@@ -199,20 +212,20 @@ class IntegrationController extends Controller
         ]);
 
         try {
-            $integration = \App\Models\AccountingIntegration::create(array_merge($request->all(), [
+            $integration = AccountingIntegration::create(array_merge($request->all(), [
                 'tenant_id' => auth()->user()->tenant_id,
             ]));
 
             return response()->json(['success' => true, 'integration' => $integration]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('IntegrationController: connect accounting failed', [
+            Log::error('IntegrationController: connect accounting failed', [
                 'provider' => $request->provider,
                 'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Gagal menghubungkan integrasi akuntansi: ' . $e->getMessage(),
+                'error' => 'Gagal menghubungkan integrasi akuntansi: '.$e->getMessage(),
             ], 400);
         }
     }
@@ -227,18 +240,18 @@ class IntegrationController extends Controller
         ]);
 
         try {
-            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+            $integration = AccountingIntegration::where('id', $request->integration_id)
                 ->where('tenant_id', auth()->user()->tenant_id)
                 ->firstOrFail();
 
-            $service = new \App\Services\AccountingIntegrationService();
+            $service = new AccountingIntegrationService;
             $result = $service->testConnection($integration);
 
             return response()->json($result);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Gagal menguji koneksi: ' . $e->getMessage(),
+                'error' => 'Gagal menguji koneksi: '.$e->getMessage(),
             ], 400);
         }
     }
@@ -255,11 +268,11 @@ class IntegrationController extends Controller
         ]);
 
         try {
-            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+            $integration = AccountingIntegration::where('id', $request->integration_id)
                 ->where('tenant_id', auth()->user()->tenant_id)
                 ->firstOrFail();
 
-            $service = new \App\Services\AccountingIntegrationService();
+            $service = new AccountingIntegrationService;
             $syncLog = $service->syncJournals($integration, $request->journal_ids);
 
             return response()->json([
@@ -267,13 +280,13 @@ class IntegrationController extends Controller
                 'sync_log' => $syncLog,
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('IntegrationController: sync journals failed', [
+            Log::error('IntegrationController: sync journals failed', [
                 'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Gagal sinkronisasi jurnal: ' . $e->getMessage(),
+                'error' => 'Gagal sinkronisasi jurnal: '.$e->getMessage(),
             ], 400);
         }
     }
@@ -290,11 +303,11 @@ class IntegrationController extends Controller
         ]);
 
         try {
-            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+            $integration = AccountingIntegration::where('id', $request->integration_id)
                 ->where('tenant_id', auth()->user()->tenant_id)
                 ->firstOrFail();
 
-            $service = new \App\Services\AccountingIntegrationService();
+            $service = new AccountingIntegrationService;
             $syncLog = $service->syncInvoices($integration, $request->invoice_ids);
 
             return response()->json([
@@ -302,13 +315,13 @@ class IntegrationController extends Controller
                 'sync_log' => $syncLog,
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('IntegrationController: sync invoices failed', [
+            Log::error('IntegrationController: sync invoices failed', [
                 'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Gagal sinkronisasi invoice: ' . $e->getMessage(),
+                'error' => 'Gagal sinkronisasi invoice: '.$e->getMessage(),
             ], 400);
         }
     }
@@ -324,11 +337,11 @@ class IntegrationController extends Controller
         ]);
 
         try {
-            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+            $integration = AccountingIntegration::where('id', $request->integration_id)
                 ->where('tenant_id', auth()->user()->tenant_id)
                 ->firstOrFail();
 
-            $logs = \App\Models\AccountingSyncLog::where('integration_id', $integration->id)
+            $logs = AccountingSyncLog::where('integration_id', $integration->id)
                 ->orderBy('started_at', 'desc')
                 ->limit($request->input('limit', 50))
                 ->get();
@@ -337,7 +350,7 @@ class IntegrationController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Gagal mengambil sync logs: ' . $e->getMessage(),
+                'error' => 'Gagal mengambil sync logs: '.$e->getMessage(),
             ], 400);
         }
     }
@@ -346,7 +359,8 @@ class IntegrationController extends Controller
 
     public function communicationChannels()
     {
-        $channels = \App\Models\CommunicationChannel::where('tenant_id', auth()->user()->tenant_id)->get();
+        $channels = CommunicationChannel::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['channels' => $channels]);
     }
 
@@ -357,7 +371,7 @@ class IntegrationController extends Controller
             'api_key' => 'required|string',
         ]);
 
-        $channel = \App\Models\CommunicationChannel::create([
+        $channel = CommunicationChannel::create([
             'tenant_id' => auth()->user()->tenant_id,
             'channel' => 'whatsapp_business',
             'phone_number' => $request->phone_number,
@@ -383,7 +397,8 @@ class IntegrationController extends Controller
 
     public function bankAccounts()
     {
-        $accounts = \App\Models\BankAccount::where('tenant_id', auth()->user()->tenant_id)->get();
+        $accounts = BankAccount::where('tenant_id', auth()->user()->tenant_id)->get();
+
         return response()->json(['accounts' => $accounts]);
     }
 
@@ -395,7 +410,7 @@ class IntegrationController extends Controller
             'account_name' => 'required|string',
         ]);
 
-        $account = \App\Models\BankAccount::create(array_merge($request->all(), [
+        $account = BankAccount::create(array_merge($request->all(), [
             'tenant_id' => auth()->user()->tenant_id,
         ]));
 
@@ -419,14 +434,14 @@ class IntegrationController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $stats = [
-            'payment_gateways' => \App\Models\PaymentGateway::where('tenant_id', $tenantId)->count(),
-            'ecommerce_platforms' => \App\Models\EcommercePlatform::where('tenant_id', $tenantId)->count(),
-            'logistics_providers' => \App\Models\LogisticsProvider::where('tenant_id', $tenantId)->count(),
-            'active_shipments' => \App\Models\Shipment::where('tenant_id', $tenantId)
+            'payment_gateways' => PaymentGateway::where('tenant_id', $tenantId)->count(),
+            'ecommerce_platforms' => EcommercePlatform::where('tenant_id', $tenantId)->count(),
+            'logistics_providers' => LogisticsProvider::where('tenant_id', $tenantId)->count(),
+            'active_shipments' => Shipment::where('tenant_id', $tenantId)
                 ->whereIn('status', ['pending', 'in_transit'])->count(),
-            'accounting_integrations' => \App\Models\AccountingIntegration::where('tenant_id', $tenantId)->count(),
-            'communication_channels' => \App\Models\CommunicationChannel::where('tenant_id', $tenantId)->count(),
-            'bank_accounts' => \App\Models\BankAccount::where('tenant_id', $tenantId)->count(),
+            'accounting_integrations' => AccountingIntegration::where('tenant_id', $tenantId)->count(),
+            'communication_channels' => CommunicationChannel::where('tenant_id', $tenantId)->count(),
+            'bank_accounts' => BankAccount::where('tenant_id', $tenantId)->count(),
         ];
 
         if (request()->expectsJson()) {

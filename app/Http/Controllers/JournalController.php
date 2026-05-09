@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\RecurringJournal;
+use App\Services\PeriodLockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,7 +28,7 @@ class JournalController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
                 ->orWhere('description', 'like', "%$s%"));
         }
         if ($request->filled('date_from')) {
@@ -76,17 +77,17 @@ class JournalController extends Controller
         $tid = $this->tid();
 
         // Validasi balance
-        $totalDebit = collect($data['lines'])->sum(fn($l) => (float) ($l['debit'] ?? 0));
-        $totalCredit = collect($data['lines'])->sum(fn($l) => (float) ($l['credit'] ?? 0));
+        $totalDebit = collect($data['lines'])->sum(fn ($l) => (float) ($l['debit'] ?? 0));
+        $totalCredit = collect($data['lines'])->sum(fn ($l) => (float) ($l['credit'] ?? 0));
 
         if (abs($totalDebit - $totalCredit) > 0.01) {
             return back()->withErrors(['lines' => 'Jurnal tidak balance. Total debit harus sama dengan total kredit.'])->withInput();
         }
 
         // Cek period locking (period + fiscal year)
-        app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Jurnal');
+        app(PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Jurnal');
 
-        if (!empty($data['period_id'])) {
+        if (! empty($data['period_id'])) {
             $period = AccountingPeriod::find($data['period_id']);
             if ($period && $period->isLocked()) {
                 return back()->withErrors(['period_id' => 'Periode ini sudah dikunci.'])->withInput();
@@ -125,6 +126,7 @@ class JournalController extends Controller
     {
         abort_if($journal->tenant_id !== $this->tid(), 403);
         $journal->load(['lines.account', 'user', 'period', 'postedBy']);
+
         return view('accounting.journals.show', compact('journal'));
     }
 
@@ -135,9 +137,10 @@ class JournalController extends Controller
 
         // BUG-FIN-002 FIX: Check period lock before posting journal
         // Prevent creating draft in open period, then posting after period closed
-        $periodLockService = app(\App\Services\PeriodLockService::class);
+        $periodLockService = app(PeriodLockService::class);
         if ($periodLockService->isLocked($journal->tenant_id, $journal->date->toDateString())) {
             $lockInfo = $periodLockService->getLockInfo($journal->tenant_id, $journal->date->toDateString());
+
             return back()->with('error', "Periode {$lockInfo} sudah dikunci. Jurnal tidak dapat diposting.");
         }
 
@@ -198,8 +201,8 @@ class JournalController extends Controller
             'lines.*.description' => 'nullable|string|max:255',
         ]);
 
-        $totalDebit = collect($data['lines'])->sum(fn($l) => (float) ($l['debit'] ?? 0));
-        $totalCredit = collect($data['lines'])->sum(fn($l) => (float) ($l['credit'] ?? 0));
+        $totalDebit = collect($data['lines'])->sum(fn ($l) => (float) ($l['debit'] ?? 0));
+        $totalCredit = collect($data['lines'])->sum(fn ($l) => (float) ($l['credit'] ?? 0));
 
         if (abs($totalDebit - $totalCredit) > 0.01) {
             return back()->withErrors(['lines' => 'Jurnal tidak balance.'])->withInput();
@@ -224,7 +227,8 @@ class JournalController extends Controller
     public function toggleRecurring(RecurringJournal $recurring)
     {
         abort_if($recurring->tenant_id !== $this->tid(), 403);
-        $recurring->update(['is_active' => !$recurring->is_active]);
+        $recurring->update(['is_active' => ! $recurring->is_active]);
+
         return back()->with('success', 'Status jurnal berulang diperbarui.');
     }
 }

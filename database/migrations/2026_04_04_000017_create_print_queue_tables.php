@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Print jobs queue
-        if (!Schema::hasTable('print_jobs')) {
+        if (! Schema::hasTable('print_jobs')) {
             Schema::create('print_jobs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -23,14 +24,14 @@ return new class extends Migration {
                 $table->integer('retry_count')->default(0);
                 $table->timestamp('processed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'created_at']);
             });
         }
 
         // Printer settings per tenant
-        if (!Schema::hasTable('printer_settings')) {
+        if (! Schema::hasTable('printer_settings')) {
             Schema::create('printer_settings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -42,7 +43,7 @@ return new class extends Migration {
                 $table->boolean('is_default')->default(false);
                 $table->json('settings')->nullable(); // Additional printer-specific settings
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'printer_name']);
                 $table->index(['tenant_id', 'is_active']);
             });

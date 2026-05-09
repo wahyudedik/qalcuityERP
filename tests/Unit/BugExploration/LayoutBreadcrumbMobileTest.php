@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 class LayoutBreadcrumbMobileTest extends TestCase
 {
     private string $appBladeFile = 'resources/views/layouts/app.blade.php';
+
     private string $breadcrumbFile = 'resources/views/components/breadcrumbs.blade.php';
 
     /**
@@ -40,8 +41,8 @@ class LayoutBreadcrumbMobileTest extends TestCase
 
         $this->assertTrue(
             $hasMobileVersion,
-            "Bug 1.12: Breadcrumb component tidak memiliki versi mobile (flex sm:hidden). " .
-            "Seharusnya ada dua versi: mobile (flex sm:hidden) dan desktop (hidden sm:flex)."
+            'Bug 1.12: Breadcrumb component tidak memiliki versi mobile (flex sm:hidden). '.
+            'Seharusnya ada dua versi: mobile (flex sm:hidden) dan desktop (hidden sm:flex).'
         );
     }
 
@@ -68,8 +69,8 @@ class LayoutBreadcrumbMobileTest extends TestCase
 
         $this->assertTrue(
             $hasMobileFallback,
-            "Bug 1.12: Tidak ditemukan mobile breadcrumb fallback di breadcrumb component. " .
-            "Seharusnya ada versi ringkas breadcrumb yang terlihat di mobile " .
+            'Bug 1.12: Tidak ditemukan mobile breadcrumb fallback di breadcrumb component. '.
+            'Seharusnya ada versi ringkas breadcrumb yang terlihat di mobile '.
             "menggunakan class 'flex sm:hidden' atau 'block sm:hidden'."
         );
     }
@@ -82,8 +83,8 @@ class LayoutBreadcrumbMobileTest extends TestCase
     {
         $this->assertFileExists(
             $this->breadcrumbFile,
-            "Bug 1.12: File breadcrumb component tidak ditemukan: {$this->breadcrumbFile}. " .
-            "Breadcrumb seharusnya diimplementasikan sebagai Blade component."
+            "Bug 1.12: File breadcrumb component tidak ditemukan: {$this->breadcrumbFile}. ".
+            'Breadcrumb seharusnya diimplementasikan sebagai Blade component.'
         );
 
         $content = file_get_contents($this->breadcrumbFile);
@@ -98,8 +99,8 @@ class LayoutBreadcrumbMobileTest extends TestCase
 
         $this->assertTrue(
             $hasMobileSupport,
-            "Bug 1.12: Breadcrumb component tidak memiliki mobile support. " .
-            "Seharusnya ada dua versi: desktop (breadcrumb penuh) dan mobile (halaman aktif saja)."
+            'Bug 1.12: Breadcrumb component tidak memiliki mobile support. '.
+            'Seharusnya ada dua versi: desktop (breadcrumb penuh) dan mobile (halaman aktif saja).'
         );
     }
 }

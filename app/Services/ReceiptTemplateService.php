@@ -3,15 +3,17 @@
 namespace App\Services;
 
 use App\Models\SalesOrder;
-use Mike42\Escpos\Printer;
+use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\Printer;
 
 class ReceiptTemplateService
 {
     protected Printer $printer;
+
     protected int $paperWidth; // 58 or 80 mm
 
     public function __construct(Printer $printer, int $paperWidth = 80)
@@ -57,6 +59,7 @@ class ReceiptTemplateService
 
         } catch (\Exception $e) {
             Log::error("Receipt printing failed: {$e->getMessage()}");
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -89,13 +92,13 @@ class ReceiptTemplateService
             }
 
             $p->setTextSize(1, 1);
-            $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+            $p->text(str_repeat('-', $this->getLineWidth())."\n");
 
             // Order number and time
             $p->setJustification(Printer::JUSTIFY_LEFT);
             $p->text("Order #: {$ticketData['order_number']}\n");
-            $p->text("Time: " . date('H:i:s') . "\n");
-            $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+            $p->text('Time: '.date('H:i:s')."\n");
+            $p->text(str_repeat('-', $this->getLineWidth())."\n");
 
             // Items
             foreach ($ticketData['items'] as $item) {
@@ -103,11 +106,11 @@ class ReceiptTemplateService
                 $p->text("{$item['name']} x{$item['quantity']}\n");
                 $p->setEmphasis(false);
 
-                if (!empty($item['notes'])) {
+                if (! empty($item['notes'])) {
                     $p->text("   Note: {$item['notes']}\n");
                 }
 
-                if (!empty($item['modifiers'])) {
+                if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $modifier) {
                         $p->text("   - {$modifier}\n");
                     }
@@ -117,13 +120,13 @@ class ReceiptTemplateService
             }
 
             // Special instructions
-            if (!empty($ticketData['special_instructions'])) {
+            if (! empty($ticketData['special_instructions'])) {
                 $p->setJustification(Printer::JUSTIFY_CENTER);
                 $p->setEmphasis(true);
                 $p->text("*** SPECIAL INSTRUCTIONS ***\n");
                 $p->setEmphasis(false);
                 $p->text("{$ticketData['special_instructions']}\n");
-                $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+                $p->text(str_repeat('-', $this->getLineWidth())."\n");
             }
 
             $p->cut();
@@ -133,6 +136,7 @@ class ReceiptTemplateService
 
         } catch (\Exception $e) {
             Log::error("Kitchen ticket printing failed: {$e->getMessage()}");
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -149,12 +153,12 @@ class ReceiptTemplateService
             $p->setJustification(Printer::JUSTIFY_CENTER);
 
             // Product name (truncated if too long)
-            $name = strlen($productName) > 20 ? substr($productName, 0, 17) . '...' : $productName;
-            $p->text($name . "\n");
+            $name = strlen($productName) > 20 ? substr($productName, 0, 17).'...' : $productName;
+            $p->text($name."\n");
 
             // Price
             $p->setTextSize(1, 1);
-            $p->text("Rp " . number_format($price, 0, ',', '.') . "\n");
+            $p->text('Rp '.number_format($price, 0, ',', '.')."\n");
 
             // Barcode
             $p->setBarcodeHeight(40);
@@ -169,6 +173,7 @@ class ReceiptTemplateService
 
         } catch (\Exception $e) {
             Log::error("Barcode label printing failed: {$e->getMessage()}");
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -205,7 +210,7 @@ class ReceiptTemplateService
             try {
                 $logoPath = config('brand.logo.url');
                 if (file_exists(public_path($logoPath))) {
-                    $logo = \Mike42\Escpos\ImagickEscposImage::load(public_path($logoPath));
+                    $logo = ImagickEscposImage::load(public_path($logoPath));
                     $p->bitImage($logo);
                     $p->feed(1);
                 }
@@ -218,13 +223,13 @@ class ReceiptTemplateService
         $p->setJustification(Printer::JUSTIFY_CENTER);
         $p->setTextSize(1, 1);
         $p->setEmphasis(true);
-        $p->text(config('app.name', 'Qalcuity ERP') . "\n");
+        $p->text(config('app.name', 'Qalcuity ERP')."\n");
         $p->setEmphasis(false);
 
         // Address
         $address = config('pos_printer.receipt.address', '');
         if ($address) {
-            $p->text($address . "\n");
+            $p->text($address."\n");
         }
 
         // Phone
@@ -233,7 +238,7 @@ class ReceiptTemplateService
             $p->text("Tel: {$phone}\n");
         }
 
-        $p->text(str_repeat('=', $this->getLineWidth()) . "\n");
+        $p->text(str_repeat('=', $this->getLineWidth())."\n");
     }
 
     /**
@@ -245,14 +250,14 @@ class ReceiptTemplateService
 
         $p->setJustification(Printer::JUSTIFY_LEFT);
         $p->text("Order #: {$order->number}\n");
-        $p->text("Date: " . $order->date->format('d/m/Y H:i') . "\n");
+        $p->text('Date: '.$order->date->format('d/m/Y H:i')."\n");
 
         if ($order->customer) {
             $p->text("Customer: {$order->customer->name}\n");
         }
 
-        $p->text("Cashier: " . ($order->user->name ?? 'N/A') . "\n");
-        $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+        $p->text('Cashier: '.($order->user->name ?? 'N/A')."\n");
+        $p->text(str_repeat('-', $this->getLineWidth())."\n");
     }
 
     /**
@@ -267,28 +272,28 @@ class ReceiptTemplateService
 
         // Header
         $p->setEmphasis(true);
-        $header = str_pad('Item', $nameWidth) .
-            str_pad('Qty', $qtyWidth, ' ', STR_PAD_LEFT) .
+        $header = str_pad('Item', $nameWidth).
+            str_pad('Qty', $qtyWidth, ' ', STR_PAD_LEFT).
             str_pad('Price', $priceWidth, ' ', STR_PAD_LEFT);
-        $p->text($header . "\n");
+        $p->text($header."\n");
         $p->setEmphasis(false);
-        $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+        $p->text(str_repeat('-', $this->getLineWidth())."\n");
 
         // Items
         foreach ($order->items as $item) {
             // Truncate product name if too long
             $itemName = strlen($item->product->name) > $nameWidth
-                ? substr($item->product->name, 0, $nameWidth - 3) . '...'
+                ? substr($item->product->name, 0, $nameWidth - 3).'...'
                 : $item->product->name;
 
-            $line = str_pad($itemName, $nameWidth) .
-                str_pad($item->quantity, $qtyWidth, ' ', STR_PAD_LEFT) .
-                str_pad('Rp ' . number_format($item->total, 0, ',', '.'), $priceWidth, ' ', STR_PAD_LEFT);
+            $line = str_pad($itemName, $nameWidth).
+                str_pad($item->quantity, $qtyWidth, ' ', STR_PAD_LEFT).
+                str_pad('Rp '.number_format($item->total, 0, ',', '.'), $priceWidth, ' ', STR_PAD_LEFT);
 
-            $p->text($line . "\n");
+            $p->text($line."\n");
         }
 
-        $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+        $p->text(str_repeat('-', $this->getLineWidth())."\n");
     }
 
     /**
@@ -302,24 +307,24 @@ class ReceiptTemplateService
 
         // Subtotal
         $p->setJustification(Printer::JUSTIFY_RIGHT);
-        $p->text("Subtotal: Rp " . number_format($order->subtotal, 0, ',', '.') . "\n");
+        $p->text('Subtotal: Rp '.number_format($order->subtotal, 0, ',', '.')."\n");
 
         // Discount
         if ($order->discount > 0) {
-            $p->text("Discount: -Rp " . number_format($order->discount, 0, ',', '.') . "\n");
+            $p->text('Discount: -Rp '.number_format($order->discount, 0, ',', '.')."\n");
         }
 
         // Tax
         if ($order->tax > 0) {
-            $p->text("Tax: Rp " . number_format($order->tax, 0, ',', '.') . "\n");
+            $p->text('Tax: Rp '.number_format($order->tax, 0, ',', '.')."\n");
         }
 
         // Total
         $p->setEmphasis(true);
         $p->setTextSize(1, 1);
-        $p->text(str_repeat('=', $width) . "\n");
-        $p->text("TOTAL: Rp " . number_format($order->total, 0, ',', '.') . "\n");
-        $p->text(str_repeat('=', $width) . "\n");
+        $p->text(str_repeat('=', $width)."\n");
+        $p->text('TOTAL: Rp '.number_format($order->total, 0, ',', '.')."\n");
+        $p->text(str_repeat('=', $width)."\n");
         $p->setEmphasis(false);
         $p->setTextSize(1, 1);
     }
@@ -333,17 +338,17 @@ class ReceiptTemplateService
 
         $p->text("\n");
         $p->setJustification(Printer::JUSTIFY_LEFT);
-        $p->text("Payment Method: " . ucfirst($order->payment_method ?? 'N/A') . "\n");
+        $p->text('Payment Method: '.ucfirst($order->payment_method ?? 'N/A')."\n");
 
         if ($order->paid_amount) {
-            $p->text("Paid: Rp " . number_format($order->paid_amount, 0, ',', '.') . "\n");
+            $p->text('Paid: Rp '.number_format($order->paid_amount, 0, ',', '.')."\n");
         }
 
         if ($order->change_amount > 0) {
-            $p->text("Change: Rp " . number_format($order->change_amount, 0, ',', '.') . "\n");
+            $p->text('Change: Rp '.number_format($order->change_amount, 0, ',', '.')."\n");
         }
 
-        $p->text(str_repeat('-', $this->getLineWidth()) . "\n");
+        $p->text(str_repeat('-', $this->getLineWidth())."\n");
     }
 
     /**
@@ -357,7 +362,7 @@ class ReceiptTemplateService
 
         // Thank you message
         $footerMessage = config('pos_printer.receipt.footer_text', 'Thank you for your purchase!');
-        $p->text($footerMessage . "\n");
+        $p->text($footerMessage."\n");
 
         // Return policy
         $p->setTextSize(1, 1);
@@ -367,7 +372,7 @@ class ReceiptTemplateService
         // Website/Social media
         $website = config('app.url', '');
         if ($website) {
-            $p->text("\n" . parse_url($website, PHP_URL_HOST) . "\n");
+            $p->text("\n".parse_url($website, PHP_URL_HOST)."\n");
         }
 
         $p->feed(2);
@@ -407,10 +412,12 @@ class ReceiptTemplateService
             };
 
             $printer = new Printer($connector);
+
             return new self($printer, $paperWidth);
 
         } catch (\Exception $e) {
             Log::error("Failed to create printer: {$e->getMessage()}");
+
             return null;
         }
     }

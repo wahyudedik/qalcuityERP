@@ -9,6 +9,7 @@ use Eris\Generators;
 use Eris\TestTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Config;
 use ReflectionClass;
@@ -45,16 +46,16 @@ class ProviderOutputFormatTest extends TestCase
         Config::set('ai.providers.anthropic.max_tokens', 8192);
         Config::set('ai.providers.anthropic.timeout', 60);
 
-        $provider = new AnthropicProvider();
+        $provider = new AnthropicProvider;
 
         // Callable handler yang selalu mengembalikan response sukses —
         // tidak habis seperti MockHandler, cocok untuk property tests dengan
         // banyak iterasi.
         $alwaysSuccessHandler = function ($request, $options) {
-            return new \GuzzleHttp\Promise\FulfilledPromise(
+            return new FulfilledPromise(
                 new Response(200, ['Content-Type' => 'application/json'], json_encode([
                     'content' => [['type' => 'text', 'text' => 'response text from anthropic']],
-                    'model'   => 'claude-3-5-sonnet-20241022',
+                    'model' => 'claude-3-5-sonnet-20241022',
                 ]))
             );
         };
@@ -84,13 +85,14 @@ class ProviderOutputFormatTest extends TestCase
      */
     private function makeGeminiProviderDouble(): AiProvider
     {
-        return new class implements AiProvider {
+        return new class implements AiProvider
+        {
             public function generate(string $prompt, array $options = []): array
             {
                 // Simulasi output GeminiProvider::generate() yang sebenarnya
                 // mengembalikan ['text' => string, 'model' => string]
                 return [
-                    'text'  => 'Respons dari Gemini untuk prompt: ' . mb_substr($prompt, 0, 50),
+                    'text' => 'Respons dari Gemini untuk prompt: '.mb_substr($prompt, 0, 50),
                     'model' => 'gemini-2.5-flash',
                 ];
             }
@@ -158,7 +160,7 @@ class ProviderOutputFormatTest extends TestCase
                 // Output harus berupa array
                 $this->assertIsArray(
                     $result,
-                    "AnthropicProvider::generate() harus mengembalikan array untuk prompt: " . json_encode(mb_substr($prompt, 0, 50))
+                    'AnthropicProvider::generate() harus mengembalikan array untuk prompt: '.json_encode(mb_substr($prompt, 0, 50))
                 );
 
                 // Harus memiliki key 'text'
@@ -221,7 +223,7 @@ class ProviderOutputFormatTest extends TestCase
                 // Output harus berupa array
                 $this->assertIsArray(
                     $result,
-                    "GeminiProvider::generate() harus mengembalikan array untuk prompt: " . json_encode(mb_substr($prompt, 0, 50))
+                    'GeminiProvider::generate() harus mengembalikan array untuk prompt: '.json_encode(mb_substr($prompt, 0, 50))
                 );
 
                 // Harus memiliki key 'text'
@@ -271,7 +273,7 @@ class ProviderOutputFormatTest extends TestCase
     public function test_both_providers_return_identical_output_structure(): void
     {
         $anthropicProvider = $this->makeAnthropicProviderWithMockClient();
-        $geminiDouble      = $this->makeGeminiProviderDouble();
+        $geminiDouble = $this->makeGeminiProviderDouble();
 
         $this
             ->forAll(
@@ -279,15 +281,15 @@ class ProviderOutputFormatTest extends TestCase
             )
             ->then(function (string $prompt) use ($anthropicProvider, $geminiDouble) {
                 $anthropicResult = $anthropicProvider->generate($prompt);
-                $geminiResult    = $geminiDouble->generate($prompt);
+                $geminiResult = $geminiDouble->generate($prompt);
 
                 // Kedua hasil harus berupa array
-                $this->assertIsArray($anthropicResult, "AnthropicProvider harus mengembalikan array");
-                $this->assertIsArray($geminiResult, "GeminiProvider harus mengembalikan array");
+                $this->assertIsArray($anthropicResult, 'AnthropicProvider harus mengembalikan array');
+                $this->assertIsArray($geminiResult, 'GeminiProvider harus mengembalikan array');
 
                 // Kedua hasil harus memiliki key yang sama
                 $anthropicKeys = array_keys($anthropicResult);
-                $geminiKeys    = array_keys($geminiResult);
+                $geminiKeys = array_keys($geminiResult);
 
                 $this->assertContains('text', $anthropicKeys, "AnthropicProvider output harus memiliki key 'text'");
                 $this->assertContains('model', $anthropicKeys, "AnthropicProvider output harus memiliki key 'model'");

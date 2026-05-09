@@ -4,6 +4,7 @@ namespace App\Services\Audit;
 
 use App\DTOs\Audit\AuditFinding;
 use App\DTOs\Audit\Severity;
+use Illuminate\Routing\Route;
 
 /**
  * Analyzes route definitions for security and integrity issues:
@@ -81,8 +82,8 @@ class RouteAnalyzer implements AnalyzerInterface
     ];
 
     /**
-     * @param string[]|null $routeFiles  Paths to route files (for static parsing fallback)
-     * @param string|null   $basePath    Project root path
+     * @param  string[]|null  $routeFiles  Paths to route files (for static parsing fallback)
+     * @param  string|null  $basePath  Project root path
      */
     public function __construct(?array $routeFiles = null, ?string $basePath = null)
     {
@@ -97,8 +98,8 @@ class RouteAnalyzer implements AnalyzerInterface
         }
 
         $this->routeFiles = $routeFiles ?? [
-            $this->basePath . '/routes/web.php',
-            $this->basePath . '/routes/api.php',
+            $this->basePath.'/routes/web.php',
+            $this->basePath.'/routes/api.php',
         ];
     }
 
@@ -163,7 +164,7 @@ class RouteAnalyzer implements AnalyzerInterface
             $method = strtoupper($route['method']);
 
             // Only check data-modifying methods
-            if (!in_array($method, self::DATA_MODIFYING_METHODS, true)) {
+            if (! in_array($method, self::DATA_MODIFYING_METHODS, true)) {
                 continue;
             }
 
@@ -187,9 +188,9 @@ class RouteAnalyzer implements AnalyzerInterface
             $severity = $hasAuth ? Severity::Medium : Severity::Critical;
             $description = $hasAuth
                 ? "Route {$method} {$uri} has auth middleware but lacks specific permission/role middleware. "
-                . "Any authenticated user can access this data-modifying endpoint."
+                .'Any authenticated user can access this data-modifying endpoint.'
                 : "Route {$method} {$uri} has NO authentication or permission middleware. "
-                . "This data-modifying endpoint is publicly accessible.";
+                .'This data-modifying endpoint is publicly accessible.';
 
             $findings[] = new AuditFinding(
                 category: $this->category(),
@@ -227,7 +228,7 @@ class RouteAnalyzer implements AnalyzerInterface
             $action = $route['action'];
 
             // Skip closure routes (no controller reference)
-            if ($action === 'Closure' || !str_contains($action, '@')) {
+            if ($action === 'Closure' || ! str_contains($action, '@')) {
                 continue;
             }
 
@@ -239,16 +240,16 @@ class RouteAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Missing controller: {$controllerClass}",
                     description: "Route '{$route['method']} {$route['uri']}' references controller "
-                        . "'{$controllerClass}' but the controller file does not exist at '{$this->relativePath($filePath)}'.",
+                        ."'{$controllerClass}' but the controller file does not exist at '{$this->relativePath($filePath)}'.",
                     file: null,
                     line: null,
-                    recommendation: "Create the controller class or update the route to point to an existing controller.",
+                    recommendation: 'Create the controller class or update the route to point to an existing controller.',
                     metadata: [
                         'method' => $route['method'],
                         'uri' => $route['uri'],
@@ -256,18 +257,19 @@ class RouteAnalyzer implements AnalyzerInterface
                         'expected_file' => $this->relativePath($filePath),
                     ],
                 );
+
                 continue;
             }
 
             // Check if the method exists in the controller file
-            if (!$this->controllerHasMethod($filePath, $methodName)) {
+            if (! $this->controllerHasMethod($filePath, $methodName)) {
                 $shortClass = $this->shortClassName($controllerClass);
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Missing method: {$shortClass}@{$methodName}",
                     description: "Route '{$route['method']} {$route['uri']}' references method "
-                        . "'{$methodName}()' in '{$controllerClass}', but the method does not exist.",
+                        ."'{$methodName}()' in '{$controllerClass}', but the method does not exist.",
                     file: $this->relativePath($filePath),
                     line: null,
                     recommendation: "Add the '{$methodName}()' method to {$shortClass} or update the route.",
@@ -303,7 +305,7 @@ class RouteAnalyzer implements AnalyzerInterface
     private function getRoutesFromFacade(): ?array
     {
         try {
-            if (!class_exists(\Illuminate\Support\Facades\Route::class)) {
+            if (! class_exists(\Illuminate\Support\Facades\Route::class)) {
                 return null;
             }
 
@@ -351,15 +353,16 @@ class RouteAnalyzer implements AnalyzerInterface
     /**
      * Resolve all middleware for a route (including group middleware).
      *
-     * @param \Illuminate\Routing\Route $route
+     * @param  Route  $route
      * @return string[]
      */
     private function resolveRouteMiddleware($route): array
     {
         try {
             $middleware = $route->gatherMiddleware();
+
             return array_values(array_unique(
-                array_map(fn($m) => is_string($m) ? $m : get_class($m), $middleware)
+                array_map(fn ($m) => is_string($m) ? $m : get_class($m), $middleware)
             ));
         } catch (\Throwable) {
             return [];
@@ -379,7 +382,7 @@ class RouteAnalyzer implements AnalyzerInterface
         $routes = [];
 
         foreach ($this->routeFiles as $routeFile) {
-            if (!file_exists($routeFile)) {
+            if (! file_exists($routeFile)) {
                 continue;
             }
 
@@ -430,6 +433,7 @@ class RouteAnalyzer implements AnalyzerInterface
                 $closeBraces = substr_count($trimmed, '}');
                 $braceDepth += $openBraces - $closeBraces;
                 $groupDepths[] = $braceDepth;
+
                 continue;
             }
 
@@ -440,7 +444,7 @@ class RouteAnalyzer implements AnalyzerInterface
             $braceDepth += $openBraces - $closeBraces;
 
             // Close groups when their brace depth is exited
-            while (!empty($groupDepths) && $braceDepth < end($groupDepths)) {
+            while (! empty($groupDepths) && $braceDepth < end($groupDepths)) {
                 array_pop($groupDepths);
                 array_pop($middlewareStack);
             }
@@ -519,7 +523,7 @@ class RouteAnalyzer implements AnalyzerInterface
      *   [Controller::class, 'method']
      *   'Controller@method'
      *
-     * @param array<string, string> $useMap
+     * @param  array<string, string>  $useMap
      */
     private function extractActionFromLine(string $line, array $useMap): string
     {
@@ -529,7 +533,7 @@ class RouteAnalyzer implements AnalyzerInterface
             $method = $match[2];
 
             // Resolve short class name via use map
-            if (!str_contains($className, '\\') && isset($useMap[$className])) {
+            if (! str_contains($className, '\\') && isset($useMap[$className])) {
                 $className = $useMap[$className];
             }
 
@@ -541,7 +545,7 @@ class RouteAnalyzer implements AnalyzerInterface
             $className = $match[1];
             $method = $match[2];
 
-            if (!str_contains($className, '\\') && isset($useMap[$className])) {
+            if (! str_contains($className, '\\') && isset($useMap[$className])) {
                 $className = $useMap[$className];
             }
 
@@ -629,7 +633,7 @@ class RouteAnalyzer implements AnalyzerInterface
     /**
      * Check if middleware array contains permission/role/can middleware.
      *
-     * @param string[] $middleware
+     * @param  string[]  $middleware
      */
     private function hasPermissionMiddleware(array $middleware): bool
     {
@@ -647,7 +651,7 @@ class RouteAnalyzer implements AnalyzerInterface
     /**
      * Check if middleware array contains auth middleware.
      *
-     * @param string[] $middleware
+     * @param  string[]  $middleware
      */
     private function hasAuthMiddleware(array $middleware): bool
     {
@@ -690,13 +694,15 @@ class RouteAnalyzer implements AnalyzerInterface
         // Handle App\ namespace -> app/ directory
         if (str_starts_with($className, 'App\\')) {
             $relativePath = str_replace('\\', '/', substr($className, 4));
-            return $this->basePath . "/app/{$relativePath}.php";
+
+            return $this->basePath."/app/{$relativePath}.php";
         }
 
         // Handle fully-qualified inline class references
         if (str_starts_with($className, '\\App\\')) {
             $relativePath = str_replace('\\', '/', substr($className, 5));
-            return $this->basePath . "/app/{$relativePath}.php";
+
+            return $this->basePath."/app/{$relativePath}.php";
         }
 
         return null;
@@ -713,7 +719,8 @@ class RouteAnalyzer implements AnalyzerInterface
         }
 
         // Look for public/protected/private function declaration
-        $pattern = '/\b(?:public|protected|private)\s+(?:static\s+)?function\s+' . preg_quote($methodName, '/') . '\s*\(/';
+        $pattern = '/\b(?:public|protected|private)\s+(?:static\s+)?function\s+'.preg_quote($methodName, '/').'\s*\(/';
+
         return (bool) preg_match($pattern, $content);
     }
 
@@ -741,6 +748,7 @@ class RouteAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -749,7 +757,7 @@ class RouteAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

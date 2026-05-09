@@ -9,13 +9,14 @@ use Throwable;
 
 /**
  * Xendit Payment Gateway Connector
- * 
+ *
  * Handles payment processing with Xendit
  * Supports Virtual Accounts, E-Wallets, Cards
  */
 class XenditConnector extends BaseConnector
 {
     protected string $apiUrl = 'https://api.xendit.co';
+
     protected string $secretKey;
 
     public function __construct(Integration $integration)
@@ -32,12 +33,14 @@ class XenditConnector extends BaseConnector
 
             if ($response->successful()) {
                 $this->integration->markAsActive();
+
                 return true;
             }
 
             return false;
         } catch (Throwable $e) {
             Log::error('Xendit authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -154,6 +157,7 @@ class XenditConnector extends BaseConnector
 
         if ($callbackToken !== $configuredToken) {
             Log::error('Xendit webhook token mismatch');
+
             return;
         }
 
@@ -176,14 +180,17 @@ class XenditConnector extends BaseConnector
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncOrders(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncInventory(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function registerWebhooks(): array
     {
         return ['success' => true, 'registered' => []];

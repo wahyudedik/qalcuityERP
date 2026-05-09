@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * BUG-API-003 FIX: Add tracking fields to marketplace_sync_logs
      */
@@ -31,7 +32,7 @@ return new class extends Migration {
             if (Schema::hasTable($tableName)) {
                 Schema::table($tableName, function (Blueprint $table) use ($columns, $tableName) {
                     foreach ($columns as $columnName => $definition) {
-                        if (!Schema::hasColumn($tableName, $columnName)) {
+                        if (! Schema::hasColumn($tableName, $columnName)) {
                             $definition($table);
                         }
                     }

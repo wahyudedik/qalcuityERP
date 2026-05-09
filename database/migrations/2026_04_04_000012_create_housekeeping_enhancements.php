@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Create linen_inventories table
-        if (!Schema::hasTable('linen_inventories')) {
+        if (! Schema::hasTable('linen_inventories')) {
             Schema::create('linen_inventories', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -33,13 +34,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'category']);
             });
         }
 
         // Create linen_movements table
-        if (!Schema::hasTable('linen_movements')) {
+        if (! Schema::hasTable('linen_movements')) {
             Schema::create('linen_movements', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -52,14 +53,14 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'movement_type']);
                 $table->index(['linen_inventory_id', 'created_at']);
             });
         }
 
         // Create room_inspection_checklists table
-        if (!Schema::hasTable('room_inspection_checklists')) {
+        if (! Schema::hasTable('room_inspection_checklists')) {
             Schema::create('room_inspection_checklists', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -71,7 +72,7 @@ return new class extends Migration {
                 $table->text('general_notes')->nullable();
                 $table->json('photos')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'inspected_at']);
                 $table->index(['room_id', 'inspected_at']);
             });

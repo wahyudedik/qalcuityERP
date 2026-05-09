@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessMarketplaceWebhook;
 use App\Models\EcommerceChannel;
 use App\Models\EcommerceWebhookLog;
-use App\Jobs\ProcessMarketplaceWebhook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -35,19 +35,19 @@ class MarketplaceWebhookController extends Controller
         }
 
         $log = EcommerceWebhookLog::create([
-            'tenant_id'  => $channel?->tenant_id,
+            'tenant_id' => $channel?->tenant_id,
             'channel_id' => $channel?->id,
-            'platform'   => 'shopee',
+            'platform' => 'shopee',
             'event_type' => $payload['event'] ?? $payload['type'] ?? 'unknown',
-            'payload'    => $payload,
-            'signature'  => $signature,
-            'is_valid'   => $isValid,
+            'payload' => $payload,
+            'signature' => $signature,
+            'is_valid' => $isValid,
         ]);
 
         if ($isValid && $channel) {
             ProcessMarketplaceWebhook::dispatch($log->id);
         } else {
-            Log::warning("Invalid Shopee webhook received", ['shop_id' => $shopId, 'valid' => $isValid]);
+            Log::warning('Invalid Shopee webhook received', ['shop_id' => $shopId, 'valid' => $isValid]);
         }
 
         return response()->json(['status' => 'ok']);
@@ -75,19 +75,19 @@ class MarketplaceWebhookController extends Controller
         }
 
         $log = EcommerceWebhookLog::create([
-            'tenant_id'  => $channel?->tenant_id,
+            'tenant_id' => $channel?->tenant_id,
             'channel_id' => $channel?->id,
-            'platform'   => 'tokopedia',
+            'platform' => 'tokopedia',
             'event_type' => $payload['type'] ?? $payload['action'] ?? 'unknown',
-            'payload'    => $payload,
-            'signature'  => $signature,
-            'is_valid'   => $isValid,
+            'payload' => $payload,
+            'signature' => $signature,
+            'is_valid' => $isValid,
         ]);
 
         if ($isValid && $channel) {
             ProcessMarketplaceWebhook::dispatch($log->id);
         } else {
-            Log::warning("Invalid Tokopedia webhook received", ['shop_id' => $shopId]);
+            Log::warning('Invalid Tokopedia webhook received', ['shop_id' => $shopId]);
         }
 
         return response()->json(['status' => 'ok']);
@@ -116,19 +116,19 @@ class MarketplaceWebhookController extends Controller
         }
 
         $log = EcommerceWebhookLog::create([
-            'tenant_id'  => $channel?->tenant_id,
+            'tenant_id' => $channel?->tenant_id,
             'channel_id' => $channel?->id,
-            'platform'   => 'lazada',
+            'platform' => 'lazada',
             'event_type' => $payload['message_type'] ?? $payload['type'] ?? 'unknown',
-            'payload'    => $payload,
-            'signature'  => $signature,
-            'is_valid'   => $isValid,
+            'payload' => $payload,
+            'signature' => $signature,
+            'is_valid' => $isValid,
         ]);
 
         if ($isValid && $channel) {
             ProcessMarketplaceWebhook::dispatch($log->id);
         } else {
-            Log::warning("Invalid Lazada webhook received", ['seller_id' => $sellerId]);
+            Log::warning('Invalid Lazada webhook received', ['seller_id' => $sellerId]);
         }
 
         return response()->json(['status' => 'ok']);

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\CropCycle;
 use App\Models\FarmPlot;
 use App\Models\FarmPlotActivity;
 use App\Models\HarvestLog;
@@ -16,9 +15,11 @@ class FarmAnalyticsService
     public function plotCostBreakdown(int $plotId, ?int $cycleId = null): array
     {
         $query = FarmPlotActivity::where('farm_plot_id', $plotId);
-        if ($cycleId) $query->where('crop_cycle_id', $cycleId);
+        if ($cycleId) {
+            $query->where('crop_cycle_id', $cycleId);
+        }
 
-        $byType = $query->selectRaw("activity_type, SUM(cost) as total_cost, SUM(input_quantity) as total_input, COUNT(*) as sessions")
+        $byType = $query->selectRaw('activity_type, SUM(cost) as total_cost, SUM(input_quantity) as total_input, COUNT(*) as sessions')
             ->groupBy('activity_type')
             ->orderByDesc('total_cost')
             ->get();
@@ -26,11 +27,11 @@ class FarmAnalyticsService
         $totalCost = $byType->sum('total_cost');
 
         return $byType->map(fn ($row) => [
-            'activity'  => $row->activity_type,
-            'label'     => FarmPlotActivity::ACTIVITY_TYPES[$row->activity_type] ?? $row->activity_type,
-            'cost'      => (float) $row->total_cost,
-            'pct'       => $totalCost > 0 ? round($row->total_cost / $totalCost * 100, 1) : 0,
-            'sessions'  => $row->sessions,
+            'activity' => $row->activity_type,
+            'label' => FarmPlotActivity::ACTIVITY_TYPES[$row->activity_type] ?? $row->activity_type,
+            'cost' => (float) $row->total_cost,
+            'pct' => $totalCost > 0 ? round($row->total_cost / $totalCost * 100, 1) : 0,
+            'sessions' => $row->sessions,
         ])->toArray();
     }
 
@@ -40,7 +41,9 @@ class FarmAnalyticsService
     public function costPerHectare(FarmPlot $plot, ?int $cycleId = null): float
     {
         $query = FarmPlotActivity::where('farm_plot_id', $plot->id);
-        if ($cycleId) $query->where('crop_cycle_id', $cycleId);
+        if ($cycleId) {
+            $query->where('crop_cycle_id', $cycleId);
+        }
         $totalCost = (float) $query->sum('cost');
 
         // Add rent cost if applicable
@@ -57,20 +60,28 @@ class FarmAnalyticsService
     public function hppPerKg(FarmPlot $plot, ?int $cycleId = null): ?float
     {
         $query = FarmPlotActivity::where('farm_plot_id', $plot->id);
-        if ($cycleId) $query->where('crop_cycle_id', $cycleId);
+        if ($cycleId) {
+            $query->where('crop_cycle_id', $cycleId);
+        }
         $totalCost = (float) $query->sum('cost');
 
-        if ($plot->ownership === 'rented') $totalCost += (float) $plot->rent_cost;
+        if ($plot->ownership === 'rented') {
+            $totalCost += (float) $plot->rent_cost;
+        }
 
         // Get harvest from harvest_logs (more accurate) or activities
         $harvestQuery = HarvestLog::where('farm_plot_id', $plot->id);
-        if ($cycleId) $harvestQuery->where('crop_cycle_id', $cycleId);
+        if ($cycleId) {
+            $harvestQuery->where('crop_cycle_id', $cycleId);
+        }
         $totalHarvest = (float) $harvestQuery->sum(DB::raw('total_qty - reject_qty'));
 
         if ($totalHarvest <= 0) {
             // Fallback to activities
             $actQuery = FarmPlotActivity::where('farm_plot_id', $plot->id)->where('activity_type', 'harvesting');
-            if ($cycleId) $actQuery->where('crop_cycle_id', $cycleId);
+            if ($cycleId) {
+                $actQuery->where('crop_cycle_id', $cycleId);
+            }
             $totalHarvest = (float) $actQuery->sum('harvest_qty');
         }
 
@@ -83,12 +94,16 @@ class FarmAnalyticsService
     public function yieldPerHectare(FarmPlot $plot, ?int $cycleId = null): float
     {
         $harvestQuery = HarvestLog::where('farm_plot_id', $plot->id);
-        if ($cycleId) $harvestQuery->where('crop_cycle_id', $cycleId);
+        if ($cycleId) {
+            $harvestQuery->where('crop_cycle_id', $cycleId);
+        }
         $totalHarvest = (float) $harvestQuery->sum(DB::raw('total_qty - reject_qty'));
 
         if ($totalHarvest <= 0) {
             $actQuery = FarmPlotActivity::where('farm_plot_id', $plot->id)->where('activity_type', 'harvesting');
-            if ($cycleId) $actQuery->where('crop_cycle_id', $cycleId);
+            if ($cycleId) {
+                $actQuery->where('crop_cycle_id', $cycleId);
+            }
             $totalHarvest = (float) $actQuery->sum('harvest_qty');
         }
 
@@ -104,7 +119,9 @@ class FarmAnalyticsService
 
         return $plots->map(function ($plot) {
             $totalCost = (float) FarmPlotActivity::where('farm_plot_id', $plot->id)->sum('cost');
-            if ($plot->ownership === 'rented') $totalCost += (float) $plot->rent_cost;
+            if ($plot->ownership === 'rented') {
+                $totalCost += (float) $plot->rent_cost;
+            }
 
             $totalHarvest = (float) HarvestLog::where('farm_plot_id', $plot->id)->sum(DB::raw('total_qty - reject_qty'));
             if ($totalHarvest <= 0) {
@@ -119,19 +136,19 @@ class FarmAnalyticsService
             $hpp = $totalHarvest > 0 ? round($totalCost / $totalHarvest, 2) : null;
 
             return [
-                'code'           => $plot->code,
-                'name'           => $plot->name,
-                'area'           => $plot->area_size . ' ' . $plot->area_unit,
-                'crop'           => $plot->current_crop ?? '-',
-                'status'         => $plot->statusLabel(),
-                'total_cost'     => $totalCost,
-                'total_harvest'  => $totalHarvest,
-                'total_reject'   => $totalReject,
-                'harvest_sessions'=> $harvestSessions,
-                'cost_per_ha'    => $costPerHa,
-                'yield_per_ha'   => $yieldPerHa,
-                'hpp_per_kg'     => $hpp,
-                'reject_pct'     => ($totalHarvest + $totalReject) > 0 ? round($totalReject / ($totalHarvest + $totalReject) * 100, 1) : 0,
+                'code' => $plot->code,
+                'name' => $plot->name,
+                'area' => $plot->area_size.' '.$plot->area_unit,
+                'crop' => $plot->current_crop ?? '-',
+                'status' => $plot->statusLabel(),
+                'total_cost' => $totalCost,
+                'total_harvest' => $totalHarvest,
+                'total_reject' => $totalReject,
+                'harvest_sessions' => $harvestSessions,
+                'cost_per_ha' => $costPerHa,
+                'yield_per_ha' => $yieldPerHa,
+                'hpp_per_kg' => $hpp,
+                'reject_pct' => ($totalHarvest + $totalReject) > 0 ? round($totalReject / ($totalHarvest + $totalReject) * 100, 1) : 0,
             ];
         })->toArray();
     }

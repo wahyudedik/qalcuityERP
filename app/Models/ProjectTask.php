@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ProjectTask extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'project_id', 'tenant_id', 'assigned_to', 'name', 'description',
         'status', 'progress_method', 'target_volume', 'actual_volume', 'volume_unit',
@@ -20,18 +20,33 @@ class ProjectTask extends Model
     protected function casts(): array
     {
         return [
-            'due_date'      => 'date',
-            'budget'        => 'decimal:2',
-            'actual_cost'   => 'decimal:2',
+            'due_date' => 'date',
+            'budget' => 'decimal:2',
+            'actual_cost' => 'decimal:2',
             'target_volume' => 'decimal:3',
             'actual_volume' => 'decimal:3',
         ];
     }
 
-    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function assignedTo(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
-    public function volumeLogs(): HasMany { return $this->hasMany(TaskVolumeLog::class)->orderByDesc('date'); }
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function volumeLogs(): HasMany
+    {
+        return $this->hasMany(TaskVolumeLog::class)->orderByDesc('date');
+    }
 
     /**
      * Is this task tracked by volume?
@@ -46,7 +61,10 @@ class ProjectTask extends Model
      */
     public function volumeProgress(): float
     {
-        if (!$this->isVolumeTracked()) return 0;
+        if (! $this->isVolumeTracked()) {
+            return 0;
+        }
+
         return min(100, round(($this->actual_volume / $this->target_volume) * 100, 1));
     }
 
@@ -65,17 +83,19 @@ class ProjectTask extends Model
      */
     public function effectiveProgress(): float
     {
-        if ($this->status === 'cancelled') return 0;
+        if ($this->status === 'cancelled') {
+            return 0;
+        }
 
         if ($this->isVolumeTracked()) {
             return $this->volumeProgress();
         }
 
         return match ($this->status) {
-            'done'        => 100,
+            'done' => 100,
             'in_progress' => 50,
-            'review'      => 75,
-            default       => 0,
+            'review' => 75,
+            default => 0,
         };
     }
 
@@ -84,13 +104,15 @@ class ProjectTask extends Model
      */
     public function syncStatusFromVolume(): void
     {
-        if (!$this->isVolumeTracked()) return;
+        if (! $this->isVolumeTracked()) {
+            return;
+        }
 
         $pct = $this->volumeProgress();
         $newStatus = match (true) {
             $pct >= 100 => 'done',
-            $pct > 0    => 'in_progress',
-            default     => $this->status,
+            $pct > 0 => 'in_progress',
+            default => $this->status,
         };
 
         if ($newStatus !== $this->status && $this->status !== 'cancelled') {

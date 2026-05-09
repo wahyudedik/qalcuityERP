@@ -70,7 +70,7 @@ class ModelAnalyzer implements AnalyzerInterface
                 $this->basePath = getcwd();
             }
         }
-        $this->modelPath = $modelPath ?? ($this->basePath . '/app/Models');
+        $this->modelPath = $modelPath ?? ($this->basePath.'/app/Models');
     }
 
     /**
@@ -94,13 +94,13 @@ class ModelAnalyzer implements AnalyzerInterface
     /**
      * Analyze a single model class by its fully-qualified class name.
      *
-     * @param string $modelClass Fully-qualified class name
+     * @param  string  $modelClass  Fully-qualified class name
      * @return AuditFinding[]
      */
     public function analyzeModel(string $modelClass): array
     {
         $filePath = $this->resolveFilePath($modelClass);
-        if ($filePath === null || !file_exists($filePath)) {
+        if ($filePath === null || ! file_exists($filePath)) {
             return [];
         }
 
@@ -110,7 +110,7 @@ class ModelAnalyzer implements AnalyzerInterface
     /**
      * Analyze a single model file by its file path.
      *
-     * @param string $filePath Absolute path to the model PHP file
+     * @param  string  $filePath  Absolute path to the model PHP file
      * @return AuditFinding[]
      */
     private function analyzeFile(string $filePath): array
@@ -122,13 +122,14 @@ class ModelAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Low,
-                title: "Unreadable model file",
+                title: 'Unreadable model file',
                 description: "Could not read model file: {$filePath}.",
                 file: $this->relativePath($filePath),
                 line: null,
-                recommendation: "Check file permissions.",
+                recommendation: 'Check file permissions.',
                 metadata: ['file' => $filePath],
             );
+
             return $findings;
         }
 
@@ -174,16 +175,15 @@ class ModelAnalyzer implements AnalyzerInterface
      * Detects models that have 'tenant_id' in $fillable or reference tenant_id
      * but don't use the BelongsToTenant trait.
      *
-     * @param string $modelClass Fully-qualified class name
-     * @param string|null $sourceCode Source code (if null, reads from file)
-     * @param string|null $filePath File path for reporting
-     * @return AuditFinding|null
+     * @param  string  $modelClass  Fully-qualified class name
+     * @param  string|null  $sourceCode  Source code (if null, reads from file)
+     * @param  string|null  $filePath  File path for reporting
      */
     public function checkTenantTrait(string $modelClass, ?string $sourceCode = null, ?string $filePath = null): ?AuditFinding
     {
         if ($sourceCode === null) {
             $filePath = $filePath ?? $this->resolveFilePath($modelClass);
-            if ($filePath === null || !file_exists($filePath)) {
+            if ($filePath === null || ! file_exists($filePath)) {
                 return null;
             }
             $sourceCode = @file_get_contents($filePath);
@@ -194,7 +194,7 @@ class ModelAnalyzer implements AnalyzerInterface
 
         // Check if model references tenant_id in $fillable or as a column
         $hasTenantId = $this->modelReferencesTenantId($sourceCode);
-        if (!$hasTenantId) {
+        if (! $hasTenantId) {
             return null;
         }
 
@@ -212,8 +212,8 @@ class ModelAnalyzer implements AnalyzerInterface
             severity: Severity::Critical,
             title: "Missing BelongsToTenant trait on {$shortClass}",
             description: "Model {$shortClass} references tenant_id but does not use the BelongsToTenant trait. "
-                . "This means queries on this model are NOT automatically scoped by tenant, "
-                . "creating a potential data leakage vulnerability.",
+                .'This means queries on this model are NOT automatically scoped by tenant, '
+                .'creating a potential data leakage vulnerability.',
             file: $filePath ? $this->relativePath($filePath) : null,
             line: $line,
             recommendation: "Add `use BelongsToTenant;` to the {$shortClass} model class.",
@@ -227,16 +227,15 @@ class ModelAnalyzer implements AnalyzerInterface
     /**
      * Check if a model uses $guarded = [] (empty guarded array).
      *
-     * @param string $modelClass Fully-qualified class name
-     * @param string|null $sourceCode Source code (if null, reads from file)
-     * @param string|null $filePath File path for reporting
-     * @return AuditFinding|null
+     * @param  string  $modelClass  Fully-qualified class name
+     * @param  string|null  $sourceCode  Source code (if null, reads from file)
+     * @param  string|null  $filePath  File path for reporting
      */
     public function checkMassAssignment(string $modelClass, ?string $sourceCode = null, ?string $filePath = null): ?AuditFinding
     {
         if ($sourceCode === null) {
             $filePath = $filePath ?? $this->resolveFilePath($modelClass);
-            if ($filePath === null || !file_exists($filePath)) {
+            if ($filePath === null || ! file_exists($filePath)) {
                 return null;
             }
             $sourceCode = @file_get_contents($filePath);
@@ -246,7 +245,7 @@ class ModelAnalyzer implements AnalyzerInterface
         }
 
         // Check for $guarded = [] pattern
-        if (!preg_match('/\$guarded\s*=\s*\[\s*\]/', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
+        if (! preg_match('/\$guarded\s*=\s*\[\s*\]/', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
             return null;
         }
 
@@ -258,11 +257,11 @@ class ModelAnalyzer implements AnalyzerInterface
             severity: Severity::High,
             title: "Overly permissive mass assignment in {$shortClass}",
             description: "Model {$shortClass} uses \$guarded = [] which allows mass assignment of ALL fields. "
-                . "This is a security vulnerability that could allow attackers to set sensitive fields "
-                . "like tenant_id, is_admin, or role via mass assignment.",
+                .'This is a security vulnerability that could allow attackers to set sensitive fields '
+                .'like tenant_id, is_admin, or role via mass assignment.',
             file: $filePath ? $this->relativePath($filePath) : null,
             line: $line,
-            recommendation: "Replace \$guarded = [] with an explicit \$fillable array listing only the fields that should be mass-assignable.",
+            recommendation: 'Replace $guarded = [] with an explicit $fillable array listing only the fields that should be mass-assignable.',
             metadata: [
                 'model' => $modelClass,
                 'check' => 'mass_assignment',
@@ -276,9 +275,9 @@ class ModelAnalyzer implements AnalyzerInterface
      * Parses relationship method definitions and verifies the referenced
      * model class exists in the project.
      *
-     * @param string $modelClass Fully-qualified class name
-     * @param string|null $sourceCode Source code (if null, reads from file)
-     * @param string|null $filePath File path for reporting
+     * @param  string  $modelClass  Fully-qualified class name
+     * @param  string|null  $sourceCode  Source code (if null, reads from file)
+     * @param  string|null  $filePath  File path for reporting
      * @return AuditFinding[]
      */
     public function checkRelationships(string $modelClass, ?string $sourceCode = null, ?string $filePath = null): array
@@ -287,7 +286,7 @@ class ModelAnalyzer implements AnalyzerInterface
 
         if ($sourceCode === null) {
             $filePath = $filePath ?? $this->resolveFilePath($modelClass);
-            if ($filePath === null || !file_exists($filePath)) {
+            if ($filePath === null || ! file_exists($filePath)) {
                 return $findings;
             }
             $sourceCode = @file_get_contents($filePath);
@@ -325,8 +324,8 @@ class ModelAnalyzer implements AnalyzerInterface
                 severity: Severity::Medium,
                 title: "Missing referenced model in {$shortClass}::{$methodName}()",
                 description: "Relationship {$methodName}() in {$shortClass} references model class "
-                    . "'{$referencedClass}' which could not be found in the project. "
-                    . "This may indicate a typo, a missing model, or an incorrect namespace.",
+                    ."'{$referencedClass}' which could not be found in the project. "
+                    .'This may indicate a typo, a missing model, or an incorrect namespace.',
                 file: $filePath ? $this->relativePath($filePath) : null,
                 line: $rel['line'],
                 recommendation: "Verify that the model class '{$referencedClass}' exists and the namespace is correct.",
@@ -346,16 +345,15 @@ class ModelAnalyzer implements AnalyzerInterface
     /**
      * Check if a critical business entity is missing the SoftDeletes trait.
      *
-     * @param string $modelClass Fully-qualified class name
-     * @param string|null $sourceCode Source code (if null, reads from file)
-     * @param string|null $filePath File path for reporting
-     * @return AuditFinding|null
+     * @param  string  $modelClass  Fully-qualified class name
+     * @param  string|null  $sourceCode  Source code (if null, reads from file)
+     * @param  string|null  $filePath  File path for reporting
      */
     public function checkSoftDeletes(string $modelClass, ?string $sourceCode = null, ?string $filePath = null): ?AuditFinding
     {
         if ($sourceCode === null) {
             $filePath = $filePath ?? $this->resolveFilePath($modelClass);
-            if ($filePath === null || !file_exists($filePath)) {
+            if ($filePath === null || ! file_exists($filePath)) {
                 return null;
             }
             $sourceCode = @file_get_contents($filePath);
@@ -367,7 +365,7 @@ class ModelAnalyzer implements AnalyzerInterface
         $shortClass = $this->shortClassName($modelClass);
 
         // Only check critical entities
-        if (!in_array($shortClass, self::CRITICAL_ENTITIES, true)) {
+        if (! in_array($shortClass, self::CRITICAL_ENTITIES, true)) {
             return null;
         }
 
@@ -382,8 +380,8 @@ class ModelAnalyzer implements AnalyzerInterface
             severity: Severity::High,
             title: "Missing SoftDeletes on critical entity {$shortClass}",
             description: "Critical business entity {$shortClass} does not use the SoftDeletes trait. "
-                . "Accidental or malicious deletion of {$shortClass} records would result in permanent data loss "
-                . "with no ability to recover.",
+                ."Accidental or malicious deletion of {$shortClass} records would result in permanent data loss "
+                .'with no ability to recover.',
             file: $filePath ? $this->relativePath($filePath) : null,
             line: null,
             recommendation: "Add `use SoftDeletes;` to the {$shortClass} model and ensure the database table has a `deleted_at` column.",
@@ -415,7 +413,7 @@ class ModelAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($this->modelPath)) {
+        if (! is_dir($this->modelPath)) {
             return $files;
         }
 
@@ -427,7 +425,7 @@ class ModelAnalyzer implements AnalyzerInterface
         foreach ($iterator as $file) {
             if ($file->isFile() && $file->getExtension() === 'php') {
                 // Skip Concerns/ and Scopes/ subdirectories (traits, not models)
-                $relativePath = str_replace($this->modelPath . '/', '', $file->getPathname());
+                $relativePath = str_replace($this->modelPath.'/', '', $file->getPathname());
                 if (str_starts_with($relativePath, 'Concerns/') || str_starts_with($relativePath, 'Scopes/')) {
                     continue;
                 }
@@ -472,7 +470,8 @@ class ModelAnalyzer implements AnalyzerInterface
     {
         if (str_starts_with($className, 'App\\')) {
             $relativePath = str_replace('\\', '/', substr($className, 4));
-            return $this->basePath . "/app/{$relativePath}.php";
+
+            return $this->basePath."/app/{$relativePath}.php";
         }
 
         return null;
@@ -496,7 +495,7 @@ class ModelAnalyzer implements AnalyzerInterface
         }
 
         // Default: assume App\Models namespace
-        return $this->basePath . "/app/Models/{$referencedClass}.php";
+        return $this->basePath."/app/Models/{$referencedClass}.php";
     }
 
     /**
@@ -506,13 +505,13 @@ class ModelAnalyzer implements AnalyzerInterface
     {
         // Match: use Some\Namespace\ClassName;
         // Match: use Some\Namespace\ClassName as Alias;
-        $pattern = '/^\s*use\s+([^;]+\\\\' . preg_quote($shortName, '/') . ')\s*;/m';
+        $pattern = '/^\s*use\s+([^;]+\\\\'.preg_quote($shortName, '/').')\s*;/m';
         if (preg_match($pattern, $sourceCode, $matches)) {
             return trim($matches[1]);
         }
 
         // Check for aliased imports
-        $aliasPattern = '/^\s*use\s+([^;]+)\s+as\s+' . preg_quote($shortName, '/') . '\s*;/m';
+        $aliasPattern = '/^\s*use\s+([^;]+)\s+as\s+'.preg_quote($shortName, '/').'\s*;/m';
         if (preg_match($aliasPattern, $sourceCode, $matches)) {
             return trim($matches[1]);
         }
@@ -561,9 +560,9 @@ class ModelAnalyzer implements AnalyzerInterface
         // Also match: use SoftDeletes, AuditsChanges;
         $patterns = [
             // Direct use statement: use TraitName;
-            '/\buse\s+[^;]*\b' . preg_quote($traitName, '/') . '\b[^;]*;/',
+            '/\buse\s+[^;]*\b'.preg_quote($traitName, '/').'\b[^;]*;/',
             // Fully qualified: use \App\Traits\TraitName;
-            '/\buse\s+[^;]*\\\\' . preg_quote($traitName, '/') . '\b[^;]*;/',
+            '/\buse\s+[^;]*\\\\'.preg_quote($traitName, '/').'\b[^;]*;/',
         ];
 
         foreach ($patterns as $pattern) {
@@ -587,7 +586,7 @@ class ModelAnalyzer implements AnalyzerInterface
     private function isTraitUseInsideClass(string $sourceCode, string $traitName): bool
     {
         // Find the class declaration
-        if (!preg_match('/^\s*(?:final\s+)?class\s+\w+/m', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
+        if (! preg_match('/^\s*(?:final\s+)?class\s+\w+/m', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
             return false;
         }
 
@@ -595,7 +594,8 @@ class ModelAnalyzer implements AnalyzerInterface
         $afterClass = substr($sourceCode, $classStart);
 
         // Look for the trait use after the class declaration
-        $pattern = '/\buse\s+[^;]*\b' . preg_quote($traitName, '/') . '\b[^;]*;/';
+        $pattern = '/\buse\s+[^;]*\b'.preg_quote($traitName, '/').'\b[^;]*;/';
+
         return (bool) preg_match($pattern, $afterClass);
     }
 
@@ -613,7 +613,7 @@ class ModelAnalyzer implements AnalyzerInterface
 
         // Build a regex pattern for all relationship types
         $relTypes = implode('|', self::RELATIONSHIP_METHODS);
-        $relPattern = '/\$this\s*->\s*(' . $relTypes . ')\s*\(\s*([^)]*)\)/';
+        $relPattern = '/\$this\s*->\s*('.$relTypes.')\s*\(\s*([^)]*)\)/';
 
         for ($i = 0; $i < count($lines); $i++) {
             // Look for relationship calls in the source
@@ -649,6 +649,7 @@ class ModelAnalyzer implements AnalyzerInterface
                 return $matches[1];
             }
         }
+
         return null;
     }
 
@@ -669,6 +670,7 @@ class ModelAnalyzer implements AnalyzerInterface
             $class = ltrim($class, '\\');
             // Extract just the short class name if it's a simple reference
             $parts = explode('\\', $class);
+
             return end($parts);
         }
 
@@ -678,6 +680,7 @@ class ModelAnalyzer implements AnalyzerInterface
             // Only treat as class if it looks like a class name (contains backslash or starts with uppercase)
             if (str_contains($class, '\\') || preg_match('/^[A-Z]/', $class)) {
                 $parts = explode('\\', $class);
+
                 return end($parts);
             }
         }
@@ -696,6 +699,7 @@ class ModelAnalyzer implements AnalyzerInterface
                 return $i + 1;
             }
         }
+
         return null;
     }
 
@@ -713,6 +717,7 @@ class ModelAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -721,7 +726,7 @@ class ModelAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

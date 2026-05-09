@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * SettingsCacheService - Centralized settings cache management
- * 
+ *
  * Handles cache invalidation, versioning, and multi-tenant isolation
  * for all types of settings (tenant API settings, module settings, system settings).
  */
@@ -32,18 +32,20 @@ class SettingsCacheService
      * Cache tags for settings
      */
     const TAG_TENANT_SETTINGS = 'tenant_settings';
+
     const TAG_MODULE_SETTINGS = 'module_settings';
+
     const TAG_SYSTEM_SETTINGS = 'system_settings';
+
     const TAG_API_SETTINGS = 'api_settings';
 
     /**
      * Get cached settings with automatic versioning
-     * 
-     * @param string $key Cache key (without prefix)
-     * @param callable $callback Function to execute on cache miss
-     * @param int|null $ttl Custom TTL in seconds (null = use default)
-     * @param array $tags Cache tags for group invalidation
-     * @return mixed
+     *
+     * @param  string  $key  Cache key (without prefix)
+     * @param  callable  $callback  Function to execute on cache miss
+     * @param  int|null  $ttl  Custom TTL in seconds (null = use default)
+     * @param  array  $tags  Cache tags for group invalidation
      */
     public function get(string $key, callable $callback, ?int $ttl = null, array $tags = []): mixed
     {
@@ -52,14 +54,15 @@ class SettingsCacheService
 
         try {
             // Use tags if available (requires cache driver that supports tags)
-            if (!empty($tags) && $this->supportsTags()) {
+            if (! empty($tags) && $this->supportsTags()) {
                 return Cache::tags($tags)->remember($cacheKey, now()->addSeconds($ttl), $callback);
             }
 
             // Fallback to simple remember with version key
-            return Cache::remember($cacheKey, now()->addSeconds($ttl), function () use ($key, $callback) {
+            return Cache::remember($cacheKey, now()->addSeconds($ttl), function () use ($callback) {
                 // Include cache version in the value to detect stale data
                 $value = $callback();
+
                 return [
                     'version' => $this->getVersion(),
                     'data' => $value,
@@ -67,7 +70,8 @@ class SettingsCacheService
                 ];
             });
         } catch (\Exception $e) {
-            Log::warning("SettingsCacheService::get failed for key {$key}: " . $e->getMessage());
+            Log::warning("SettingsCacheService::get failed for key {$key}: ".$e->getMessage());
+
             // Return callback result directly on cache failure
             return $callback();
         }
@@ -75,9 +79,8 @@ class SettingsCacheService
 
     /**
      * Clear cache for a specific key
-     * 
-     * @param string $key Cache key (without prefix)
-     * @return bool
+     *
+     * @param  string  $key  Cache key (without prefix)
      */
     public function forget(string $key): bool
     {
@@ -86,16 +89,16 @@ class SettingsCacheService
         try {
             return Cache::forget($cacheKey);
         } catch (\Exception $e) {
-            Log::warning("SettingsCacheService::forget failed for key {$key}: " . $e->getMessage());
+            Log::warning("SettingsCacheService::forget failed for key {$key}: ".$e->getMessage());
+
             return false;
         }
     }
 
     /**
      * Clear all tenant settings cache
-     * 
-     * @param int $tenantId Tenant ID
-     * @return void
+     *
+     * @param  int  $tenantId  Tenant ID
      */
     public function clearTenantCache(int $tenantId): void
     {
@@ -122,9 +125,8 @@ class SettingsCacheService
 
     /**
      * Clear all module settings cache
-     * 
-     * @param string|null $module Specific module (null = all modules)
-     * @return void
+     *
+     * @param  string|null  $module  Specific module (null = all modules)
      */
     public function clearModuleCache(?string $module = null): void
     {
@@ -137,14 +139,13 @@ class SettingsCacheService
 
         $this->clearByTags($tags);
 
-        Log::info("Module settings cache cleared" . ($module ? " for module: {$module}" : " (all modules)"));
+        Log::info('Module settings cache cleared'.($module ? " for module: {$module}" : ' (all modules)'));
     }
 
     /**
      * Clear all API settings cache
-     * 
-     * @param int|null $tenantId Specific tenant (null = all tenants)
-     * @return void
+     *
+     * @param  int|null  $tenantId  Specific tenant (null = all tenants)
      */
     public function clearApiCache(?int $tenantId = null): void
     {
@@ -157,13 +158,11 @@ class SettingsCacheService
 
         $this->clearByTags($tags);
 
-        Log::info("API settings cache cleared" . ($tenantId ? " for tenant: {$tenantId}" : " (all tenants)"));
+        Log::info('API settings cache cleared'.($tenantId ? " for tenant: {$tenantId}" : ' (all tenants)'));
     }
 
     /**
      * Clear system settings cache
-     * 
-     * @return void
      */
     public function clearSystemCache(): void
     {
@@ -172,13 +171,11 @@ class SettingsCacheService
         $this->clearByTags($tags);
         $this->forget('system_settings');
 
-        Log::info("System settings cache cleared");
+        Log::info('System settings cache cleared');
     }
 
     /**
      * Clear ALL settings cache (nuclear option)
-     * 
-     * @return void
      */
     public function clearAll(): void
     {
@@ -193,13 +190,11 @@ class SettingsCacheService
             self::TAG_API_SETTINGS,
         ]);
 
-        Log::warning("ALL settings cache cleared (version incremented)");
+        Log::warning('ALL settings cache cleared (version incremented)');
     }
 
     /**
      * Get current cache version
-     * 
-     * @return int
      */
     public function getVersion(): int
     {
@@ -208,7 +203,7 @@ class SettingsCacheService
 
     /**
      * Increment cache version (invalidates all versioned caches)
-     * 
+     *
      * @return int New version number
      */
     public function incrementVersion(): int
@@ -218,18 +213,18 @@ class SettingsCacheService
         Cache::put(self::CACHE_VERSION_KEY, $newVersion);
 
         Log::info("Settings cache version incremented to: {$newVersion}");
+
         return $newVersion;
     }
 
     /**
      * Check if cache data is stale (version mismatch)
-     * 
-     * @param mixed $cachedData Cached data with version info
-     * @return bool
+     *
+     * @param  mixed  $cachedData  Cached data with version info
      */
     public function isStale(mixed $cachedData): bool
     {
-        if (!is_array($cachedData) || !isset($cachedData['version'])) {
+        if (! is_array($cachedData) || ! isset($cachedData['version'])) {
             return true;
         }
 
@@ -238,38 +233,30 @@ class SettingsCacheService
 
     /**
      * Build cache key with prefix
-     * 
-     * @param string $key
-     * @return string
      */
     protected function buildKey(string $key): string
     {
-        return self::CACHE_PREFIX . $key;
+        return self::CACHE_PREFIX.$key;
     }
 
     /**
      * Clear cache by tags (if supported)
-     * 
-     * @param array $tags
-     * @return void
      */
     protected function clearByTags(array $tags): void
     {
-        if (!$this->supportsTags() || empty($tags)) {
+        if (! $this->supportsTags() || empty($tags)) {
             return;
         }
 
         try {
             Cache::tags($tags)->flush();
         } catch (\Exception $e) {
-            Log::warning("SettingsCacheService::clearByTags failed: " . $e->getMessage());
+            Log::warning('SettingsCacheService::clearByTags failed: '.$e->getMessage());
         }
     }
 
     /**
      * Check if cache driver supports tags
-     * 
-     * @return bool
      */
     protected function supportsTags(): bool
     {

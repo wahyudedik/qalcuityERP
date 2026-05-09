@@ -8,7 +8,10 @@ use Illuminate\Http\Request;
 
 class AnomalyController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function __construct(protected AnomalyDetectionService $service) {}
 
@@ -36,6 +39,7 @@ class AnomalyController extends Controller
     public function detect()
     {
         $count = $this->service->detectAndSave($this->tid());
+
         return back()->with('success', "Deteksi selesai. {$count} anomali baru ditemukan.");
     }
 
@@ -43,10 +47,11 @@ class AnomalyController extends Controller
     {
         abort_if($anomaly->tenant_id !== $this->tid(), 403);
         $anomaly->update([
-            'status'           => 'acknowledged',
-            'acknowledged_by'  => auth()->id(),
-            'acknowledged_at'  => now(),
+            'status' => 'acknowledged',
+            'acknowledged_by' => auth()->id(),
+            'acknowledged_at' => now(),
         ]);
+
         return back()->with('success', 'Anomali ditandai sudah ditinjau.');
     }
 
@@ -54,6 +59,7 @@ class AnomalyController extends Controller
     {
         abort_if($anomaly->tenant_id !== $this->tid(), 403);
         $anomaly->update(['status' => 'resolved']);
+
         return back()->with('success', 'Anomali ditandai selesai.');
     }
 }

@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Spa Therapists
-        if (!Schema::hasTable('spa_therapists'))
+        if (! Schema::hasTable('spa_therapists')) {
             Schema::create('spa_therapists', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -27,9 +28,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'status']);
             });
+        }
 
         // Spa Treatments/Services
-        if (!Schema::hasTable('spa_treatments'))
+        if (! Schema::hasTable('spa_treatments')) {
             Schema::create('spa_treatments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -53,9 +55,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'category', 'is_active']);
             });
+        }
 
         // Spa Packages (Bundle of treatments)
-        if (!Schema::hasTable('spa_packages'))
+        if (! Schema::hasTable('spa_packages')) {
             Schema::create('spa_packages', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -72,9 +75,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'is_active']);
             });
+        }
 
         // Package Items (Treatments in a package)
-        if (!Schema::hasTable('spa_package_items'))
+        if (! Schema::hasTable('spa_package_items')) {
             Schema::create('spa_package_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -86,9 +90,10 @@ return new class extends Migration {
 
                 $table->unique(['package_id', 'treatment_id']);
             });
+        }
 
         // Spa Bookings/Appointments
-        if (!Schema::hasTable('spa_bookings'))
+        if (! Schema::hasTable('spa_bookings')) {
             Schema::create('spa_bookings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -121,9 +126,10 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'booking_date', 'status']);
                 $table->index(['tenant_id', 'therapist_id', 'booking_date']);
             });
+        }
 
         // Booking Items (For packages with multiple treatments)
-        if (!Schema::hasTable('spa_booking_items'))
+        if (! Schema::hasTable('spa_booking_items')) {
             Schema::create('spa_booking_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -137,9 +143,10 @@ return new class extends Migration {
 
                 $table->index(['booking_id', 'sequence_order']);
             });
+        }
 
         // Therapist Schedules/Availability
-        if (!Schema::hasTable('therapist_schedules'))
+        if (! Schema::hasTable('therapist_schedules')) {
             Schema::create('therapist_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -155,9 +162,10 @@ return new class extends Migration {
                 $table->unique(['therapist_id', 'schedule_date', 'start_time', 'end_time'], 'therapist_sched_unique');
                 $table->index(['tenant_id', 'therapist_id', 'schedule_date']);
             });
+        }
 
         // Therapist Time Off/Leave
-        if (!Schema::hasTable('therapist_time_off'))
+        if (! Schema::hasTable('therapist_time_off')) {
             Schema::create('therapist_time_off', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -173,9 +181,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'therapist_id', 'start_date']);
             });
+        }
 
         // Spa Product Sales (Retail products sold at spa)
-        if (!Schema::hasTable('spa_product_sales'))
+        if (! Schema::hasTable('spa_product_sales')) {
             Schema::create('spa_product_sales', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -194,9 +203,10 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'sale_date']);
                 $table->index(['tenant_id', 'product_id']);
             });
+        }
 
         // Spa Reviews/Ratings
-        if (!Schema::hasTable('spa_reviews'))
+        if (! Schema::hasTable('spa_reviews')) {
             Schema::create('spa_reviews', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -213,6 +223,7 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'therapist_id']);
                 $table->index(['tenant_id', 'treatment_id']);
             });
+        }
     }
 
     public function down(): void

@@ -2,11 +2,11 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
-use App\Models\UsageTracking;
 use App\Models\BandwidthAllocation;
+use App\Models\NetworkDevice;
+use App\Models\TelecomSubscription;
+use App\Models\UsageTracking;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
 
 /**
  * Service for monitoring bandwidth usage across all devices.
@@ -17,13 +17,12 @@ class BandwidthMonitoringService
 
     public function __construct()
     {
-        $this->integrationService = new RouterIntegrationService();
+        $this->integrationService = new RouterIntegrationService;
     }
 
     /**
      * Get real-time bandwidth usage for a device.
-     * 
-     * @param NetworkDevice $device
+     *
      * @return array Current bandwidth stats
      */
     public function getDeviceBandwidthUsage(NetworkDevice $device): array
@@ -74,8 +73,7 @@ class BandwidthMonitoringService
 
     /**
      * Get bandwidth usage trend for a device (last 24 hours).
-     * 
-     * @param NetworkDevice $device
+     *
      * @return array Hourly usage data
      */
     public function getBandwidthTrend(NetworkDevice $device, int $hours = 24): array
@@ -106,9 +104,7 @@ class BandwidthMonitoringService
 
     /**
      * Get top bandwidth consumers.
-     * 
-     * @param int $tenantId
-     * @param int $limit
+     *
      * @return array Top users
      */
     public function getTopConsumers(int $tenantId, int $limit = 10): array
@@ -122,7 +118,7 @@ class BandwidthMonitoringService
             ->get();
 
         return $topUsers->map(function ($item) {
-            $subscription = \App\Models\TelecomSubscription::with('customer')->find($item->subscription_id);
+            $subscription = TelecomSubscription::with('customer')->find($item->subscription_id);
 
             return [
                 'subscription_id' => $item->subscription_id,
@@ -136,8 +132,7 @@ class BandwidthMonitoringService
 
     /**
      * Monitor bandwidth allocations and detect overuse.
-     * 
-     * @param NetworkDevice $device
+     *
      * @return array Allocations with usage status
      */
     public function monitorAllocations(NetworkDevice $device): array
@@ -179,8 +174,7 @@ class BandwidthMonitoringService
 
     /**
      * Get current usage for an allocation.
-     * 
-     * @param BandwidthAllocation $allocation
+     *
      * @return array Current usage stats
      */
     protected function getCurrentAllocationUsage(BandwidthAllocation $allocation): array
@@ -288,7 +282,7 @@ class BandwidthMonitoringService
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**

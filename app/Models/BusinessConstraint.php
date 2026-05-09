@@ -3,30 +3,33 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BusinessConstraint extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'key', 'label', 'value_type', 'value', 'is_active', 'description',
     ];
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
     /** Ambil nilai yang sudah di-cast sesuai value_type */
     public function typedValue(): mixed
     {
         return match ($this->value_type) {
-            'boolean'    => filter_var($this->value, FILTER_VALIDATE_BOOLEAN),
+            'boolean' => filter_var($this->value, FILTER_VALIDATE_BOOLEAN),
             'percentage' => (float) $this->value,
-            'amount'     => (float) $this->value,
-            'integer'    => (int) $this->value,
-            default      => $this->value,
+            'amount' => (float) $this->value,
+            'integer' => (int) $this->value,
+            default => $this->value,
         };
     }
 
@@ -37,45 +40,45 @@ class BusinessConstraint extends Model
     {
         return [
             [
-                'key'         => 'no_sell_below_cost',
-                'label'       => 'Tidak boleh jual di bawah HPP',
-                'value_type'  => 'boolean',
-                'value'       => 'false',
+                'key' => 'no_sell_below_cost',
+                'label' => 'Tidak boleh jual di bawah HPP',
+                'value_type' => 'boolean',
+                'value' => 'false',
                 'description' => 'Mencegah penjualan dengan harga di bawah harga pokok produk.',
             ],
             [
-                'key'         => 'max_discount_pct',
-                'label'       => 'Batas maksimal diskon (%)',
-                'value_type'  => 'percentage',
-                'value'       => '30',
+                'key' => 'max_discount_pct',
+                'label' => 'Batas maksimal diskon (%)',
+                'value_type' => 'percentage',
+                'value' => '30',
                 'description' => 'Persentase diskon maksimal yang diizinkan per transaksi.',
             ],
             [
-                'key'         => 'min_cash_balance',
-                'label'       => 'Saldo kas minimum (Rp)',
-                'value_type'  => 'amount',
-                'value'       => '0',
+                'key' => 'min_cash_balance',
+                'label' => 'Saldo kas minimum (Rp)',
+                'value_type' => 'amount',
+                'value' => '0',
                 'description' => 'Transaksi pengeluaran kas tidak boleh membuat saldo di bawah nilai ini.',
             ],
             [
-                'key'         => 'confirm_above_amount',
-                'label'       => 'Konfirmasi transaksi di atas nominal (Rp)',
-                'value_type'  => 'amount',
-                'value'       => '0',
+                'key' => 'confirm_above_amount',
+                'label' => 'Konfirmasi transaksi di atas nominal (Rp)',
+                'value_type' => 'amount',
+                'value' => '0',
                 'description' => 'Transaksi di atas nominal ini memerlukan konfirmasi eksplisit. 0 = nonaktif.',
             ],
             [
-                'key'         => 'require_cost_center',
-                'label'       => 'Wajib isi Cost Center',
-                'value_type'  => 'boolean',
-                'value'       => 'false',
+                'key' => 'require_cost_center',
+                'label' => 'Wajib isi Cost Center',
+                'value_type' => 'boolean',
+                'value' => 'false',
                 'description' => 'Setiap transaksi wajib memiliki cost center yang dipilih.',
             ],
             [
-                'key'         => 'allow_negative_stock',
-                'label'       => 'Izinkan stok negatif',
-                'value_type'  => 'boolean',
-                'value'       => 'false',
+                'key' => 'allow_negative_stock',
+                'label' => 'Izinkan stok negatif',
+                'value_type' => 'boolean',
+                'value' => 'false',
                 'description' => 'Jika false, transaksi yang membuat stok negatif akan ditolak.',
             ],
         ];

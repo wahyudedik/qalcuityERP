@@ -40,7 +40,7 @@
                             <div class="flex items-center gap-3">
                                 <div
                                     class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0
-                            {{ $ch->platform === 'shopee' ? 'bg-orange-500' : ($ch->platform === 'tokopedia' ? 'bg-green-500' : 'bg-red-500') }}">
+                            {{ $ch->platform === 'shopee' ? 'bg-orange-500' : ($ch->platform === 'tokopedia' ? 'bg-green-500' : ($ch->platform === 'tiktok_shop' ? 'bg-gray-900' : 'bg-red-500')) }}">
                                     {{ strtoupper(substr($ch->platform, 0, 2)) }}
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -152,6 +152,7 @@
                                 <option value="shopee">Shopee</option>
                                 <option value="tokopedia">Tokopedia</option>
                                 <option value="lazada">Lazada</option>
+                                <option value="tiktok_shop">TikTok Shop</option>
                             </select>
                         </div>
                         <div>
@@ -185,8 +186,7 @@
         </div>
 
         {{-- Orders --}}
-        <div
-            class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="font-semibold text-white">Order dari Marketplace</h2>
             </div>
@@ -208,8 +208,8 @@
                                 <td class="px-6 py-3">
                                     <span
                                         class="px-2 py-0.5 rounded-full text-xs font-medium
-                                    {{ $order->channel?->platform === 'shopee' ? 'bg-orange-500/20 text-orange-400' : ($order->channel?->platform === 'tokopedia' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400') }}">
-                                        {{ ucfirst($order->channel?->platform ?? '—') }}
+                                    {{ $order->channel?->platform === 'shopee' ? 'bg-orange-500/20 text-orange-400' : ($order->channel?->platform === 'tokopedia' ? 'bg-green-500/20 text-green-400' : ($order->channel?->platform === 'tiktok_shop' ? 'bg-gray-500/20 text-gray-300' : 'bg-red-500/20 text-red-400')) }}">
+                                        {{ $order->channel?->platform === 'tiktok_shop' ? 'TikTok Shop' : ucfirst($order->channel?->platform ?? '—') }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-3 font-mono text-xs text-gray-500">

@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * LeaveBalanceService - Accurate leave balance calculation with pro-rata support
- * 
+ *
  * BUG-HRM-003 FIX: Proper pro-rated leave calculation based on:
  * 1. Employee join date (pro-rata for first year)
  * 2. Resignation date (pro-rata for partial year)
  * 3. Monthly accrual (earned leave per month)
  * 4. Carry-over from previous year (if enabled)
- * 
+ *
  * Indonesian Labor Law (UU Ketenagakerjaan No. 13/2003):
  * - Minimum 12 days annual leave after 12 months continuous service
  * - Pro-rata calculation for partial years
@@ -25,9 +25,8 @@ class LeaveBalanceService
 {
     /**
      * BUG-HRM-003 FIX: Calculate accurate leave balance for employee
-     * 
-     * @param Employee $employee
-     * @param int|null $year Year to calculate (default: current year)
+     *
+     * @param  int|null  $year  Year to calculate (default: current year)
      * @return array Complete leave balance breakdown
      */
     public function calculateLeaveBalance(Employee $employee, ?int $year = null): array
@@ -82,14 +81,12 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate annual leave entitlement with pro-rata
-     * 
+     *
      * Rules:
      * 1. First year: Pro-rata from month 13 onwards
      * 2. Subsequent years: Full 12 days (or company policy)
      * 3. Resignation year: Pro-rata until resignation date
-     * 
-     * @param Employee $employee
-     * @param int $year
+     *
      * @return float Entitlement days
      */
     public function calculateAnnualEntitlement(Employee $employee, int $year): float
@@ -123,16 +120,11 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate pro-rata for first eligible year
-     * 
+     *
      * Example:
      * Join Date: March 2023
      * Eligible from: March 2024 (month 13)
      * Entitlement for 2024: 10 months (Mar-Dec) / 12 months * 12 days = 10 days
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @param float $baseEntitlement
-     * @return float
      */
     protected function calculateFirstYearProRata(Employee $employee, int $year, float $baseEntitlement): float
     {
@@ -162,15 +154,10 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate pro-rata for resignation year
-     * 
+     *
      * Example:
      * Resignation Date: June 2024
      * Entitlement for 2024: 6 months (Jan-Jun) / 12 months * 12 days = 6 days
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @param float $baseEntitlement
-     * @return float
      */
     protected function calculateResignationProRata(Employee $employee, int $year, float $baseEntitlement): float
     {
@@ -194,12 +181,8 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Check if employee is eligible for leave
-     * 
+     *
      * Must complete 12 months of continuous service
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @return bool
      */
     public function isEligibleForLeave(Employee $employee, int $year): bool
     {
@@ -226,10 +209,6 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate used leave days
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @return float
      */
     public function calculateUsedLeave(Employee $employee, int $year): float
     {
@@ -242,17 +221,13 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate carry-over from previous year
-     * 
+     *
      * Company policy can limit carry-over (e.g., max 5 days)
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @return float
      */
     public function calculateCarryOver(Employee $employee, int $year): float
     {
         // Check if carry-over is enabled (default: yes)
-        if (!$this->isCarryOverEnabled()) {
+        if (! $this->isCarryOverEnabled()) {
             return 0;
         }
 
@@ -282,10 +257,6 @@ class LeaveBalanceService
 
     /**
      * BUG-HRM-003 FIX: Calculate monthly accrual (earned leave so far)
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @return array
      */
     public function calculateAccruedLeave(Employee $employee, int $year): array
     {
@@ -316,11 +287,6 @@ class LeaveBalanceService
 
     /**
      * Check if employee has enough leave balance
-     * 
-     * @param Employee $employee
-     * @param float $requestedDays
-     * @param int|null $year
-     * @return array
      */
     public function checkLeaveBalance(Employee $employee, float $requestedDays, ?int $year = null): array
     {
@@ -335,42 +301,40 @@ class LeaveBalanceService
             'available' => $balance['remaining'],
             'shortage' => $shortage,
             'message' => $hasEnough
-                ? "Cuti mencukupi. Sisa setelah pengajuan: " . round($balance['remaining'] - $requestedDays, 2) . " hari."
+                ? 'Cuti mencukupi. Sisa setelah pengajuan: '.round($balance['remaining'] - $requestedDays, 2).' hari.'
                 : "Cuti tidak mencukupi. Kurang {$shortage} hari.",
         ];
     }
 
     /**
      * Get pro-rata reason for display
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @return string
      */
     protected function getProRataReason(Employee $employee, int $year): string
     {
         $joinDate = Carbon::parse($employee->hire_date);
 
         if ($year === $joinDate->year) {
-            return "Tahun pertama employment - belum eligible (harus 12 bulan)";
+            return 'Tahun pertama employment - belum eligible (harus 12 bulan)';
         }
 
         if ($year === $joinDate->year + 1) {
             $eligibilityDate = $joinDate->copy()->addMonths(12);
+
             return "Pro-rata dari bulan eligible ({$eligibilityDate->format('M Y')})";
         }
 
         if ($employee->resignation_date && $year === Carbon::parse($employee->resignation_date)->year) {
             $resignDate = Carbon::parse($employee->resignation_date);
+
             return "Pro-rata sampai tanggal resign ({$resignDate->format('d M Y')})";
         }
 
-        return "Full year entitlement";
+        return 'Full year entitlement';
     }
 
     /**
      * Check if carry-over is enabled
-     * 
+     *
      * TODO: Make configurable per tenant
      */
     protected function isCarryOverEnabled(): bool
@@ -380,7 +344,7 @@ class LeaveBalanceService
 
     /**
      * Get carry-over limit
-     * 
+     *
      * TODO: Make configurable per tenant
      */
     protected function getCarryOverLimit(): float

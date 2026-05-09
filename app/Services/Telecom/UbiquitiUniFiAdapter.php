@@ -8,15 +8,18 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Ubiquiti UniFi Controller Adapter
- * 
+ *
  * Integrates with Ubiquiti UniFi Controller API for network management.
  * Supports UniFi OS (Cloud Key, Dream Machine) and traditional Controller.
  */
 class UbiquitiUniFiAdapter implements RouterAdapterInterface
 {
     protected NetworkDevice $device;
+
     protected string $baseUrl;
+
     protected ?string $sessionId = null;
+
     protected string $apiVersion = 'v1';
 
     public function __construct(NetworkDevice $device)
@@ -24,7 +27,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
         $this->device = $device;
 
         // Validate required fields
-        if (!$device->ip_address || !$device->username || !$device->password) {
+        if (! $device->ip_address || ! $device->username || ! $device->password) {
             throw new \InvalidArgumentException('Device must have ip_address, username, and password');
         }
 
@@ -60,7 +63,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
             // Attempt to login
             $loginSuccess = $this->login();
 
-            if (!$loginSuccess) {
+            if (! $loginSuccess) {
                 return [
                     'success' => false,
                     'message' => 'Authentication failed',
@@ -85,7 +88,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
 
             return [
                 'success' => false,
-                'message' => 'Connection failed: ' . $e->getMessage(),
+                'message' => 'Connection failed: '.$e->getMessage(),
                 'latency_ms' => round((microtime(true) - $startTime) * 1000, 2),
             ];
         }
@@ -104,6 +107,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return [
                     'version' => $data['meta']['server_version'] ?? 'Unknown',
                     'uptime' => $data['data'][0]['uptime'] ?? 0,
@@ -115,6 +119,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get UniFi system info', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -149,6 +154,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get UniFi device list', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -168,7 +174,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
                 $clients = $response->json()['data'] ?? [];
 
                 return collect($clients)->filter(function ($client) {
-                    return isset($client['is_guest']) && !$client['is_guest'];
+                    return isset($client['is_guest']) && ! $client['is_guest'];
                 })->map(function ($client) {
                     return [
                         'mac' => $client['mac'] ?? 'N/A',
@@ -186,6 +192,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get UniFi active users', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -216,6 +223,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'user_data' => $userData,
             ]);
+
             return false;
         }
     }
@@ -241,6 +249,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'username' => $username,
             ]);
+
             return false;
         }
     }
@@ -266,6 +275,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
                 'error' => $e->getMessage(),
                 'username' => $username,
             ]);
+
             return false;
         }
     }
@@ -296,6 +306,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
             return [];
         } catch (\Exception $e) {
             Log::error('Failed to get UniFi bandwidth usage', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -317,12 +328,13 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
                 $cookieName = $this->getSessionCookieName();
                 $this->sessionId = $cookies->getCookieByName($cookieName)?->getValue();
 
-                return !empty($this->sessionId);
+                return ! empty($this->sessionId);
             }
 
             return false;
         } catch (\Exception $e) {
             Log::error('UniFi login failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -335,7 +347,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
         if (empty($this->sessionId)) {
             $loginSuccess = $this->login();
 
-            if (!$loginSuccess) {
+            if (! $loginSuccess) {
                 throw new \RuntimeException('Failed to authenticate with UniFi Controller');
             }
         }
@@ -355,7 +367,7 @@ class UbiquitiUniFiAdapter implements RouterAdapterInterface
      */
     public function logout(): void
     {
-        if (!empty($this->sessionId)) {
+        if (! empty($this->sessionId)) {
             try {
                 Http::withCookies([$this->getSessionCookieName() => $this->sessionId], parse_url($this->baseUrl, PHP_URL_HOST))
                     ->post("{$this->baseUrl}/api/logout");

@@ -6,6 +6,7 @@ use App\Models\OnboardingProfile;
 use App\Services\SampleDataGeneratorService;
 use Database\Seeders\SampleDataTemplateSeeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -27,7 +28,7 @@ class GeneratorPreservationPropertyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        (new SampleDataTemplateSeeder())->run();
+        (new SampleDataTemplateSeeder)->run();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -37,18 +38,18 @@ class GeneratorPreservationPropertyTest extends TestCase
     private function generateForIndustry(string $industry): array
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => $industry,
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => $industry,
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry($industry, $tenant->id, $user->id);
+        $result = $service->generateForIndustry($industry, $tenant->id, $user->id);
 
         return [$result, $tenant->id];
     }
@@ -70,7 +71,7 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('retail');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(retail) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(retail) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $salesOrderCount = DB::table('sales_orders')
             ->where('tenant_id', $tenantId)
@@ -78,7 +79,7 @@ class GeneratorPreservationPropertyTest extends TestCase
             ->count();
 
         $this->assertGreaterThanOrEqual(10, $salesOrderCount,
-            "Property 2 (retail): RetailGenerator should produce ≥10 sales_orders. " .
+            'Property 2 (retail): RetailGenerator should produce ≥10 sales_orders. '.
             "Got $salesOrderCount. This indicates a regression in RetailGenerator.");
     }
 
@@ -99,7 +100,7 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('restaurant');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(restaurant) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(restaurant) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $tableCount = DB::table('restaurant_tables')
             ->where('tenant_id', $tenantId)
@@ -107,7 +108,7 @@ class GeneratorPreservationPropertyTest extends TestCase
             ->count();
 
         $this->assertGreaterThanOrEqual(8, $tableCount,
-            "Property 2 (restaurant): RestaurantGenerator should produce ≥8 tables. " .
+            'Property 2 (restaurant): RestaurantGenerator should produce ≥8 tables. '.
             "Got $tableCount. This indicates a regression in RestaurantGenerator.");
     }
 
@@ -124,7 +125,7 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('restaurant');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(restaurant) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(restaurant) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $fbOrderCount = DB::table('fb_orders')
             ->where('tenant_id', $tenantId)
@@ -132,7 +133,7 @@ class GeneratorPreservationPropertyTest extends TestCase
             ->count();
 
         $this->assertGreaterThanOrEqual(10, $fbOrderCount,
-            "Property 2 (restaurant): RestaurantGenerator should produce ≥10 fb_orders. " .
+            'Property 2 (restaurant): RestaurantGenerator should produce ≥10 fb_orders. '.
             "Got $fbOrderCount. This indicates a regression in RestaurantGenerator.");
     }
 
@@ -153,14 +154,14 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('services');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(services) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(services) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $projectCount = DB::table('projects')
             ->where('tenant_id', $tenantId)
             ->count();
 
         $this->assertGreaterThanOrEqual(5, $projectCount,
-            "Property 2 (services): ServicesGenerator should produce ≥5 projects. " .
+            'Property 2 (services): ServicesGenerator should produce ≥5 projects. '.
             "Got $projectCount. This indicates a regression in ServicesGenerator.");
     }
 
@@ -177,9 +178,9 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('services');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(services) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(services) should succeed. Error: '.($result['error'] ?? 'none'));
 
-        if (!\Illuminate\Support\Facades\Schema::hasTable('project_invoices')) {
+        if (! Schema::hasTable('project_invoices')) {
             $this->markTestSkipped('project_invoices table does not exist — skipping services invoice check.');
         }
 
@@ -188,7 +189,7 @@ class GeneratorPreservationPropertyTest extends TestCase
             ->count();
 
         $this->assertGreaterThanOrEqual(5, $projectInvoiceCount,
-            "Property 2 (services): ServicesGenerator should produce ≥5 project_invoices. " .
+            'Property 2 (services): ServicesGenerator should produce ≥5 project_invoices. '.
             "Got $projectInvoiceCount. This indicates a regression in ServicesGenerator.");
     }
 
@@ -209,14 +210,14 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('construction');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(construction) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(construction) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $projectCount = DB::table('projects')
             ->where('tenant_id', $tenantId)
             ->count();
 
         $this->assertGreaterThanOrEqual(3, $projectCount,
-            "Property 2 (construction): ConstructionGenerator should produce ≥3 projects. " .
+            'Property 2 (construction): ConstructionGenerator should produce ≥3 projects. '.
             "Got $projectCount. This indicates a regression in ConstructionGenerator.");
     }
 
@@ -233,14 +234,14 @@ class GeneratorPreservationPropertyTest extends TestCase
         [$result, $tenantId] = $this->generateForIndustry('construction');
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(construction) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(construction) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $poCount = DB::table('purchase_orders')
             ->where('tenant_id', $tenantId)
             ->count();
 
         $this->assertGreaterThanOrEqual(5, $poCount,
-            "Property 2 (construction): ConstructionGenerator should produce ≥5 purchase_orders. " .
+            'Property 2 (construction): ConstructionGenerator should produce ≥5 purchase_orders. '.
             "Got $poCount. This indicates a regression in ConstructionGenerator.");
     }
 
@@ -261,14 +262,14 @@ class GeneratorPreservationPropertyTest extends TestCase
             [$result, $tenantId] = $this->generateForIndustry($industry);
 
             $this->assertTrue($result['success'],
-                "Property 2 (preservation): generateForIndustry('$industry') should succeed. " .
-                "Error: " . ($result['error'] ?? 'none'));
+                "Property 2 (preservation): generateForIndustry('$industry') should succeed. ".
+                'Error: '.($result['error'] ?? 'none'));
 
             $this->assertArrayHasKey('records_created', $result,
                 "Property 2 (preservation): response for '$industry' missing 'records_created'.");
 
             $this->assertGreaterThan(0, $result['records_created'],
-                "Property 2 (preservation): '$industry' should create >0 records total. " .
+                "Property 2 (preservation): '$industry' should create >0 records total. ".
                 "Got {$result['records_created']}.");
         }
     }

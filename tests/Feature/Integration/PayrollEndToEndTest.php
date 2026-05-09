@@ -4,7 +4,6 @@ namespace Tests\Feature\Integration;
 
 use App\Models\AccountingPeriod;
 use App\Models\Employee;
-use App\Models\JournalEntry;
 use App\Models\PayrollItem;
 use App\Models\PayrollItemComponent;
 use App\Models\PayrollRun;
@@ -24,9 +23,10 @@ use Tests\TestCase;
  */
 class PayrollEndToEndTest extends TestCase
 {
-
     private $tenant;
+
     private $user;
+
     private AccountingPeriod $openPeriod;
 
     protected function setUp(): void
@@ -34,17 +34,17 @@ class PayrollEndToEndTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->seedCoa($this->tenant->id);
         $this->actingAs($this->user);
 
         // Buat periode open untuk bulan ini
         $this->openPeriod = AccountingPeriod::create([
-            'tenant_id'  => $this->tenant->id,
-            'name'       => 'Periode ' . now()->format('Y-m'),
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Periode '.now()->format('Y-m'),
             'start_date' => now()->startOfMonth()->toDateString(),
-            'end_date'   => now()->endOfMonth()->toDateString(),
-            'status'     => 'open',
+            'end_date' => now()->endOfMonth()->toDateString(),
+            'status' => 'open',
         ]);
     }
 
@@ -55,46 +55,46 @@ class PayrollEndToEndTest extends TestCase
     private function createEmployee(): Employee
     {
         return Employee::create([
-            'tenant_id'   => $this->tenant->id,
-            'name'        => 'Karyawan Test',
-            'employee_id' => 'EMP-' . uniqid(),
-            'status'      => 'active',
-            'salary'      => 5000000,
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Karyawan Test',
+            'employee_id' => 'EMP-'.uniqid(),
+            'status' => 'active',
+            'salary' => 5000000,
         ]);
     }
 
     private function createPayrollRunWithNullComponent(Employee $employee): PayrollRun
     {
         $run = PayrollRun::create([
-            'tenant_id'        => $this->tenant->id,
-            'period'           => now()->format('Y-m'),
-            'status'           => 'processed',
-            'total_gross'      => 5000000,
+            'tenant_id' => $this->tenant->id,
+            'period' => now()->format('Y-m'),
+            'status' => 'processed',
+            'total_gross' => 5000000,
             'total_deductions' => 500000,
-            'total_net'        => 4500000,
-            'processed_by'     => $this->user->id,
-            'processed_at'     => now(),
+            'total_net' => 4500000,
+            'processed_by' => $this->user->id,
+            'processed_at' => now(),
         ]);
 
         PayrollItem::create([
-            'tenant_id'        => $this->tenant->id,
-            'payroll_run_id'   => $run->id,
-            'employee_id'      => $employee->id,
-            'base_salary'      => 5000000,
-            'working_days'     => 26,
-            'present_days'     => 26,
-            'absent_days'      => 0,
-            'late_days'        => 0,
-            'allowances'       => 0,
-            'overtime_pay'     => 0,
+            'tenant_id' => $this->tenant->id,
+            'payroll_run_id' => $run->id,
+            'employee_id' => $employee->id,
+            'base_salary' => 5000000,
+            'working_days' => 26,
+            'present_days' => 26,
+            'absent_days' => 0,
+            'late_days' => 0,
+            'allowances' => 0,
+            'overtime_pay' => 0,
             'deduction_absent' => 0,
-            'deduction_late'   => 0,
-            'deduction_other'  => 0,
-            'gross_salary'     => 5000000,
-            'bpjs_employee'    => 150000,
-            'tax_pph21'        => 350000,
-            'net_salary'       => 4500000,
-            'status'           => 'pending',
+            'deduction_late' => 0,
+            'deduction_other' => 0,
+            'gross_salary' => 5000000,
+            'bpjs_employee' => 150000,
+            'tax_pph21' => 350000,
+            'net_salary' => 4500000,
+            'status' => 'pending',
         ]);
 
         // Note: PayrollItemComponent.amount is NOT NULL in DB (default 0).
@@ -121,8 +121,8 @@ class PayrollEndToEndTest extends TestCase
         // Komponen dengan nilai null — seharusnya diganti 0.0
         $components = [
             'basic_salary' => 5000000.0,
-            'allowance'    => null,   // null — Bug 1.17 case
-            'deduction'    => 500000.0,
+            'allowance' => null,   // null — Bug 1.17 case
+            'deduction' => 500000.0,
         ];
 
         // Tidak boleh melempar exception
@@ -143,7 +143,7 @@ class PayrollEndToEndTest extends TestCase
 
         $components = [
             'basic_salary' => null,
-            'allowance'    => null,
+            'allowance' => null,
         ];
 
         $result = $service->evaluateFormula('basic_salary + allowance', $components);
@@ -161,7 +161,7 @@ class PayrollEndToEndTest extends TestCase
     public function test_payroll_end_to_end_creates_journal_to_open_period(): void
     {
         $employee = $this->createEmployee();
-        $run      = $this->createPayrollRunWithNullComponent($employee);
+        $run = $this->createPayrollRunWithNullComponent($employee);
 
         $glService = app(PayrollGlService::class);
 
@@ -201,7 +201,7 @@ class PayrollEndToEndTest extends TestCase
         $this->openPeriod->update(['status' => 'locked']);
 
         $employee = $this->createEmployee();
-        $run      = $this->createPayrollRunWithNullComponent($employee);
+        $run = $this->createPayrollRunWithNullComponent($employee);
 
         $glService = app(PayrollGlService::class);
 
@@ -222,8 +222,8 @@ class PayrollEndToEndTest extends TestCase
 
         $components = [
             'basic_salary' => 5000000.0,
-            'allowance'    => 1000000.0,
-            'deduction'    => 500000.0,
+            'allowance' => 1000000.0,
+            'deduction' => 500000.0,
         ];
 
         $result = $service->evaluateFormula('basic_salary + allowance - deduction', $components);

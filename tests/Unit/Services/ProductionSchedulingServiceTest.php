@@ -10,12 +10,13 @@ use Tests\TestCase;
 
 /**
  * Production Scheduling Service Unit Tests
- * 
+ *
  * TASK-2.22: Unit tests for manufacturing services
  */
 class ProductionSchedulingServiceTest extends TestCase
 {
     private ProductionSchedulingService $service;
+
     private User $user;
 
     protected function setUp(): void

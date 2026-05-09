@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class IrrigationSchedule extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -49,10 +48,12 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function cropCycle()
     {
         return $this->belongsTo(CropCycle::class);
     }
+
     public function logs()
     {
         return $this->hasMany(IrrigationLog::class);
@@ -60,8 +61,9 @@ use HasFactory, BelongsToTenant;
 
     public function shouldIrrigateToday(): bool
     {
-        if (!$this->is_active)
+        if (! $this->is_active) {
             return false;
+        }
 
         return match ($this->frequency) {
             'hourly' => true,
@@ -84,10 +86,12 @@ use HasFactory, BelongsToTenant;
 
     protected function calculateNextIrrigation(): ?Carbon
     {
-        if (!$this->is_active)
+        if (! $this->is_active) {
             return null;
+        }
 
         $next = Carbon::now()->addDay()->setTimeFromTimeString($this->irrigation_time);
+
         return $next;
     }
 }

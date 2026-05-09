@@ -2,22 +2,22 @@
 
 namespace Tests\Feature\Audit;
 
-use Tests\TestCase;
+use App\Models\LandedCost;
 use App\Models\Product;
-use App\Models\Warehouse;
+use App\Models\ProductBatch;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
-use App\Models\ProductBatch;
-use App\Models\WarehouseZone;
+use App\Models\Warehouse;
 use App\Models\WarehouseBin;
-use App\Models\LandedCost;
-use App\Services\InventoryCostingService;
+use App\Models\WarehouseZone;
 use App\Services\BarcodeService;
+use App\Services\InventoryCostingService;
 use App\Services\LandedCostService;
+use Tests\TestCase;
 
 /**
  * Task 11: Manual Verification Script
- * 
+ *
  * This script verifies that all inventory models, services, and features exist
  * and are properly configured.
  */

@@ -7,6 +7,7 @@ use App\Models\WebhookDelivery;
 use App\Models\WebhookSubscription;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class WebhookService
 {
@@ -93,6 +94,7 @@ class WebhookService
                 $events[] = $item;
             }
         }
+
         return $events;
     }
 
@@ -104,7 +106,7 @@ class WebhookService
         $subscriptions = WebhookSubscription::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->get()
-            ->filter(fn($s) => $s->listensTo($event));
+            ->filter(fn ($s) => $s->listensTo($event));
 
         foreach ($subscriptions as $subscription) {
             DispatchWebhookJob::dispatch($subscription, $event, $payload);
@@ -118,10 +120,10 @@ class WebhookService
     {
         // SEC-003: Add timestamp and nonce for replay attack protection
         $timestamp = now()->getTimestamp();
-        $nonce = \Illuminate\Support\Str::uuid()->toString();
+        $nonce = Str::uuid()->toString();
 
         $body = json_encode([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'event' => $event,
             'created_at' => now()->toIso8601String(),
             'tenant_id' => $subscription->tenant_id,
@@ -141,7 +143,7 @@ class WebhookService
         if ($subscription->secret) {
             // SEC-003: Signature includes timestamp and nonce
             $signaturePayload = "{$timestamp}.{$nonce}.{$body}";
-            $headers['X-Qalcuity-Signature'] = 'sha256=' . hash_hmac('sha256', $signaturePayload, $subscription->secret);
+            $headers['X-Qalcuity-Signature'] = 'sha256='.hash_hmac('sha256', $signaturePayload, $subscription->secret);
         }
 
         $delivery = WebhookDelivery::create([
@@ -180,7 +182,7 @@ class WebhookService
                 'duration_ms' => $durationMs,
             ]);
 
-            Log::warning("Webhook delivery failed [{$event}] to {$subscription->url}: " . $e->getMessage());
+            Log::warning("Webhook delivery failed [{$event}] to {$subscription->url}: ".$e->getMessage());
         }
 
         return $delivery;

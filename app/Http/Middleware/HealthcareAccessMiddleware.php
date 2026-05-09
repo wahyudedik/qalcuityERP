@@ -11,14 +11,14 @@ class HealthcareAccessMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $permission = null): Response
+    public function handle(Request $request, Closure $next, ?string $permission = null): Response
     {
         $user = $request->user();
 
         // Check if user is authenticated
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login')
                 ->with('error', 'Anda harus login untuk mengakses modul kesehatan.');
         }
@@ -32,7 +32,7 @@ class HealthcareAccessMiddleware
         if ($user->tenant) {
             $enabledModules = $user->tenant->enabled_modules ?? [];
 
-            if (is_array($enabledModules) && !in_array('healthcare', $enabledModules)) {
+            if (is_array($enabledModules) && ! in_array('healthcare', $enabledModules)) {
                 abort(403, 'Modul kesehatan tidak diaktifkan untuk tenant Anda.');
             }
 
@@ -47,7 +47,7 @@ class HealthcareAccessMiddleware
 
         // Check specific permission if provided
         if ($permission) {
-            if (!$user->can($permission)) {
+            if (! $user->can($permission)) {
                 abort(403, 'Anda tidak memiliki izin untuk mengakses sumber daya ini.');
             }
         } else {
@@ -58,7 +58,7 @@ class HealthcareAccessMiddleware
                 $user->hasRole('receptionist') ||
                 $user->hasPermission('healthcare.access');
 
-            if (!$hasHealthcareAccess) {
+            if (! $hasHealthcareAccess) {
                 abort(403, 'Anda tidak memiliki akses ke modul kesehatan.');
             }
         }

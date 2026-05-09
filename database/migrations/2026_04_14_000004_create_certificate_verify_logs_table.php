@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('certificate_verify_logs')) {
+        if (! Schema::hasTable('certificate_verify_logs')) {
             Schema::create('certificate_verify_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('certificate_number', 50)->index();

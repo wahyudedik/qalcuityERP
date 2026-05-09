@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\AiLearnedPattern;
-use App\Models\SalesOrder;
 use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -20,7 +20,8 @@ class AnalyzeUserPatterns implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 3600;
-    public int $tries   = 1;
+
+    public int $tries = 1;
 
     public function handle(): void
     {
@@ -36,7 +37,7 @@ class AnalyzeUserPatterns implements ShouldQueue
                         $this->analyzeOrderPatterns($tenant->id, $user->id);
                     });
             } catch (\Throwable $e) {
-                Log::warning("AnalyzeUserPatterns failed for tenant {$tenant->id}: " . $e->getMessage());
+                Log::warning("AnalyzeUserPatterns failed for tenant {$tenant->id}: ".$e->getMessage());
             }
         });
     }
@@ -73,26 +74,26 @@ class AnalyzeUserPatterns implements ShouldQueue
 
                 AiLearnedPattern::updateOrCreate(
                     [
-                        'tenant_id'    => $tenantId,
-                        'user_id'      => $userId,
+                        'tenant_id' => $tenantId,
+                        'user_id' => $userId,
                         'pattern_type' => 'customer_behavior',
-                        'entity_type'  => 'customer',
-                        'entity_id'    => $row->customer_id,
+                        'entity_type' => 'customer',
+                        'entity_id' => $row->customer_id,
                     ],
                     [
                         'pattern_data' => [
-                            'frequency'         => (int) $row->frequency,
-                            'avg_order_value'   => round((float) $row->avg_order_value, 2),
+                            'frequency' => (int) $row->frequency,
+                            'avg_order_value' => round((float) $row->avg_order_value, 2),
                             'preferred_payment' => $preferredPayment,
-                            'last_order_date'   => $row->last_order_date,
+                            'last_order_date' => $row->last_order_date,
                         ],
-                        'confidence'  => min(1.0, $row->frequency / 10),
+                        'confidence' => min(1.0, $row->frequency / 10),
                         'analyzed_at' => now(),
                     ]
                 );
             }
         } catch (\Throwable $e) {
-            Log::warning("analyzeCustomerBehavior failed tenant={$tenantId} user={$userId}: " . $e->getMessage());
+            Log::warning("analyzeCustomerBehavior failed tenant={$tenantId} user={$userId}: ".$e->getMessage());
         }
     }
 
@@ -119,25 +120,25 @@ class AnalyzeUserPatterns implements ShouldQueue
             foreach ($rows as $row) {
                 AiLearnedPattern::updateOrCreate(
                     [
-                        'tenant_id'    => $tenantId,
-                        'user_id'      => $userId,
+                        'tenant_id' => $tenantId,
+                        'user_id' => $userId,
                         'pattern_type' => 'supplier_preference',
-                        'entity_type'  => 'supplier',
-                        'entity_id'    => $row->supplier_id,
+                        'entity_type' => 'supplier',
+                        'entity_id' => $row->supplier_id,
                     ],
                     [
                         'pattern_data' => [
-                            'frequency'       => (int) $row->frequency,
+                            'frequency' => (int) $row->frequency,
                             'avg_order_value' => round((float) $row->avg_order_value, 2),
                             'last_order_date' => $row->last_order_date,
                         ],
-                        'confidence'  => min(1.0, $row->frequency / 10),
+                        'confidence' => min(1.0, $row->frequency / 10),
                         'analyzed_at' => now(),
                     ]
                 );
             }
         } catch (\Throwable $e) {
-            Log::warning("analyzeSupplierPreference failed tenant={$tenantId} user={$userId}: " . $e->getMessage());
+            Log::warning("analyzeSupplierPreference failed tenant={$tenantId} user={$userId}: ".$e->getMessage());
         }
     }
 
@@ -175,25 +176,25 @@ class AnalyzeUserPatterns implements ShouldQueue
             foreach ($pairs as $pair) {
                 AiLearnedPattern::updateOrCreate(
                     [
-                        'tenant_id'    => $tenantId,
-                        'user_id'      => $userId,
+                        'tenant_id' => $tenantId,
+                        'user_id' => $userId,
                         'pattern_type' => 'product_affinity',
-                        'entity_type'  => 'product',
-                        'entity_id'    => $pair->product_a,
+                        'entity_type' => 'product',
+                        'entity_id' => $pair->product_a,
                     ],
                     [
                         'pattern_data' => [
-                            'product_a'     => $pair->product_a,
-                            'product_b'     => $pair->product_b,
+                            'product_a' => $pair->product_a,
+                            'product_b' => $pair->product_b,
                             'co_occurrence' => (int) $pair->co_occurrence,
                         ],
-                        'confidence'  => min(1.0, $pair->co_occurrence / 5),
+                        'confidence' => min(1.0, $pair->co_occurrence / 5),
                         'analyzed_at' => now(),
                     ]
                 );
             }
         } catch (\Throwable $e) {
-            Log::warning("analyzeProductAffinity failed tenant={$tenantId} user={$userId}: " . $e->getMessage());
+            Log::warning("analyzeProductAffinity failed tenant={$tenantId} user={$userId}: ".$e->getMessage());
         }
     }
 
@@ -212,7 +213,7 @@ class AnalyzeUserPatterns implements ShouldQueue
                 return;
             }
 
-            $dayCount  = array_fill(0, 7, 0);
+            $dayCount = array_fill(0, 7, 0);
             $hourCount = array_fill(0, 24, 0);
 
             foreach ($orders as $order) {
@@ -221,33 +222,33 @@ class AnalyzeUserPatterns implements ShouldQueue
             }
 
             $preferredDayIndex = (int) array_search(max($dayCount), $dayCount);
-            $peakHour          = (int) array_search(max($hourCount), $hourCount);
+            $peakHour = (int) array_search(max($hourCount), $hourCount);
 
-            $dayNames     = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            $dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
             $preferredDay = $dayNames[$preferredDayIndex];
-            $avgPerWeek   = round($orders->count() / (90 / 7), 2);
+            $avgPerWeek = round($orders->count() / (90 / 7), 2);
 
             AiLearnedPattern::updateOrCreate(
                 [
-                    'tenant_id'    => $tenantId,
-                    'user_id'      => $userId,
+                    'tenant_id' => $tenantId,
+                    'user_id' => $userId,
                     'pattern_type' => 'order_pattern',
-                    'entity_type'  => 'user',
-                    'entity_id'    => $userId,
+                    'entity_type' => 'user',
+                    'entity_id' => $userId,
                 ],
                 [
                     'pattern_data' => [
-                        'preferred_day'       => $preferredDay,
+                        'preferred_day' => $preferredDay,
                         'avg_orders_per_week' => $avgPerWeek,
-                        'peak_hour'           => $peakHour,
-                        'total_orders_90d'    => $orders->count(),
+                        'peak_hour' => $peakHour,
+                        'total_orders_90d' => $orders->count(),
                     ],
-                    'confidence'  => min(1.0, $orders->count() / 20),
+                    'confidence' => min(1.0, $orders->count() / 20),
                     'analyzed_at' => now(),
                 ]
             );
         } catch (\Throwable $e) {
-            Log::warning("analyzeOrderPatterns failed tenant={$tenantId} user={$userId}: " . $e->getMessage());
+            Log::warning("analyzeOrderPatterns failed tenant={$tenantId} user={$userId}: ".$e->getMessage());
         }
     }
 }

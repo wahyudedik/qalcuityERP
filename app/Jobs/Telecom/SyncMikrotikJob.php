@@ -8,9 +8,9 @@ use App\Services\Telecom\RouterIntegrationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -76,19 +76,19 @@ class SyncMikrotikJob implements ShouldQueue
         } catch (ConnectionException $e) {
             // Graceful handling: release back to queue with backoff instead of failing
             $attempt = $this->attempts();
-            $delay   = $this->backoff[$attempt - 1] ?? 600;
+            $delay = $this->backoff[$attempt - 1] ?? 600;
 
-            Log::warning("MikroTik sync connection failed for device {$device->name} (ID: {$this->deviceId}), " .
+            Log::warning("MikroTik sync connection failed for device {$device->name} (ID: {$this->deviceId}), ".
                 "attempt {$attempt}/{$this->tries}. Retrying in {$delay}s.", [
-                'error' => $e->getMessage(),
-            ]);
+                    'error' => $e->getMessage(),
+                ]);
 
             $this->release($delay);
 
         } catch (\Throwable $e) {
             // Re-throw unexpected errors so they are properly logged and marked as failed
             Log::error("MikroTik sync unexpected error for device {$device->name} (ID: {$this->deviceId})", [
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'attempt' => $this->attempts(),
             ]);
 

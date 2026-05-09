@@ -38,14 +38,17 @@ class ConsolidatedReport extends Model
     {
         return $this->belongsTo(CompanyGroup::class);
     }
+
     public function preparedBy()
     {
         return $this->belongsTo(User::class, 'prepared_by_user_id');
     }
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
     }
+
     public function eliminations()
     {
         return $this->hasMany(EliminationEntry::class);

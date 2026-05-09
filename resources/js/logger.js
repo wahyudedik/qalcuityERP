@@ -1,12 +1,12 @@
 /**
  * Logger - Production-ready logging wrapper
- * 
+ *
  * Features:
  * - Disables console.log in production
  * - Structured logging with levels
  * - Optional remote error reporting
  * - Performance monitoring
- * 
+ *
  * Usage:
  *   import logger from './logger';
  *   logger.info('Message');
@@ -18,10 +18,10 @@ class Logger {
     constructor() {
         this.isProduction = import.meta.env.PROD || false;
         this.isDevelopment = import.meta.env.DEV || false;
-        this.logLevel = this.isProduction ? 'error' : 'debug';
+        this.logLevel = this.isProduction ? 'error' : 'warn';
         this.remoteLoggingEnabled = false;
         this.remoteEndpoint = null;
-        
+
         // Log levels (numeric priority)
         this.levels = {
             debug: 0,
@@ -57,7 +57,7 @@ class Logger {
     formatMessage(level, message, data = null) {
         const timestamp = new Date().toISOString();
         const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-        
+
         if (data) {
             return {
                 message: `${prefix} ${message}`,
@@ -66,7 +66,7 @@ class Logger {
                 level: level,
             };
         }
-        
+
         return {
             message: `${prefix} ${message}`,
             timestamp: timestamp,
@@ -106,7 +106,7 @@ class Logger {
         if (!this.shouldLog('debug')) return;
 
         const formatted = this.formatMessage('debug', message, data);
-        
+
         if (this.isDevelopment) {
             console.debug(formatted.message, data || '');
         }
@@ -119,7 +119,7 @@ class Logger {
         if (!this.shouldLog('info')) return;
 
         const formatted = this.formatMessage('info', message, data);
-        
+
         if (this.isDevelopment) {
             console.log(formatted.message, data || '');
         }
@@ -132,9 +132,9 @@ class Logger {
         if (!this.shouldLog('warn')) return;
 
         const formatted = this.formatMessage('warn', message, data);
-        
+
         console.warn(formatted.message, data || '');
-        
+
         // Send to remote in production
         if (this.isProduction && this.remoteLoggingEnabled) {
             this.sendRemoteLog(formatted);
@@ -154,9 +154,9 @@ class Logger {
         };
 
         const formatted = this.formatMessage('error', message, errorData);
-        
+
         console.error(formatted.message, error || '');
-        
+
         // Send to remote in production
         if (this.isProduction && this.remoteLoggingEnabled) {
             this.sendRemoteLog(formatted);
@@ -174,11 +174,11 @@ class Logger {
         const start = performance.now();
         const result = callback();
         const end = performance.now();
-        
+
         this.debug(`[Performance] ${label}`, {
             duration: `${(end - start).toFixed(2)}ms`,
         });
-        
+
         return result;
     }
 

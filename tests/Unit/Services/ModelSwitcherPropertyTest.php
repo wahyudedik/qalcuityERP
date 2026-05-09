@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
 use Eris\TestTrait;
+use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -40,10 +41,10 @@ class ModelSwitcherPropertyTest extends TestCase
         ];
 
         config([
-            'gemini.model'            => 'gemini-2.5-flash',
-            'gemini.fallback_models'  => $this->fallbackChain,
+            'gemini.model' => 'gemini-2.5-flash',
+            'gemini.fallback_models' => $this->fallbackChain,
             'gemini.rate_limit_cooldown' => 60,
-            'gemini.quota_cooldown'   => 3600,
+            'gemini.quota_cooldown' => 3600,
         ]);
 
         // Clear all switcher cache keys before each test
@@ -76,7 +77,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testActiveModelPersistence(): void
+    public function test_active_model_persistence(): void
     {
         $this
             ->forAll(
@@ -117,7 +118,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testFallbackChainSkipsUnavailableModels(): void
+    public function test_fallback_chain_skips_unavailable_models(): void
     {
         Event::fake([AllModelsUnavailable::class]);
 
@@ -147,7 +148,7 @@ class ModelSwitcherPropertyTest extends TestCase
                     // Must return the first available model in chain order
                     $expected = null;
                     foreach ($this->fallbackChain as $m) {
-                        if ($m !== $failedModel && !in_array($m, $unavailable, true)) {
+                        if ($m !== $failedModel && ! in_array($m, $unavailable, true)) {
                             $expected = $m;
                             break;
                         }
@@ -158,8 +159,8 @@ class ModelSwitcherPropertyTest extends TestCase
                     $this->assertSame(
                         $expected,
                         $result,
-                        "nextAvailableModel() must return the first available model in chain order. " .
-                        "unavailable=" . implode(',', $unavailable) . ", expected={$expected}, got={$result}"
+                        'nextAvailableModel() must return the first available model in chain order. '.
+                        'unavailable='.implode(',', $unavailable).", expected={$expected}, got={$result}"
                     );
                 }
             });
@@ -176,7 +177,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testCooldownDurationInvariant(): void
+    public function test_cooldown_duration_invariant(): void
     {
         $this
             ->forAll(
@@ -189,7 +190,7 @@ class ModelSwitcherPropertyTest extends TestCase
 
                 $cooldown = match ($reason) {
                     'quota_exceeded' => 3600,
-                    default          => 60,
+                    default => 60,
                 };
 
                 $now = Carbon::now();
@@ -209,11 +210,11 @@ class ModelSwitcherPropertyTest extends TestCase
                 $this->assertSame(
                     $reason,
                     $entry['reason'],
-                    "Unavailability reason must be stored correctly."
+                    'Unavailability reason must be stored correctly.'
                 );
                 $this->assertNotNull(
                     $entry['recovers_at'],
-                    "recovers_at must be set for unavailable model."
+                    'recovers_at must be set for unavailable model.'
                 );
 
                 // ── Model must still be unavailable just before cooldown expires ──
@@ -253,7 +254,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testRecoveryRoundTripToPrimaryModel(): void
+    public function test_recovery_round_trip_to_primary_model(): void
     {
         $this
             ->forAll(
@@ -263,7 +264,7 @@ class ModelSwitcherPropertyTest extends TestCase
                 Cache::store('array')->flush();
                 $switcher = $this->makeSwitcher();
 
-                $primary  = config('gemini.model');
+                $primary = config('gemini.model');
                 $cooldown = $reason === 'quota_exceeded' ? 3600 : 60;
 
                 $now = Carbon::now();
@@ -305,7 +306,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testSwitchCountThresholdWarning(): void
+    public function test_switch_count_threshold_warning(): void
     {
         $this
             ->forAll(
@@ -318,7 +319,7 @@ class ModelSwitcherPropertyTest extends TestCase
                 $warningLogged = false;
 
                 // Intercept Log::warning via a spy on the underlying channel
-                Log::listen(function (\Illuminate\Log\Events\MessageLogged $event) use (&$warningLogged) {
+                Log::listen(function (MessageLogged $event) use (&$warningLogged) {
                     if ($event->level === 'warning'
                         && str_contains($event->message, 'high switch frequency')) {
                         $warningLogged = true;
@@ -329,7 +330,7 @@ class ModelSwitcherPropertyTest extends TestCase
                 // Use unique model names per iteration so unavailability entries don't
                 // collide and each call always reaches incrementSwitchCount().
                 for ($i = 0; $i < $n; $i++) {
-                    $switcher->markUnavailable('model_iter_' . $i, 'rate_limit');
+                    $switcher->markUnavailable('model_iter_'.$i, 'rate_limit');
                 }
 
                 $this->assertTrue(
@@ -351,7 +352,7 @@ class ModelSwitcherPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testSystemSettingChainPrecedenceAndCacheInvalidation(): void
+    public function test_system_setting_chain_precedence_and_cache_invalidation(): void
     {
         $this
             ->forAll(
@@ -375,7 +376,7 @@ class ModelSwitcherPropertyTest extends TestCase
                 $this->assertSame(
                     $this->fallbackChain,
                     $switcher->getFallbackChain(),
-                    "Before SystemSetting is set, getFallbackChain() must return config chain."
+                    'Before SystemSetting is set, getFallbackChain() must return config chain.'
                 );
 
                 // ── Set SystemSetting ──
@@ -387,8 +388,8 @@ class ModelSwitcherPropertyTest extends TestCase
                 $this->assertSame(
                     $customChain,
                     $chainAfter,
-                    "After SystemSetting::set('gemini_fallback_models'), getFallbackChain() must return the custom chain. " .
-                    "Expected=" . json_encode($customChain) . ", Got=" . json_encode($chainAfter)
+                    "After SystemSetting::set('gemini_fallback_models'), getFallbackChain() must return the custom chain. ".
+                    'Expected='.json_encode($customChain).', Got='.json_encode($chainAfter)
                 );
 
                 // ── Mark a model from the OLD config chain as unavailable ──
@@ -405,7 +406,7 @@ class ModelSwitcherPropertyTest extends TestCase
                 foreach ($availability as $entry) {
                     $this->assertTrue(
                         $entry['available'],
-                        "After resetAll(), all models in the new chain must be available. " .
+                        'After resetAll(), all models in the new chain must be available. '.
                         "Model '{$entry['model']}' is still unavailable."
                     );
                 }

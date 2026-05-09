@@ -7,7 +7,6 @@ use App\Models\AiUsageCostLog;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\AiCostThresholdExceededNotification;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -53,7 +52,7 @@ class CheckAiCostThresholdsTest extends TestCase
         ]);
 
         // Act
-        $job = new CheckAiCostThresholds();
+        $job = new CheckAiCostThresholds;
         $job->handle();
 
         // Assert
@@ -85,7 +84,7 @@ class CheckAiCostThresholdsTest extends TestCase
         ]);
 
         // Act
-        $job = new CheckAiCostThresholds();
+        $job = new CheckAiCostThresholds;
         $job->handle();
 
         // Assert
@@ -108,10 +107,10 @@ class CheckAiCostThresholdsTest extends TestCase
         ]);
 
         // Act - jalankan job dua kali
-        $job1 = new CheckAiCostThresholds();
+        $job1 = new CheckAiCostThresholds;
         $job1->handle();
 
-        $job2 = new CheckAiCostThresholds();
+        $job2 = new CheckAiCostThresholds;
         $job2->handle();
 
         // Assert - notifikasi hanya dikirim sekali
@@ -142,7 +141,7 @@ class CheckAiCostThresholdsTest extends TestCase
         ]);
 
         // Act
-        $job = new CheckAiCostThresholds();
+        $job = new CheckAiCostThresholds;
         $job->handle();
 
         // Assert - tidak ada notifikasi karena bulan ini di bawah threshold
@@ -165,7 +164,7 @@ class CheckAiCostThresholdsTest extends TestCase
         ]);
 
         // Act
-        $job = new CheckAiCostThresholds();
+        $job = new CheckAiCostThresholds;
         $job->handle();
 
         // Assert

@@ -14,6 +14,13 @@ class EmployeeOnboardingTask extends Model
 
     protected $casts = ['done_at' => 'datetime', 'is_done' => 'boolean', 'required' => 'boolean'];
 
-    public function onboarding(): BelongsTo { return $this->belongsTo(EmployeeOnboarding::class, 'employee_onboarding_id'); }
-    public function doneByUser(): BelongsTo { return $this->belongsTo(User::class, 'done_by'); }
+    public function onboarding(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeOnboarding::class, 'employee_onboarding_id');
+    }
+
+    public function doneByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'done_by');
+    }
 }

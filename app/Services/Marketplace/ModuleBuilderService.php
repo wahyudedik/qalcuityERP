@@ -116,7 +116,7 @@ class ModuleBuilderService
         $query = CustomModuleRecord::where('custom_module_id', $moduleId);
 
         // Apply JSON field filters
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             foreach ($filters as $field => $value) {
                 $query->whereJsonContains('data', [$field => $value]);
             }
@@ -166,6 +166,7 @@ class ModuleBuilderService
         $parts = explode('.', $version);
         if (count($parts) === 3) {
             $parts[2] = intval($parts[2]) + 1;
+
             return implode('.', $parts);
         }
 

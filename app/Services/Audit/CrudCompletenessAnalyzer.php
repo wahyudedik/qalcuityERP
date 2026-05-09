@@ -21,10 +21,15 @@ use App\DTOs\Audit\Severity;
 class CrudCompletenessAnalyzer implements AnalyzerInterface
 {
     private string $modelPath;
+
     private string $controllerPath;
+
     private string $viewPath;
+
     private string $importPath;
+
     private string $exportPath;
+
     private string $basePath;
 
     /**
@@ -74,10 +79,10 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
      * List-view features to check on index pages.
      */
     private const LIST_VIEW_FEATURES = [
-        'search'      => ['/wire:model.*search/i', '/@livewire.*search/i', '/x-data.*search/i', '/\$search/i', '/filter.*search/i', '/name=["\']search["\']/i'],
-        'pagination'  => ['/\{\{\s*\$\w+->links\(\)/i', '/paginate\s*\(/i', '/->links\(\)/i', '/wire:click.*page/i', '/pagination/i'],
-        'sorting'     => ['/sortBy/i', '/sort_by/i', '/orderBy/i', '/wire:click.*sort/i', '/@click.*sort/i'],
-        'filtering'   => ['/wire:model.*filter/i', '/x-model.*filter/i', '/\$filter/i', '/name=["\']filter/i', '/x-data.*filter/i'],
+        'search' => ['/wire:model.*search/i', '/@livewire.*search/i', '/x-data.*search/i', '/\$search/i', '/filter.*search/i', '/name=["\']search["\']/i'],
+        'pagination' => ['/\{\{\s*\$\w+->links\(\)/i', '/paginate\s*\(/i', '/->links\(\)/i', '/wire:click.*page/i', '/pagination/i'],
+        'sorting' => ['/sortBy/i', '/sort_by/i', '/orderBy/i', '/wire:click.*sort/i', '/@click.*sort/i'],
+        'filtering' => ['/wire:model.*filter/i', '/x-model.*filter/i', '/\$filter/i', '/name=["\']filter/i', '/x-data.*filter/i'],
         'bulk_actions' => ['/selectAll/i', '/selectedItems/i', '/bulk/i', '/checkbox.*select/i', '/wire:model.*selected/i'],
     ];
 
@@ -99,11 +104,11 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->modelPath = $modelPath ?? ($this->basePath . '/app/Models');
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
-        $this->viewPath = $viewPath ?? ($this->basePath . '/resources/views');
-        $this->importPath = $importPath ?? ($this->basePath . '/app/Imports');
-        $this->exportPath = $exportPath ?? ($this->basePath . '/app/Exports');
+        $this->modelPath = $modelPath ?? ($this->basePath.'/app/Models');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
+        $this->viewPath = $viewPath ?? ($this->basePath.'/resources/views');
+        $this->importPath = $importPath ?? ($this->basePath.'/app/Imports');
+        $this->exportPath = $exportPath ?? ($this->basePath.'/app/Exports');
     }
 
     /**
@@ -129,7 +134,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
                     severity: $isCoreEntity ? Severity::High : Severity::Medium,
                     title: "No controller found for model {$modelName}",
                     description: "Model {$modelName} has no corresponding controller. "
-                        . ($isCoreEntity
+                        .($isCoreEntity
                             ? 'This is a core business entity and requires complete CRUD operations.'
                             : 'The entity may be orphaned or pending implementation.'),
                     file: $entry['model_file'] ?? null,
@@ -150,7 +155,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
                     severity: $isCoreEntity ? Severity::High : Severity::Medium,
                     title: "Incomplete CRUD for {$modelName}",
                     description: "Controller for {$modelName} is missing methods: "
-                        . implode(', ', $missingMethods) . '.',
+                        .implode(', ', $missingMethods).'.',
                     file: $entry['controller_file'] ?? null,
                     line: null,
                     recommendation: 'Add the missing CRUD methods to ensure full data management capability.',
@@ -219,7 +224,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
             }
 
             $shortName = $this->shortClassName($className);
-            $controllerName = $shortName . 'Controller';
+            $controllerName = $shortName.'Controller';
 
             $controllerFile = $controllerLookup[$controllerName] ?? null;
 
@@ -244,7 +249,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
      * Reads the controller source and looks for public method
      * declarations matching the 7 standard CRUD method names.
      *
-     * @param string $controllerFile Absolute path to the controller PHP file
+     * @param  string  $controllerFile  Absolute path to the controller PHP file
      * @return array{present: string[], missing: string[]}
      */
     public function checkCrudMethods(string $controllerFile): array
@@ -252,7 +257,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
         $present = [];
         $missing = [];
 
-        if (!is_file($controllerFile)) {
+        if (! is_file($controllerFile)) {
             return ['present' => [], 'missing' => self::CRUD_METHODS];
         }
 
@@ -303,7 +308,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
             ];
 
             if ($entry['controller_file'] !== null) {
-                $absolutePath = $this->basePath . '/' . $entry['controller_file'];
+                $absolutePath = $this->basePath.'/'.$entry['controller_file'];
                 $crudCheck = $this->checkCrudMethods($absolutePath);
 
                 $row['present_methods'] = $crudCheck['present'];
@@ -311,7 +316,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
 
                 if (empty($crudCheck['missing'])) {
                     $row['status'] = 'Complete';
-                } elseif (!empty($crudCheck['present'])) {
+                } elseif (! empty($crudCheck['present'])) {
                     $row['status'] = 'Partial';
                 } else {
                     // Controller exists but has none of the 7 CRUD methods
@@ -333,7 +338,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
      * For each model that has a controller with an index method, look for
      * a corresponding Blade view and check for common list-view features.
      *
-     * @param array $crudMatrix The CRUD matrix from generateCrudMatrix()
+     * @param  array  $crudMatrix  The CRUD matrix from generateCrudMatrix()
      * @return AuditFinding[]
      */
     private function checkListViewFeatures(array $crudMatrix): array
@@ -342,17 +347,17 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
 
         foreach ($crudMatrix as $entry) {
             // Only check entities that have an index method
-            if (!in_array('index', $entry['present_methods'], true)) {
+            if (! in_array('index', $entry['present_methods'], true)) {
                 continue;
             }
 
             // Only check core entities for list view features
-            if (!in_array($entry['model'], self::CORE_ENTITIES, true)) {
+            if (! in_array($entry['model'], self::CORE_ENTITIES, true)) {
                 continue;
             }
 
             $viewDir = $this->guessViewDirectory($entry['model']);
-            if ($viewDir === null || !is_dir($viewDir)) {
+            if ($viewDir === null || ! is_dir($viewDir)) {
                 continue;
             }
 
@@ -376,18 +381,18 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
                         break;
                     }
                 }
-                if (!$found) {
+                if (! $found) {
                     $missingFeatures[] = $feature;
                 }
             }
 
-            if (!empty($missingFeatures)) {
+            if (! empty($missingFeatures)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Low,
                     title: "List view for {$entry['model']} missing features",
                     description: "The index view for {$entry['model']} is missing: "
-                        . implode(', ', $missingFeatures) . '.',
+                        .implode(', ', $missingFeatures).'.',
                     file: $this->relativePath($indexView),
                     line: null,
                     recommendation: 'Add the missing list view features for better user experience.',
@@ -428,13 +433,13 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
             $hasImport = in_array($entity, $availableImports, true);
             $hasExport = in_array($entity, $availableExports, true);
 
-            if (!$hasImport && !$hasExport) {
+            if (! $hasImport && ! $hasExport) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Medium,
                     title: "No import/export for {$entity}",
                     description: "{$entity} has neither import nor export capability. "
-                        . 'Major business entities should support data import and export.',
+                        .'Major business entities should support data import and export.',
                     file: null,
                     line: null,
                     recommendation: "Create {$entity}Import and/or {$entity}Export classes.",
@@ -445,7 +450,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
                         'has_export' => false,
                     ],
                 );
-            } elseif (!$hasImport) {
+            } elseif (! $hasImport) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Low,
@@ -461,7 +466,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
                         'has_export' => true,
                     ],
                 );
-            } elseif (!$hasExport) {
+            } elseif (! $hasExport) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Low,
@@ -540,7 +545,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
         // Filter out __construct and other magic methods
         return array_values(array_filter(
             $methods,
-            fn(string $m) => !str_starts_with($m, '__')
+            fn (string $m) => ! str_starts_with($m, '__')
         ));
     }
 
@@ -559,13 +564,13 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
 
         // Try plural form first (most common)
         $candidates = [
-            $this->viewPath . '/' . $snake,
-            $this->viewPath . '/' . $snake . 's',
+            $this->viewPath.'/'.$snake,
+            $this->viewPath.'/'.$snake.'s',
         ];
 
         // Special pluralizations
         if (str_ends_with($snake, 'y')) {
-            $candidates[] = $this->viewPath . '/' . substr($snake, 0, -1) . 'ies';
+            $candidates[] = $this->viewPath.'/'.substr($snake, 0, -1).'ies';
         }
 
         foreach ($candidates as $candidate) {
@@ -585,8 +590,8 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
     private function findIndexView(string $viewDir): ?string
     {
         $candidates = [
-            $viewDir . '/index.blade.php',
-            $viewDir . '/list.blade.php',
+            $viewDir.'/index.blade.php',
+            $viewDir.'/list.blade.php',
         ];
 
         foreach ($candidates as $candidate) {
@@ -603,8 +608,8 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
      *
      * Strips the suffix (Import/Export) from the class name to get the entity name.
      *
-     * @param string[] $files
-     * @param string $suffix 'Import' or 'Export'
+     * @param  string[]  $files
+     * @param  string  $suffix  'Import' or 'Export'
      * @return string[]
      */
     private function extractEntityNames(array $files, string $suffix): array
@@ -645,7 +650,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -702,6 +707,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -715,7 +721,7 @@ class CrudCompletenessAnalyzer implements AnalyzerInterface
     {
         // Normalise separators to forward slashes
         $normalised = str_replace('\\', '/', $absolutePath);
-        $basePath = str_replace('\\', '/', $this->basePath) . '/';
+        $basePath = str_replace('\\', '/', $this->basePath).'/';
 
         if (str_starts_with($normalised, $basePath)) {
             return substr($normalised, strlen($basePath));

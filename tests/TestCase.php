@@ -21,10 +21,10 @@ abstract class TestCase extends BaseTestCase
     protected function createTenant(array $attrs = []): Tenant
     {
         return Tenant::create(array_merge([
-            'name'      => 'Test Company',
-            'slug'      => 'test-company-' . uniqid(),
-            'email'     => 'test-' . uniqid() . '@example.com',
-            'plan'      => 'pro',
+            'name' => 'Test Company',
+            'slug' => 'test-company-'.uniqid(),
+            'email' => 'test-'.uniqid().'@example.com',
+            'plan' => 'pro',
             'is_active' => true,
         ], $attrs));
     }
@@ -32,12 +32,12 @@ abstract class TestCase extends BaseTestCase
     protected function createAdminUser(Tenant $tenant, array $attrs = []): User
     {
         return User::create(array_merge([
-            'tenant_id'         => $tenant->id,
-            'name'              => 'Admin Test',
-            'email'             => 'admin-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'admin',
-            'is_active'         => true,
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Test',
+            'email' => 'admin-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
             'email_verified_at' => now(),
         ], $attrs));
     }
@@ -72,10 +72,10 @@ abstract class TestCase extends BaseTestCase
 
         foreach ($accounts as $acc) {
             ChartOfAccount::create(array_merge($acc, [
-                'tenant_id'  => $tenantId,
-                'level'      => 3,
-                'is_header'  => false,
-                'is_active'  => true,
+                'tenant_id' => $tenantId,
+                'level' => 3,
+                'is_header' => false,
+                'is_active' => true,
             ]));
         }
     }
@@ -86,7 +86,7 @@ abstract class TestCase extends BaseTestCase
     {
         return Customer::create(array_merge([
             'tenant_id' => $tenantId,
-            'name'      => 'Customer Test',
+            'name' => 'Customer Test',
             'is_active' => true,
         ], $attrs));
     }
@@ -95,8 +95,8 @@ abstract class TestCase extends BaseTestCase
     {
         return Warehouse::create(array_merge([
             'tenant_id' => $tenantId,
-            'name'      => 'Gudang Utama',
-            'code'      => 'GDG-' . uniqid(),
+            'name' => 'Gudang Utama',
+            'code' => 'GDG-'.uniqid(),
             'is_active' => true,
         ], $attrs));
     }
@@ -104,13 +104,13 @@ abstract class TestCase extends BaseTestCase
     protected function createProduct(int $tenantId, array $attrs = []): Product
     {
         return Product::create(array_merge([
-            'tenant_id'  => $tenantId,
-            'name'       => 'Produk Test',
-            'sku'        => 'SKU-' . uniqid(),
-            'unit'       => 'pcs',
+            'tenant_id' => $tenantId,
+            'name' => 'Produk Test',
+            'sku' => 'SKU-'.uniqid(),
+            'unit' => 'pcs',
             'price_sell' => 100000,
-            'price_buy'  => 70000,
-            'is_active'  => true,
+            'price_buy' => 70000,
+            'is_active' => true,
         ], $attrs));
     }
 
@@ -127,19 +127,19 @@ abstract class TestCase extends BaseTestCase
     protected function assertJournalPosted(int $tenantId, string $refType, string $reference): void
     {
         $this->assertDatabaseHas('journal_entries', [
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'reference_type' => $refType,
-            'reference'      => $reference,
-            'status'         => 'posted',
+            'reference' => $reference,
+            'status' => 'posted',
         ]);
     }
 
     protected function assertJournalNotPosted(int $tenantId, string $refType): void
     {
         $this->assertDatabaseMissing('journal_entries', [
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'reference_type' => $refType,
-            'status'         => 'posted',
+            'status' => 'posted',
         ]);
     }
 }

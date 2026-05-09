@@ -2,24 +2,23 @@
 
 namespace App\Services;
 
-use App\Models\BankStatement;
+use App\DTOs\JournalPreviewDTO;
+use App\Models\AccountingPeriod;
 use App\Models\BankAccount;
+use App\Models\BankStatement;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
-use App\Models\AccountingPeriod;
-use App\DTOs\JournalPreviewDTO;
-use App\Services\AccountingAiService;
-use App\Services\DocumentNumberService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * BankStatementAutoJournalService
- * 
+ *
  * Generate journal entries otomatis dari bank statements menggunakan AI
- * 
+ *
  * Features:
  * - Auto-generate journal dari single/multiple bank statements
  * - AI-powered account suggestion
@@ -32,8 +31,7 @@ class BankStatementAutoJournalService
     public function __construct(
         private AccountingAiService $aiService,
         private DocumentNumberService $docNumberService
-    ) {
-    }
+    ) {}
 
     // ═══════════════════════════════════════════════════════════════
     // 2.2 Generate Journal From Single Statement
@@ -41,7 +39,7 @@ class BankStatementAutoJournalService
 
     /**
      * Generate journal entry dari single bank statement
-     * 
+     *
      * @return JournalPreviewDTO Preview journal yang akan dibuat
      */
     public function generateJournalFromStatement(BankStatement $statement): JournalPreviewDTO
@@ -75,14 +73,14 @@ class BankStatementAutoJournalService
 
         // Format date
         $transactionDate = $statement->transaction_date;
-        $dateString = $transactionDate instanceof \Carbon\Carbon
+        $dateString = $transactionDate instanceof Carbon
             ? $transactionDate->format('Y-m-d')
             : date('Y-m-d', strtotime($transactionDate));
 
         return new JournalPreviewDTO(
             date: $dateString,
             description: $description,
-            reference: $statement->reference ?? 'BANK-' . $statement->id,
+            reference: $statement->reference ?? 'BANK-'.$statement->id,
             journalType: $category,
             lines: $lines,
             confidence: $confidence,
@@ -99,10 +97,10 @@ class BankStatementAutoJournalService
 
     /**
      * Generate multiple journals dengan transaction support
-     * 
-     * @param Collection $statements Collection of BankStatement
-     * @param int $userId User ID untuk posted_by
-     * @param bool $autoPost Langsung post journal jika true
+     *
+     * @param  Collection  $statements  Collection of BankStatement
+     * @param  int  $userId  User ID untuk posted_by
+     * @param  bool  $autoPost  Langsung post journal jika true
      * @return array ['success' => [...], 'failed' => [...]]
      */
     public function generateJournalsFromStatements(
@@ -124,7 +122,7 @@ class BankStatementAutoJournalService
 
                     // Validate
                     $errors = $preview->validate();
-                    if (!empty($errors)) {
+                    if (! empty($errors)) {
                         throw new \Exception(implode(', ', $errors));
                     }
 
@@ -196,9 +194,9 @@ class BankStatementAutoJournalService
 
     /**
      * Auto-generate dan post journals dari statement IDs
-     * 
-     * @param Collection $statementIds Array of statement IDs
-     * @param int $userId User ID
+     *
+     * @param  Collection  $statementIds  Array of statement IDs
+     * @param  int  $userId  User ID
      * @return array Results
      */
     public function autoPostJournals(Collection $statementIds, int $userId): array
@@ -367,7 +365,7 @@ class BankStatementAutoJournalService
 
         $oppositeAccount = ChartOfAccount::find($aiSuggestion['account_id'] ?? null);
 
-        if (!$oppositeAccount || !$bankAccountCOA) {
+        if (! $oppositeAccount || ! $bankAccountCOA) {
             // Fallback jika account tidak ditemukan
             return $this->generateFallbackLines($statement, $bankAccountCOA, $type, $amount);
         }
@@ -443,7 +441,7 @@ class BankStatementAutoJournalService
             ->where('is_header', false)
             ->first();
 
-        if (!$clearingAccount || !$bankAccountCOA) {
+        if (! $clearingAccount || ! $bankAccountCOA) {
             return $this->generateFallbackLines($statement, $bankAccountCOA, $type, $amount);
         }
 
@@ -457,7 +455,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => 'Transfer masuk: ' . $statement->description,
+                'description' => 'Transfer masuk: '.$statement->description,
             ];
 
             $lines[] = [
@@ -466,7 +464,7 @@ class BankStatementAutoJournalService
                 'account_name' => $clearingAccount->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => 'Transfer masuk: ' . $statement->description,
+                'description' => 'Transfer masuk: '.$statement->description,
             ];
         } else {
             // Transfer keluar
@@ -476,7 +474,7 @@ class BankStatementAutoJournalService
                 'account_name' => $clearingAccount->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => 'Transfer keluar: ' . $statement->description,
+                'description' => 'Transfer keluar: '.$statement->description,
             ];
 
             $lines[] = [
@@ -485,7 +483,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => 'Transfer keluar: ' . $statement->description,
+                'description' => 'Transfer keluar: '.$statement->description,
             ];
         }
 
@@ -513,7 +511,7 @@ class BankStatementAutoJournalService
             ->where('is_header', false)
             ->first();
 
-        if (!$bankFeeAccount || !$bankAccountCOA) {
+        if (! $bankFeeAccount || ! $bankAccountCOA) {
             return $this->generateFallbackLines($statement, $bankAccountCOA, 'debit', $amount);
         }
 
@@ -524,7 +522,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankFeeAccount->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => 'Bank fee: ' . $statement->description,
+                'description' => 'Bank fee: '.$statement->description,
             ],
             [
                 'account_id' => $bankAccountCOA->id,
@@ -532,7 +530,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => 'Bank fee: ' . $statement->description,
+                'description' => 'Bank fee: '.$statement->description,
             ],
         ];
     }
@@ -558,7 +556,7 @@ class BankStatementAutoJournalService
             ->where('is_header', false)
             ->first();
 
-        if (!$interestAccount || !$bankAccountCOA) {
+        if (! $interestAccount || ! $bankAccountCOA) {
             return $this->generateFallbackLines($statement, $bankAccountCOA, 'credit', $amount);
         }
 
@@ -569,7 +567,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => 'Bank interest: ' . $statement->description,
+                'description' => 'Bank interest: '.$statement->description,
             ],
             [
                 'account_id' => $interestAccount->id,
@@ -577,7 +575,7 @@ class BankStatementAutoJournalService
                 'account_name' => $interestAccount->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => 'Bank interest: ' . $statement->description,
+                'description' => 'Bank interest: '.$statement->description,
             ],
         ];
     }
@@ -603,7 +601,7 @@ class BankStatementAutoJournalService
             ->where('is_header', false)
             ->first();
 
-        if (!$suspenseAccount || !$bankAccountCOA) {
+        if (! $suspenseAccount || ! $bankAccountCOA) {
             return $this->generateFallbackLines($statement, $bankAccountCOA, $type, $amount);
         }
 
@@ -616,7 +614,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => '[REVIEW REQUIRED] ' . $statement->description,
+                'description' => '[REVIEW REQUIRED] '.$statement->description,
             ];
 
             $lines[] = [
@@ -625,7 +623,7 @@ class BankStatementAutoJournalService
                 'account_name' => $suspenseAccount->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => '[REVIEW REQUIRED] ' . $statement->description,
+                'description' => '[REVIEW REQUIRED] '.$statement->description,
             ];
         } else {
             $lines[] = [
@@ -634,7 +632,7 @@ class BankStatementAutoJournalService
                 'account_name' => $suspenseAccount->name,
                 'debit' => $amount,
                 'credit' => 0,
-                'description' => '[REVIEW REQUIRED] ' . $statement->description,
+                'description' => '[REVIEW REQUIRED] '.$statement->description,
             ];
 
             $lines[] = [
@@ -643,7 +641,7 @@ class BankStatementAutoJournalService
                 'account_name' => $bankAccountCOA->name,
                 'debit' => 0,
                 'credit' => $amount,
-                'description' => '[REVIEW REQUIRED] ' . $statement->description,
+                'description' => '[REVIEW REQUIRED] '.$statement->description,
             ];
         }
 
@@ -659,7 +657,7 @@ class BankStatementAutoJournalService
         string $type,
         float $amount
     ): array {
-        if (!$bankAccountCOA) {
+        if (! $bankAccountCOA) {
             // Critical: tidak ada bank account COA
             return [];
         }
@@ -699,7 +697,7 @@ class BankStatementAutoJournalService
     private function getBankAccountCOA(int $bankAccountId, int $tenantId): ?ChartOfAccount
     {
         $bankAccount = BankAccount::find($bankAccountId);
-        if (!$bankAccount) {
+        if (! $bankAccount) {
             return null;
         }
 
@@ -708,8 +706,8 @@ class BankStatementAutoJournalService
             ->where(function ($q) use ($bankAccount) {
                 $q->where('code', 'like', '1101%') // Cash & Bank
                     ->orWhere('code', 'like', '1102%')
-                    ->orWhere('name', 'like', '%' . $bankAccount->bank_name . '%')
-                    ->orWhere('name', 'like', '%' . $bankAccount->account_number . '%');
+                    ->orWhere('name', 'like', '%'.$bankAccount->bank_name.'%')
+                    ->orWhere('name', 'like', '%'.$bankAccount->account_number.'%');
             })
             ->where('is_active', true)
             ->where('is_header', false)
@@ -725,9 +723,9 @@ class BankStatementAutoJournalService
             return 'low';
         }
 
-        $hasValidAccounts = collect($lines)->every(fn($line) => !empty($line['account_id']));
+        $hasValidAccounts = collect($lines)->every(fn ($line) => ! empty($line['account_id']));
 
-        if (!$hasValidAccounts) {
+        if (! $hasValidAccounts) {
             return 'low';
         }
 
@@ -766,7 +764,7 @@ class BankStatementAutoJournalService
             $warnings[] = 'Transaksi tidak dikenal - perlu review manual';
         }
 
-        $hasInvalidAccount = collect($lines)->contains(fn($line) => empty($line['account_id']));
+        $hasInvalidAccount = collect($lines)->contains(fn ($line) => empty($line['account_id']));
         if ($hasInvalidAccount) {
             $warnings[] = 'Ada account yang tidak ditemukan - menggunakan fallback';
         }
@@ -784,7 +782,7 @@ class BankStatementAutoJournalService
             ? BankStatement::find($preview->bankStatementId)?->tenant_id
             : null;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             throw new \Exception('Tenant ID tidak ditemukan untuk journal preview');
         }
 

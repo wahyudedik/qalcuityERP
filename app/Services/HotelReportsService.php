@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\FbOrder;
+use App\Models\HotelGuest;
+use App\Models\HousekeepingTask;
 use App\Models\Reservation;
 use App\Models\Room;
-use App\Models\HotelGuest;
-use App\Models\FbOrder;
 use App\Models\SpaBooking;
-use App\Models\HousekeepingTask;
-use App\Models\NightAuditBatch;
+use App\Models\SpaTherapist;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -204,7 +204,7 @@ class HotelReportsService
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(function ($item) use ($startDate, $endDate) {
+            ->map(function ($item) {
                 $fbRev = FbOrder::where('tenant_id', $this->tenantId)
                     ->whereDate('order_date', $item->date)
                     ->where('status', 'completed')
@@ -332,6 +332,7 @@ class HotelReportsService
                 $item->occupancy_rate = $item->total_rooms > 0
                     ? round(($item->occupied_rooms / $item->total_rooms) * 100, 2)
                     : 0;
+
                 return $item;
             });
 
@@ -386,7 +387,7 @@ class HotelReportsService
             ->withCount([
                 'reservations as total_stays' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('check_in_date', [$startDate, $endDate]);
-                }
+                },
             ])
             ->having('total_stays', '>', 1)
             ->get()
@@ -463,23 +464,24 @@ class HotelReportsService
                 $item->completion_rate = $item->total_tasks > 0
                     ? round(($item->completed_tasks / $item->total_tasks) * 100, 2)
                     : 0;
+
                 return $item;
             });
 
         // Therapist performance (Spa)
-        $therapistPerformance = \App\Models\SpaTherapist::where('tenant_id', $this->tenantId)
+        $therapistPerformance = SpaTherapist::where('tenant_id', $this->tenantId)
             ->where('is_active', true)
             ->withCount([
                 'bookings as total_treatments' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('booking_date', [$startDate, $endDate])
                         ->where('status', 'completed');
-                }
+                },
             ])
             ->withSum([
                 'bookings as total_revenue' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('booking_date', [$startDate, $endDate])
                         ->where('status', 'completed');
-                }
+                },
             ], 'total_amount')
             ->orderByDesc('total_revenue')
             ->get();

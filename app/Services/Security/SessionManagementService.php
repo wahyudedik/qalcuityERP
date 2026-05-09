@@ -99,7 +99,7 @@ class SessionManagementService
     /**
      * Terminate all sessions for user
      */
-    public function terminateAllSessions(int $userId, string $excludeSessionId = null): int
+    public function terminateAllSessions(int $userId, ?string $excludeSessionId = null): int
     {
         try {
             $query = UserSession::where('user_id', $userId)
@@ -159,11 +159,11 @@ class SessionManagementService
     {
         $session = UserSession::where('session_id', $sessionId)->first();
 
-        if (!$session) {
+        if (! $session) {
             return true;
         }
 
-        return $session->expires_at < now() || !$session->is_active;
+        return $session->expires_at < now() || ! $session->is_active;
     }
 
     /**
@@ -181,7 +181,7 @@ class SessionManagementService
      */
     protected function parseUserAgent(?string $userAgent): array
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return [
                 'device_name' => 'Unknown Device',
                 'device_type' => 'desktop',
@@ -234,7 +234,7 @@ class SessionManagementService
      */
     protected function getLocationFromIp(?string $ipAddress): ?string
     {
-        if (!$ipAddress) {
+        if (! $ipAddress) {
             return null;
         }
 

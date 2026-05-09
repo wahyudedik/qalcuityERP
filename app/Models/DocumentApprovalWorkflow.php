@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class DocumentApprovalWorkflow extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -75,7 +76,7 @@ class DocumentApprovalWorkflow extends Model
      */
     public function hasSteps(): bool
     {
-        return !empty($this->approval_steps) && is_array($this->approval_steps);
+        return ! empty($this->approval_steps) && is_array($this->approval_steps);
     }
 
     /**
@@ -84,6 +85,7 @@ class DocumentApprovalWorkflow extends Model
     public function getStepConfig(int $stepNumber): ?array
     {
         $steps = $this->approval_steps ?? [];
+
         return $steps[$stepNumber - 1] ?? null;
     }
 }

@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
-use App\Models\SpaTherapist;
-use App\Models\SpaTreatment;
-use App\Models\SpaPackage;
+use App\Models\Product;
 use App\Models\SpaBooking;
 use App\Models\SpaBookingItem;
+use App\Models\SpaPackage;
 use App\Models\SpaPackageItem;
 use App\Models\SpaProductSale;
+use App\Models\SpaTherapist;
+use App\Models\SpaTreatment;
 use App\Models\TherapistSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -218,7 +220,7 @@ class SpaController extends Controller
                 'bookings as today_bookings_count' => function ($q) {
                     $q->whereDate('booking_date', today())
                         ->whereNotIn('status', ['cancelled', 'no_show']);
-                }
+                },
             ])
             ->orderBy('name')
             ->get();
@@ -352,13 +354,13 @@ class SpaController extends Controller
         ]);
 
         // Calculate end time
-        $startTime = \Carbon\Carbon::parse($validated['start_time']);
+        $startTime = Carbon::parse($validated['start_time']);
         $endTime = $startTime->copy()->addMinutes($validated['duration_minutes']);
 
         // Check therapist availability
         if ($validated['therapist_id']) {
             $therapist = SpaTherapist::find($validated['therapist_id']);
-            if (!$therapist->isAvailableAt($validated['booking_date'], $validated['start_time'], $endTime->format('H:i:s'))) {
+            if (! $therapist->isAvailableAt($validated['booking_date'], $validated['start_time'], $endTime->format('H:i:s'))) {
                 return back()->withErrors(['therapist_id' => 'Therapist is not available at this time'])->withInput();
             }
         }
@@ -401,7 +403,7 @@ class SpaController extends Controller
             // If package, create booking items
             if ($validated['package_id']) {
                 $package = SpaPackage::with('items')->find($validated['package_id']);
-                $currentTime = \Carbon\Carbon::parse($validated['start_time']);
+                $currentTime = Carbon::parse($validated['start_time']);
 
                 foreach ($package->items as $index => $item) {
                     $duration = $item->duration_override ?? $item->treatment->duration_minutes;
@@ -468,7 +470,7 @@ class SpaController extends Controller
             abort(403);
         }
 
-        if (!$booking->canBeCancelled()) {
+        if (! $booking->canBeCancelled()) {
             return back()->with('error', 'This booking cannot be cancelled');
         }
 
@@ -521,7 +523,7 @@ class SpaController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $product = \App\Models\Product::find($validated['product_id']);
+        $product = Product::find($validated['product_id']);
 
         SpaProductSale::create([
             'tenant_id' => $this->tenantId(),
@@ -552,9 +554,10 @@ class SpaController extends Controller
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
         // Revenue by treatment
-        $revenueByTreatment = SpaBooking::where('tenant_id', $this->tenantId())
-            ->whereBetween('booking_date', [$startDate, $endDate])
-            ->where('status', 'completed')
+        $revenueByTreatment = SpaBooking::withoutGlobalScopes()
+            ->where('spa_bookings.tenant_id', $this->tenantId())
+            ->whereBetween('spa_bookings.booking_date', [$startDate, $endDate])
+            ->where('spa_bookings.status', 'completed')
             ->join('spa_treatments', 'spa_bookings.treatment_id', '=', 'spa_treatments.id')
             ->select(
                 'spa_treatments.name',
@@ -572,13 +575,13 @@ class SpaController extends Controller
                 'bookings as completed_count' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('booking_date', [$startDate, $endDate])
                         ->where('status', 'completed');
-                }
+                },
             ])
             ->withSum([
                 'bookings as total_revenue' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('booking_date', [$startDate, $endDate])
                         ->where('status', 'completed');
-                }
+                },
             ], 'total_amount')
             ->orderByDesc('total_revenue')
             ->get();
@@ -619,6 +622,7 @@ class SpaController extends Controller
             'endDate'
         ));
     }
+
     /**
      * CreatePackage.
      * Route: hotel/spa/packages/create
@@ -627,13 +631,13 @@ class SpaController extends Controller
     {
         // TODO: Add authorization
         // $this->authorize('ACTION', MODEL::class);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement CreatePackage logic
-        
+
         return back()->with('success', 'CreatePackage completed successfully.');
     }
 }

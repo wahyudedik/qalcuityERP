@@ -22,13 +22,13 @@ class ApprovalRequestNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $requester = $this->approval->requester?->name ?? 'Seseorang';
-        $workflow  = $this->approval->workflow?->name ?? 'Permintaan';
+        $workflow = $this->approval->workflow?->name ?? 'Permintaan';
 
         return (new MailMessage)
             ->subject("Permintaan Persetujuan: {$workflow}")
             ->greeting("Halo, {$notifiable->name}!")
             ->line("{$requester} membutuhkan persetujuan Anda untuk: **{$workflow}**")
-            ->when($this->approval->notes, fn($m) => $m->line("Catatan: {$this->approval->notes}"))
+            ->when($this->approval->notes, fn ($m) => $m->line("Catatan: {$this->approval->notes}"))
             ->action('Lihat & Setujui', url('/approvals'))
             ->line('Harap segera ditindaklanjuti.')
             ->salutation('Salam, Qalcuity ERP');

@@ -37,7 +37,7 @@ class TenantAiRoutingController extends Controller
     public function index(Request $request): View
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403, 'Tenant ID tidak ditemukan.');
+        abort_if(! $tenantId, 403, 'Tenant ID tidak ditemukan.');
 
         $tenant = Tenant::findOrFail($tenantId);
         $tenantPlan = $tenant->subscription_plan ?? 'trial';
@@ -62,7 +62,7 @@ class TenantAiRoutingController extends Controller
             $activeRule = $tenantRule ?? $globalRule;
 
             // Jika tidak ada rule di database, gunakan config default
-            if (!$activeRule) {
+            if (! $activeRule) {
                 $configRule = config("ai.use_case_routing.{$useCaseValue}");
                 if ($configRule) {
                     $activeRule = (object) [
@@ -123,7 +123,7 @@ class TenantAiRoutingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403, 'Tenant ID tidak ditemukan.');
+        abort_if(! $tenantId, 403, 'Tenant ID tidak ditemukan.');
 
         $validated = $request->validate([
             'use_case' => 'required|string|max:100',
@@ -137,7 +137,7 @@ class TenantAiRoutingController extends Controller
 
         // Validasi: cek apakah provider tersedia untuk plan tenant
         $availableProviders = $this->getAvailableProviders($tenantPlan);
-        if (!in_array($validated['provider'], $availableProviders)) {
+        if (! in_array($validated['provider'], $availableProviders)) {
             return back()->withErrors([
                 'provider' => "Provider {$validated['provider']} tidak tersedia untuk plan {$tenantPlan}. Upgrade plan Anda untuk mengakses provider ini.",
             ])->withInput();
@@ -151,7 +151,7 @@ class TenantAiRoutingController extends Controller
         $configRule = config("ai.use_case_routing.{$validated['use_case']}");
         $minPlan = $globalRule->min_plan ?? $configRule['min_plan'] ?? null;
 
-        if ($minPlan && !$this->planMeetsRequirement($tenantPlan, $minPlan)) {
+        if ($minPlan && ! $this->planMeetsRequirement($tenantPlan, $minPlan)) {
             return back()->withErrors([
                 'use_case' => "Use case {$validated['use_case']} memerlukan plan minimum {$minPlan}. Plan Anda saat ini: {$tenantPlan}.",
             ])->withInput();
@@ -191,7 +191,7 @@ class TenantAiRoutingController extends Controller
     public function destroy(Request $request, AiUseCaseRoute $route): RedirectResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403, 'Tenant ID tidak ditemukan.');
+        abort_if(! $tenantId, 403, 'Tenant ID tidak ditemukan.');
 
         // Validasi: pastikan route ini milik tenant yang sedang login
         if ($route->tenant_id !== $tenantId) {

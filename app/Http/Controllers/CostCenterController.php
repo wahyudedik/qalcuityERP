@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CostCenter;
 use App\Models\ActivityLog;
+use App\Models\CostCenter;
 use App\Services\CostCenterService;
 use Illuminate\Http\Request;
 
@@ -11,7 +11,10 @@ class CostCenterController extends Controller
 {
     public function __construct(private CostCenterService $service) {}
 
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
@@ -19,9 +22,11 @@ class CostCenterController extends Controller
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('code', 'like', "%$s%")->orWhere('name', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('code', 'like', "%$s%")->orWhere('name', 'like', "%$s%"));
         }
-        if ($request->filled('type')) $query->where('type', $request->type);
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
 
         $centers = $query->orderBy('code')->get();
         $parents = CostCenter::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('code')->get();
@@ -32,10 +37,10 @@ class CostCenterController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'code'        => 'required|string|max:20',
-            'name'        => 'required|string|max:100',
-            'type'        => 'required|in:department,branch,project,product_line',
-            'parent_id'   => 'nullable|exists:cost_centers,id',
+            'code' => 'required|string|max:20',
+            'name' => 'required|string|max:100',
+            'type' => 'required|in:department,branch,project,product_line',
+            'parent_id' => 'nullable|exists:cost_centers,id',
             'description' => 'nullable|string|max:255',
         ]);
 
@@ -57,14 +62,15 @@ class CostCenterController extends Controller
         abort_if($costCenter->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'type'        => 'required|in:department,branch,project,product_line',
-            'parent_id'   => 'nullable|exists:cost_centers,id',
-            'is_active'   => 'boolean',
+            'name' => 'required|string|max:100',
+            'type' => 'required|in:department,branch,project,product_line',
+            'parent_id' => 'nullable|exists:cost_centers,id',
+            'is_active' => 'boolean',
             'description' => 'nullable|string|max:255',
         ]);
 
         $costCenter->update($data);
+
         return back()->with('success', 'Cost center berhasil diperbarui.');
     }
 
@@ -84,9 +90,9 @@ class CostCenterController extends Controller
     /** Laporan P&L per cost center */
     public function report(Request $request)
     {
-        $tid  = $this->tid();
+        $tid = $this->tid();
         $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
+        $to = $request->get('to', now()->toDateString());
 
         $centers = CostCenter::where('tenant_id', $tid)
             ->where('is_active', true)

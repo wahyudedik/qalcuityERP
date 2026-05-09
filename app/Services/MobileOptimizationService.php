@@ -22,7 +22,7 @@ class MobileOptimizationService
             'Windows Phone',
             'Mobile',
             'webOS',
-            'Opera Mini'
+            'Opera Mini',
         ];
 
         foreach ($mobileKeywords as $keyword) {

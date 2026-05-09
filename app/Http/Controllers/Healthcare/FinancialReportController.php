@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\MedicalBill;
 use App\Models\InsuranceClaim;
-use Illuminate\Http\Request;
+use App\Models\MedicalBill;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class FinancialReportController extends Controller
 {

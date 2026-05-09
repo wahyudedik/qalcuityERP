@@ -32,8 +32,8 @@ class PruneModelSwitchLogsTest extends TestCase
     {
         return AiModelSwitchLog::create([
             'from_model' => 'gemini-2.5-flash',
-            'to_model'   => 'gemini-2.5-flash-lite',
-            'reason'     => 'rate_limit',
+            'to_model' => 'gemini-2.5-flash-lite',
+            'reason' => 'rate_limit',
             'switched_at' => now()->subDays($daysAgo),
         ]);
     }
@@ -46,13 +46,13 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testDefaultRetentionDeletesOldRecords(): void
+    public function test_default_retention_deletes_old_records(): void
     {
         // Seed records at various ages
-        $recent   = $this->createLog(10);  // 10 days old — keep
+        $recent = $this->createLog(10);  // 10 days old — keep
         $boundary = $this->createLog(29);  // 29 days old — keep (within 30-day window)
-        $old      = $this->createLog(31);  // 31 days old — delete
-        $veryOld  = $this->createLog(60);  // 60 days old — delete
+        $old = $this->createLog(31);  // 31 days old — delete
+        $veryOld = $this->createLog(60);  // 60 days old — delete
 
         $this->artisan('ai:prune-switch-logs')
             ->assertSuccessful();
@@ -72,14 +72,14 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testCustomRetentionViaSystemSetting(): void
+    public function test_custom_retention_via_system_setting(): void
     {
         // Set retention to 7 days
         SystemSetting::set('gemini_log_retention_days', '7');
 
-        $recent  = $this->createLog(5);   // 5 days old — keep
-        $edge    = $this->createLog(6);   // 6 days old — keep
-        $old     = $this->createLog(8);   // 8 days old — delete
+        $recent = $this->createLog(5);   // 5 days old — keep
+        $edge = $this->createLog(6);   // 6 days old — keep
+        $old = $this->createLog(8);   // 8 days old — delete
         $veryOld = $this->createLog(30);  // 30 days old — delete
 
         $this->artisan('ai:prune-switch-logs')
@@ -96,7 +96,7 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testOutputShowsCorrectDeletedCount(): void
+    public function test_output_shows_correct_deleted_count(): void
     {
         // 2 records older than 30 days
         $this->createLog(31);
@@ -115,7 +115,7 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testOutputShowsZeroWhenNothingToDelete(): void
+    public function test_output_shows_zero_when_nothing_to_delete(): void
     {
         $this->createLog(5);
         $this->createLog(10);
@@ -130,7 +130,7 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testRunsCleanlyOnEmptyTable(): void
+    public function test_runs_cleanly_on_empty_table(): void
     {
         $this->assertSame(0, AiModelSwitchLog::count());
 
@@ -144,11 +144,11 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testShortRetentionKeepsOnlyVeryRecentRecords(): void
+    public function test_short_retention_keeps_only_very_recent_records(): void
     {
         SystemSetting::set('gemini_log_retention_days', '1');
 
-        $today     = $this->createLog(0);  // created now — keep
+        $today = $this->createLog(0);  // created now — keep
         $yesterday = $this->createLog(2);  // 2 days old — delete
 
         $this->artisan('ai:prune-switch-logs')
@@ -163,7 +163,7 @@ class PruneModelSwitchLogsTest extends TestCase
      *
      * Validates: Requirements 5.4
      */
-    public function testLongRetentionKeepsAllRecords(): void
+    public function test_long_retention_keeps_all_records(): void
     {
         SystemSetting::set('gemini_log_retention_days', '365');
 

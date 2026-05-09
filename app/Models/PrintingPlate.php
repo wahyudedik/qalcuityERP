@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PrintingPlate extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -27,7 +26,7 @@ use HasFactory, BelongsToTenant;
         'dismounted_at',
         'cleaned_at',
         'created_by',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [

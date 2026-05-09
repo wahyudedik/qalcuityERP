@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class QueryMonitoringService
 {
     protected static $queries = [];
+
     protected static $startTime;
 
     /**
@@ -30,14 +31,12 @@ class QueryMonitoringService
 
     /**
      * Get query statistics
-     * 
-     * @return array
      */
     public static function getStats(): array
     {
         $totalTime = microtime(true) - self::$startTime;
         $totalQueries = count(self::$queries);
-        $slowQueries = array_filter(self::$queries, fn($q) => $q['time'] > 100);
+        $slowQueries = array_filter(self::$queries, fn ($q) => $q['time'] > 100);
 
         // Detect potential N+1 queries (same query executed more than 5 times)
         $queryCounts = [];
@@ -47,7 +46,7 @@ class QueryMonitoringService
             $queryCounts[$key] = ($queryCounts[$key] ?? 0) + 1;
         }
 
-        $nPlusQueries = array_filter($queryCounts, fn($count) => $count > 5);
+        $nPlusQueries = array_filter($queryCounts, fn ($count) => $count > 5);
 
         return [
             'total_queries' => $totalQueries,
@@ -64,13 +63,13 @@ class QueryMonitoringService
      */
     public static function logSlowQueries($threshold = 100)
     {
-        $slowQueries = array_filter(self::$queries, fn($q) => $q['time'] > $threshold);
+        $slowQueries = array_filter(self::$queries, fn ($q) => $q['time'] > $threshold);
 
-        if (!empty($slowQueries)) {
+        if (! empty($slowQueries)) {
             Log::warning('Slow queries detected', [
                 'count' => count($slowQueries),
                 'threshold_ms' => $threshold,
-                'queries' => array_map(fn($q) => [
+                'queries' => array_map(fn ($q) => [
                     'sql' => $q['sql'],
                     'time_ms' => $q['time'],
                 ], $slowQueries),
@@ -91,7 +90,7 @@ class QueryMonitoringService
             $normalized = preg_replace('/\b\d+\b/', '?', $normalized);
 
             $pattern = md5($normalized);
-            if (!isset($queryPatterns[$pattern])) {
+            if (! isset($queryPatterns[$pattern])) {
                 $queryPatterns[$pattern] = [
                     'sql' => $query['sql'],
                     'count' => 0,
@@ -104,6 +103,6 @@ class QueryMonitoringService
         }
 
         // Find queries executed more than 10 times (potential N+1)
-        return array_filter($queryPatterns, fn($p) => $p['count'] > 10);
+        return array_filter($queryPatterns, fn ($p) => $p['count'] > 10);
     }
 }

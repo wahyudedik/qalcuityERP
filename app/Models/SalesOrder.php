@@ -2,26 +2,33 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 class SalesOrder extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
+    use BelongsToTenant;
 
     // Status constants
     const STATUS_PENDING = 'pending';
+
     const STATUS_PENDING_PAYMENT = 'pending_payment';
+
     const STATUS_CONFIRMED = 'confirmed';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_SHIPPED = 'shipped';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
@@ -110,6 +117,7 @@ class SalesOrder extends Model
     {
         return $this->posting_status === 'posted';
     }
+
     public function isDraft(): bool
     {
         return ($this->posting_status ?? 'draft') === 'draft';
@@ -124,34 +132,42 @@ class SalesOrder extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function cashierSession(): BelongsTo
     {
         return $this->belongsTo(CashierSession::class);
     }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function quotation(): BelongsTo
     {
         return $this->belongsTo(Quotation::class);
     }
+
     public function items(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
     }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }
+
     public function deliveryOrders(): HasMany
     {
         return $this->hasMany(DeliveryOrder::class);
     }
+
     public function salesReturns(): HasMany
     {
         return $this->hasMany(SalesReturn::class);

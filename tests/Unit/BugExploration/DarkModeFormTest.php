@@ -21,7 +21,7 @@ class DarkModeFormTest extends TestCase
      */
     public function test_css_has_dark_mode_form_element_styles(): void
     {
-        if (!file_exists($this->cssFile)) {
+        if (! file_exists($this->cssFile)) {
             $this->markTestSkipped("File CSS tidak ditemukan: {$this->cssFile}");
         }
 
@@ -38,7 +38,7 @@ class DarkModeFormTest extends TestCase
 
         $this->assertFalse(
             $hasDarkFormStyles,
-            "CSS should NOT contain dark mode styling for form elements after dark mode removal"
+            'CSS should NOT contain dark mode styling for form elements after dark mode removal'
         );
     }
 
@@ -50,7 +50,7 @@ class DarkModeFormTest extends TestCase
     {
         $viewDir = 'resources/views';
 
-        if (!is_dir($viewDir)) {
+        if (! is_dir($viewDir)) {
             $this->markTestSkipped("Directory {$viewDir} tidak ditemukan");
         }
 
@@ -61,14 +61,14 @@ class DarkModeFormTest extends TestCase
         $violations = [];
 
         foreach ($iterator as $file) {
-            if (!$file->isFile() || !str_ends_with($file->getFilename(), '.blade.php')) {
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
 
             $content = file_get_contents($file->getPathname());
 
             if (str_contains($content, 'dark:bg-slate-700') || str_contains($content, 'dark:bg-gray-')) {
-                $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $relativePath = str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file->getPathname());
                 $violations[] = $relativePath;
 
                 if (count($violations) >= 10) {
@@ -79,7 +79,7 @@ class DarkModeFormTest extends TestCase
 
         $this->assertEmpty(
             $violations,
-            "Form elements should NOT have dark: classes after dark mode removal:\n" .
+            "Form elements should NOT have dark: classes after dark mode removal:\n".
                 implode("\n", $violations)
         );
     }
@@ -90,7 +90,7 @@ class DarkModeFormTest extends TestCase
      */
     public function test_css_has_layer_base_with_dark_form_styles(): void
     {
-        if (!file_exists($this->cssFile)) {
+        if (! file_exists($this->cssFile)) {
             $this->markTestSkipped("File CSS tidak ditemukan: {$this->cssFile}");
         }
 
@@ -104,7 +104,7 @@ class DarkModeFormTest extends TestCase
 
         $this->assertFalse(
             $hasLayerBaseWithDark,
-            "CSS @layer base should NOT contain dark: classes after dark mode removal"
+            'CSS @layer base should NOT contain dark: classes after dark mode removal'
         );
     }
 }

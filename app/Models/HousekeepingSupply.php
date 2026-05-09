@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HousekeepingSupply extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -65,7 +64,7 @@ class HousekeepingSupply extends Model
             ->whereYear('created_at', $year)
             ->count() + 1;
 
-        return "{$prefix}-SUP-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+        return "{$prefix}-SUP-{$year}-".str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -86,6 +85,7 @@ class HousekeepingSupply extends Model
         } elseif ($this->needsReorder()) {
             return 'low_stock';
         }
+
         return 'adequate';
     }
 

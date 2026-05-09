@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\StockMovement;
 use App\Models\StockAdjustment;
+use App\Models\StockMovement;
 use App\Models\StockTransfer;
-use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class InventoryApiController extends ApiBaseController
@@ -44,7 +42,7 @@ class InventoryApiController extends ApiBaseController
                 'category',
                 'stockMovements' => function ($q) {
                     $q->latest()->limit(10);
-                }
+                },
             ])
             ->findOrFail($productId);
 
@@ -290,7 +288,7 @@ class InventoryApiController extends ApiBaseController
             'warehouse_id' => $validated['warehouse_id'],
             'type' => 'adjustment',
             'quantity' => abs($difference),
-            'notes' => 'Stock count adjustment: ' . ($validated['notes'] ?? ''),
+            'notes' => 'Stock count adjustment: '.($validated['notes'] ?? ''),
             'created_by' => auth()->id(),
         ]);
 

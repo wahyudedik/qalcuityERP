@@ -25,7 +25,7 @@ class ModelAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/model_analyzer_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/model_analyzer_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -69,7 +69,7 @@ PHP);
 
         $tenantFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
         );
 
         $this->assertNotEmpty($tenantFindings, 'Should detect missing BelongsToTenant trait');
@@ -107,7 +107,7 @@ PHP);
 
         $tenantFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
         );
 
         $this->assertEmpty($tenantFindings, 'Should not flag model with BelongsToTenant trait');
@@ -136,7 +136,7 @@ PHP);
 
         $tenantFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
         );
 
         $this->assertEmpty($tenantFindings, 'Should not flag model without tenant_id');
@@ -162,7 +162,7 @@ PHP);
 
         $tenantFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
         );
 
         $this->assertNotEmpty($tenantFindings, 'Should detect tenant_id in $guarded without BelongsToTenant');
@@ -190,7 +190,7 @@ PHP);
 
         $massFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'mass assignment')
+            fn (AuditFinding $f) => str_contains($f->title, 'mass assignment')
         );
 
         $this->assertNotEmpty($massFindings, 'Should detect $guarded = []');
@@ -223,7 +223,7 @@ PHP);
 
         $massFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'mass assignment')
+            fn (AuditFinding $f) => str_contains($f->title, 'mass assignment')
         );
 
         $this->assertEmpty($massFindings, 'Should not flag model with explicit $fillable');
@@ -249,7 +249,7 @@ PHP);
 
         $massFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'mass assignment')
+            fn (AuditFinding $f) => str_contains($f->title, 'mass assignment')
         );
 
         $this->assertEmpty($massFindings, 'Should not flag model with non-empty $guarded');
@@ -282,7 +282,7 @@ PHP);
 
         $relFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
         );
 
         $this->assertNotEmpty($relFindings, 'Should detect missing referenced model class');
@@ -330,19 +330,19 @@ PHP);
         // Use fixtureDir as basePath so model resolution works
         // The analyzer resolves App\Models\X to basePath/app/Models/X.php
         // We need to create the proper directory structure
-        $modelsDir = $this->fixtureDir . '/app/Models';
+        $modelsDir = $this->fixtureDir.'/app/Models';
         mkdir($modelsDir, 0777, true);
 
         // Copy fixtures to proper location
-        copy($this->fixtureDir . '/Order.php', $modelsDir . '/Order.php');
-        copy($this->fixtureDir . '/OrderItem.php', $modelsDir . '/OrderItem.php');
+        copy($this->fixtureDir.'/Order.php', $modelsDir.'/Order.php');
+        copy($this->fixtureDir.'/OrderItem.php', $modelsDir.'/OrderItem.php');
 
         $analyzer = new ModelAnalyzer($modelsDir, $this->fixtureDir);
         $findings = $analyzer->analyze();
 
         $relFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
         );
 
         $this->assertEmpty($relFindings, 'Should not flag existing referenced model');
@@ -373,7 +373,7 @@ PHP);
 
         $relFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing referenced model')
         );
 
         $this->assertEmpty($relFindings, 'Should skip morphTo relationships');
@@ -401,7 +401,7 @@ PHP);
 
         $softFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
         );
 
         $this->assertNotEmpty($softFindings, 'Should detect missing SoftDeletes on Asset');
@@ -434,7 +434,7 @@ PHP);
 
         $softFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
         );
 
         $this->assertEmpty($softFindings, 'Should not flag Invoice with SoftDeletes');
@@ -460,7 +460,7 @@ PHP);
 
         $softFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
         );
 
         $this->assertEmpty($softFindings, 'Should not flag non-critical entity');
@@ -500,7 +500,7 @@ PHP);
 
         $softFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
         );
 
         $this->assertCount(
@@ -627,10 +627,10 @@ PHP);
     public function test_analyze_model_with_class_name(): void
     {
         // Create proper directory structure for class resolution
-        $modelsDir = $this->fixtureDir . '/app/Models';
+        $modelsDir = $this->fixtureDir.'/app/Models';
         mkdir($modelsDir, 0777, true);
 
-        file_put_contents($modelsDir . '/TestModel.php', <<<'PHP'
+        file_put_contents($modelsDir.'/TestModel.php', <<<'PHP'
 <?php
 
 namespace App\Models;
@@ -675,9 +675,9 @@ PHP);
         $findings = $analyzer->analyze();
 
         // Should detect: missing SoftDeletes (critical entity) + $guarded = [] + missing referenced model
-        $softFindings = array_filter($findings, fn($f) => $f->metadata['check'] === 'soft_deletes');
-        $massFindings = array_filter($findings, fn($f) => $f->metadata['check'] === 'mass_assignment');
-        $relFindings = array_filter($findings, fn($f) => $f->metadata['check'] === 'relationship');
+        $softFindings = array_filter($findings, fn ($f) => $f->metadata['check'] === 'soft_deletes');
+        $massFindings = array_filter($findings, fn ($f) => $f->metadata['check'] === 'mass_assignment');
+        $relFindings = array_filter($findings, fn ($f) => $f->metadata['check'] === 'relationship');
 
         $this->assertNotEmpty($softFindings, 'Should detect missing SoftDeletes');
         $this->assertNotEmpty($massFindings, 'Should detect $guarded = []');
@@ -711,7 +711,7 @@ PHP);
 
         $tenantFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing BelongsToTenant')
         );
 
         $this->assertEmpty($tenantFindings, 'Should detect BelongsToTenant in multi-trait use statement');
@@ -739,7 +739,7 @@ PHP);
 
         $softFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
+            fn (AuditFinding $f) => str_contains($f->title, 'Missing SoftDeletes')
         );
 
         $this->assertEmpty($softFindings, 'Should detect SoftDeletes with fully qualified name');
@@ -749,9 +749,9 @@ PHP);
 
     private function writeFixture(string $relativePath, string $content): void
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -759,7 +759,7 @@ PHP);
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

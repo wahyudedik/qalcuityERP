@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Asset;
 use App\Models\ActivityLog;
+use App\Models\Asset;
 use App\Models\AssetDepreciation;
 use App\Models\AssetMaintenance;
+use App\Services\BarcodeService;
 use App\Services\GlPostingService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AssetController extends Controller
@@ -18,13 +21,15 @@ class AssetController extends Controller
         $tid = $this->tenantId();
         $query = Asset::where('tenant_id', $tid);
 
-        if ($request->category)
+        if ($request->category) {
             $query->where('category', $request->category);
-        if ($request->status)
+        }
+        if ($request->status) {
             $query->where('status', $request->status);
+        }
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('asset_code', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('asset_code', 'like', "%$s%"));
         }
 
         $assets = $query->orderBy('name')->paginate(20)->withQueryString();
@@ -55,7 +60,7 @@ class AssetController extends Controller
 
         Asset::create([
             'tenant_id' => $tid,
-            'asset_code' => 'AST-' . now()->format('Y') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT),
+            'asset_code' => 'AST-'.now()->format('Y').'-'.str_pad($count, 4, '0', STR_PAD_LEFT),
             'current_value' => $data['purchase_price'],
             'salvage_value' => $data['salvage_value'] ?? 0,
             'status' => 'active',
@@ -89,6 +94,7 @@ class AssetController extends Controller
         // Jika ada catatan depresiasi, hanya ubah status ke disposed
         if ($asset->depreciations()->exists()) {
             $asset->update(['status' => 'disposed']);
+
             return back()->with('success', "Aset {$name} ditandai sebagai disposed (memiliki riwayat depresiasi).");
         }
 
@@ -116,12 +122,13 @@ class AssetController extends Controller
             $maxMonths = ($asset->useful_life_years * 12) - $depreciations->count();
 
             for ($i = 1; $i <= min($maxMonths, 60); $i++) {
-                $period = \Carbon\Carbon::parse($lastPeriod . '-01')->addMonths($i)->format('Y-m');
+                $period = Carbon::parse($lastPeriod.'-01')->addMonths($i)->format('Y-m');
                 $dep = min($monthlyDep, max(0, $bookValue - $salvage));
                 $bookValue = max($salvage, $bookValue - $dep);
                 $projected[] = ['period' => $period, 'amount' => $dep, 'book_value' => $bookValue];
-                if ($bookValue <= $salvage)
+                if ($bookValue <= $salvage) {
                     break;
+                }
             }
         }
 
@@ -141,17 +148,20 @@ class AssetController extends Controller
         $depIds = [];
 
         foreach ($assets as $asset) {
-            if (AssetDepreciation::where('asset_id', $asset->id)->where('period', $period)->exists())
+            if (AssetDepreciation::where('asset_id', $asset->id)->where('period', $period)->exists()) {
                 continue;
+            }
 
             $dep = $asset->monthlyDepreciation();
-            if ($dep <= 0)
+            if ($dep <= 0) {
                 continue;
+            }
 
             $newValue = max($asset->salvage_value, $asset->current_value - $dep);
             $actualDep = $asset->current_value - $newValue;
-            if ($actualDep <= 0)
+            if ($actualDep <= 0) {
                 continue;
+            }
 
             $depRecord = AssetDepreciation::create([
                 'tenant_id' => $tid,
@@ -187,7 +197,7 @@ class AssetController extends Controller
                 ->update(['journal_entry_id' => $glResult->journal->id]);
         }
 
-        $successMsg = "Depresiasi {$period} berhasil dihitung untuk {$count} aset. Total: Rp " . number_format($total, 0, ',', '.');
+        $successMsg = "Depresiasi {$period} berhasil dihitung untuk {$count} aset. Total: Rp ".number_format($total, 0, ',', '.');
 
         if ($glResult->isFailed()) {
             return back()
@@ -195,7 +205,7 @@ class AssetController extends Controller
                 ->with('warning', $glResult->warningMessage());
         }
 
-        return back()->with('success', $successMsg . " Jurnal GL: {$glResult->journal->number}.");
+        return back()->with('success', $successMsg." Jurnal GL: {$glResult->journal->number}.");
     }
 
     public function maintenance(Request $request)
@@ -203,8 +213,9 @@ class AssetController extends Controller
         $tid = $this->tenantId();
         $query = AssetMaintenance::where('tenant_id', $tid)->with('asset');
 
-        if ($request->status)
+        if ($request->status) {
             $query->where('status', $request->status);
+        }
 
         $maintenances = $query->orderBy('scheduled_date')->paginate(20)->withQueryString();
         $assets = Asset::where('tenant_id', $tid)->where('status', '!=', 'disposed')->orderBy('name')->get();
@@ -252,7 +263,7 @@ class AssetController extends Controller
     {
         abort_if($asset->tenant_id !== $this->tenantId(), 403);
 
-        $barcodeService = app(\App\Services\BarcodeService::class);
+        $barcodeService = app(BarcodeService::class);
         $barcodeImage = $barcodeService->generate($asset->asset_code, 'code128', 'png');
 
         return view('assets.barcode-show', compact('asset', 'barcodeImage'));
@@ -269,8 +280,8 @@ class AssetController extends Controller
             ->orderBy('asset_code')
             ->get();
 
-        $barcodeService = app(\App\Services\BarcodeService::class);
-        $barcodes = $assets->map(fn($a) => [
+        $barcodeService = app(BarcodeService::class);
+        $barcodes = $assets->map(fn ($a) => [
             'asset' => $a,
             'image' => base64_encode($barcodeService->generate($a->asset_code, 'code128', 'png')),
             'value' => $a->asset_code,
@@ -281,7 +292,7 @@ class AssetController extends Controller
             $barcodes[] = null;
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('assets.barcode-labels', compact('barcodes'));
+        $pdf = Pdf::loadView('assets.barcode-labels', compact('barcodes'));
         $pdf->setPaper('A4');
         $pdf->setOption('margin_top', 10);
         $pdf->setOption('margin_right', 10);

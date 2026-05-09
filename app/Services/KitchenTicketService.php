@@ -3,16 +3,17 @@
 namespace App\Services;
 
 use App\Models\FbOrder;
-use App\Models\KitchenOrderTicket;
 use App\Models\KitchenOrderItem;
+use App\Models\KitchenOrderTicket;
 use App\Models\MenuItem;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
  * KitchenTicketService - Idempotent kitchen ticket creation with duplicate prevention
- * 
+ *
  * BUG-FB-002 FIX: Prevent duplicate kitchen tickets on retry
- * 
+ *
  * Problems Fixed:
  * 1. No idempotency check - retry creates duplicate tickets
  * 2. No ticket existence validation
@@ -23,10 +24,9 @@ class KitchenTicketService
 {
     /**
      * BUG-FB-002 FIX: Create kitchen tickets with idempotency guarantee
-     * 
+     *
      * Uses getOrCreate pattern to prevent duplicates on retry
-     * 
-     * @param FbOrder $order
+     *
      * @return array Created or existing tickets
      */
     public function createTicketsForOrder(FbOrder $order): array
@@ -94,9 +94,6 @@ class KitchenTicketService
 
     /**
      * BUG-FB-002 FIX: Check if order already has kitchen tickets
-     * 
-     * @param FbOrder $order
-     * @return bool
      */
     public function hasExistingTickets(FbOrder $order): bool
     {
@@ -105,9 +102,8 @@ class KitchenTicketService
 
     /**
      * Get existing tickets for order
-     * 
-     * @param FbOrder $order
-     * @return \Illuminate\Database\Eloquent\Collection
+     *
+     * @return Collection
      */
     public function getExistingTickets(FbOrder $order)
     {
@@ -118,9 +114,6 @@ class KitchenTicketService
 
     /**
      * BUG-FB-002 FIX: Validate ticket count matches expected
-     * 
-     * @param FbOrder $order
-     * @return array
      */
     public function validateTicketCount(FbOrder $order): array
     {
@@ -149,17 +142,14 @@ class KitchenTicketService
 
     /**
      * BUG-FB-002 FIX: Remove duplicate tickets (cleanup)
-     * 
+     *
      * Keep only the first ticket per station, delete duplicates
-     * 
-     * @param FbOrder $order
-     * @return array
      */
     public function cleanupDuplicateTickets(FbOrder $order): array
     {
         $validation = $this->validateTicketCount($order);
 
-        if (!$validation['has_duplicates']) {
+        if (! $validation['has_duplicates']) {
             return [
                 'success' => true,
                 'message' => 'No duplicates found.',
@@ -215,7 +205,7 @@ class KitchenTicketService
             $menuItem = MenuItem::find($item->menu_item_id);
             $station = $menuItem?->category ?? 'general'; // Use category as station
 
-            if (!isset($stations[$station])) {
+            if (! isset($stations[$station])) {
                 $stations[$station] = [];
             }
 

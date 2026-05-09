@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\SharedReport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SharedReportController extends Controller
 {
@@ -18,12 +22,12 @@ class SharedReportController extends Controller
             ->with(['creator:id,name,email'])
             ->first();
 
-        if (!$sharedReport) {
+        if (! $sharedReport) {
             abort(404, 'Report not found');
         }
 
         // Check if report is accessible
-        if (!$sharedReport->isAccessible()) {
+        if (! $sharedReport->isAccessible()) {
             if ($sharedReport->isExpired()) {
                 return view('analytics.shared-report-expired', compact('sharedReport'));
             }
@@ -58,11 +62,11 @@ class SharedReportController extends Controller
     {
         $sharedReport = SharedReport::where('report_id', $id)->first();
 
-        if (!$sharedReport || !$sharedReport->isAccessible()) {
+        if (! $sharedReport || ! $sharedReport->isAccessible()) {
             abort(403, 'Report is no longer available');
         }
 
-        if (!in_array($sharedReport->access_level, ['view', 'download'])) {
+        if (! in_array($sharedReport->access_level, ['view', 'download'])) {
             abort(403, 'Download not allowed for this report');
         }
 
@@ -85,7 +89,7 @@ class SharedReportController extends Controller
      */
     protected function downloadAsPdf(SharedReport $sharedReport, array $reportData)
     {
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('analytics.exports.shared-report-pdf', [
+        $pdf = Pdf::loadView('analytics.exports.shared-report-pdf', [
             'sharedReport' => $sharedReport,
             'reportData' => $reportData,
         ]);
@@ -98,8 +102,10 @@ class SharedReportController extends Controller
      */
     protected function downloadAsExcel(SharedReport $sharedReport, array $reportData)
     {
-        $excel = new class ($sharedReport, $reportData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+        $excel = new class($sharedReport, $reportData) implements FromArray, WithHeadings
+        {
             private $sharedReport;
+
             private $reportData;
 
             public function __construct($sharedReport, $reportData)
@@ -114,6 +120,7 @@ class SharedReportController extends Controller
                 foreach ($this->reportData['data'] ?? [] as $metric => $value) {
                     $data[] = [$metric, is_array($value) ? json_encode($value) : $value];
                 }
+
                 return $data;
             }
 
@@ -123,7 +130,7 @@ class SharedReportController extends Controller
             }
         };
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
+        return Excel::download(
             $excel,
             "{$sharedReport->name}.xlsx"
         );
@@ -141,7 +148,7 @@ class SharedReportController extends Controller
         foreach ($reportData['data'] ?? [] as $metric => $value) {
             fputcsv($handle, [
                 $metric,
-                is_array($value) ? json_encode($value) : $value
+                is_array($value) ? json_encode($value) : $value,
             ]);
         }
 

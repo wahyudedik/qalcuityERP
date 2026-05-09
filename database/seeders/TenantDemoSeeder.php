@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 /**
  * TenantDemoSeeder — Data demo lengkap untuk 1 tenant (semua modul).
@@ -16,16 +16,26 @@ use Carbon\Carbon;
 class TenantDemoSeeder extends Seeder
 {
     private int $tenantId;
+
     private int $adminId;
+
     private int $managerId;
+
     private int $staffId;
-    private array $productIds   = [];
-    private array $customerIds  = [];
-    private array $supplierIds  = [];
-    private array $employeeIds  = [];
-    private array $coaMap       = [];
-    private int   $warehouseId;
-    private int   $periodId;
+
+    private array $productIds = [];
+
+    private array $customerIds = [];
+
+    private array $supplierIds = [];
+
+    private array $employeeIds = [];
+
+    private array $coaMap = [];
+
+    private int $warehouseId;
+
+    private int $periodId;
 
     public function run(): void
     {
@@ -157,36 +167,36 @@ class TenantDemoSeeder extends Seeder
     private function seedTenant(): void
     {
         $tenant = DB::table('tenants')->where('slug', 'majubersama')->first();
-        if (!$tenant) {
+        if (! $tenant) {
             $this->tenantId = DB::table('tenants')->insertGetId([
-                'name'                  => 'PT Maju Bersama Indonesia',
-                'slug'                  => 'majubersama',
-                'email'                 => 'info@majubersama.com',
-                'phone'                 => '021-55512345',
-                'address'               => 'Jl. Sudirman No. 88, Jakarta Selatan',
-                'plan'                  => 'pro',
-                'is_active'             => true,
-                'trial_ends_at'         => null,
-                'plan_expires_at'       => Carbon::now()->addYear(),
-                'business_type'         => 'distributor',
-                'business_description'  => 'Distributor elektronik dan peralatan rumah tangga skala nasional',
-                'onboarding_completed'  => true,
-                'costing_method'        => 'avco',
-                'npwp'                  => '01.234.567.8-901.000',
-                'website'               => 'https://majubersama.com',
-                'city'                  => 'Jakarta Selatan',
-                'province'              => 'DKI Jakarta',
-                'postal_code'           => '12190',
-                'bank_name'             => 'BCA',
-                'bank_account'          => '1234567890',
-                'bank_account_name'     => 'PT Maju Bersama Indonesia',
-                'tagline'               => 'Maju Bersama, Sukses Bersama',
-                'invoice_footer_notes'  => 'Terima kasih. Transfer ke BCA 1234567890 a/n PT Maju Bersama Indonesia.',
+                'name' => 'PT Maju Bersama Indonesia',
+                'slug' => 'majubersama',
+                'email' => 'info@majubersama.com',
+                'phone' => '021-55512345',
+                'address' => 'Jl. Sudirman No. 88, Jakarta Selatan',
+                'plan' => 'pro',
+                'is_active' => true,
+                'trial_ends_at' => null,
+                'plan_expires_at' => Carbon::now()->addYear(),
+                'business_type' => 'distributor',
+                'business_description' => 'Distributor elektronik dan peralatan rumah tangga skala nasional',
+                'onboarding_completed' => true,
+                'costing_method' => 'avco',
+                'npwp' => '01.234.567.8-901.000',
+                'website' => 'https://majubersama.com',
+                'city' => 'Jakarta Selatan',
+                'province' => 'DKI Jakarta',
+                'postal_code' => '12190',
+                'bank_name' => 'BCA',
+                'bank_account' => '1234567890',
+                'bank_account_name' => 'PT Maju Bersama Indonesia',
+                'tagline' => 'Maju Bersama, Sukses Bersama',
+                'invoice_footer_notes' => 'Terima kasih. Transfer ke BCA 1234567890 a/n PT Maju Bersama Indonesia.',
                 'invoice_payment_terms' => 'Net 30',
-                'letter_head_color'     => '#1e40af',
-                'doc_number_prefix'     => 'MBI',
-                'created_at'            => now(),
-                'updated_at'            => now(),
+                'letter_head_color' => '#1e40af',
+                'doc_number_prefix' => 'MBI',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         } else {
             $this->tenantId = $tenant->id;
@@ -204,26 +214,26 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($users as $u) {
             $row = DB::table('users')->where('email', $u['email'])->first();
-            if (!$row) {
+            if (! $row) {
                 $id = DB::table('users')->insertGetId([
-                    'tenant_id'          => $this->tenantId,
-                    'name'               => $u['name'],
-                    'email'              => $u['email'],
-                    'email_verified_at'  => now(),
-                    'password'           => Hash::make('password'),
-                    'role'               => $u['role'],
-                    'is_active'          => true,
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
+                    'tenant_id' => $this->tenantId,
+                    'name' => $u['name'],
+                    'email' => $u['email'],
+                    'email_verified_at' => now(),
+                    'password' => Hash::make('password'),
+                    'role' => $u['role'],
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             } else {
                 $id = $row->id;
             }
             match ($u['role']) {
-                'admin'   => $this->adminId   = $id,
+                'admin' => $this->adminId = $id,
                 'manager' => $this->managerId = $id,
-                'staff'   => $this->staffId   = $id,
-                default   => null,
+                'staff' => $this->staffId = $id,
+                default => null,
             };
         }
     }
@@ -268,23 +278,25 @@ class TenantDemoSeeder extends Seeder
             ['code' => '5208', 'name' => 'Beban Lain-lain', 'type' => 'expense', 'normal_balance' => 'debit', 'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
         ];
         foreach ($defaultCoa as $coa) {
-            if (DB::table('chart_of_accounts')->where('tenant_id', $this->tenantId)->where('code', $coa['code'])->exists()) continue;
+            if (DB::table('chart_of_accounts')->where('tenant_id', $this->tenantId)->where('code', $coa['code'])->exists()) {
+                continue;
+            }
             $parentId = null;
             if (isset($coa['parent_code'])) {
                 $parentId = DB::table('chart_of_accounts')->where('tenant_id', $this->tenantId)->where('code', $coa['parent_code'])->value('id');
             }
             DB::table('chart_of_accounts')->insert([
-                'tenant_id'      => $this->tenantId,
-                'code'           => $coa['code'],
-                'name'           => $coa['name'],
-                'type'           => $coa['type'],
+                'tenant_id' => $this->tenantId,
+                'code' => $coa['code'],
+                'name' => $coa['name'],
+                'type' => $coa['type'],
                 'normal_balance' => $coa['normal_balance'],
-                'level'          => $coa['level'],
-                'is_header'      => $coa['is_header'],
-                'parent_id'      => $parentId,
-                'is_active'      => true,
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'level' => $coa['level'],
+                'is_header' => $coa['is_header'],
+                'parent_id' => $parentId,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         $accounts = DB::table('chart_of_accounts')->where('tenant_id', $this->tenantId)->get();
@@ -295,7 +307,7 @@ class TenantDemoSeeder extends Seeder
 
     private function seedAccountingPeriod(): void
     {
-        if (!DB::table('accounting_periods')->where('tenant_id', $this->tenantId)->where('name', 'Maret 2026')->exists()) {
+        if (! DB::table('accounting_periods')->where('tenant_id', $this->tenantId)->where('name', 'Maret 2026')->exists()) {
             DB::table('accounting_periods')->insert([
                 ['tenant_id' => $this->tenantId, 'name' => 'Januari 2026', 'start_date' => '2026-01-01', 'end_date' => '2026-01-31', 'status' => 'closed', 'created_at' => now(), 'updated_at' => now()],
                 ['tenant_id' => $this->tenantId, 'name' => 'Februari 2026', 'start_date' => '2026-02-01', 'end_date' => '2026-02-28', 'status' => 'closed', 'created_at' => now(), 'updated_at' => now()],
@@ -309,7 +321,7 @@ class TenantDemoSeeder extends Seeder
     private function seedWarehouse(): void
     {
         $wh = DB::table('warehouses')->where('tenant_id', $this->tenantId)->first();
-        if (!$wh) {
+        if (! $wh) {
             $this->warehouseId = DB::table('warehouses')->insertGetId([
                 'tenant_id' => $this->tenantId,
                 'name' => 'Gudang Utama Jakarta',
@@ -411,7 +423,7 @@ class TenantDemoSeeder extends Seeder
                     'coa_account_code' => $c['coa_code'],
                     'is_active' => true,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]
             );
         }
@@ -449,7 +461,7 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($products as $p) {
             $row = DB::table('products')->where('tenant_id', $this->tenantId)->where('sku', $p['sku'])->first();
-            if (!$row) {
+            if (! $row) {
                 $qty = rand(20, 100);
                 $id = DB::table('products')->insertGetId(array_merge($p, [
                     'tenant_id' => $this->tenantId,
@@ -496,7 +508,7 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($customers as $c) {
             $row = DB::table('customers')->where('tenant_id', $this->tenantId)->where('email', $c['email'])->first();
-            if (!$row) {
+            if (! $row) {
                 $id = DB::table('customers')->insertGetId(array_merge($c, [
                     'tenant_id' => $this->tenantId,
                     'address' => 'Jakarta',
@@ -521,7 +533,7 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($suppliers as $s) {
             $row = DB::table('suppliers')->where('tenant_id', $this->tenantId)->where('email', $s['email'])->first();
-            if (!$row) {
+            if (! $row) {
                 $id = DB::table('suppliers')->insertGetId(array_merge($s, [
                     'tenant_id' => $this->tenantId,
                     'bank_holder' => $s['company'],
@@ -538,7 +550,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPriceList(): void
     {
-        if (DB::table('price_lists')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('price_lists')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $plId = DB::table('price_lists')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Harga Reseller',
@@ -563,7 +577,7 @@ class TenantDemoSeeder extends Seeder
                 'updated_at' => now(),
             ]);
         }
-        if (!empty($this->customerIds)) {
+        if (! empty($this->customerIds)) {
             DB::table('customer_price_lists')->insertOrIgnore([
                 'customer_id' => $this->customerIds[0],
                 'price_list_id' => $plId,
@@ -576,7 +590,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedLoyaltyProgram(): void
     {
-        if (DB::table('loyalty_programs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('loyalty_programs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $progId = DB::table('loyalty_programs')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Program Poin MBI',
@@ -636,7 +652,7 @@ class TenantDemoSeeder extends Seeder
         $firstId = null;
         foreach ($employees as $i => $e) {
             $row = DB::table('employees')->where('tenant_id', $this->tenantId)->where('employee_id', $e['eid'])->first();
-            if (!$row) {
+            if (! $row) {
                 $id = DB::table('employees')->insertGetId([
                     'tenant_id' => $this->tenantId,
                     'user_id' => $e['uid'],
@@ -659,7 +675,9 @@ class TenantDemoSeeder extends Seeder
             } else {
                 $id = $row->id;
             }
-            if ($i === 0) $firstId = $id;
+            if ($i === 0) {
+                $firstId = $id;
+            }
             $this->employeeIds[] = $id;
         }
     }
@@ -702,7 +720,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedAttendances(): void
     {
-        if (empty($this->employeeIds)) return;
+        if (empty($this->employeeIds)) {
+            return;
+        }
         $statuses = ['present', 'present', 'present', 'present', 'late', 'absent'];
         $empId = $this->employeeIds[0];
         for ($d = 20; $d >= 1; $d--) {
@@ -717,7 +737,7 @@ class TenantDemoSeeder extends Seeder
                     'check_out' => '17:' . str_pad(rand(0, 30), 2, '0', STR_PAD_LEFT) . ':00',
                     'status' => $statuses[array_rand($statuses)],
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]
             );
         }
@@ -725,8 +745,12 @@ class TenantDemoSeeder extends Seeder
 
     private function seedOvertimeRequests(): void
     {
-        if (empty($this->employeeIds)) return;
-        if (DB::table('overtime_requests')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (empty($this->employeeIds)) {
+            return;
+        }
+        if (DB::table('overtime_requests')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (array_slice($this->employeeIds, 0, 3) as $i => $empId) {
             DB::table('overtime_requests')->insert([
                 'tenant_id' => $this->tenantId,
@@ -746,7 +770,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedLeaveRequests(): void
     {
-        if (count($this->employeeIds) < 3) return;
+        if (count($this->employeeIds) < 3) {
+            return;
+        }
         foreach (
             [
                 ['employee_id' => $this->employeeIds[2], 'type' => 'annual', 'start_date' => '2026-03-10', 'end_date' => '2026-03-12', 'days' => 3, 'status' => 'approved'],
@@ -762,7 +788,7 @@ class TenantDemoSeeder extends Seeder
                     'approved_by' => $l['status'] === 'approved' ? ($this->employeeIds[1] ?? null) : null,
                     'approved_at' => $l['status'] === 'approved' ? now() : null,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ])
             );
         }
@@ -770,7 +796,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPerformanceReviews(): void
     {
-        if (count($this->employeeIds) < 2) return;
+        if (count($this->employeeIds) < 2) {
+            return;
+        }
         DB::table('performance_reviews')->updateOrInsert(
             ['employee_id' => $this->employeeIds[2] ?? $this->employeeIds[0], 'period' => 'Q1 2026', 'period_type' => 'quarterly'],
             [
@@ -792,14 +820,16 @@ class TenantDemoSeeder extends Seeder
                 'status' => 'submitted',
                 'submitted_at' => now(),
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]
         );
     }
 
     private function seedRecruitment(): void
     {
-        if (DB::table('job_postings')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('job_postings')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $jobId = DB::table('job_postings')->insertGetId([
             'tenant_id' => $this->tenantId,
             'title' => 'Sales Executive',
@@ -841,7 +871,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedTraining(): void
     {
-        if (DB::table('training_programs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('training_programs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $progId = DB::table('training_programs')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Pelatihan Teknik Penjualan',
@@ -876,7 +908,7 @@ class TenantDemoSeeder extends Seeder
                 'updated_at' => now(),
             ]);
         }
-        if (!empty($this->employeeIds)) {
+        if (! empty($this->employeeIds)) {
             DB::table('employee_certifications')->insert([
                 'tenant_id' => $this->tenantId,
                 'employee_id' => $this->employeeIds[0],
@@ -894,7 +926,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedDisciplinary(): void
     {
-        if (empty($this->employeeIds)) return;
+        if (empty($this->employeeIds)) {
+            return;
+        }
         DB::table('disciplinary_letters')->updateOrInsert(
             ['tenant_id' => $this->tenantId, 'letter_number' => 'SP1/MBI/III/2026/001'],
             [
@@ -911,7 +945,7 @@ class TenantDemoSeeder extends Seeder
                 'status' => 'issued',
                 'issued_by' => $this->adminId,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]
         );
     }
@@ -936,8 +970,12 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPayroll(): void
     {
-        if (empty($this->employeeIds)) return;
-        if (DB::table('payroll_runs')->where('tenant_id', $this->tenantId)->where('period', '2026-02')->exists()) return;
+        if (empty($this->employeeIds)) {
+            return;
+        }
+        if (DB::table('payroll_runs')->where('tenant_id', $this->tenantId)->where('period', '2026-02')->exists()) {
+            return;
+        }
         $runId = DB::table('payroll_runs')->insertGetId([
             'tenant_id' => $this->tenantId,
             'period' => '2026-02',
@@ -994,7 +1032,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedReimbursements(): void
     {
-        if (DB::table('reimbursements')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('reimbursements')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (array_slice($this->employeeIds, 0, 3) as $i => $empId) {
             DB::table('reimbursements')->insert([
                 'tenant_id' => $this->tenantId,
@@ -1020,7 +1060,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPurchaseRequisitions(): void
     {
-        if (DB::table('purchase_requisitions')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('purchase_requisitions')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $prId = DB::table('purchase_requisitions')->insertGetId([
             'tenant_id' => $this->tenantId,
             'number' => 'PR/MBI/2026/001',
@@ -1053,8 +1095,12 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPurchaseOrders(): void
     {
-        if (empty($this->supplierIds) || empty($this->productIds)) return;
-        if (DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (empty($this->supplierIds) || empty($this->productIds)) {
+            return;
+        }
+        if (DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $pos = [
             ['supplier_id' => $this->supplierIds[0], 'number' => 'PO/MBI/2026/001', 'status' => 'received', 'date' => '2026-02-10', 'items' => [0, 1]],
             ['supplier_id' => $this->supplierIds[2], 'number' => 'PO/MBI/2026/002', 'status' => 'sent', 'date' => '2026-03-05', 'items' => [2, 3]],
@@ -1120,9 +1166,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedGoodsReceipts(): void
     {
-        if (DB::table('goods_receipts')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('goods_receipts')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $po = DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->where('status', 'received')->first();
-        if (!$po) return;
+        if (! $po) {
+            return;
+        }
         $grId = DB::table('goods_receipts')->insertGetId([
             'tenant_id' => $this->tenantId,
             'purchase_order_id' => $po->id,
@@ -1152,9 +1202,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPurchaseReturns(): void
     {
-        if (DB::table('purchase_returns')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('purchase_returns')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $po = DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->where('status', 'received')->first();
-        if (!$po) return;
+        if (! $po) {
+            return;
+        }
         $prId = DB::table('purchase_returns')->insertGetId([
             'tenant_id' => $this->tenantId,
             'purchase_order_id' => $po->id,
@@ -1190,9 +1244,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedLandedCost(): void
     {
-        if (DB::table('landed_costs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('landed_costs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $po = DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->where('status', 'received')->first();
-        if (!$po) return;
+        if (! $po) {
+            return;
+        }
         $lcId = DB::table('landed_costs')->insertGetId([
             'tenant_id' => $this->tenantId,
             'number' => 'LC/MBI/2026/001',
@@ -1228,7 +1286,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedWms(): void
     {
-        if (DB::table('warehouse_zones')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('warehouse_zones')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $zoneId = DB::table('warehouse_zones')->insertGetId([
             'tenant_id' => $this->tenantId,
             'warehouse_id' => $this->warehouseId,
@@ -1293,7 +1353,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedConsignment(): void
     {
-        if (DB::table('consignment_partners')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('consignment_partners')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $partnerId = DB::table('consignment_partners')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Toko Elektronik Jaya',
@@ -1316,7 +1378,7 @@ class TenantDemoSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        if (!empty($this->productIds)) {
+        if (! empty($this->productIds)) {
             $product = DB::table('products')->find($this->productIds[0]);
             $shipId = DB::table('consignment_shipments')->insertGetId([
                 'tenant_id' => $this->tenantId,
@@ -1352,8 +1414,12 @@ class TenantDemoSeeder extends Seeder
 
     private function seedSalesOrders(): void
     {
-        if (empty($this->customerIds) || empty($this->productIds)) return;
-        if (DB::table('sales_orders')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (empty($this->customerIds) || empty($this->productIds)) {
+            return;
+        }
+        if (DB::table('sales_orders')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $orders = [
             ['customer_id' => $this->customerIds[0], 'number' => 'SO/MBI/2026/001', 'status' => 'delivered', 'date' => '2026-02-15', 'items' => [0, 2, 4]],
             ['customer_id' => $this->customerIds[1], 'number' => 'SO/MBI/2026/002', 'status' => 'processing', 'date' => '2026-03-01', 'items' => [1, 3]],
@@ -1405,8 +1471,12 @@ class TenantDemoSeeder extends Seeder
 
     private function seedQuotations(): void
     {
-        if (DB::table('quotations')->where('tenant_id', $this->tenantId)->exists()) return;
-        if (empty($this->customerIds) || empty($this->productIds)) return;
+        if (DB::table('quotations')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
+        if (empty($this->customerIds) || empty($this->productIds)) {
+            return;
+        }
         $qtId = DB::table('quotations')->insertGetId([
             'tenant_id' => $this->tenantId,
             'customer_id' => $this->customerIds[0],
@@ -1438,9 +1508,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedDeliveryOrders(): void
     {
-        if (DB::table('delivery_orders')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('delivery_orders')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $so = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'delivered')->first();
-        if (!$so) return;
+        if (! $so) {
+            return;
+        }
         $doId = DB::table('delivery_orders')->insertGetId([
             'tenant_id' => $this->tenantId,
             'sales_order_id' => $so->id,
@@ -1471,9 +1545,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedDownPayments(): void
     {
-        if (DB::table('down_payments')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('down_payments')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $so = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'confirmed')->first();
-        if (!$so) return;
+        if (! $so) {
+            return;
+        }
         DB::table('down_payments')->insert([
             'tenant_id' => $this->tenantId,
             'party_id' => $so->customer_id,
@@ -1496,11 +1574,17 @@ class TenantDemoSeeder extends Seeder
 
     private function seedSalesReturns(): void
     {
-        if (DB::table('sales_returns')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('sales_returns')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $so = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'delivered')->first();
-        if (!$so) return;
+        if (! $so) {
+            return;
+        }
         $invoice = DB::table('invoices')->where('tenant_id', $this->tenantId)->where('sales_order_id', $so->id)->first();
-        if (!$invoice) return;
+        if (! $invoice) {
+            return;
+        }
         $srId = DB::table('sales_returns')->insertGetId([
             'tenant_id' => $this->tenantId,
             'sales_order_id' => $so->id,
@@ -1540,7 +1624,9 @@ class TenantDemoSeeder extends Seeder
     {
         $deliveredSOs = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'delivered')->get();
         foreach ($deliveredSOs as $so) {
-            if (DB::table('invoices')->where('sales_order_id', $so->id)->exists()) continue;
+            if (DB::table('invoices')->where('sales_order_id', $so->id)->exists()) {
+                continue;
+            }
             $invId = DB::table('invoices')->insertGetId([
                 'tenant_id' => $this->tenantId,
                 'sales_order_id' => $so->id,
@@ -1569,7 +1655,9 @@ class TenantDemoSeeder extends Seeder
         }
         $processingSOs = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'processing')->get();
         foreach ($processingSOs as $so) {
-            if (DB::table('invoices')->where('sales_order_id', $so->id)->exists()) continue;
+            if (DB::table('invoices')->where('sales_order_id', $so->id)->exists()) {
+                continue;
+            }
             DB::table('invoices')->insertGetId([
                 'tenant_id' => $this->tenantId,
                 'sales_order_id' => $so->id,
@@ -1588,9 +1676,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedBulkPayments(): void
     {
-        if (DB::table('bulk_payments')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('bulk_payments')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $invoices = DB::table('invoices')->where('tenant_id', $this->tenantId)->where('status', 'unpaid')->limit(2)->get();
-        if ($invoices->isEmpty()) return;
+        if ($invoices->isEmpty()) {
+            return;
+        }
         $total = $invoices->sum('total_amount');
         $bpId = DB::table('bulk_payments')->insertGetId([
             'tenant_id' => $this->tenantId,
@@ -1627,7 +1719,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedBankAccount(): void
     {
-        if (DB::table('bank_accounts')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('bank_accounts')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $bankId = DB::table('bank_accounts')->insertGetId([
             'tenant_id' => $this->tenantId,
             'bank_name' => 'BCA',
@@ -1665,25 +1759,27 @@ class TenantDemoSeeder extends Seeder
 
     private function seedJournalEntries(): void
     {
-        if (DB::table('journal_entries')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('journal_entries')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $journals = [
             [
                 'number' => 'JE/MBI/2026/001',
                 'date' => '2026-03-01',
                 'description' => 'Penerimaan pembayaran piutang dari PT Teknologi Nusantara',
-                'lines' => [['code' => '1102', 'debit' => 45000000, 'credit' => 0], ['code' => '1103', 'debit' => 0, 'credit' => 45000000]]
+                'lines' => [['code' => '1102', 'debit' => 45000000, 'credit' => 0], ['code' => '1103', 'debit' => 0, 'credit' => 45000000]],
             ],
             [
                 'number' => 'JE/MBI/2026/002',
                 'date' => '2026-03-05',
                 'description' => 'Pembayaran gaji karyawan Februari 2026',
-                'lines' => [['code' => '5201', 'debit' => 35000000, 'credit' => 0], ['code' => '1102', 'debit' => 0, 'credit' => 35000000]]
+                'lines' => [['code' => '5201', 'debit' => 35000000, 'credit' => 0], ['code' => '1102', 'debit' => 0, 'credit' => 35000000]],
             ],
             [
                 'number' => 'JE/MBI/2026/003',
                 'date' => '2026-03-10',
                 'description' => 'Penjualan barang ke CV Mitra Komputer',
-                'lines' => [['code' => '1103', 'debit' => 55000000, 'credit' => 0], ['code' => '4101', 'debit' => 0, 'credit' => 49549550], ['code' => '2103', 'debit' => 0, 'credit' => 5450450]]
+                'lines' => [['code' => '1103', 'debit' => 55000000, 'credit' => 0], ['code' => '4101', 'debit' => 0, 'credit' => 49549550], ['code' => '2103', 'debit' => 0, 'credit' => 5450450]],
             ],
         ];
         foreach ($journals as $j) {
@@ -1717,7 +1813,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedRecurringJournals(): void
     {
-        if (DB::table('recurring_journals')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('recurring_journals')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         DB::table('recurring_journals')->insert([
             'tenant_id' => $this->tenantId,
             'name' => 'Amortisasi Sewa Kantor Bulanan',
@@ -1738,7 +1836,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedAssets(): void
     {
-        if (DB::table('assets')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('assets')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $assets = [
             ['asset_code' => 'AST-001', 'name' => 'Kendaraan Toyota Avanza', 'category' => 'vehicle', 'purchase_price' => 200000000, 'current_value' => 160000000, 'useful_life_years' => 8],
             ['asset_code' => 'AST-002', 'name' => 'Laptop Dell Latitude', 'category' => 'equipment', 'purchase_price' => 15000000, 'current_value' => 10000000, 'useful_life_years' => 4],
@@ -1785,7 +1885,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedBudgets(): void
     {
-        if (DB::table('budgets')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('budgets')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['name' => 'Anggaran Penjualan Maret', 'dept' => 'Penjualan', 'amount' => 500000000, 'realized' => 420000000, 'cat' => 'SALES'],
@@ -1812,7 +1914,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedDeferredItem(): void
     {
-        if (DB::table('deferred_items')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('deferred_items')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $defId = DB::table('deferred_items')->insertGetId([
             'tenant_id' => $this->tenantId,
             'user_id' => $this->adminId,
@@ -1848,9 +1952,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedWriteoff(): void
     {
-        if (DB::table('writeoffs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('writeoffs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $invoice = DB::table('invoices')->where('tenant_id', $this->tenantId)->where('status', 'unpaid')->first();
-        if (!$invoice) return;
+        if (! $invoice) {
+            return;
+        }
         DB::table('writeoffs')->insert([
             'tenant_id' => $this->tenantId,
             'requested_by' => $this->adminId,
@@ -1874,7 +1982,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedKpiTargets(): void
     {
-        if (DB::table('kpi_targets')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('kpi_targets')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['metric' => 'revenue', 'label' => 'Pendapatan', 'target' => 500000000, 'actual' => 420000000, 'unit' => 'currency', 'color' => '#3b82f6'],
@@ -1892,7 +2002,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedSimulation(): void
     {
-        if (DB::table('simulations')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('simulations')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         DB::table('simulations')->insert([
             'tenant_id' => $this->tenantId,
             'user_id' => $this->adminId,
@@ -1909,7 +2021,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedAnomalyAlerts(): void
     {
-        if (DB::table('anomaly_alerts')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('anomaly_alerts')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['type' => 'revenue_drop', 'severity' => 'high', 'title' => 'Penurunan Pendapatan Signifikan', 'description' => 'Pendapatan Maret turun 18% dibanding Februari', 'status' => 'open'],
@@ -1927,7 +2041,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedAiMemory(): void
     {
-        if (DB::table('ai_memories')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('ai_memories')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['key' => 'business_context', 'value' => json_encode('Distributor elektronik dengan 10 produk utama, 5 pelanggan korporat, 4 supplier')],
@@ -1951,7 +2067,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedZeroInputLogs(): void
     {
-        if (DB::table('zero_input_logs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('zero_input_logs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         DB::table('zero_input_logs')->insert([
             'tenant_id' => $this->tenantId,
             'user_id' => $this->adminId,
@@ -1971,7 +2089,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedCrmLeads(): void
     {
-        if (DB::table('crm_leads')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('crm_leads')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['name' => 'PT Inovasi Teknologi', 'stage' => 'proposal', 'value' => 150000000, 'prob' => 60, 'source' => 'referral'],
@@ -2014,7 +2134,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedCommission(): void
     {
-        if (DB::table('commission_rules')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('commission_rules')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         DB::table('commission_rules')->insert([
             'tenant_id' => $this->tenantId,
             'name' => 'Komisi Sales Standard',
@@ -2063,7 +2185,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHelpdesk(): void
     {
-        if (DB::table('kb_articles')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('kb_articles')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['title' => 'Cara Melakukan Retur Barang', 'category' => 'product', 'body' => 'Untuk melakukan retur barang, silakan hubungi customer service kami dengan menyertakan nomor invoice dan foto barang yang ingin diretur.'],
@@ -2082,7 +2206,7 @@ class TenantDemoSeeder extends Seeder
             ]));
         }
         // Helpdesk tickets
-        if (!empty($this->customerIds)) {
+        if (! empty($this->customerIds)) {
             foreach (
                 [
                     ['subject' => 'Laptop tidak menyala setelah diterima', 'priority' => 'high', 'status' => 'open'],
@@ -2117,7 +2241,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedSubscriptionBilling(): void
     {
-        if (DB::table('customer_subscription_plans')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('customer_subscription_plans')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $planIds = [];
         foreach (
             [
@@ -2134,7 +2260,7 @@ class TenantDemoSeeder extends Seeder
             ]));
         }
         // Active subscription
-        if (!empty($this->customerIds) && !empty($planIds)) {
+        if (! empty($this->customerIds) && ! empty($planIds)) {
             DB::table('customer_subscriptions')->insertOrIgnore([
                 'tenant_id' => $this->tenantId,
                 'customer_id' => $this->customerIds[0],
@@ -2156,7 +2282,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedManufacturing(): void
     {
-        if (DB::table('work_centers')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('work_centers')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['code' => 'WC-01', 'name' => 'Mesin CNC Utama', 'cost_per_hour' => 150000, 'capacity_per_day' => 8],
@@ -2186,6 +2314,7 @@ class TenantDemoSeeder extends Seeder
             $materials = DB::table('products')->where('tenant_id', $this->tenantId)->where('id', '!=', $product->id)->limit(2)->get();
             foreach ($materials as $i => $mat) {
                 DB::table('bom_lines')->insert([
+                    'tenant_id' => $this->tenantId,
                     'bom_id' => $bomId,
                     'product_id' => $mat->id,
                     'quantity_per_batch' => ($i + 1) * 5,
@@ -2225,7 +2354,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedQualityControl(): void
     {
-        if (DB::table('qc_test_templates')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('qc_test_templates')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $tplId = DB::table('qc_test_templates')->insertGetId([
             'tenant_id' => $this->tenantId,
             'template_name' => 'Template QC Elektronik',
@@ -2274,7 +2405,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedFleet(): void
     {
-        if (DB::table('fleet_vehicles')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('fleet_vehicles')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['plate_number' => 'B 1234 XYZ', 'name' => 'Toyota Avanza 2024', 'type' => 'car', 'brand' => 'Toyota', 'model' => 'Avanza', 'year' => 2024, 'odometer' => 15000],
@@ -2349,7 +2482,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedContracts(): void
     {
-        if (DB::table('contracts')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('contracts')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $tplId = DB::table('contract_templates')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Kontrak Jasa Standar',
@@ -2360,7 +2495,9 @@ class TenantDemoSeeder extends Seeder
             'updated_at' => now(),
         ]);
         $customer = DB::table('customers')->where('tenant_id', $this->tenantId)->first();
-        if (!$customer) return;
+        if (! $customer) {
+            return;
+        }
         DB::table('contracts')->insert([
             'tenant_id' => $this->tenantId,
             'contract_number' => 'CTR-202603-0001',
@@ -2389,7 +2526,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedProjects(): void
     {
-        if (DB::table('projects')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('projects')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $customer = DB::table('customers')->where('tenant_id', $this->tenantId)->first();
         $projectId = DB::table('projects')->insertGetId([
             'tenant_id' => $this->tenantId,
@@ -2443,7 +2582,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedTimesheets(): void
     {
-        if (DB::table('timesheets')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('timesheets')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $project = DB::table('projects')->where('tenant_id', $this->tenantId)->first();
         $userIds = [$this->adminId, $this->managerId, $this->staffId];
         foreach ($userIds as $userId) {
@@ -2465,9 +2606,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedShipping(): void
     {
-        if (DB::table('shipments')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('shipments')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $so = DB::table('sales_orders')->where('tenant_id', $this->tenantId)->where('status', 'delivered')->first();
-        if (!$so) return;
+        if (! $so) {
+            return;
+        }
         DB::table('shipments')->insert([
             'tenant_id' => $this->tenantId,
             'sales_order_id' => $so->id,
@@ -2487,7 +2632,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedEcommerce(): void
     {
-        if (DB::table('ecommerce_channels')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('ecommerce_channels')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['shop_name' => 'Tokopedia MBI', 'platform' => 'tokopedia', 'is_active' => true],
@@ -2501,7 +2648,7 @@ class TenantDemoSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
-            if ($ch['is_active'] && !empty($this->productIds)) {
+            if ($ch['is_active'] && ! empty($this->productIds)) {
                 DB::table('ecommerce_product_mappings')->insertOrIgnore([
                     'tenant_id' => $this->tenantId,
                     'channel_id' => $chId,
@@ -2519,7 +2666,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedPrinting(): void
     {
-        if (DB::table('print_jobs')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('print_jobs')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $customer = DB::table('customers')->where('tenant_id', $this->tenantId)->first();
 
         // Check which print_jobs table structure exists
@@ -2568,7 +2717,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedFarmPlots(): void
     {
-        if (DB::table('farm_plots')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('farm_plots')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $plotId = DB::table('farm_plots')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Lahan A - Padi',
@@ -2622,7 +2773,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedLivestockEnhancement(): void
     {
-        if (DB::table('livestock_herds')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('livestock_herds')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $herdId = DB::table('livestock_herds')->insertGetId([
             'tenant_id' => $this->tenantId,
             'code' => 'HRD-A1',
@@ -2738,7 +2891,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedFisheries(): void
     {
-        if (DB::table('fishing_vessels')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('fishing_vessels')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $vesselId = DB::table('fishing_vessels')->insertGetId([
             'tenant_id' => $this->tenantId,
             'vessel_name' => 'KM Maju Jaya 01',
@@ -2753,7 +2908,7 @@ class TenantDemoSeeder extends Seeder
             'updated_at' => now(),
         ]);
         // Fishing trip
-        $captainId = !empty($this->employeeIds) ? $this->employeeIds[0] : 1;
+        $captainId = ! empty($this->employeeIds) ? $this->employeeIds[0] : 1;
         $tripId = DB::table('fishing_trips')->insertGetId([
             'tenant_id' => $this->tenantId,
             'vessel_id' => $vesselId,
@@ -2799,24 +2954,24 @@ class TenantDemoSeeder extends Seeder
         ]);
         // Cold storage
         $storageId = DB::table('cold_storage_units')->insertGetId([
-            'tenant_id'           => $this->tenantId,
-            'unit_code'           => 'CS-001',
-            'name'                => 'Cold Storage 1',
-            'type'                => 'warehouse',
-            'capacity'            => 100,
-            'min_temperature'     => -18,
-            'max_temperature'     => -15,
-            'location'            => 'Pelabuhan Muara Baru',
-            'is_active'           => true,
-            'created_at'          => now(),
+            'tenant_id' => $this->tenantId,
+            'unit_code' => 'CS-001',
+            'name' => 'Cold Storage 1',
+            'type' => 'warehouse',
+            'capacity' => 100,
+            'min_temperature' => -18,
+            'max_temperature' => -15,
+            'location' => 'Pelabuhan Muara Baru',
+            'is_active' => true,
+            'created_at' => now(),
             'updated_at' => now(),
         ]);
         DB::table('temperature_logs')->insert([
-            'tenant_id'            => $this->tenantId,
+            'tenant_id' => $this->tenantId,
             'cold_storage_unit_id' => $storageId,
-            'temperature'          => -16.5,
-            'recorded_at'          => Carbon::now()->subHours(2),
-            'created_at'           => now(),
+            'temperature' => -16.5,
+            'recorded_at' => Carbon::now()->subHours(2),
+            'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
@@ -2827,23 +2982,25 @@ class TenantDemoSeeder extends Seeder
 
     private function seedTourTravel(): void
     {
-        if (DB::table('tour_packages')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('tour_packages')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $pkgId = DB::table('tour_packages')->insertGetId([
-            'tenant_id'        => $this->tenantId,
-            'package_code'     => 'PKG-BALI-001',
-            'name'             => 'Bali Honeymoon 4D3N',
-            'destination'      => 'Bali, Indonesia',
-            'duration_days'    => 4,
-            'duration_nights'  => 3,
+            'tenant_id' => $this->tenantId,
+            'package_code' => 'PKG-BALI-001',
+            'name' => 'Bali Honeymoon 4D3N',
+            'destination' => 'Bali, Indonesia',
+            'duration_days' => 4,
+            'duration_nights' => 3,
             'price_per_person' => 3500000,
-            'min_pax'          => 2,
-            'max_pax'          => 20,
-            'description'      => 'Paket wisata romantis ke Bali dengan akomodasi bintang 4',
-            'inclusions'       => json_encode(['Hotel bintang 4', 'Sarapan', 'Airport transfer', 'Tour guide']),
-            'exclusions'       => json_encode(['Tiket pesawat', 'Makan siang & malam', 'Pengeluaran pribadi']),
-            'status'           => 'active',
-            'created_at'       => now(),
-            'updated_at'       => now(),
+            'min_pax' => 2,
+            'max_pax' => 20,
+            'description' => 'Paket wisata romantis ke Bali dengan akomodasi bintang 4',
+            'inclusions' => json_encode(['Hotel bintang 4', 'Sarapan', 'Airport transfer', 'Tour guide']),
+            'exclusions' => json_encode(['Tiket pesawat', 'Makan siang & malam', 'Pengeluaran pribadi']),
+            'status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         // Itinerary
         foreach (
@@ -2856,65 +3013,67 @@ class TenantDemoSeeder extends Seeder
         ) {
             DB::table('itinerary_days')->insert([
                 'tour_package_id' => $pkgId,
-                'day_number'      => $it['day_number'],
-                'title'           => $it['title'],
-                'activities'      => $it['activities'],
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'day_number' => $it['day_number'],
+                'title' => $it['title'],
+                'activities' => $it['activities'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         // Booking
-        if (!empty($this->customerIds)) {
+        if (! empty($this->customerIds)) {
             $customer = DB::table('customers')->find($this->customerIds[0]);
             $bookingId = DB::table('tour_bookings')->insertGetId([
-                'tenant_id'       => $this->tenantId,
-                'booking_number'  => 'BK/MBI/2026/001',
+                'tenant_id' => $this->tenantId,
+                'booking_number' => 'BK/MBI/2026/001',
                 'tour_package_id' => $pkgId,
-                'customer_id'     => $this->customerIds[0],
-                'customer_name'   => $customer->name ?? 'Demo Customer',
-                'customer_email'  => $customer->email ?? 'demo@example.com',
-                'customer_phone'  => $customer->phone ?? '08123456789',
-                'departure_date'  => Carbon::now()->addDays(30)->format('Y-m-d'),
-                'adults'          => 2,
-                'children'        => 0,
-                'infants'         => 0,
-                'unit_price'      => 3500000,
-                'paid_amount'     => 3500000,
-                'status'          => 'confirmed',
-                'payment_status'  => 'partial',
-                'notes'           => 'Honeymoon package',
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'customer_id' => $this->customerIds[0],
+                'customer_name' => $customer->name ?? 'Demo Customer',
+                'customer_email' => $customer->email ?? 'demo@example.com',
+                'customer_phone' => $customer->phone ?? '08123456789',
+                'departure_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
+                'adults' => 2,
+                'children' => 0,
+                'infants' => 0,
+                'unit_price' => 3500000,
+                'paid_amount' => 3500000,
+                'status' => 'confirmed',
+                'payment_status' => 'partial',
+                'notes' => 'Honeymoon package',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
             DB::table('booking_passengers')->insert([
                 'tour_booking_id' => $bookingId,
-                'full_name'       => 'Ahmad Fauzi',
+                'full_name' => 'Ahmad Fauzi',
                 'passport_number' => 'A1234567',
-                'nationality'     => 'Indonesia',
-                'date_of_birth'   => '1990-01-01',
-                'gender'          => 'male',
-                'phone'           => '0812-1111-2222',
-                'type'            => 'adult',
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'nationality' => 'Indonesia',
+                'date_of_birth' => '1990-01-01',
+                'gender' => 'male',
+                'phone' => '0812-1111-2222',
+                'type' => 'adult',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
 
     private function seedCosmetic(): void
     {
-        if (DB::table('cosmetic_formulas')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('cosmetic_formulas')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $formulaId = DB::table('cosmetic_formulas')->insertGetId([
-            'tenant_id'    => $this->tenantId,
+            'tenant_id' => $this->tenantId,
             'formula_code' => 'FORM-001',
             'formula_name' => 'Moisturizer Aloe Vera SPF30',
             'product_type' => 'moisturizer',
-            'batch_size'   => 100,
-            'batch_unit'   => 'kg',
-            'status'       => 'approved',
-            'created_by'   => $this->adminId,
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'batch_size' => 100,
+            'batch_unit' => 'kg',
+            'status' => 'approved',
+            'created_by' => $this->adminId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         foreach (
             [
@@ -2925,7 +3084,7 @@ class TenantDemoSeeder extends Seeder
             ] as $ing
         ) {
             DB::table('formula_ingredients')->insert(array_merge($ing, [
-                'tenant_id'  => $this->tenantId,
+                'tenant_id' => $this->tenantId,
                 'formula_id' => $formulaId,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -2933,39 +3092,41 @@ class TenantDemoSeeder extends Seeder
         }
         // Batch record
         DB::table('cosmetic_batch_records')->insertGetId([
-            'tenant_id'        => $this->tenantId,
-            'formula_id'       => $formulaId,
-            'batch_number'     => 'BATCH-2026-001',
-            'production_date'  => Carbon::now()->subDays(7)->format('Y-m-d'),
-            'expiry_date'      => Carbon::now()->addYears(2)->format('Y-m-d'),
+            'tenant_id' => $this->tenantId,
+            'formula_id' => $formulaId,
+            'batch_number' => 'BATCH-2026-001',
+            'production_date' => Carbon::now()->subDays(7)->format('Y-m-d'),
+            'expiry_date' => Carbon::now()->addYears(2)->format('Y-m-d'),
             'planned_quantity' => 100,
-            'actual_quantity'  => 98.5,
+            'actual_quantity' => 98.5,
             'yield_percentage' => 98.5,
-            'status'           => 'released',
-            'created_by'       => $this->adminId,
-            'created_at'       => now(),
-            'updated_at'       => now(),
+            'status' => 'released',
+            'created_by' => $this->adminId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         // BPOM registration
         DB::table('product_registrations')->insert([
-            'tenant_id'           => $this->tenantId,
-            'formula_id'          => $formulaId,
+            'tenant_id' => $this->tenantId,
+            'formula_id' => $formulaId,
             'registration_number' => 'NA18230100001',
-            'product_name'        => 'Moisturizer Aloe Vera SPF30',
-            'product_category'    => 'skincare',
-            'registration_type'   => 'notifikasi',
-            'submission_date'     => Carbon::now()->subMonths(3)->format('Y-m-d'),
-            'approval_date'       => Carbon::now()->subMonths(1)->format('Y-m-d'),
-            'expiry_date'         => Carbon::now()->addYears(3)->format('Y-m-d'),
-            'status'              => 'approved',
-            'created_at'          => now(),
-            'updated_at'          => now(),
+            'product_name' => 'Moisturizer Aloe Vera SPF30',
+            'product_category' => 'skincare',
+            'registration_type' => 'notifikasi',
+            'submission_date' => Carbon::now()->subMonths(3)->format('Y-m-d'),
+            'approval_date' => Carbon::now()->subMonths(1)->format('Y-m-d'),
+            'expiry_date' => Carbon::now()->addYears(3)->format('Y-m-d'),
+            'status' => 'approved',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
     private function seedSupplierScorecard(): void
     {
-        if (DB::table('supplier_scorecards')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('supplier_scorecards')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (array_slice($this->supplierIds, 0, 2) as $suppId) {
             DB::table('supplier_scorecards')->insert([
                 'tenant_id' => $this->tenantId,
@@ -3018,7 +3179,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedApprovalWorkflow(): void
     {
-        if (DB::table('approval_workflows')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('approval_workflows')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $wfId = DB::table('approval_workflows')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Persetujuan PO > 50 Juta',
@@ -3048,7 +3211,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedTransactions(): void
     {
-        if (DB::table('transactions')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('transactions')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $rentCatId = DB::table('expense_categories')->where('tenant_id', $this->tenantId)->where('code', 'RENT')->value('id');
         $utilCatId = DB::table('expense_categories')->where('tenant_id', $this->tenantId)->where('code', 'UTILITY')->value('id');
         $salesCatId = DB::table('expense_categories')->where('tenant_id', $this->tenantId)->where('code', 'SALES')->value('id');
@@ -3079,7 +3244,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedReminders(): void
     {
-        if (DB::table('reminders')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('reminders')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['title' => 'Tutup Buku Maret 2026', 'remind_at' => '2026-03-31 08:00:00', 'notes' => 'Pastikan semua jurnal sudah diposting'],
@@ -3106,7 +3273,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedNotifications(): void
     {
-        if (DB::table('erp_notifications')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('erp_notifications')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['title' => 'Stok Laptop Asus hampir habis', 'body' => 'Stok Laptop Asus VivoBook 15 tersisa 3 unit, di bawah minimum stok (5 unit)', 'type' => 'low_stock'],
@@ -3130,7 +3299,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedCustomFields(): void
     {
-        if (DB::table('custom_fields')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('custom_fields')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['module' => 'customer', 'key' => 'market_segment', 'label' => 'Segmen Pasar', 'type' => 'select', 'options' => json_encode(['Korporat', 'UMKM', 'Retail', 'Pemerintah'])],
@@ -3156,7 +3327,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedCompanyGroup(): void
     {
-        if (DB::table('company_groups')->where('owner_user_id', $this->adminId)->exists()) return;
+        if (DB::table('company_groups')->where('owner_user_id', $this->adminId)->exists()) {
+            return;
+        }
         $groupId = DB::table('company_groups')->insertGetId([
             'owner_user_id' => $this->adminId,
             'name' => 'Grup MBI Holding',
@@ -3175,7 +3348,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedDocumentTemplate(): void
     {
-        if (DB::table('document_templates')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('document_templates')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['name' => 'Template Invoice Standar', 'doc_type' => 'invoice'],
@@ -3199,7 +3374,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedWorkflows(): void
     {
-        if (DB::table('workflows')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('workflows')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $wfId = DB::table('workflows')->insertGetId([
             'tenant_id' => $this->tenantId,
             'name' => 'Auto Notifikasi Invoice Jatuh Tempo',
@@ -3224,7 +3401,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedApiTokens(): void
     {
-        if (DB::table('api_tokens')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('api_tokens')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         DB::table('api_tokens')->insert([
             'tenant_id' => $this->tenantId,
             'name' => 'Token Integrasi Demo',
@@ -3244,7 +3423,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHotelFrontOffice(): void
     {
-        if (DB::table('room_types')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('room_types')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['code' => 'STD', 'name' => 'Standard Room', 'base_rate' => 350000, 'max_occupancy' => 2, 'base_occupancy' => 2],
@@ -3269,8 +3450,8 @@ class TenantDemoSeeder extends Seeder
                 DB::table('rooms')->insert([
                     'tenant_id' => $this->tenantId,
                     'room_type_id' => $roomTypeIds[($roomNumber - 101) % count($roomTypeIds)],
-                    'number' => (string)$roomNumber,
-                    'floor' => (string)$floor,
+                    'number' => (string) $roomNumber,
+                    'floor' => (string) $floor,
                     'status' => 'available',
                     'is_active' => true,
                     'created_at' => now(),
@@ -3297,7 +3478,7 @@ class TenantDemoSeeder extends Seeder
         }
         $guestIds = DB::table('guests')->where('tenant_id', $this->tenantId)->pluck('id')->toArray();
         $roomIds = DB::table('rooms')->where('tenant_id', $this->tenantId)->pluck('id')->toArray();
-        if (!empty($guestIds) && !empty($roomIds)) {
+        if (! empty($guestIds) && ! empty($roomIds)) {
             foreach (
                 [
                     ['check_in' => now()->subDays(2), 'check_out' => now()->addDay(), 'status' => 'checked_in', 'adults' => 2, 'children' => 0],
@@ -3339,7 +3520,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHotelFbModule(): void
     {
-        if (DB::table('restaurant_menus')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('restaurant_menus')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $menuIds = [];
         foreach (
             [
@@ -3419,8 +3602,12 @@ class TenantDemoSeeder extends Seeder
     {
         $rooms = DB::table('rooms')->where('tenant_id', $this->tenantId)->limit(5)->get();
         $userIds = DB::table('users')->where('tenant_id', $this->tenantId)->pluck('id')->toArray();
-        if ($rooms->isEmpty() || empty($userIds)) return;
-        if (DB::table('housekeeping_tasks')->where('tenant_id', $this->tenantId)->exists()) return;
+        if ($rooms->isEmpty() || empty($userIds)) {
+            return;
+        }
+        if (DB::table('housekeeping_tasks')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach ($rooms as $i => $room) {
             DB::table('housekeeping_tasks')->insert([
                 'tenant_id' => $this->tenantId,
@@ -3476,7 +3663,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHotelSpa(): void
     {
-        if (DB::table('spa_therapists')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('spa_therapists')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         foreach (
             [
                 ['employee_number' => 'SPA-001', 'name' => 'Maya Sari', 'specializations' => json_encode(['Traditional Massage']), 'hourly_rate' => 50000, 'rating' => 4.8, 'total_treatments' => 120],
@@ -3545,7 +3734,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHotelNightAudit(): void
     {
-        if (DB::table('night_audit_batches')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('night_audit_batches')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $totalRooms = DB::table('rooms')->where('tenant_id', $this->tenantId)->count();
         for ($i = 2; $i >= 0; $i--) {
             $auditDate = now()->subDays($i);
@@ -3580,9 +3771,13 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHotelRevenueManagement(): void
     {
-        if (DB::table('rate_plans')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('rate_plans')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
         $roomTypeIds = DB::table('room_types')->where('tenant_id', $this->tenantId)->pluck('id')->toArray();
-        if (empty($roomTypeIds)) return;
+        if (empty($roomTypeIds)) {
+            return;
+        }
         foreach ($roomTypeIds as $rtId) {
             $roomType = DB::table('room_types')->find($rtId);
             foreach (
@@ -3644,7 +3839,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedTelecom(): void
     {
-        if (DB::table('network_devices')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('network_devices')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
 
         // Network devices
         $deviceIds = [];
@@ -3657,7 +3854,7 @@ class TenantDemoSeeder extends Seeder
         ) {
             $deviceIds[] = DB::table('network_devices')->insertGetId(array_merge($dev, [
                 'tenant_id' => $this->tenantId,
-                'location'  => 'Server Room Lt. 1',
+                'location' => 'Server Room Lt. 1',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
@@ -3675,8 +3872,8 @@ class TenantDemoSeeder extends Seeder
             ] as $pkg
         ) {
             $pkgIds[] = DB::table('internet_packages')->insertGetId(array_merge($pkg, [
-                'tenant_id'  => $this->tenantId,
-                'is_active'  => true,
+                'tenant_id' => $this->tenantId,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
@@ -3685,18 +3882,18 @@ class TenantDemoSeeder extends Seeder
         // Telecom subscriptions (customers)
         foreach (array_slice($this->customerIds, 0, 3) as $i => $custId) {
             DB::table('telecom_subscriptions')->insertOrIgnore([
-                'tenant_id'          => $this->tenantId,
-                'customer_id'        => $custId,
-                'package_id'         => $pkgIds[$i % count($pkgIds)],
+                'tenant_id' => $this->tenantId,
+                'customer_id' => $custId,
+                'package_id' => $pkgIds[$i % count($pkgIds)],
                 'subscription_number' => 'SUB-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
-                'static_ip_address'  => '192.168.10.' . ($i + 10),
+                'static_ip_address' => '192.168.10.' . ($i + 10),
                 'mac_address_registered' => 'BB:CC:DD:EE:FF:' . str_pad($i + 1, 2, '0', STR_PAD_LEFT),
-                'status'             => 'active',
-                'activated_at'       => Carbon::now()->subMonths(rand(1, 6)),
-                'expires_at'         => Carbon::now()->addDays(rand(5, 25)),
-                'next_billing_date'  => Carbon::now()->addDays(rand(1, 30)),
-                'current_price'      => 150000 + ($i * 100000),
-                'created_at'         => now(),
+                'status' => 'active',
+                'activated_at' => Carbon::now()->subMonths(rand(1, 6)),
+                'expires_at' => Carbon::now()->addDays(rand(5, 25)),
+                'next_billing_date' => Carbon::now()->addDays(rand(1, 30)),
+                'current_price' => 150000 + ($i * 100000),
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
@@ -3710,16 +3907,16 @@ class TenantDemoSeeder extends Seeder
             ] as $hu
         ) {
             DB::table('hotspot_users')->insertOrIgnore([
-                'tenant_id'       => $this->tenantId,
-                'device_id'       => $deviceIds[0] ?? 1,
-                'username'        => $hu['username'],
+                'tenant_id' => $this->tenantId,
+                'device_id' => $deviceIds[0] ?? 1,
+                'username' => $hu['username'],
                 'password_encrypted' => bcrypt($hu['password']),
-                'is_active'       => true,
-                'quota_bytes'     => 10737418240, // 10GB
+                'is_active' => true,
+                'quota_bytes' => 10737418240, // 10GB
                 'quota_used_bytes' => rand(100000000, 5000000000),
                 'rate_limit_download_kbps' => 10240,
                 'rate_limit_upload_kbps' => 5120,
-                'created_at'      => now(),
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
@@ -3727,14 +3924,14 @@ class TenantDemoSeeder extends Seeder
         // Voucher codes
         foreach (range(1, 5) as $i) {
             DB::table('voucher_codes')->insertOrIgnore([
-                'tenant_id'   => $this->tenantId,
-                'package_id'  => $pkgIds[4], // daily voucher
-                'code'        => 'VCH-' . strtoupper(Str::random(8)),
-                'status'      => $i <= 2 ? 'used' : 'unused',
+                'tenant_id' => $this->tenantId,
+                'package_id' => $pkgIds[4], // daily voucher
+                'code' => 'VCH-' . strtoupper(Str::random(8)),
+                'status' => $i <= 2 ? 'used' : 'unused',
                 'first_used_at' => $i <= 2 ? Carbon::now()->subDays($i) : null,
                 'last_used_at' => $i <= 2 ? Carbon::now()->subDays($i) : null,
                 'valid_until' => Carbon::now()->addDays(30),
-                'created_at'  => now(),
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
@@ -3743,18 +3940,18 @@ class TenantDemoSeeder extends Seeder
         $subscriptionIds = DB::table('telecom_subscriptions')->where('tenant_id', $this->tenantId)->pluck('id')->toArray();
         foreach (array_slice($subscriptionIds, 0, 2) as $i => $subId) {
             DB::table('bandwidth_allocations')->insertOrIgnore([
-                'tenant_id'        => $this->tenantId,
-                'device_id'        => $deviceIds[0] ?? 1,
-                'subscription_id'  => $subId,
-                'allocation_name'  => 'Customer Allocation ' . ($i + 1),
-                'allocation_type'  => 'subscription',
+                'tenant_id' => $this->tenantId,
+                'device_id' => $deviceIds[0] ?? 1,
+                'subscription_id' => $subId,
+                'allocation_name' => 'Customer Allocation ' . ($i + 1),
+                'allocation_type' => 'subscription',
                 'max_download_kbps' => ($i + 1) * 10 * 1024, // kbps
-                'max_upload_kbps'  => ($i + 1) * 5 * 1024,
+                'max_upload_kbps' => ($i + 1) * 5 * 1024,
                 'guaranteed_download_kbps' => ($i + 1) * 5 * 1024,
                 'guaranteed_upload_kbps' => ($i + 1) * 2 * 1024,
-                'priority'         => 8,
-                'is_active'        => true,
-                'created_at'       => now(),
+                'priority' => 8,
+                'is_active' => true,
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
@@ -3768,14 +3965,14 @@ class TenantDemoSeeder extends Seeder
             ] as $alert
         ) {
             DB::table('network_alerts')->insert([
-                'tenant_id'    => $this->tenantId,
-                'device_id'    => $alert['device_id'],
-                'alert_type'   => $alert['alert_type'],
-                'severity'     => $alert['severity'],
-                'title'        => $alert['title'],
-                'message'      => $alert['message'],
-                'status'       => $alert['status'],
-                'created_at'   => now(),
+                'tenant_id' => $this->tenantId,
+                'device_id' => $alert['device_id'],
+                'alert_type' => $alert['alert_type'],
+                'severity' => $alert['severity'],
+                'title' => $alert['title'],
+                'message' => $alert['message'],
+                'status' => $alert['status'],
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
@@ -3786,18 +3983,18 @@ class TenantDemoSeeder extends Seeder
             for ($d = 6; $d >= 0; $d--) {
                 $date = Carbon::now()->subDays($d);
                 DB::table('usage_tracking')->insert([
-                    'tenant_id'       => $this->tenantId,
+                    'tenant_id' => $this->tenantId,
                     'subscription_id' => $subId,
-                    'device_id'       => $deviceIds[0] ?? null,
-                    'bytes_in'        => rand(500000000, 5000000000), // 500MB - 5GB
-                    'bytes_out'       => rand(100000000, 1000000000), // 100MB - 1GB
-                    'bytes_total'     => rand(600000000, 6000000000), // Total
-                    'sessions_count'  => rand(1, 10),
+                    'device_id' => $deviceIds[0] ?? null,
+                    'bytes_in' => rand(500000000, 5000000000), // 500MB - 5GB
+                    'bytes_out' => rand(100000000, 1000000000), // 100MB - 1GB
+                    'bytes_total' => rand(600000000, 6000000000), // Total
+                    'sessions_count' => rand(1, 10),
                     'session_duration_seconds' => rand(3600, 86400),
-                    'period_type'     => 'daily',
-                    'period_start'    => $date->startOfDay(),
-                    'period_end'      => $date->endOfDay(),
-                    'created_at'      => now(),
+                    'period_type' => 'daily',
+                    'period_start' => $date->startOfDay(),
+                    'period_end' => $date->endOfDay(),
+                    'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
@@ -3810,7 +4007,9 @@ class TenantDemoSeeder extends Seeder
 
     private function seedHealthcare(): void
     {
-        if (DB::table('patients')->where('tenant_id', $this->tenantId)->exists()) return;
+        if (DB::table('patients')->where('tenant_id', $this->tenantId)->exists()) {
+            return;
+        }
 
         // Doctors - First create users, then doctor records
         $doctorIds = [];
@@ -3862,30 +4061,30 @@ class TenantDemoSeeder extends Seeder
             ] as $i => $p
         ) {
             $patientIds[] = DB::table('patients')->insertGetId([
-                'tenant_id'              => $this->tenantId,
-                'medical_record_number'  => 'MR-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
-                'full_name'              => $p['name'],
-                'birth_date'             => $p['dob'],
-                'gender'                 => $p['gender'],
-                'blood_type'             => $p['blood_type'],
-                'phone_primary'          => $p['phone'],
-                'address_street'         => 'Jakarta',
-                'email'                  => strtolower(str_replace(' ', '.', $p['name'])) . '@gmail.com',
-                'marital_status'         => $i % 2 === 0 ? 'married' : 'single',
-                'religion'               => 'Islam',
-                'nationality'            => 'Indonesian',
-                'status'                 => 'active',
-                'created_at'             => now(),
-                'updated_at'             => now(),
+                'tenant_id' => $this->tenantId,
+                'medical_record_number' => 'MR-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
+                'full_name' => $p['name'],
+                'birth_date' => $p['dob'],
+                'gender' => $p['gender'],
+                'blood_type' => $p['blood_type'],
+                'phone_primary' => $p['phone'],
+                'address_street' => 'Jakarta',
+                'email' => strtolower(str_replace(' ', '.', $p['name'])) . '@gmail.com',
+                'marital_status' => $i % 2 === 0 ? 'married' : 'single',
+                'religion' => 'Islam',
+                'nationality' => 'Indonesian',
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
         // Patient allergies
         DB::table('patient_allergies')->insert([
             'patient_id' => $patientIds[0],
-            'allergen'   => 'Penisilin',
+            'allergen' => 'Penisilin',
             'allergen_type' => 'medication',
-            'severity'   => 'moderate',
+            'severity' => 'moderate',
             'reaction_description' => 'Ruam kulit dan gatal-gatal',
             'diagnosis_method' => 'self_reported',
             'is_active' => true,
@@ -3896,17 +4095,17 @@ class TenantDemoSeeder extends Seeder
 
         // Patient insurances
         DB::table('patient_insurances')->insert([
-            'patient_id'         => $patientIds[0],
+            'patient_id' => $patientIds[0],
             'insurance_provider' => 'BPJS Kesehatan',
-            'insurance_type'     => 'national',
-            'policy_number'      => 'BPJS-' . rand(1000000000, 9999999999),
-            'plan_class'         => '2',
-            'effective_date'     => '2026-01-01',
-            'expiry_date'        => '2026-12-31',
-            'is_active'          => true,
-            'is_primary'         => true,
-            'created_at'         => now(),
-            'updated_at'         => now(),
+            'insurance_type' => 'national',
+            'policy_number' => 'BPJS-' . rand(1000000000, 9999999999),
+            'plan_class' => '2',
+            'effective_date' => '2026-01-01',
+            'expiry_date' => '2026-12-31',
+            'is_active' => true,
+            'is_primary' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // Healthcare module - Simplified version for demo
@@ -3922,54 +4121,54 @@ class TenantDemoSeeder extends Seeder
     {
         $devices = [
             [
-                'name'          => 'ESP32 Sensor Gudang A',
-                'device_type'   => 'esp32',
-                'location'      => 'Gudang A Lantai 1',
+                'name' => 'ESP32 Sensor Gudang A',
+                'device_type' => 'esp32',
+                'location' => 'Gudang A Lantai 1',
                 'target_module' => 'inventory',
-                'sensor_types'  => ['temperature', 'humidity'],
+                'sensor_types' => ['temperature', 'humidity'],
                 'firmware_version' => 'v1.0.0',
             ],
             [
-                'name'          => 'Raspberry Pi Gateway Produksi',
-                'device_type'   => 'raspberry_pi',
-                'location'      => 'Lantai Produksi',
+                'name' => 'Raspberry Pi Gateway Produksi',
+                'device_type' => 'raspberry_pi',
+                'location' => 'Lantai Produksi',
                 'target_module' => 'manufacturing',
-                'sensor_types'  => ['counter', 'temperature'],
+                'sensor_types' => ['counter', 'temperature'],
                 'firmware_version' => 'rpi-agent-v1.0.0',
             ],
             [
-                'name'          => 'ESP32 Sensor Kolam Ikan',
-                'device_type'   => 'esp32',
-                'location'      => 'Kolam Budidaya No.1',
+                'name' => 'ESP32 Sensor Kolam Ikan',
+                'device_type' => 'esp32',
+                'location' => 'Kolam Budidaya No.1',
                 'target_module' => 'fisheries',
-                'sensor_types'  => ['temperature', 'ph', 'turbidity'],
+                'sensor_types' => ['temperature', 'ph', 'turbidity'],
                 'firmware_version' => 'v1.2.0',
             ],
             [
-                'name'          => 'Arduino Counter Mesin Press',
-                'device_type'   => 'arduino',
-                'location'      => 'Area Mesin Press',
+                'name' => 'Arduino Counter Mesin Press',
+                'device_type' => 'arduino',
+                'location' => 'Area Mesin Press',
                 'target_module' => 'manufacturing',
-                'sensor_types'  => ['counter'],
+                'sensor_types' => ['counter'],
                 'firmware_version' => 'v0.9.0',
             ],
         ];
 
         foreach ($devices as $i => $d) {
             $deviceId = DB::table('iot_devices')->insertGetId([
-                'tenant_id'       => $this->tenantId,
-                'name'            => $d['name'],
-                'device_id'       => 'DEV-' . strtoupper(substr(md5($d['name']), 0, 8)),
-                'device_token'    => bin2hex(random_bytes(32)),
-                'device_type'     => $d['device_type'],
-                'location'        => $d['location'],
-                'target_module'   => $d['target_module'],
-                'sensor_types'    => json_encode($d['sensor_types']),
+                'tenant_id' => $this->tenantId,
+                'name' => $d['name'],
+                'device_id' => 'DEV-' . strtoupper(substr(md5($d['name']), 0, 8)),
+                'device_token' => bin2hex(random_bytes(32)),
+                'device_type' => $d['device_type'],
+                'location' => $d['location'],
+                'target_module' => $d['target_module'],
+                'sensor_types' => json_encode($d['sensor_types']),
                 'firmware_version' => $d['firmware_version'],
-                'is_active'       => true,
-                'is_connected'    => $i < 2, // 2 pertama online
-                'last_seen_at'    => $i < 2 ? now()->subMinutes(rand(1, 10)) : now()->subHours(rand(2, 24)),
-                'created_at'      => now(),
+                'is_active' => true,
+                'is_connected' => $i < 2, // 2 pertama online
+                'last_seen_at' => $i < 2 ? now()->subMinutes(rand(1, 10)) : now()->subHours(rand(2, 24)),
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
@@ -3977,10 +4176,10 @@ class TenantDemoSeeder extends Seeder
             foreach ($d['sensor_types'] as $sensorType) {
                 $sampleValues = [
                     'temperature' => [25.0, 26.5, 28.0, 27.3, 29.1],
-                    'humidity'    => [65.0, 68.5, 72.0, 70.2, 66.8],
-                    'ph'          => [6.8, 7.0, 7.2, 6.9, 7.1],
-                    'turbidity'   => [12.5, 15.0, 11.8, 13.2, 14.0],
-                    'counter'     => [100, 150, 200, 175, 220],
+                    'humidity' => [65.0, 68.5, 72.0, 70.2, 66.8],
+                    'ph' => [6.8, 7.0, 7.2, 6.9, 7.1],
+                    'turbidity' => [12.5, 15.0, 11.8, 13.2, 14.0],
+                    'counter' => [100, 150, 200, 175, 220],
                 ];
                 $units = [
                     'temperature' => '°C',
@@ -3993,15 +4192,15 @@ class TenantDemoSeeder extends Seeder
 
                 foreach ($values as $j => $val) {
                     DB::table('iot_telemetry_logs')->insert([
-                        'tenant_id'     => $this->tenantId,
+                        'tenant_id' => $this->tenantId,
                         'iot_device_id' => $deviceId,
-                        'sensor_type'   => $sensorType,
-                        'value'         => $val,
-                        'unit'          => $units[$sensorType] ?? '',
-                        'payload'       => json_encode(['type' => $sensorType, 'value' => $val]),
-                        'status'        => 'received',
-                        'recorded_at'   => now()->subMinutes(($j + 1) * 30),
-                        'created_at'    => now(),
+                        'sensor_type' => $sensorType,
+                        'value' => $val,
+                        'unit' => $units[$sensorType] ?? '',
+                        'payload' => json_encode(['type' => $sensorType, 'value' => $val]),
+                        'status' => 'received',
+                        'recorded_at' => now()->subMinutes(($j + 1) * 30),
+                        'created_at' => now(),
                         'updated_at' => now(),
                     ]);
                 }

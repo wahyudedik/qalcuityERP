@@ -16,10 +16,10 @@ class SubscriptionPlan extends Model
     protected function casts(): array
     {
         return [
-            'features'   => 'array',
-            'is_active'  => 'boolean',
+            'features' => 'array',
+            'is_active' => 'boolean',
             'price_monthly' => 'decimal:2',
-            'price_yearly'  => 'decimal:2',
+            'price_yearly' => 'decimal:2',
         ];
     }
 
@@ -45,7 +45,7 @@ class SubscriptionPlan extends Model
                 'name' => 'Starter',
                 'slug' => 'starter',
                 'price_monthly' => 99000,
-                'price_yearly'  => 999000,
+                'price_yearly' => 999000,
                 'max_users' => 2,
                 'max_ai_messages' => 50,
                 'trial_days' => 14,
@@ -63,7 +63,7 @@ class SubscriptionPlan extends Model
                 'name' => 'Business',
                 'slug' => 'business',
                 'price_monthly' => 249000,
-                'price_yearly'  => 2499000,
+                'price_yearly' => 2499000,
                 'max_users' => 10,
                 'max_ai_messages' => 300,
                 'trial_days' => 14,
@@ -89,7 +89,7 @@ class SubscriptionPlan extends Model
                 'name' => 'Professional',
                 'slug' => 'professional',
                 'price_monthly' => 499000,
-                'price_yearly'  => 4999000,
+                'price_yearly' => 4999000,
                 'max_users' => 25,
                 'max_ai_messages' => 1000,
                 'trial_days' => 14,
@@ -122,7 +122,7 @@ class SubscriptionPlan extends Model
                 'name' => 'Enterprise',
                 'slug' => 'enterprise',
                 'price_monthly' => 999000,
-                'price_yearly'  => 9999000,
+                'price_yearly' => 9999000,
                 'max_users' => -1,
                 'max_ai_messages' => -1,
                 'trial_days' => 30,

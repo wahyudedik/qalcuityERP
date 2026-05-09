@@ -85,7 +85,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-lg font-bold text-gray-900">{{ $unit->unit_code }}</span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $tempClass  }}-100 text-{{ $tempClass }}-700 $tempClass }}-500/20 $tempClass }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $tempClass }}-100 text-{{ $tempClass }}-700 $tempClass }}-500/20 $tempClass }}-400">
                                     {{ $unit->isTemperatureSafe() ? 'Normal' : 'Warning' }}
                                 </span>
                             </div>
@@ -118,7 +118,7 @@
 
                         {{-- Temperature Form --}}
                         <div x-show="showTempForm" x-transition class="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <form :action="'{{ route('fisheries.cold-chain.log-temperature', $unit->id) }}'"
+                            <form :action="'{{ route('fisheries.api.cold-chain.storage.temperature', $unit->id) }}'"
                                 method="POST" class="space-y-2">
                                 @csrf
                                 <div class="grid grid-cols-2 gap-2">
@@ -216,7 +216,7 @@
                             <p class="text-xs text-gray-400 mt-1">{{ $alert['time'] }}</p>
                         </div>
                         <span
-                            class="text-xs px-2 py-1 rounded-full bg-{{ $alert['severity_color']  }}-100 text-{{ $alert['severity_color'] }}-700 $alert['severity_color'] }}-500/20 $alert['severity_color'] }}-400">
+                            class="text-xs px-2 py-1 rounded-full bg-{{ $alert['severity_color'] }}-100 text-{{ $alert['severity_color'] }}-700 $alert['severity_color'] }}-500/20 $alert['severity_color'] }}-400">
                             {{ ucfirst($alert['severity']) }}
                         </span>
                     </div>
@@ -234,7 +234,7 @@
                 <button onclick="document.getElementById('addUnitModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.cold-chain.store-storage') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.cold-chain.storage.create') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 

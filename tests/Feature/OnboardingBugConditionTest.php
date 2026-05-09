@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\OnboardingController;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\SampleDataGeneratorService;
@@ -21,8 +22,8 @@ use Tests\TestCase;
  */
 class OnboardingBugConditionTest extends TestCase
 {
-
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -30,7 +31,7 @@ class OnboardingBugConditionTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -52,7 +53,7 @@ class OnboardingBugConditionTest extends TestCase
     public function test_save_industry_returns_200_json_success(): void
     {
         $response = $this->postJson('/onboarding/save-industry', [
-            'industry'      => 'retail',
+            'industry' => 'retail',
             'business_size' => 'small',
         ]);
 
@@ -78,24 +79,24 @@ class OnboardingBugConditionTest extends TestCase
         // which triggers the same SQL error as saveIndustry().
         // We call the controller method directly via the route if registered,
         // otherwise invoke the controller directly.
-        $controller = app(\App\Http\Controllers\OnboardingController::class);
+        $controller = app(OnboardingController::class);
 
-        $threwError    = false;
-        $errorMessage  = '';
-        $result        = null;
+        $threwError = false;
+        $errorMessage = '';
+        $result = null;
 
         try {
             $result = $controller->skip();
         } catch (\Throwable $e) {
-            $threwError   = true;
+            $threwError = true;
             $errorMessage = $e->getMessage();
         }
 
         // On unfixed code this will fail with SQL error about 'skipped' column
         $this->assertFalse(
             $threwError,
-            "Bug 1.2: skip() threw an error: {$errorMessage}. " .
-            "Expected: redirect to dashboard without SQL error. " .
+            "Bug 1.2: skip() threw an error: {$errorMessage}. ".
+            'Expected: redirect to dashboard without SQL error. '.
             "Counterexample: skip() → SQLSTATE[42S22]: Column not found: 1054 Unknown column 'skipped'"
         );
 
@@ -118,14 +119,14 @@ class OnboardingBugConditionTest extends TestCase
      */
     public function test_get_templates_returns_non_empty_array_for_retail(): void
     {
-        $service   = app(SampleDataGeneratorService::class);
+        $service = app(SampleDataGeneratorService::class);
         $templates = $service->getTemplates('retail');
 
         // On unfixed code this will fail: returns [] because table is not seeded
         $this->assertNotEmpty(
             $templates,
-            "Bug 1.4/1.5: SampleDataGeneratorService::getTemplates('retail') returned empty array. " .
-            "Expected: at least one active template for 'retail' industry. " .
+            "Bug 1.4/1.5: SampleDataGeneratorService::getTemplates('retail') returned empty array. ".
+            "Expected: at least one active template for 'retail' industry. ".
             "Counterexample: getTemplates('retail') → [] (sample_data_templates table not seeded)"
         );
 
@@ -133,10 +134,8 @@ class OnboardingBugConditionTest extends TestCase
         foreach ($templates as $template) {
             $this->assertTrue(
                 (bool) ($template['is_active'] ?? false),
-                "Template should have is_active = true"
+                'Template should have is_active = true'
             );
         }
     }
-
-
 }

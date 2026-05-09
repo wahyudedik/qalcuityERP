@@ -3,21 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanyGroup;
-use App\Models\ConsolidationReport;
-use App\Models\ConsolidationMasterAccount;
 use App\Models\ConsolidationAccountMapping;
 use App\Models\ConsolidationElimination;
-use App\Models\ConsolidationAdjustment;
+use App\Models\ConsolidationMasterAccount;
 use App\Models\ConsolidationOwnership;
+use App\Models\ConsolidationReport;
 use App\Services\ConsolidationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ConsolidationController extends Controller
 {
-    public function __construct(private ConsolidationService $consolidationService)
-    {
-    }
+    public function __construct(private ConsolidationService $consolidationService) {}
 
     public function index()
     {
@@ -30,7 +27,7 @@ class ConsolidationController extends Controller
         }
 
         $groups = CompanyGroup::where('owner_user_id', $user->id)
-            ->orWhereHas('members', fn($q) => $q->where('tenant_id', $tenant->id))
+            ->orWhereHas('members', fn ($q) => $q->where('tenant_id', $tenant->id))
             ->with('members')
             ->get();
 
@@ -151,7 +148,7 @@ class ConsolidationController extends Controller
             return redirect()->route('consolidation.report.show', [$group, $report])
                 ->with('success', 'Laporan konsolidasi berhasil dibuat.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal membuat laporan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membuat laporan: '.$e->getMessage());
         }
     }
 
@@ -311,15 +308,17 @@ class ConsolidationController extends Controller
                 ]);
             }
 
-            if (!$elimination->isBalanced()) {
+            if (! $elimination->isBalanced()) {
                 throw new \Exception('Elimination entry tidak balance.');
             }
 
             DB::commit();
+
             return back()->with('success', 'Elimination entry berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal membuat elimination: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal membuat elimination: '.$e->getMessage());
         }
     }
 
@@ -373,7 +372,7 @@ class ConsolidationController extends Controller
 
         // Export to PDF or Excel
         $pdf = \PDF::loadView('consolidation.export.pdf', compact('group', 'report'));
-        
+
         return $pdf->download("consolidation-{$report->report_type}-{$report->period_start}.pdf");
     }
 }

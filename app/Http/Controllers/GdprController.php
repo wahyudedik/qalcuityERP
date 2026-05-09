@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Security\GdprComplianceService;
+use App\Models\GdprConsent;
 use App\Models\GdprDataExport;
 use App\Models\GdprDeletionRequest;
-use App\Models\GdprConsent;
+use App\Services\Security\GdprComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -75,7 +75,7 @@ class GdprController extends Controller
             return back()->with('error', 'Export link has expired. Please request a new export.');
         }
 
-        if (!Storage::disk('local')->exists($export->file_path)) {
+        if (! Storage::disk('local')->exists($export->file_path)) {
             return back()->with('error', 'Export file not found.');
         }
 

@@ -9,12 +9,12 @@ use App\Models\GuestPreference;
 use App\Services\GuestPreferenceService;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class GuestController extends Controller
 {
     private ReservationService $reservationService;
+
     private GuestPreferenceService $preferenceService;
 
     public function __construct(
@@ -66,7 +66,7 @@ class GuestController extends Controller
 
         // Generate guest code
         $count = Guest::where('tenant_id', $tid)->count() + 1;
-        $guestCode = 'GST-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+        $guestCode = 'GST-'.str_pad($count, 5, '0', STR_PAD_LEFT);
 
         $guest = Guest::create([
             'tenant_id' => $tid,
@@ -396,12 +396,13 @@ class GuestController extends Controller
             "Redeemed: {$data['reward_name']} - {$data['reason']}"
         );
 
-        if (!$success) {
+        if (! $success) {
             return back()->with('error', 'Insufficient loyalty points.');
         }
 
         return back()->with('success', "{$data['reward_name']} redeemed successfully!");
     }
+
     /**
      * Show the form for creating.
      * Route: hotel/guests/create
@@ -412,6 +413,7 @@ class GuestController extends Controller
 
         return view('hotel.guest.create');
     }
+
     /**
      * Show the form for editing.
      * Route: hotel/guests/{guest}/edit

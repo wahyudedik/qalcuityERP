@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BreedingRecord extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -29,7 +28,7 @@ use HasFactory, BelongsToTenant;
         'genetic_traits',
         'status',
         'notes',
-        'recorded_by'
+        'recorded_by',
     ];
 
     protected $casts = [
@@ -84,7 +83,7 @@ use HasFactory, BelongsToTenant;
      */
     public function getDaysUntilDueAttribute(): ?int
     {
-        if (!$this->expected_due_date) {
+        if (! $this->expected_due_date) {
             return null;
         }
 
@@ -96,12 +95,13 @@ use HasFactory, BelongsToTenant;
      */
     public function isOnTime(): bool
     {
-        if (!$this->expected_due_date || !$this->actual_birth_date) {
+        if (! $this->expected_due_date || ! $this->actual_birth_date) {
             return false;
         }
 
         // Consider on-time if within ±7 days of expected date
         $diff = abs($this->expected_due_date->diffInDays($this->actual_birth_date));
+
         return $diff <= 7;
     }
 
@@ -110,7 +110,7 @@ use HasFactory, BelongsToTenant;
      */
     public function getSurvivalRateAttribute(): ?float
     {
-        if (!$this->offspring_count || $this->offspring_count == 0) {
+        if (! $this->offspring_count || $this->offspring_count == 0) {
             return null;
         }
 

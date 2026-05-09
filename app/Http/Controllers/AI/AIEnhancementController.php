@@ -3,21 +3,29 @@
 namespace App\Http\Controllers\AI;
 
 use App\Http\Controllers\Controller;
-use App\Services\AI\VoiceCommandService;
+use App\Models\Asset;
+use App\Models\Product;
+use App\Services\AI\ChatbotTrainingService;
+use App\Services\AI\DynamicPricingService;
 use App\Services\AI\ImageRecognitionService;
 use App\Services\AI\PredictiveMaintenanceService;
-use App\Services\AI\DynamicPricingService;
 use App\Services\AI\SentimentAnalysisService;
-use App\Services\AI\ChatbotTrainingService;
+use App\Services\AI\VoiceCommandService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AIEnhancementController extends Controller
 {
     protected $voiceService;
+
     protected $imageService;
+
     protected $maintenanceService;
+
     protected $pricingService;
+
     protected $sentimentService;
+
     protected $chatbotService;
 
     public function __construct(
@@ -56,12 +64,14 @@ class AIEnhancementController extends Controller
     public function getVoiceCommandHistory()
     {
         $history = $this->voiceService->getCommandHistory(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'history' => $history]);
     }
 
     public function getVoiceCommandStats()
     {
         $stats = $this->voiceService->getCommandStats(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'stats' => $stats]);
     }
 
@@ -132,12 +142,14 @@ class AIEnhancementController extends Controller
     public function verifyImageResult(int $resultId)
     {
         $success = $this->imageService->verifyResult($resultId);
+
         return response()->json(['success' => $success]);
     }
 
     public function getImageRecognitionStats()
     {
         $stats = $this->imageService->getRecognitionStats(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'stats' => $stats]);
     }
 
@@ -146,12 +158,13 @@ class AIEnhancementController extends Controller
     public function predictAllAssets()
     {
         $result = $this->maintenanceService->predictForAllAssets(auth()->user()->tenant_id);
+
         return response()->json($result);
     }
 
     public function predictAsset(int $assetId)
     {
-        $asset = \App\Models\Asset::findOrFail($assetId);
+        $asset = Asset::findOrFail($assetId);
         $result = $this->maintenanceService->predictForAsset($asset);
 
         return response()->json($result ? ['success' => true, 'prediction' => $result] : ['success' => false]);
@@ -196,6 +209,7 @@ class AIEnhancementController extends Controller
     public function getMaintenanceStats()
     {
         $stats = $this->maintenanceService->getMaintenanceStats(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'stats' => $stats]);
     }
 
@@ -213,7 +227,7 @@ class AIEnhancementController extends Controller
 
     public function calculatePrice(int $productId)
     {
-        $product = \App\Models\Product::findOrFail($productId);
+        $product = Product::findOrFail($productId);
         $result = $this->pricingService->calculatePrice($product);
 
         return response()->json($result);
@@ -237,6 +251,7 @@ class AIEnhancementController extends Controller
     public function getPricingRecommendations()
     {
         $result = $this->pricingService->getRecommendations(auth()->user()->tenant_id);
+
         return response()->json($result);
     }
 
@@ -261,6 +276,7 @@ class AIEnhancementController extends Controller
     public function getPricingHistory(int $productId)
     {
         $history = $this->pricingService->getPricingHistory($productId);
+
         return response()->json(['success' => true, 'history' => $history]);
     }
 
@@ -287,12 +303,14 @@ class AIEnhancementController extends Controller
     public function getPendingAnalyses()
     {
         $analyses = $this->sentimentService->getPendingAnalyses(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'analyses' => $analyses]);
     }
 
     public function markReviewed(int $analysisId)
     {
         $success = $this->sentimentService->markReviewed($analysisId, auth()->id());
+
         return response()->json(['success' => $success]);
     }
 
@@ -303,8 +321,8 @@ class AIEnhancementController extends Controller
 
         $stats = $this->sentimentService->getSentimentStats(
             auth()->user()->tenant_id,
-            $startDate ? \Carbon\Carbon::parse($startDate) : null,
-            $endDate ? \Carbon\Carbon::parse($endDate) : null
+            $startDate ? Carbon::parse($startDate) : null,
+            $endDate ? Carbon::parse($endDate) : null
         );
 
         return response()->json(['success' => true, 'stats' => $stats]);
@@ -326,6 +344,7 @@ class AIEnhancementController extends Controller
     public function trainFromHistory()
     {
         $result = $this->chatbotService->trainFromHistory(auth()->user()->tenant_id);
+
         return response()->json($result);
     }
 
@@ -399,12 +418,14 @@ class AIEnhancementController extends Controller
     public function getTrainingStats()
     {
         $stats = $this->chatbotService->getTrainingStats(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'stats' => $stats]);
     }
 
     public function getLowConfidenceQuestions()
     {
         $questions = $this->chatbotService->getLowConfidenceQuestions(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'questions' => $questions]);
     }
 

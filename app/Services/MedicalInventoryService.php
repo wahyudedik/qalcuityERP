@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Models\MedicalSupply;
-use App\Models\MedicalSupplyTransaction;
 use App\Models\MedicalSupplyRequest;
 use App\Models\MedicalSupplyRequestItem;
-use App\Models\SterilizationLog;
+use App\Models\MedicalSupplyTransaction;
 use App\Models\MedicalWasteLog;
+use App\Models\SterilizationLog;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -50,7 +50,7 @@ class MedicalInventoryService
                 'expiry_date' => $receiveData['expiry_date'] ?? $supply->expiry_date,
             ]);
 
-            Log::info("Medical supplies received", [
+            Log::info('Medical supplies received', [
                 'transaction_number' => $transaction->transaction_number,
                 'supply' => $supply->supply_name,
                 'quantity' => $receiveData['quantity'],
@@ -99,7 +99,7 @@ class MedicalInventoryService
                 'stock_quantity' => $newQuantity,
             ]);
 
-            Log::info("Medical supplies issued", [
+            Log::info('Medical supplies issued', [
                 'transaction_number' => $transaction->transaction_number,
                 'supply' => $supply->supply_name,
                 'quantity' => $issueData['quantity'],
@@ -139,7 +139,7 @@ class MedicalInventoryService
                 'stock_quantity' => $newQuantity,
             ]);
 
-            Log::info("Stock adjusted", [
+            Log::info('Stock adjusted', [
                 'transaction_number' => $transaction->transaction_number,
                 'supply' => $supply->supply_name,
                 'adjustment' => $quantity,
@@ -177,7 +177,7 @@ class MedicalInventoryService
                 ]);
             }
 
-            Log::info("Supply request created", [
+            Log::info('Supply request created', [
                 'request_number' => $request->request_number,
                 'items' => count($requestData['items']),
             ]);
@@ -208,7 +208,7 @@ class MedicalInventoryService
                 ]);
             });
 
-            Log::info("Supply request approved", [
+            Log::info('Supply request approved', [
                 'request_number' => $request->request_number,
             ]);
 
@@ -241,7 +241,7 @@ class MedicalInventoryService
                 'compliance_standard' => $sterilizationData['compliance_standard'] ?? null,
             ]);
 
-            Log::info("Sterilization logged", [
+            Log::info('Sterilization logged', [
                 'sterilization_number' => $sterilization->sterilization_number,
                 'method' => $sterilization->sterilization_method,
             ]);
@@ -266,7 +266,7 @@ class MedicalInventoryService
                 'completion_date' => now(),
             ]);
 
-            Log::info("Sterilization validated", [
+            Log::info('Sterilization validated', [
                 'sterilization_number' => $sterilization->sterilization_number,
                 'result' => $result,
             ]);
@@ -301,7 +301,7 @@ class MedicalInventoryService
                 'is_compliant' => $wasteData['is_compliant'] ?? false,
             ]);
 
-            Log::info("Medical waste logged", [
+            Log::info('Medical waste logged', [
                 'waste_log_number' => $wasteLog->waste_log_number,
                 'waste_type' => $wasteLog->waste_type,
                 'weight_kg' => $wasteLog->weight_kg,
@@ -379,13 +379,13 @@ class MedicalInventoryService
     protected function generateTransactionNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'TRX-MED-' . $date;
+        $prefix = 'TRX-MED-'.$date;
 
-        $last = MedicalSupplyTransaction::where('transaction_number', 'like', $prefix . '%')
+        $last = MedicalSupplyTransaction::where('transaction_number', 'like', $prefix.'%')
             ->orderBy('transaction_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->transaction_number, -4) + 1 : 1,
             4,
             '0',
@@ -399,13 +399,13 @@ class MedicalInventoryService
     protected function generateRequestNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'REQ-MED-' . $date;
+        $prefix = 'REQ-MED-'.$date;
 
-        $last = MedicalSupplyRequest::where('request_number', 'like', $prefix . '%')
+        $last = MedicalSupplyRequest::where('request_number', 'like', $prefix.'%')
             ->orderBy('request_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->request_number, -4) + 1 : 1,
             4,
             '0',
@@ -419,13 +419,13 @@ class MedicalInventoryService
     protected function generateSterilizationNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'STER-' . $date;
+        $prefix = 'STER-'.$date;
 
-        $last = SterilizationLog::where('sterilization_number', 'like', $prefix . '%')
+        $last = SterilizationLog::where('sterilization_number', 'like', $prefix.'%')
             ->orderBy('sterilization_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->sterilization_number, -4) + 1 : 1,
             4,
             '0',
@@ -439,13 +439,13 @@ class MedicalInventoryService
     protected function generateWasteNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'WASTE-' . $date;
+        $prefix = 'WASTE-'.$date;
 
-        $last = MedicalWasteLog::where('waste_log_number', 'like', $prefix . '%')
+        $last = MedicalWasteLog::where('waste_log_number', 'like', $prefix.'%')
             ->orderBy('waste_log_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->waste_log_number, -4) + 1 : 1,
             4,
             '0',

@@ -3,10 +3,10 @@
 namespace Tests\Unit\AI;
 
 use App\Services\AI\AiProviderRouter;
-use App\Services\GeminiService;
-use App\Services\AI\Providers\GeminiProvider;
 use App\Services\AI\Providers\AnthropicProvider;
+use App\Services\AI\Providers\GeminiProvider;
 use App\Services\AI\ProviderSwitcher;
+use App\Services\GeminiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,6 +23,7 @@ class BackwardCompatibilityTest extends TestCase
     use RefreshDatabase;
 
     private AiProviderRouter $router;
+
     private GeminiService $geminiService;
 
     protected function setUp(): void

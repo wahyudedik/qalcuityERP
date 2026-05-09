@@ -110,6 +110,7 @@ class RadiologyExam extends Model
         if ($this->price > 0) {
             return (($this->price - $this->cost) / $this->price) * 100;
         }
+
         return 0;
     }
 }

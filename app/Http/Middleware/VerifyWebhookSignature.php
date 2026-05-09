@@ -17,15 +17,16 @@ class VerifyWebhookSignature
     {
         $verified = match ($gateway) {
             'midtrans' => $this->verifyMidtrans($request),
-            'xendit'   => $this->verifyXendit($request),
-            default    => false,
+            'xendit' => $this->verifyXendit($request),
+            default => false,
         };
 
-        if (!$verified) {
+        if (! $verified) {
             Log::warning("VerifyWebhookSignature: invalid signature for [{$gateway}]", [
-                'ip'      => $request->ip(),
+                'ip' => $request->ip(),
                 'headers' => $request->headers->all(),
             ]);
+
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -34,15 +35,17 @@ class VerifyWebhookSignature
 
     private function verifyMidtrans(Request $request): bool
     {
-        $serverKey   = config('services.midtrans.server_key');
-        $orderId     = $request->input('order_id', '');
-        $statusCode  = $request->input('status_code', '');
+        $serverKey = config('services.midtrans.server_key');
+        $orderId = $request->input('order_id', '');
+        $statusCode = $request->input('status_code', '');
         $grossAmount = $request->input('gross_amount', '');
-        $incoming    = $request->input('signature_key', '');
+        $incoming = $request->input('signature_key', '');
 
-        if (empty($serverKey) || empty($incoming)) return false;
+        if (empty($serverKey) || empty($incoming)) {
+            return false;
+        }
 
-        $expected = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        $expected = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
         return hash_equals($expected, $incoming);
     }
@@ -50,9 +53,11 @@ class VerifyWebhookSignature
     private function verifyXendit(Request $request): bool
     {
         $callbackToken = config('services.xendit.webhook_token');
-        $incoming      = $request->header('x-callback-token', '');
+        $incoming = $request->header('x-callback-token', '');
 
-        if (empty($callbackToken) || empty($incoming)) return false;
+        if (empty($callbackToken) || empty($incoming)) {
+            return false;
+        }
 
         return hash_equals($callbackToken, $incoming);
     }

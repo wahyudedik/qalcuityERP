@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('ai_memories')) {
+        if (! Schema::hasTable('ai_memories')) {
             Schema::create('ai_memories', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -17,7 +18,7 @@ return new class extends Migration {
                 $table->unsignedInteger('frequency')->default(1); // berapa kali pola ini muncul
                 $table->timestamp('last_seen_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'user_id', 'key']);
                 $table->index(['tenant_id', 'user_id']);
             });

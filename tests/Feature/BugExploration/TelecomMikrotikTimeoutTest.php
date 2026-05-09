@@ -3,12 +3,9 @@
 namespace Tests\Feature\BugExploration;
 
 use App\Jobs\Telecom\SyncHotspotUsersJob;
-use App\Models\NetworkDevice;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\Telecom\RouterIntegrationService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -27,6 +24,7 @@ class TelecomMikrotikTimeoutTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -47,7 +45,7 @@ class TelecomMikrotikTimeoutTest extends TestCase
      */
     public function test_sync_hotspot_job_has_exponential_backoff(): void
     {
-        $job = new SyncHotspotUsersJob();
+        $job = new SyncHotspotUsersJob;
 
         // Assert: Job harus memiliki backoff property
         $hasBackoff = property_exists($job, 'backoff');
@@ -55,9 +53,9 @@ class TelecomMikrotikTimeoutTest extends TestCase
         // Test ini AKAN GAGAL karena SyncHotspotUsersJob tidak memiliki backoff property
         $this->assertTrue(
             $hasBackoff,
-            "Bug 1.21: SyncHotspotUsersJob tidak memiliki property 'backoff' untuk " .
-            "exponential backoff. Job akan retry dengan interval yang sama, " .
-            "bukan dengan interval yang meningkat."
+            "Bug 1.21: SyncHotspotUsersJob tidak memiliki property 'backoff' untuk ".
+            'exponential backoff. Job akan retry dengan interval yang sama, '.
+            'bukan dengan interval yang meningkat.'
         );
 
         if ($hasBackoff) {
@@ -70,7 +68,7 @@ class TelecomMikrotikTimeoutTest extends TestCase
             $this->assertGreaterThan(
                 1,
                 count($job->backoff),
-                "Bug 1.21: Backoff array seharusnya memiliki lebih dari 1 nilai untuk exponential backoff"
+                'Bug 1.21: Backoff array seharusnya memiliki lebih dari 1 nilai untuk exponential backoff'
             );
         }
     }
@@ -83,16 +81,16 @@ class TelecomMikrotikTimeoutTest extends TestCase
      */
     public function test_sync_hotspot_job_has_sufficient_tries(): void
     {
-        $job = new SyncHotspotUsersJob();
+        $job = new SyncHotspotUsersJob;
 
         // Assert: Job harus memiliki tries >= 3 untuk graceful retry
         // Berdasarkan kode aktual: $tries = 2 (terlalu sedikit)
         $this->assertGreaterThanOrEqual(
             3,
             $job->tries,
-            "Bug 1.21: SyncHotspotUsersJob memiliki tries = {$job->tries}, " .
-            "seharusnya >= 3 untuk graceful retry saat MikroTik timeout. " .
-            "Dengan tries = 2, job akan fail permanen setelah 2 kali gagal."
+            "Bug 1.21: SyncHotspotUsersJob memiliki tries = {$job->tries}, ".
+            'seharusnya >= 3 untuk graceful retry saat MikroTik timeout. '.
+            'Dengan tries = 2, job akan fail permanen setelah 2 kali gagal.'
         );
     }
 
@@ -106,8 +104,8 @@ class TelecomMikrotikTimeoutTest extends TestCase
     {
         $jobFile = 'app/Jobs/Telecom/SyncHotspotUsersJob.php';
 
-        if (!file_exists($jobFile)) {
-            $this->markTestSkipped("SyncHotspotUsersJob tidak ditemukan");
+        if (! file_exists($jobFile)) {
+            $this->markTestSkipped('SyncHotspotUsersJob tidak ditemukan');
         }
 
         $content = file_get_contents($jobFile);
@@ -121,9 +119,9 @@ class TelecomMikrotikTimeoutTest extends TestCase
         // Test ini AKAN GAGAL karena job tidak menangani ConnectionException dengan release
         $this->assertTrue(
             $hasGracefulHandling,
-            "Bug 1.21: SyncHotspotUsersJob tidak menangani ConnectionException dengan " .
-            "\$this->release(backoff). Job akan fail permanen saat MikroTik timeout " .
-            "tanpa retry dengan backoff yang tepat."
+            'Bug 1.21: SyncHotspotUsersJob tidak menangani ConnectionException dengan '.
+            '$this->release(backoff). Job akan fail permanen saat MikroTik timeout '.
+            'tanpa retry dengan backoff yang tepat.'
         );
     }
 
@@ -137,8 +135,8 @@ class TelecomMikrotikTimeoutTest extends TestCase
     {
         $jobFile = 'app/Jobs/Telecom/PollRouterUsageJob.php';
 
-        if (!file_exists($jobFile)) {
-            $this->markTestSkipped("PollRouterUsageJob tidak ditemukan");
+        if (! file_exists($jobFile)) {
+            $this->markTestSkipped('PollRouterUsageJob tidak ditemukan');
         }
 
         $content = file_get_contents($jobFile);
@@ -153,8 +151,8 @@ class TelecomMikrotikTimeoutTest extends TestCase
         // Test ini AKAN GAGAL jika tidak ada backoff handling
         $this->assertTrue(
             $hasBackoff,
-            "Bug 1.21: PollRouterUsageJob tidak memiliki backoff atau graceful " .
-            "ConnectionException handling."
+            'Bug 1.21: PollRouterUsageJob tidak memiliki backoff atau graceful '.
+            'ConnectionException handling.'
         );
     }
 }

@@ -6,10 +6,8 @@ use App\DTOs\Agent\ErpContext;
 use App\Models\AccountingPeriod;
 use App\Models\Employee;
 use App\Models\Invoice;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\SalesOrder;
-use App\Models\Warehouse;
+use App\Models\User;
 use App\Services\Agent\AgentContextBuilder;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -34,7 +32,7 @@ class AgentContextBuilderIntegrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->builder = new AgentContextBuilder();
+        $this->builder = new AgentContextBuilder;
     }
 
     // =========================================================================
@@ -43,15 +41,15 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.2
     // =========================================================================
 
-    public function testBuildCompletesWithinThreeSeconds(): void
+    public function test_build_completes_within_three_seconds(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Seed data yang representatif
         $this->seedRealisticData($tenant->id, $warehouse->id);
 
-        $start   = microtime(true);
+        $start = microtime(true);
         $context = $this->builder->build($tenant->id, ['accounting', 'inventory', 'hrm', 'sales']);
         $elapsed = microtime(true) - $start;
 
@@ -70,45 +68,45 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testRevenueKpiIsAccurate(): void
+    public function test_revenue_kpi_is_accurate(): void
     {
-        $tenant   = $this->createTenant();
-        $user     = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $customer = $this->createCustomer($tenant->id);
 
         // Buat 3 sales orders bulan ini dengan total yang diketahui
         $expectedRevenue = 0.0;
-        $statuses        = ['confirmed', 'processing', 'completed'];
+        $statuses = ['confirmed', 'processing', 'completed'];
 
         foreach ($statuses as $status) {
             $total = 500000.0;
             SalesOrder::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenant->id,
+                'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
-                'user_id'     => $user->id,
-                'number'      => 'SO-' . uniqid(),
-                'status'      => $status,
-                'date'        => now()->startOfMonth()->addDays(2),
-                'total'       => $total,
-                'subtotal'    => $total,
-                'discount'    => 0,
-                'tax'         => 0,
+                'user_id' => $user->id,
+                'number' => 'SO-'.uniqid(),
+                'status' => $status,
+                'date' => now()->startOfMonth()->addDays(2),
+                'total' => $total,
+                'subtotal' => $total,
+                'discount' => 0,
+                'tax' => 0,
             ]);
             $expectedRevenue += $total;
         }
 
         // Buat 1 sales order bulan lalu (tidak boleh masuk hitungan)
         SalesOrder::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
+            'tenant_id' => $tenant->id,
             'customer_id' => $customer->id,
-            'user_id'     => $user->id,
-            'number'      => 'SO-LAST-' . uniqid(),
-            'status'      => 'completed',
-            'date'        => now()->subMonth()->startOfMonth(),
-            'total'       => 999999.0,
-            'subtotal'    => 999999.0,
-            'discount'    => 0,
-            'tax'         => 0,
+            'user_id' => $user->id,
+            'number' => 'SO-LAST-'.uniqid(),
+            'status' => 'completed',
+            'date' => now()->subMonth()->startOfMonth(),
+            'total' => 999999.0,
+            'subtotal' => 999999.0,
+            'discount' => 0,
+            'tax' => 0,
         ]);
 
         $context = $this->builder->build($tenant->id, ['sales']);
@@ -127,7 +125,7 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testActiveEmployeesKpiIsAccurate(): void
+    public function test_active_employees_kpi_is_accurate(): void
     {
         $tenant = $this->createTenant();
 
@@ -135,9 +133,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
         for ($i = 0; $i < 4; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenant->id,
-                'name'      => 'Karyawan Aktif ' . ($i + 1),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Karyawan Aktif '.($i + 1),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
 
@@ -145,9 +143,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
         for ($i = 0; $i < 2; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenant->id,
-                'name'      => 'Karyawan Resign ' . ($i + 1),
-                'status'    => 'resigned',
-                'position'  => 'Staff',
+                'name' => 'Karyawan Resign '.($i + 1),
+                'status' => 'resigned',
+                'position' => 'Staff',
             ]);
         }
 
@@ -166,77 +164,77 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testOverdueArKpiIsAccurate(): void
+    public function test_overdue_ar_kpi_is_accurate(): void
     {
-        $tenant   = $this->createTenant();
-        $user     = $this->createAdminUser($tenant);
+        $tenant = $this->createTenant();
+        $user = $this->createAdminUser($tenant);
         $customer = $this->createCustomer($tenant->id);
 
         // Buat sales order dummy untuk foreign key
         $so = SalesOrder::withoutGlobalScopes()->create([
-            'tenant_id'   => $tenant->id,
+            'tenant_id' => $tenant->id,
             'customer_id' => $customer->id,
-            'user_id'     => $user->id,
-            'number'      => 'SO-AR-' . uniqid(),
-            'status'      => 'completed',
-            'date'        => now()->subMonth(),
-            'total'       => 2000000,
-            'subtotal'    => 2000000,
-            'discount'    => 0,
-            'tax'         => 0,
+            'user_id' => $user->id,
+            'number' => 'SO-AR-'.uniqid(),
+            'status' => 'completed',
+            'date' => now()->subMonth(),
+            'total' => 2000000,
+            'subtotal' => 2000000,
+            'discount' => 0,
+            'tax' => 0,
         ]);
 
         // Invoice jatuh tempo (overdue)
         $overdueAmount = 750000.0;
         Invoice::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenant->id,
-            'sales_order_id'   => $so->id,
-            'customer_id'      => $customer->id,
-            'number'           => 'INV-OVERDUE-' . uniqid(),
-            'status'           => 'unpaid',
-            'due_date'         => now()->subDays(10),
-            'total_amount'     => $overdueAmount,
-            'paid_amount'      => 0,
+            'tenant_id' => $tenant->id,
+            'sales_order_id' => $so->id,
+            'customer_id' => $customer->id,
+            'number' => 'INV-OVERDUE-'.uniqid(),
+            'status' => 'unpaid',
+            'due_date' => now()->subDays(10),
+            'total_amount' => $overdueAmount,
+            'paid_amount' => 0,
             'remaining_amount' => $overdueAmount,
         ]);
 
         // Invoice partial overdue
         $partialRemaining = 250000.0;
         Invoice::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenant->id,
-            'sales_order_id'   => $so->id,
-            'customer_id'      => $customer->id,
-            'number'           => 'INV-PARTIAL-' . uniqid(),
-            'status'           => 'partial',
-            'due_date'         => now()->subDays(5),
-            'total_amount'     => 500000.0,
-            'paid_amount'      => 250000.0,
+            'tenant_id' => $tenant->id,
+            'sales_order_id' => $so->id,
+            'customer_id' => $customer->id,
+            'number' => 'INV-PARTIAL-'.uniqid(),
+            'status' => 'partial',
+            'due_date' => now()->subDays(5),
+            'total_amount' => 500000.0,
+            'paid_amount' => 250000.0,
             'remaining_amount' => $partialRemaining,
         ]);
 
         // Invoice belum jatuh tempo (tidak boleh masuk hitungan)
         Invoice::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenant->id,
-            'sales_order_id'   => $so->id,
-            'customer_id'      => $customer->id,
-            'number'           => 'INV-CURRENT-' . uniqid(),
-            'status'           => 'unpaid',
-            'due_date'         => now()->addDays(10),
-            'total_amount'     => 300000.0,
-            'paid_amount'      => 0,
+            'tenant_id' => $tenant->id,
+            'sales_order_id' => $so->id,
+            'customer_id' => $customer->id,
+            'number' => 'INV-CURRENT-'.uniqid(),
+            'status' => 'unpaid',
+            'due_date' => now()->addDays(10),
+            'total_amount' => 300000.0,
+            'paid_amount' => 0,
             'remaining_amount' => 300000.0,
         ]);
 
         // Invoice sudah lunas (tidak boleh masuk hitungan)
         Invoice::withoutGlobalScopes()->create([
-            'tenant_id'        => $tenant->id,
-            'sales_order_id'   => $so->id,
-            'customer_id'      => $customer->id,
-            'number'           => 'INV-PAID-' . uniqid(),
-            'status'           => 'paid',
-            'due_date'         => now()->subDays(3),
-            'total_amount'     => 200000.0,
-            'paid_amount'      => 200000.0,
+            'tenant_id' => $tenant->id,
+            'sales_order_id' => $so->id,
+            'customer_id' => $customer->id,
+            'number' => 'INV-PAID-'.uniqid(),
+            'status' => 'paid',
+            'due_date' => now()->subDays(3),
+            'total_amount' => 200000.0,
+            'paid_amount' => 200000.0,
             'remaining_amount' => 0,
         ]);
 
@@ -257,9 +255,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testCriticalStockKpiIsAccurate(): void
+    public function test_critical_stock_kpi_is_accurate(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Produk dengan stok di bawah minimum (kritis)
@@ -292,16 +290,16 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testAccountingPeriodIsResolved(): void
+    public function test_accounting_period_is_resolved(): void
     {
         $tenant = $this->createTenant();
 
         AccountingPeriod::withoutGlobalScopes()->create([
-            'tenant_id'  => $tenant->id,
-            'name'       => 'Periode Jan 2026',
+            'tenant_id' => $tenant->id,
+            'name' => 'Periode Jan 2026',
             'start_date' => now()->startOfMonth(),
-            'end_date'   => now()->endOfMonth(),
-            'status'     => 'open',
+            'end_date' => now()->endOfMonth(),
+            'status' => 'open',
         ]);
 
         $context = $this->builder->build($tenant->id, ['accounting']);
@@ -322,9 +320,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.1
     // =========================================================================
 
-    public function testAccountingPeriodIsNullWhenNoActivePeriod(): void
+    public function test_accounting_period_is_null_when_no_active_period(): void
     {
-        $tenant  = $this->createTenant();
+        $tenant = $this->createTenant();
         $context = $this->builder->build($tenant->id, ['accounting']);
 
         $this->assertNull(
@@ -339,7 +337,7 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.4
     // =========================================================================
 
-    public function testRefreshUpdatesRelevantModuleData(): void
+    public function test_refresh_updates_relevant_module_data(): void
     {
         $tenant = $this->createTenant();
 
@@ -350,9 +348,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
         // Tambah karyawan baru
         Employee::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
-            'name'      => 'Karyawan Baru',
-            'status'    => 'active',
-            'position'  => 'Manager',
+            'name' => 'Karyawan Baru',
+            'status' => 'active',
+            'position' => 'Manager',
         ]);
 
         // Refresh modul hrm
@@ -377,16 +375,16 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.4
     // =========================================================================
 
-    public function testRefreshPreservesUnrelatedModuleData(): void
+    public function test_refresh_preserves_unrelated_module_data(): void
     {
         $tenant = $this->createTenant();
 
         // Buat karyawan aktif
         Employee::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
-            'name'      => 'Karyawan',
-            'status'    => 'active',
-            'position'  => 'Staff',
+            'name' => 'Karyawan',
+            'status' => 'active',
+            'position' => 'Staff',
         ]);
 
         $initialContext = $this->builder->build($tenant->id, ['hrm', 'inventory']);
@@ -415,9 +413,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.3
     // =========================================================================
 
-    public function testToSystemPromptGeneratesValidString(): void
+    public function test_to_system_prompt_generates_valid_string(): void
     {
-        $tenant  = $this->createTenant(['name' => 'PT Test Maju']);
+        $tenant = $this->createTenant(['name' => 'PT Test Maju']);
         $context = $this->builder->build($tenant->id, ['accounting', 'inventory']);
 
         $prompt = $context->toSystemPrompt();
@@ -433,9 +431,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
     // Validates: Requirements 2.4
     // =========================================================================
 
-    public function testIsStaleDetectsExpiredContext(): void
+    public function test_is_stale_detects_expired_context(): void
     {
-        $tenant  = $this->createTenant();
+        $tenant = $this->createTenant();
         $context = $this->builder->build($tenant->id, []);
 
         // Context baru tidak boleh stale
@@ -467,13 +465,13 @@ class AgentContextBuilderIntegrationTest extends TestCase
      */
     private function seedRealisticData(int $tenantId, int $warehouseId): void
     {
-        $user     = \App\Models\User::create([
-            'tenant_id'         => $tenantId,
-            'name'              => 'User Test',
-            'email'             => 'user-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'staff',
-            'is_active'         => true,
+        $user = User::create([
+            'tenant_id' => $tenantId,
+            'name' => 'User Test',
+            'email' => 'user-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'staff',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
         $customer = $this->createCustomer($tenantId);
@@ -481,16 +479,16 @@ class AgentContextBuilderIntegrationTest extends TestCase
         // 5 sales orders bulan ini
         for ($i = 0; $i < 5; $i++) {
             SalesOrder::withoutGlobalScopes()->create([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'customer_id' => $customer->id,
-                'user_id'     => $user->id,
-                'number'      => 'SO-INT-' . uniqid(),
-                'status'      => 'confirmed',
-                'date'        => now()->startOfMonth()->addDays($i),
-                'total'       => 1000000,
-                'subtotal'    => 1000000,
-                'discount'    => 0,
-                'tax'         => 0,
+                'user_id' => $user->id,
+                'number' => 'SO-INT-'.uniqid(),
+                'status' => 'confirmed',
+                'date' => now()->startOfMonth()->addDays($i),
+                'total' => 1000000,
+                'subtotal' => 1000000,
+                'discount' => 0,
+                'tax' => 0,
             ]);
         }
 
@@ -498,9 +496,9 @@ class AgentContextBuilderIntegrationTest extends TestCase
         for ($i = 0; $i < 10; $i++) {
             Employee::withoutGlobalScopes()->create([
                 'tenant_id' => $tenantId,
-                'name'      => 'Karyawan ' . ($i + 1),
-                'status'    => 'active',
-                'position'  => 'Staff',
+                'name' => 'Karyawan '.($i + 1),
+                'status' => 'active',
+                'position' => 'Staff',
             ]);
         }
 

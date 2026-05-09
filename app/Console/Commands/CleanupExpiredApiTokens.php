@@ -33,9 +33,9 @@ class CleanupExpiredApiTokens extends Command
         $olderThanDays = (int) $this->option('older-than');
         $cutoffDate = now()->subDays($olderThanDays);
 
-        $this->info("🔍 Scanning for expired API tokens...");
+        $this->info('🔍 Scanning for expired API tokens...');
         $this->info("📅 Cutoff date: {$cutoffDate->format('Y-m-d H:i:s')} ({$olderThanDays} days ago)");
-        $this->info("🔒 Dry run: " . ($dryRun ? 'YES' : 'NO'));
+        $this->info('🔒 Dry run: '.($dryRun ? 'YES' : 'NO'));
         $this->newLine();
 
         // Find expired tokens
@@ -49,19 +49,20 @@ class CleanupExpiredApiTokens extends Command
             ->where('updated_at', '<', $cutoffDate)
             ->get();
 
-        $this->info("📊 Results:");
+        $this->info('📊 Results:');
         $this->info("  • Expired tokens: {$expiredTokens->count()}");
         $this->info("  • Inactive tokens (older than {$olderThanDays} days): {$inactiveTokens->count()}");
         $this->newLine();
 
         if ($expiredTokens->isEmpty() && $inactiveTokens->isEmpty()) {
-            $this->info("✅ No tokens to clean up.");
+            $this->info('✅ No tokens to clean up.');
+
             return Command::SUCCESS;
         }
 
         // Show details
         if ($expiredTokens->isNotEmpty()) {
-            $this->warn("⚠️  Expired Tokens:");
+            $this->warn('⚠️  Expired Tokens:');
             $this->table(
                 ['ID', 'Tenant', 'Name', 'Expired At', 'Last Used'],
                 $expiredTokens->map(function ($token) {
@@ -77,7 +78,7 @@ class CleanupExpiredApiTokens extends Command
         }
 
         if ($inactiveTokens->isNotEmpty()) {
-            $this->warn("⚠️  Inactive Tokens:");
+            $this->warn('⚠️  Inactive Tokens:');
             $this->table(
                 ['ID', 'Tenant', 'Name', 'Updated At'],
                 $inactiveTokens->map(function ($token) {
@@ -92,7 +93,7 @@ class CleanupExpiredApiTokens extends Command
         }
 
         // Delete if not dry run
-        if (!$dryRun) {
+        if (! $dryRun) {
             $expiredCount = $expiredTokens->count();
             $inactiveCount = $inactiveTokens->count();
 
@@ -100,10 +101,10 @@ class CleanupExpiredApiTokens extends Command
             $inactiveTokens->each->delete();
 
             $this->newLine();
-            $this->info("✅ Cleanup completed:");
+            $this->info('✅ Cleanup completed:');
             $this->info("  • Deleted {$expiredCount} expired tokens");
             $this->info("  • Deleted {$inactiveCount} inactive tokens");
-            $this->info("  • Total: " . ($expiredCount + $inactiveCount) . " tokens removed");
+            $this->info('  • Total: '.($expiredCount + $inactiveCount).' tokens removed');
 
             Log::info('API tokens cleanup completed', [
                 'expired_deleted' => $expiredCount,
@@ -113,8 +114,8 @@ class CleanupExpiredApiTokens extends Command
             ]);
         } else {
             $this->newLine();
-            $this->info("ℹ️  Dry run mode - no tokens were deleted.");
-            $this->info("   Remove --dry-run flag to actually delete tokens.");
+            $this->info('ℹ️  Dry run mode - no tokens were deleted.');
+            $this->info('   Remove --dry-run flag to actually delete tokens.');
         }
 
         return Command::SUCCESS;

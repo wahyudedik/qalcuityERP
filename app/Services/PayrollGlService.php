@@ -6,8 +6,8 @@ use App\Models\AccountingPeriod;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\PayrollRun;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * PayrollGlService — Rekonsiliasi Payroll ke General Ledger.
@@ -28,15 +28,18 @@ class PayrollGlService
 {
     // COA codes yang digunakan — sesuai DefaultCoaSeeder
     const COA_BEBAN_GAJI = '5201';
+
     const COA_BEBAN_BPJS = '5209';
+
     const COA_HUTANG_GAJI = '2108';
+
     const COA_PPH21_TERUTANG = '2104';
+
     const COA_HUTANG_BPJS = '2109';
+
     const COA_KAS_BANK = '1102'; // Bank (default untuk transfer gaji)
 
-    public function __construct(private DocumentNumberService $docNumber)
-    {
-    }
+    public function __construct(private DocumentNumberService $docNumber) {}
 
     /**
      * Buat jurnal GL untuk satu PayrollRun.
@@ -58,31 +61,31 @@ class PayrollGlService
 
         // Aggregate totals dari items
         // Bug 1.17 Fix: null coalescing (?? 0) untuk komponen opsional yang mungkin null
-        $totalGross   = (float) ($items->sum('gross_salary') ?? 0);
-        $totalPph21   = (float) ($items->sum('tax_pph21') ?? 0);
+        $totalGross = (float) ($items->sum('gross_salary') ?? 0);
+        $totalPph21 = (float) ($items->sum('tax_pph21') ?? 0);
         $totalBpjsEmp = (float) ($items->sum('bpjs_employee') ?? 0);   // potongan karyawan (3%)
-        $totalBpjsEr  = round($totalGross * 0.04);                     // employer share (4%)
-        $totalBpjs    = $totalBpjsEmp + $totalBpjsEr;
-        $totalNet     = (float) ($items->sum('net_salary') ?? 0);
+        $totalBpjsEr = round($totalGross * 0.04);                     // employer share (4%)
+        $totalBpjs = $totalBpjsEmp + $totalBpjsEr;
+        $totalNet = (float) ($items->sum('net_salary') ?? 0);
 
         // Resolve COA accounts
         $accounts = $this->resolveAccounts($tid);
 
         // Tanggal jurnal = akhir bulan periode payroll
         [$year, $month] = explode('-', $run->period);
-        $journalDate = \Carbon\Carbon::create($year, $month)->endOfMonth()->toDateString();
+        $journalDate = Carbon::create($year, $month)->endOfMonth()->toDateString();
 
         // Cari accounting period
         $period = AccountingPeriod::findForDate($tid, $journalDate);
 
-        return DB::transaction(function () use ($run, $tid, $userId, $accounts, $journalDate, $period, $totalGross, $totalPph21, $totalBpjsEmp, $totalBpjsEr, $totalBpjs, $totalNet) {
+        return DB::transaction(function () use ($run, $tid, $userId, $accounts, $journalDate, $period, $totalGross, $totalPph21, $totalBpjsEr, $totalBpjs, $totalNet) {
             // BUG-FIN-002 FIX: Check period lock before creating payroll journal
-            $periodLockService = app(\App\Services\PeriodLockService::class);
+            $periodLockService = app(PeriodLockService::class);
             if ($periodLockService->isLocked($tid, $journalDate)) {
                 $lockInfo = $periodLockService->getLockInfo($tid, $journalDate);
                 throw new \RuntimeException(
-                    "Periode {$lockInfo} sudah dikunci. Tidak dapat membuat jurnal gaji untuk tanggal {$journalDate}. " .
-                    "Silakan buka kembali periode atau hubungi administrator."
+                    "Periode {$lockInfo} sudah dikunci. Tidak dapat membuat jurnal gaji untuk tanggal {$journalDate}. ".
+                    'Silakan buka kembali periode atau hubungi administrator.'
                 );
             }
 
@@ -167,11 +170,11 @@ class PayrollGlService
                 ]);
 
                 throw new \RuntimeException(
-                    "Jurnal gaji {$number} tidak balance: " .
-                    "Debit = " . number_format($journal->totalDebit(), 2) . ", " .
-                    "Credit = " . number_format($journal->totalCredit(), 2) . ", " .
-                    "Selisih = " . number_format($diff, 2) . ". " .
-                    "Silakan periksa konfigurasi akun COA untuk payroll."
+                    "Jurnal gaji {$number} tidak balance: ".
+                    'Debit = '.number_format($journal->totalDebit(), 2).', '.
+                    'Credit = '.number_format($journal->totalCredit(), 2).', '.
+                    'Selisih = '.number_format($diff, 2).'. '.
+                    'Silakan periksa konfigurasi akun COA untuk payroll.'
                 );
             }
 
@@ -207,12 +210,12 @@ class PayrollGlService
         ]);
 
         [$year, $month] = explode('-', $run->period);
-        $journalDate = \Carbon\Carbon::create($year, $month)->endOfMonth()->toDateString();
+        $journalDate = Carbon::create($year, $month)->endOfMonth()->toDateString();
         $period = AccountingPeriod::findForDate($tid, $journalDate);
 
         return DB::transaction(function () use ($run, $tid, $userId, $accounts, $journalDate, $period, $totalNet) {
             // BUG-FIN-002 FIX: Check period lock before creating payroll payment journal
-            $periodLockService = app(\App\Services\PeriodLockService::class);
+            $periodLockService = app(PeriodLockService::class);
             if ($periodLockService->isLocked($tid, $journalDate)) {
                 $lockInfo = $periodLockService->getLockInfo($tid, $journalDate);
                 throw new \RuntimeException(
@@ -229,7 +232,7 @@ class PayrollGlService
                 'number' => $number,
                 'date' => $journalDate,
                 'description' => "Pembayaran Gaji Periode {$run->period}",
-                'reference' => $run->period . '-PAY',
+                'reference' => $run->period.'-PAY',
                 'reference_type' => 'payroll_payment',
                 'reference_id' => $run->id,
                 'currency_code' => 'IDR',
@@ -265,8 +268,8 @@ class PayrollGlService
                 ]);
 
                 throw new \RuntimeException(
-                    "Jurnal pembayaran gaji {$number} tidak balance. " .
-                    "Silakan periksa konfigurasi payroll."
+                    "Jurnal pembayaran gaji {$number} tidak balance. ".
+                    'Silakan periksa konfigurasi payroll.'
                 );
             }
 
@@ -279,7 +282,7 @@ class PayrollGlService
     /**
      * Resolve semua COA accounts yang dibutuhkan.
      *
-     * @param  array|null $codes  Subset kode yang dibutuhkan. Null = semua kode payroll.
+     * @param  array|null  $codes  Subset kode yang dibutuhkan. Null = semua kode payroll.
      * @return array<string, ChartOfAccount>
      */
     private function resolveAccounts(int $tenantId, ?array $codes = null): array
@@ -301,7 +304,7 @@ class PayrollGlService
         // Auto-create missing accounts
         $defaults = $this->defaultPayrollAccounts();
         foreach ($codes as $code) {
-            if (!$found->has($code)) {
+            if (! $found->has($code)) {
                 $def = $defaults[$code];
                 $parent = $def['parent_code']
                     ? ChartOfAccount::where('tenant_id', $tenantId)->where('code', $def['parent_code'])->first()

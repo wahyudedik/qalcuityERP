@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
-use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush;
 
 /**
  * WebPushService — Send push notifications to subscribed browsers.
@@ -24,6 +24,7 @@ class WebPushService
     public function sendToUser(int $userId, string $title, string $body, ?string $url = null, ?string $tag = null): int
     {
         $subscriptions = PushSubscription::where('user_id', $userId)->get();
+
         return $this->sendToSubscriptions($subscriptions, $title, $body, $url, $tag);
     }
 
@@ -33,6 +34,7 @@ class WebPushService
     public function sendToTenant(int $tenantId, string $title, string $body, ?string $url = null, ?string $tag = null): int
     {
         $subscriptions = PushSubscription::where('tenant_id', $tenantId)->get();
+
         return $this->sendToSubscriptions($subscriptions, $title, $body, $url, $tag);
     }
 
@@ -43,6 +45,7 @@ class WebPushService
     {
         $userIds = User::where('tenant_id', $tenantId)->whereIn('role', $roles)->pluck('id');
         $subscriptions = PushSubscription::whereIn('user_id', $userIds)->get();
+
         return $this->sendToSubscriptions($subscriptions, $title, $body, $url);
     }
 
@@ -60,15 +63,16 @@ class WebPushService
             'title' => $title,
             'body' => $body,
             'url' => $url ?? '/dashboard',
-            'tag' => $tag ?? 'erp-' . now()->timestamp,
+            'tag' => $tag ?? 'erp-'.now()->timestamp,
             'icon' => '/logo.png',
             'badge' => '/logo.png',
         ]);
 
         $webPush = $this->getWebPushInstance();
 
-        if (!$webPush) {
+        if (! $webPush) {
             Log::warning('WebPush: VAPID keys not configured');
+
             return 0;
         }
 
@@ -93,15 +97,15 @@ class WebPushService
                     $sub->delete();
                     Log::info("WebPush: removed expired subscription #{$sub->id}");
                 } else {
-                    Log::warning("WebPush failed for sub #{$sub->id}: " . $e->getMessage());
+                    Log::warning("WebPush failed for sub #{$sub->id}: ".$e->getMessage());
                 }
             }
         }
 
         // Flush all pending notifications
         foreach ($webPush->flush() as $report) {
-            if (!$report->isSuccess()) {
-                Log::warning("WebPush failed: " . $report->getReason());
+            if (! $report->isSuccess()) {
+                Log::warning('WebPush failed: '.$report->getReason());
             }
         }
 
@@ -115,7 +119,7 @@ class WebPushService
     {
         [$publicKey, $privateKey] = $this->resolveVapidKeyPair();
 
-        if (!$publicKey || !$privateKey) {
+        if (! $publicKey || ! $privateKey) {
             return null;
         }
 
@@ -134,6 +138,7 @@ class WebPushService
     public static function vapidPublicKey(): ?string
     {
         [$publicKey] = self::resolveVapidKeyPairStatic();
+
         return $publicKey;
     }
 
@@ -143,7 +148,8 @@ class WebPushService
     public function isConfigured(): bool
     {
         [$publicKey, $privateKey] = $this->resolveVapidKeyPair();
-        return !empty($publicKey) && !empty($privateKey);
+
+        return ! empty($publicKey) && ! empty($privateKey);
     }
 
     /**

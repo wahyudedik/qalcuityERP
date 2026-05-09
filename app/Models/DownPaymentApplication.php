@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class DownPaymentApplication extends Model
 {
@@ -15,9 +14,16 @@ class DownPaymentApplication extends Model
 
     protected $casts = [
         'applied_date' => 'date',
-        'amount'       => 'decimal:2',
+        'amount' => 'decimal:2',
     ];
 
-    public function downPayment(): BelongsTo { return $this->belongsTo(DownPayment::class); }
-    public function appliedBy(): BelongsTo   { return $this->belongsTo(User::class, 'applied_by'); }
+    public function downPayment(): BelongsTo
+    {
+        return $this->belongsTo(DownPayment::class);
+    }
+
+    public function appliedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'applied_by');
+    }
 }

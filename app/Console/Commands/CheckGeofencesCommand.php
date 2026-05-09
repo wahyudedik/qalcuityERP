@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\NetworkDevice;
 use App\Services\Telecom\GeofencingService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +34,7 @@ class CheckGeofencesCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->geofencingService = new GeofencingService();
+        $this->geofencingService = new GeofencingService;
     }
 
     /**
@@ -59,11 +60,13 @@ class CheckGeofencesCommand extends Command
             }
 
             $this->info('Geofence check completed successfully!');
+
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
-            $this->error('Geofence check failed: ' . $e->getMessage());
-            Log::error('Geofence check command failed: ' . $e->getMessage());
+            $this->error('Geofence check failed: '.$e->getMessage());
+            Log::error('Geofence check command failed: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -89,7 +92,7 @@ class CheckGeofencesCommand extends Command
         if ($results['alerts_created'] > 0) {
             $this->warn("⚠️  {$results['alerts_created']} geofence alert(s) created!");
         } else {
-            $this->info("✅ No geofence violations detected.");
+            $this->info('✅ No geofence violations detected.');
         }
     }
 
@@ -103,10 +106,10 @@ class CheckGeofencesCommand extends Command
         $devicesOutside = $this->geofencingService->getDevicesOutsideZones($tenantId);
         $devicesInside = $this->geofencingService->getDevicesInsideZones($tenantId);
 
-        $this->info("Devices inside zones: " . count($devicesInside));
+        $this->info('Devices inside zones: '.count($devicesInside));
 
         if (count($devicesOutside) > 0) {
-            $this->warn("Devices outside zones: " . count($devicesOutside));
+            $this->warn('Devices outside zones: '.count($devicesOutside));
 
             foreach ($devicesOutside as $item) {
                 $device = $item['device'];
@@ -114,11 +117,11 @@ class CheckGeofencesCommand extends Command
 
                 foreach ($item['outside_zones'] as $zone) {
                     $this->line("   - Outside zone: {$zone['zone_name']}");
-                    $this->line("     Distance from center: " . round($zone['distance_from_center'] / 1000, 2) . " km");
+                    $this->line('     Distance from center: '.round($zone['distance_from_center'] / 1000, 2).' km');
                 }
             }
         } else {
-            $this->info("✅ All devices are within their assigned zones.");
+            $this->info('✅ All devices are within their assigned zones.');
         }
     }
 
@@ -129,20 +132,23 @@ class CheckGeofencesCommand extends Command
     {
         $this->info("Checking device ID: {$deviceId}");
 
-        $device = \App\Models\NetworkDevice::with('geofenceZones')->find($deviceId);
+        $device = NetworkDevice::with('geofenceZones')->find($deviceId);
 
-        if (!$device) {
-            $this->error("Device not found!");
+        if (! $device) {
+            $this->error('Device not found!');
+
             return;
         }
 
-        if (!$device->hasCoordinates()) {
-            $this->warn("Device has no coordinates. Skipping geofence check.");
+        if (! $device->hasCoordinates()) {
+            $this->warn('Device has no coordinates. Skipping geofence check.');
+
             return;
         }
 
         if ($device->geofenceZones->count() === 0) {
-            $this->warn("Device has no assigned geofence zones.");
+            $this->warn('Device has no assigned geofence zones.');
+
             return;
         }
 
@@ -158,7 +164,7 @@ class CheckGeofencesCommand extends Command
                 $this->line("   - {$alert->message}");
             }
         } else {
-            $this->info("✅ No geofence violations detected.");
+            $this->info('✅ No geofence violations detected.');
         }
 
         // Show zone status

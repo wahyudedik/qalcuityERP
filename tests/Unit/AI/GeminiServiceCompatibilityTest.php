@@ -31,6 +31,7 @@ class GeminiServiceCompatibilityTest extends TestCase
         $mock = Mockery::mock(AiProviderRouter::class);
         $mock->shouldReceive('withTenantContext')->andReturnSelf()->byDefault();
         $mock->shouldReceive('withLanguage')->andReturnSelf()->byDefault();
+
         return $mock;
     }
 
@@ -39,6 +40,7 @@ class GeminiServiceCompatibilityTest extends TestCase
         $mock = Mockery::mock(GeminiProvider::class);
         $mock->shouldReceive('withTenantContext')->andReturnSelf()->byDefault();
         $mock->shouldReceive('withLanguage')->andReturnSelf()->byDefault();
+
         return $mock;
     }
 
@@ -88,8 +90,8 @@ class GeminiServiceCompatibilityTest extends TestCase
         $routerMock = $this->makeRouterMock();
         $geminiProviderMock = $this->makeGeminiProviderMock();
 
-        $this->app->bind(AiProviderRouter::class, fn() => $routerMock);
-        $this->app->bind(GeminiProvider::class, fn() => $geminiProviderMock);
+        $this->app->bind(AiProviderRouter::class, fn () => $routerMock);
+        $this->app->bind(GeminiProvider::class, fn () => $geminiProviderMock);
 
         // Resolve GeminiService dari container — harus berhasil tanpa error
         $service = app(GeminiService::class);
@@ -296,8 +298,8 @@ class GeminiServiceCompatibilityTest extends TestCase
         $toolDeclarations = [['name' => 'get_invoice', 'description' => 'Ambil invoice']];
         $history = [['role' => 'user', 'text' => 'Sebelumnya']];
         $expected = [
-            'text'           => 'Memanggil tool',
-            'model'          => 'gemini-2.5-flash',
+            'text' => 'Memanggil tool',
+            'model' => 'gemini-2.5-flash',
             'function_calls' => [['name' => 'get_invoice', 'args' => []]],
         ];
 

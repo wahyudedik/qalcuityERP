@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SubscriptionPlan;
-use App\Models\SubscriptionPayment;
 use App\Models\ErpNotification;
+use App\Models\SubscriptionPayment;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Notifications\SubscriptionPaymentFailedNotification;
+use App\Services\AffiliateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class PaymentGatewayController extends Controller
 {
@@ -18,24 +18,24 @@ class PaymentGatewayController extends Controller
     public function midtransCheckout(Request $request)
     {
         $data = $request->validate([
-            'plan_id'  => 'required|exists:subscription_plans,id',
-            'billing'  => 'required|in:monthly,yearly',
+            'plan_id' => 'required|exists:subscription_plans,id',
+            'billing' => 'required|in:monthly,yearly',
         ]);
 
-        $plan   = SubscriptionPlan::findOrFail($data['plan_id']);
+        $plan = SubscriptionPlan::findOrFail($data['plan_id']);
         $tenant = auth()->user()->tenant;
         $amount = $data['billing'] === 'yearly' ? $plan->price_yearly : $plan->price_monthly;
-        $orderId = 'SUB-' . $tenant->id . '-' . time();
+        $orderId = 'SUB-'.$tenant->id.'-'.time();
 
         // Record pending payment
         $payment = SubscriptionPayment::create([
-            'tenant_id'   => $tenant->id,
-            'plan_id'     => $plan->id,
-            'order_id'    => $orderId,
-            'amount'      => $amount,
-            'billing'     => $data['billing'],
-            'gateway'     => 'midtrans',
-            'status'      => 'pending',
+            'tenant_id' => $tenant->id,
+            'plan_id' => $plan->id,
+            'order_id' => $orderId,
+            'amount' => $amount,
+            'billing' => $data['billing'],
+            'gateway' => 'midtrans',
+            'status' => 'pending',
         ]);
 
         // Midtrans Snap API
@@ -48,39 +48,39 @@ class PaymentGatewayController extends Controller
         $response = Http::withBasicAuth($serverKey, '')
             ->post($baseUrl, [
                 'transaction_details' => [
-                    'order_id'     => $orderId,
+                    'order_id' => $orderId,
                     'gross_amount' => (int) $amount,
                 ],
                 'customer_details' => [
                     'first_name' => auth()->user()->name,
-                    'email'      => auth()->user()->email,
-                    'phone'      => $tenant->phone ?? '',
+                    'email' => auth()->user()->email,
+                    'phone' => $tenant->phone ?? '',
                 ],
                 'item_details' => [[
-                    'id'       => $plan->slug,
-                    'price'    => (int) $amount,
+                    'id' => $plan->slug,
+                    'price' => (int) $amount,
                     'quantity' => 1,
-                    'name'     => "Qalcuity ERP - {$plan->name} (" . ucfirst($data['billing']) . ")",
+                    'name' => "Qalcuity ERP - {$plan->name} (".ucfirst($data['billing']).')',
                 ]],
                 'callbacks' => [
                     'finish' => route('payment.midtrans.finish'),
                 ],
             ]);
 
-        if (!$response->successful() || !isset($response['token'])) {
+        if (! $response->successful() || ! isset($response['token'])) {
             return back()->with('error', 'Gagal membuat sesi pembayaran Midtrans. Coba lagi.');
         }
 
         $payment->update(['gateway_token' => $response['token']]);
 
         return view('subscription.checkout', [
-            'gateway'      => 'midtrans',
-            'snapToken'    => $response['token'],
+            'gateway' => 'midtrans',
+            'snapToken' => $response['token'],
             'isProduction' => $isProduction,
-            'plan'         => $plan,
-            'amount'       => $amount,
-            'billing'      => $data['billing'],
-            'orderId'      => $orderId,
+            'plan' => $plan,
+            'amount' => $amount,
+            'billing' => $data['billing'],
+            'orderId' => $orderId,
         ]);
     }
 
@@ -103,7 +103,9 @@ class PaymentGatewayController extends Controller
         $orderId = $request->order_id;
 
         $payment = SubscriptionPayment::where('order_id', $orderId)->first();
-        if (!$payment) return response()->json(['message' => 'Order not found'], 404);
+        if (! $payment) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
 
         if (in_array($request->transaction_status, ['settlement', 'capture'])) {
             $this->activatePlan($payment);
@@ -124,50 +126,50 @@ class PaymentGatewayController extends Controller
             'billing' => 'required|in:monthly,yearly',
         ]);
 
-        $plan    = SubscriptionPlan::findOrFail($data['plan_id']);
-        $tenant  = auth()->user()->tenant;
-        $amount  = $data['billing'] === 'yearly' ? $plan->price_yearly : $plan->price_monthly;
-        $orderId = 'SUB-' . $tenant->id . '-' . time();
+        $plan = SubscriptionPlan::findOrFail($data['plan_id']);
+        $tenant = auth()->user()->tenant;
+        $amount = $data['billing'] === 'yearly' ? $plan->price_yearly : $plan->price_monthly;
+        $orderId = 'SUB-'.$tenant->id.'-'.time();
 
         $payment = SubscriptionPayment::create([
             'tenant_id' => $tenant->id,
-            'plan_id'   => $plan->id,
-            'order_id'  => $orderId,
-            'amount'    => $amount,
-            'billing'   => $data['billing'],
-            'gateway'   => 'xendit',
-            'status'    => 'pending',
+            'plan_id' => $plan->id,
+            'order_id' => $orderId,
+            'amount' => $amount,
+            'billing' => $data['billing'],
+            'gateway' => 'xendit',
+            'status' => 'pending',
         ]);
 
         // Xendit Invoice API
         $response = Http::withBasicAuth(config('services.xendit.secret_key'), '')
             ->post('https://api.xendit.co/v2/invoices', [
-                'external_id'      => $orderId,
-                'amount'           => (int) $amount,
-                'description'      => "Qalcuity ERP - {$plan->name} (" . ucfirst($data['billing']) . ")",
-                'payer_email'      => auth()->user()->email,
-                'customer'         => [
-                    'given_names'  => auth()->user()->name,
-                    'email'        => auth()->user()->email,
-                    'mobile_number'=> $tenant->phone ?? '',
+                'external_id' => $orderId,
+                'amount' => (int) $amount,
+                'description' => "Qalcuity ERP - {$plan->name} (".ucfirst($data['billing']).')',
+                'payer_email' => auth()->user()->email,
+                'customer' => [
+                    'given_names' => auth()->user()->name,
+                    'email' => auth()->user()->email,
+                    'mobile_number' => $tenant->phone ?? '',
                 ],
                 'success_redirect_url' => route('payment.xendit.finish'),
                 'failure_redirect_url' => route('subscription.index'),
-                'currency'         => 'IDR',
-                'items'            => [[
-                    'name'     => "Qalcuity ERP {$plan->name}",
+                'currency' => 'IDR',
+                'items' => [[
+                    'name' => "Qalcuity ERP {$plan->name}",
                     'quantity' => 1,
-                    'price'    => (int) $amount,
+                    'price' => (int) $amount,
                 ]],
             ]);
 
-        if (!$response->successful() || !isset($response['invoice_url'])) {
+        if (! $response->successful() || ! isset($response['invoice_url'])) {
             return back()->with('error', 'Gagal membuat invoice Xendit. Coba lagi.');
         }
 
         $payment->update([
             'gateway_token' => $response['id'],
-            'gateway_url'   => $response['invoice_url'],
+            'gateway_url' => $response['invoice_url'],
         ]);
 
         return redirect($response['invoice_url']);
@@ -183,10 +185,12 @@ class PaymentGatewayController extends Controller
     {
         // Signature sudah diverifikasi oleh VerifyWebhookSignature middleware
         $externalId = $request->external_id;
-        $status     = $request->status;
+        $status = $request->status;
 
         $payment = SubscriptionPayment::where('order_id', $externalId)->first();
-        if (!$payment) return response()->json(['message' => 'Not found'], 404);
+        if (! $payment) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
 
         if ($status === 'PAID') {
             $this->activatePlan($payment);
@@ -202,11 +206,13 @@ class PaymentGatewayController extends Controller
 
     private function activatePlan(SubscriptionPayment $payment): void
     {
-        if ($payment->status === 'paid') return; // idempotent
+        if ($payment->status === 'paid') {
+            return;
+        } // idempotent
 
         $payment->update(['status' => 'paid', 'paid_at' => now()]);
 
-        $plan   = $payment->plan;
+        $plan = $payment->plan;
         $tenant = $payment->tenant;
 
         $expiresAt = $payment->billing === 'yearly'
@@ -215,28 +221,30 @@ class PaymentGatewayController extends Controller
 
         $tenant->update([
             'subscription_plan_id' => $plan->id,
-            'plan'                 => $plan->slug,
-            'plan_expires_at'      => $expiresAt,
-            'is_active'            => true,
+            'plan' => $plan->slug,
+            'plan_expires_at' => $expiresAt,
+            'is_active' => true,
         ]);
 
         // Affiliate commission
-        app(\App\Services\AffiliateService::class)->createCommission($tenant, $payment);
+        app(AffiliateService::class)->createCommission($tenant, $payment);
     }
 
     private function notifyPaymentFailed(SubscriptionPayment $payment, string $reason): void
     {
         $payment->load(['tenant', 'plan']);
         $tenant = $payment->tenant;
-        if (!$tenant) return;
+        if (! $tenant) {
+            return;
+        }
 
         $reasonLabel = match (strtolower($reason)) {
-            'cancel'  => 'Dibatalkan oleh pengguna',
-            'deny'    => 'Ditolak oleh bank/penyedia pembayaran',
-            'expire'  => 'Waktu pembayaran habis',
+            'cancel' => 'Dibatalkan oleh pengguna',
+            'deny' => 'Ditolak oleh bank/penyedia pembayaran',
+            'expire' => 'Waktu pembayaran habis',
             'expired' => 'Waktu pembayaran habis',
-            'failed'  => 'Gagal diproses',
-            default   => $reason,
+            'failed' => 'Gagal diproses',
+            default => $reason,
         };
 
         $admins = User::where('tenant_id', $tenant->id)
@@ -247,27 +255,27 @@ class PaymentGatewayController extends Controller
             // In-app notification
             ErpNotification::create([
                 'tenant_id' => $tenant->id,
-                'user_id'   => $admin->id,
-                'type'      => 'payment_failed',
-                'title'     => '❌ Pembayaran Langganan Gagal',
-                'body'      => "Pembayaran paket {$payment->plan?->name} senilai Rp " .
-                               number_format($payment->amount, 0, ',', '.') .
+                'user_id' => $admin->id,
+                'type' => 'payment_failed',
+                'title' => '❌ Pembayaran Langganan Gagal',
+                'body' => "Pembayaran paket {$payment->plan?->name} senilai Rp ".
+                               number_format($payment->amount, 0, ',', '.').
                                " gagal. Alasan: {$reasonLabel}.",
-                'data'      => [
+                'data' => [
                     'order_id' => $payment->order_id,
-                    'amount'   => $payment->amount,
-                    'reason'   => $reasonLabel,
-                    'gateway'  => $payment->gateway,
+                    'amount' => $payment->amount,
+                    'reason' => $reasonLabel,
+                    'gateway' => $payment->gateway,
                 ],
             ]);
 
             // Email notification
             $admin->notify(new SubscriptionPaymentFailedNotification(
                 tenantName: $tenant->name,
-                plan:       $payment->plan?->name ?? $payment->gateway,
-                amount:     (float) $payment->amount,
-                reason:     $reasonLabel,
-                orderId:    $payment->order_id,
+                plan: $payment->plan?->name ?? $payment->gateway,
+                amount: (float) $payment->amount,
+                reason: $reasonLabel,
+                orderId: $payment->order_id,
             ));
         }
     }

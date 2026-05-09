@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\DailyOccupancyStat;
+use App\Models\FbOrder;
+use App\Models\MinibarTransaction;
 use App\Models\NightAuditBatch;
 use App\Models\NightAuditLog;
 use App\Models\Reservation;
+use App\Models\RevenuePosting;
 use App\Models\Room;
-use App\Models\FbOrder;
-use App\Models\MinibarTransaction;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class NightAuditService
@@ -15,7 +18,7 @@ class NightAuditService
     /**
      * Start night audit batch process
      */
-    public function startAudit(int $tenantId, \Carbon\Carbon $auditDate): NightAuditBatch
+    public function startAudit(int $tenantId, Carbon $auditDate): NightAuditBatch
     {
         return DB::transaction(function () use ($tenantId, $auditDate) {
             // Check if batch already exists for this date
@@ -57,7 +60,7 @@ class NightAuditService
         return DB::transaction(function () use ($batch) {
             // BUG-HOTEL-002 FIX: Idempotency check - prevent double posting
             if ($batch->room_charges_posted) {
-                throw new \Exception("Room charges already posted for this batch. Cannot post twice.");
+                throw new \Exception('Room charges already posted for this batch. Cannot post twice.');
             }
 
             $postedCount = 0;
@@ -77,10 +80,10 @@ class NightAuditService
 
                     if ($rateAmount > 0) {
                         // Post room charge
-                        $posting = \App\Models\RevenuePosting::create([
+                        $posting = RevenuePosting::create([
                             'tenant_id' => $batch->tenant_id,
                             'audit_batch_id' => $batch->id,
-                            'posting_reference' => \App\Models\RevenuePosting::generatePostingReference(),
+                            'posting_reference' => RevenuePosting::generatePostingReference(),
                             'posting_date' => $batch->audit_date,
                             'reservation_id' => $reservation->id,
                             'room_number' => $room->number,
@@ -136,7 +139,7 @@ class NightAuditService
         return DB::transaction(function () use ($batch) {
             // BUG-HOTEL-002 FIX: Idempotency check
             if ($batch->fb_revenue_posted) {
-                throw new \Exception("F&B revenue already posted for this batch. Cannot post twice.");
+                throw new \Exception('F&B revenue already posted for this batch. Cannot post twice.');
             }
 
             $postedCount = 0;
@@ -150,10 +153,10 @@ class NightAuditService
                 ->get();
 
             foreach ($orders as $order) {
-                $posting = \App\Models\RevenuePosting::create([
+                $posting = RevenuePosting::create([
                     'tenant_id' => $batch->tenant_id,
                     'audit_batch_id' => $batch->id,
-                    'posting_reference' => \App\Models\RevenuePosting::generatePostingReference(),
+                    'posting_reference' => RevenuePosting::generatePostingReference(),
                     'posting_date' => $batch->audit_date,
                     'reservation_id' => $order->reservation_id,
                     'room_number' => $order->room_number,
@@ -196,7 +199,7 @@ class NightAuditService
         return DB::transaction(function () use ($batch) {
             // BUG-HOTEL-002 FIX: Idempotency check
             if ($batch->minibar_charges_posted) {
-                throw new \Exception("Minibar charges already posted for this batch. Cannot post twice.");
+                throw new \Exception('Minibar charges already posted for this batch. Cannot post twice.');
             }
 
             $postedCount = 0;
@@ -211,10 +214,10 @@ class NightAuditService
                     ->get();
 
                 foreach ($transactions as $transaction) {
-                    $posting = \App\Models\RevenuePosting::create([
+                    $posting = RevenuePosting::create([
                         'tenant_id' => $batch->tenant_id,
                         'audit_batch_id' => $batch->id,
-                        'posting_reference' => \App\Models\RevenuePosting::generatePostingReference(),
+                        'posting_reference' => RevenuePosting::generatePostingReference(),
                         'posting_date' => $batch->audit_date,
                         'reservation_id' => $transaction->reservation_id,
                         'room_number' => $transaction->room_number,
@@ -250,7 +253,7 @@ class NightAuditService
                 ];
             } catch (\Exception $e) {
                 // BUG-HOTEL-002 FIX: Rollback minibar transaction status if posting fails
-                if (!empty($updatedTransactionIds)) {
+                if (! empty($updatedTransactionIds)) {
                     MinibarTransaction::whereIn('id', $updatedTransactionIds)
                         ->update(['billing_status' => 'pending']);
 
@@ -299,7 +302,7 @@ class NightAuditService
             ->count();
 
         // Create or update occupancy stats
-        $stats = \App\Models\DailyOccupancyStat::getOrCreateForDate($tenantId, $auditDate);
+        $stats = DailyOccupancyStat::getOrCreateForDate($tenantId, $auditDate);
         $stats->update([
             'total_rooms' => $totalRooms,
             'available_rooms' => $totalRooms - $outOfOrderRooms,
@@ -337,22 +340,22 @@ class NightAuditService
         // BUG-HOTEL-002 FIX: Validate all required steps are completed
         $missingSteps = [];
 
-        if (!$batch->room_charges_posted) {
+        if (! $batch->room_charges_posted) {
             $missingSteps[] = 'Room charges posting';
         }
 
-        if (!$batch->fb_revenue_posted) {
+        if (! $batch->fb_revenue_posted) {
             $missingSteps[] = 'F&B revenue posting';
         }
 
-        if (!$batch->minibar_charges_posted) {
+        if (! $batch->minibar_charges_posted) {
             $missingSteps[] = 'Minibar charges posting';
         }
 
-        if (!empty($missingSteps)) {
+        if (! empty($missingSteps)) {
             throw new \Exception(
-                "Cannot complete audit. Missing steps: " . implode(', ', $missingSteps) . ". " .
-                "Please complete all required postings before finishing the audit."
+                'Cannot complete audit. Missing steps: '.implode(', ', $missingSteps).'. '.
+                'Please complete all required postings before finishing the audit.'
             );
         }
 

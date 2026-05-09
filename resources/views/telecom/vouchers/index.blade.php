@@ -26,15 +26,13 @@
             </div>
 
             @if (session('success'))
-                <div
-                    class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div
-                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -45,26 +43,22 @@
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-blue-500">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-blue-500">
                     <p class="text-sm text-gray-600">{{ __('Total Vouchers') }}</p>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total']) }}
                     </p>
                 </div>
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-green-500">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-green-500">
                     <p class="text-sm text-gray-600">{{ __('Unused') }}</p>
                     <p class="text-2xl font-bold text-green-600">
                         {{ number_format($stats['unused']) }}</p>
                 </div>
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-purple-500">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-purple-500">
                     <p class="text-sm text-gray-600">{{ __('Used') }}</p>
                     <p class="text-2xl font-bold text-purple-600">
                         {{ number_format($stats['used']) }}</p>
                 </div>
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-red-500">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-red-500">
                     <p class="text-sm text-gray-600">{{ __('Expired') }}</p>
                     <p class="text-2xl font-bold text-red-600">{{ number_format($stats['expired']) }}
                     </p>
@@ -76,8 +70,7 @@
                 <form method="GET" action="{{ route('telecom.vouchers.index') }}"
                     class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('Status') }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Status') }}</label>
                         <select name="status"
                             class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">{{ __('All Status') }}</option>
@@ -92,8 +85,7 @@
                         </select>
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('Batch Number') }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Batch Number') }}</label>
                         <select name="batch_number"
                             class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">{{ __('All Batches') }}</option>
@@ -106,8 +98,7 @@
                         </select>
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('Package') }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Package') }}</label>
                         <select name="package_id"
                             class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">{{ __('All Packages') }}</option>
@@ -120,8 +111,7 @@
                         </select>
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1">{{ __('Search Code') }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Search Code') }}</label>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="{{ __('Search voucher code...') }}"
                             class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -210,19 +200,18 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            class="text-xs text-gray-600">{{ $voucher->batch_number ?? '-' }}</span>
+                                        <span class="text-xs text-gray-600">{{ $voucher->batch_number ?? '-' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-xs text-gray-900">
-                                            {{ $voucher->valid_from->format('d M Y') }}
+                                            {{ $voucher->valid_from?->format('d M Y') ?? '-' }}
                                         </div>
                                         <div class="text-xs text-gray-500">
-                                            {{ __('to') }} {{ $voucher->valid_until->format('d M Y H:i') }}
+                                            {{ __('to') }}
+                                            {{ $voucher->valid_until?->format('d M Y H:i') ?? '-' }}
                                         </div>
                                         @if ($voucher->isExpired())
-                                            <span
-                                                class="text-xs text-red-600 font-semibold">{{ __('EXPIRED') }}</span>
+                                            <span class="text-xs text-red-600 font-semibold">{{ __('EXPIRED') }}</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -232,7 +221,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                             {{ $voucher->status === 'unused'
                                                 ? 'bg-green-100 text-green-800'
                                                 : ($voucher->status === 'used'
@@ -258,8 +247,7 @@
                                             <form action="{{ route('telecom.vouchers.revoke', $voucher) }}"
                                                 method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit"
-                                                    class="text-red-600 hover:text-red-900"
+                                                <button type="submit" class="text-red-600 hover:text-red-900"
                                                     onclick="return confirm('{{ __('Revoke this voucher?') }}')">{{ __('Revoke') }}</button>
                                             </form>
 
@@ -275,10 +263,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8"
-                                        class="px-6 py-12 text-center text-gray-500">
-                                        <i
-                                            class="fas fa-ticket-alt text-gray-400 text-5xl mb-3"></i>
+                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                        <i class="fas fa-ticket-alt text-gray-400 text-5xl mb-3"></i>
                                         <p class="mt-2 text-sm">{{ __('Tidak ada voucher ditemukan') }}</p>
                                         <a href="{{ route('telecom.vouchers.create') }}"
                                             class="text-blue-600 hover:text-blue-900 text-sm mt-2 inline-block">

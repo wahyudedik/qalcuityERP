@@ -12,6 +12,7 @@ use App\Services\SettingsCacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -71,7 +72,7 @@ class TenantIntegrationSettingsController extends Controller
     public function index(Request $request): View
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         // Load current saved settings, decrypted for display (masked)
         $saved = [];
@@ -79,8 +80,8 @@ class TenantIntegrationSettingsController extends Controller
             $value = TenantApiSetting::get($tenantId, $key);
             $saved[$key] = [
                 'value' => $value,
-                'has_value' => !empty($value),
-                'masked' => $encrypted && !empty($value) ? $this->mask($value) : $value,
+                'has_value' => ! empty($value),
+                'masked' => $encrypted && ! empty($value) ? $this->mask($value) : $value,
                 'encrypted' => $encrypted,
                 'label' => $label,
                 'group' => $group,
@@ -97,20 +98,20 @@ class TenantIntegrationSettingsController extends Controller
         $groupMeta = self::GROUP_META;
 
         // AI Provider settings
-        $aiProviderOverride  = TenantApiSetting::get($tenantId, 'ai_provider');
-        $hasAiOverride       = !empty($aiProviderOverride);
-        $globalDefault       = SystemSetting::get('ai_default_provider') ?? config('ai.default_provider', 'gemini');
-        $activeProvider      = $hasAiOverride ? $aiProviderOverride : $globalDefault;
-        $hasAnthropicKey     = TenantApiSetting::has($tenantId, 'anthropic_api_key');
-        $hasGeminiKey        = TenantApiSetting::has($tenantId, 'gemini_api_key');
+        $aiProviderOverride = TenantApiSetting::get($tenantId, 'ai_provider');
+        $hasAiOverride = ! empty($aiProviderOverride);
+        $globalDefault = SystemSetting::get('ai_default_provider') ?? config('ai.default_provider', 'gemini');
+        $activeProvider = $hasAiOverride ? $aiProviderOverride : $globalDefault;
+        $hasAnthropicKey = TenantApiSetting::has($tenantId, 'anthropic_api_key');
+        $hasGeminiKey = TenantApiSetting::has($tenantId, 'gemini_api_key');
 
         $aiProviderData = [
-            'has_override'      => $hasAiOverride,
+            'has_override' => $hasAiOverride,
             'selected_provider' => $aiProviderOverride ?? $globalDefault,
-            'active_provider'   => $activeProvider,
-            'global_default'    => $globalDefault,
+            'active_provider' => $activeProvider,
+            'global_default' => $globalDefault,
             'has_anthropic_key' => $hasAnthropicKey,
-            'has_gemini_key'    => $hasGeminiKey,
+            'has_gemini_key' => $hasGeminiKey,
         ];
 
         return view('settings.integrations', compact('saved', 'groups', 'groupMeta', 'tenantId', 'aiProviderData'));
@@ -119,7 +120,7 @@ class TenantIntegrationSettingsController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         foreach (self::SETTINGS_MAP as $key => [$group, $label, $encrypted]) {
             $value = $request->input($key);
@@ -155,26 +156,26 @@ class TenantIntegrationSettingsController extends Controller
         return back()->with('success', 'Pengaturan integrasi berhasil disimpan.');
     }
 
-    public function testFonnte(Request $request): \Illuminate\Http\JsonResponse
+    public function testFonnte(Request $request): JsonResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $token = TenantApiSetting::get($tenantId, 'fonnte_token')
             ?? config('services.fonnte.token');
 
-        if (!$token) {
+        if (! $token) {
             return response()->json(['success' => false, 'message' => 'Fonnte token belum dikonfigurasi.']);
         }
 
         $validated = $request->validate(['phone' => 'required|string|max:20']);
         $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
+            $phone = '62'.substr($phone, 1);
         }
 
         try {
-            $response = \Illuminate\Support\Facades\Http::withHeaders(['Authorization' => $token])
+            $response = Http::withHeaders(['Authorization' => $token])
                 ->post('https://api.fonnte.com/send', [
                     'target' => $phone,
                     'message' => 'Ini adalah pesan uji coba dari Qalcuity ERP. Fonnte berhasil dikonfigurasi! ✅',
@@ -186,10 +187,10 @@ class TenantIntegrationSettingsController extends Controller
                 'success' => $response->successful() && ($result['status'] ?? false),
                 'message' => $result['status'] ?? false
                     ? "Pesan uji coba berhasil dikirim ke {$phone}."
-                    : ('Gagal: ' . ($result['reason'] ?? 'Unknown error')),
+                    : ('Gagal: '.($result['reason'] ?? 'Unknown error')),
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'Koneksi gagal: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Koneksi gagal: '.$e->getMessage()]);
         }
     }
 
@@ -202,13 +203,13 @@ class TenantIntegrationSettingsController extends Controller
     public function testAiProviderConnection(Request $request): JsonResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         // Determine which provider to test:
         // Use tenant's override if set, otherwise use global default
         $tenantProvider = TenantApiSetting::get($tenantId, 'ai_provider');
-        $globalDefault  = SystemSetting::get('ai_default_provider') ?? config('ai.default_provider', 'gemini');
-        $provider       = $tenantProvider ?? $globalDefault;
+        $globalDefault = SystemSetting::get('ai_default_provider') ?? config('ai.default_provider', 'gemini');
+        $provider = $tenantProvider ?? $globalDefault;
 
         try {
             if ($provider === 'gemini') {
@@ -231,7 +232,7 @@ class TenantIntegrationSettingsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal test koneksi: ' . $e->getMessage(),
+                'message' => 'Gagal test koneksi: '.$e->getMessage(),
                 'details' => null,
             ], 500);
         }
@@ -244,7 +245,7 @@ class TenantIntegrationSettingsController extends Controller
     {
         // Apply tenant API key override into config if available
         $tenantApiKey = TenantApiSetting::get($tenantId, 'gemini_api_key');
-        if (!empty($tenantApiKey)) {
+        if (! empty($tenantApiKey)) {
             config(['gemini.api_key' => $tenantApiKey]);
             config(['ai.providers.gemini.api_key' => $tenantApiKey]);
         } else {
@@ -264,14 +265,14 @@ class TenantIntegrationSettingsController extends Controller
         }
 
         try {
-            $provider = new GeminiProvider();
-            $result   = $provider->generate('Test connection - respond with: OK');
+            $provider = new GeminiProvider;
+            $result = $provider->generate('Test connection - respond with: OK');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Koneksi Gemini berhasil! Provider aktif dan siap digunakan.',
                 'details' => [
-                    'model'    => $result['model'] ?? config('gemini.model', 'gemini-2.5-flash'),
+                    'model' => $result['model'] ?? config('gemini.model', 'gemini-2.5-flash'),
                     'response' => substr($result['text'] ?? '', 0, 100),
                 ],
             ]);
@@ -293,7 +294,7 @@ class TenantIntegrationSettingsController extends Controller
     {
         // Apply tenant API key override into config if available
         $tenantApiKey = TenantApiSetting::get($tenantId, 'anthropic_api_key');
-        if (!empty($tenantApiKey)) {
+        if (! empty($tenantApiKey)) {
             config(['ai.providers.anthropic.api_key' => $tenantApiKey]);
         } else {
             // Fall back to global SystemSetting
@@ -311,14 +312,14 @@ class TenantIntegrationSettingsController extends Controller
         }
 
         try {
-            $provider = new AnthropicProvider();
-            $result   = $provider->generate('Test connection - respond with: OK');
+            $provider = new AnthropicProvider;
+            $result = $provider->generate('Test connection - respond with: OK');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Koneksi Anthropic berhasil! Provider aktif dan siap digunakan.',
                 'details' => [
-                    'model'    => $result['model'] ?? config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022'),
+                    'model' => $result['model'] ?? config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022'),
                     'response' => substr($result['text'] ?? '', 0, 100),
                 ],
             ]);
@@ -346,13 +347,13 @@ class TenantIntegrationSettingsController extends Controller
     public function saveAiProviderSettings(Request $request): RedirectResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $validated = $request->validate([
             'ai_provider_override' => 'nullable|boolean',
-            'ai_provider'          => 'nullable|string|in:gemini,anthropic',
-            'anthropic_api_key'    => 'nullable|string|max:500',
-            'gemini_api_key'       => 'nullable|string|max:500',
+            'ai_provider' => 'nullable|string|in:gemini,anthropic',
+            'anthropic_api_key' => 'nullable|string|max:500',
+            'gemini_api_key' => 'nullable|string|max:500',
         ]);
 
         $override = (bool) ($validated['ai_provider_override'] ?? false);
@@ -369,7 +370,7 @@ class TenantIntegrationSettingsController extends Controller
             );
 
             // Simpan Anthropic API key jika diisi (jangan overwrite jika kosong)
-            if (!empty($validated['anthropic_api_key'])) {
+            if (! empty($validated['anthropic_api_key'])) {
                 TenantApiSetting::set(
                     tenantId: $tenantId,
                     key: 'anthropic_api_key',
@@ -381,7 +382,7 @@ class TenantIntegrationSettingsController extends Controller
             }
 
             // Simpan Gemini API key jika diisi (jangan overwrite jika kosong)
-            if (!empty($validated['gemini_api_key'])) {
+            if (! empty($validated['gemini_api_key'])) {
                 TenantApiSetting::set(
                     tenantId: $tenantId,
                     key: 'gemini_api_key',
@@ -416,29 +417,29 @@ class TenantIntegrationSettingsController extends Controller
     public function getAiProviderStatus(Request $request): JsonResponse
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $tenantProvider = TenantApiSetting::get($tenantId, 'ai_provider');
-        $hasOverride    = !empty($tenantProvider);
+        $hasOverride = ! empty($tenantProvider);
 
-        $globalDefault  = SystemSetting::get('ai_default_provider')
+        $globalDefault = SystemSetting::get('ai_default_provider')
             ?? config('ai.default_provider', 'gemini');
 
         $activeProvider = $hasOverride ? $tenantProvider : $globalDefault;
 
         $providerLabels = [
-            'gemini'    => 'Gemini',
+            'gemini' => 'Gemini',
             'anthropic' => 'Anthropic',
         ];
 
         return response()->json([
-            'active_provider'       => $activeProvider,
+            'active_provider' => $activeProvider,
             'active_provider_label' => $providerLabels[$activeProvider] ?? ucfirst($activeProvider),
-            'is_override'           => $hasOverride,
-            'global_default'        => $globalDefault,
-            'global_default_label'  => $providerLabels[$globalDefault] ?? ucfirst($globalDefault),
-            'has_anthropic_key'     => TenantApiSetting::has($tenantId, 'anthropic_api_key'),
-            'has_gemini_key'        => TenantApiSetting::has($tenantId, 'gemini_api_key'),
+            'is_override' => $hasOverride,
+            'global_default' => $globalDefault,
+            'global_default_label' => $providerLabels[$globalDefault] ?? ucfirst($globalDefault),
+            'has_anthropic_key' => TenantApiSetting::has($tenantId, 'anthropic_api_key'),
+            'has_gemini_key' => TenantApiSetting::has($tenantId, 'gemini_api_key'),
         ]);
     }
 
@@ -451,6 +452,7 @@ class TenantIntegrationSettingsController extends Controller
         if ($len <= 8) {
             return str_repeat('*', $len);
         }
-        return substr($value, 0, 4) . str_repeat('*', $len - 8) . substr($value, -4);
+
+        return substr($value, 0, 4).str_repeat('*', $len - 8).substr($value, -4);
     }
 }

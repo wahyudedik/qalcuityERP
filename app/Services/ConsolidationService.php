@@ -5,13 +5,11 @@ namespace App\Services;
 use App\Models\ChartOfAccount;
 use App\Models\CompanyGroup;
 use App\Models\InterCompanyTransaction;
-use App\Models\Invoice;
-use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
-use App\Models\Payable;
 use App\Models\SalesOrder;
+use App\Models\Tenant;
 use App\Models\Transaction;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 /**
  * ConsolidationService — Multi-company consolidated financial reporting.
@@ -23,7 +21,7 @@ class ConsolidationService
 {
     private function fmt(float $n): string
     {
-        return ($n < 0 ? '-' : '') . 'Rp ' . number_format(abs($n), 0, ',', '.');
+        return ($n < 0 ? '-' : '').'Rp '.number_format(abs($n), 0, ',', '.');
     }
 
     /**
@@ -32,7 +30,9 @@ class ConsolidationService
     public function consolidatedReport(CompanyGroup $group, string $period): array
     {
         $memberIds = $group->members->pluck('id')->toArray();
-        if (empty($memberIds)) return $this->emptyReport();
+        if (empty($memberIds)) {
+            return $this->emptyReport();
+        }
 
         [$year, $month] = explode('-', $period);
 
@@ -42,12 +42,12 @@ class ConsolidationService
 
         return array_merge($pnl, [
             'balance_sheet' => $bs,
-            'elimination'   => $elimination,
-            'formatted'     => [
+            'elimination' => $elimination,
+            'formatted' => [
                 'total_revenue' => $this->fmt($pnl['total_revenue']),
                 'total_expense' => $this->fmt($pnl['total_expense']),
-                'elimination'   => $this->fmt($elimination['total']),
-                'cons_profit'   => $this->fmt($pnl['consolidated_profit']),
+                'elimination' => $this->fmt($elimination['total']),
+                'cons_profit' => $this->fmt($pnl['consolidated_profit']),
             ],
         ]);
     }
@@ -63,7 +63,7 @@ class ConsolidationService
         $totalExpense = 0;
 
         foreach ($memberIds as $tid) {
-            $tenant = \App\Models\Tenant::find($tid);
+            $tenant = Tenant::find($tid);
             $name = $tenant?->name ?? "Tenant #{$tid}";
 
             // Try GL-based first (more accurate)
@@ -98,10 +98,10 @@ class ConsolidationService
             ->sum('amount');
 
         return [
-            'revenues'            => $revenues,
-            'expenses'            => $expenses,
-            'total_revenue'       => $totalRevenue,
-            'total_expense'       => $totalExpense,
+            'revenues' => $revenues,
+            'expenses' => $expenses,
+            'total_revenue' => $totalRevenue,
+            'total_expense' => $totalExpense,
             'consolidated_profit' => $totalRevenue - $totalExpense - $eliminationTotal,
         ];
     }
@@ -111,12 +111,12 @@ class ConsolidationService
      */
     private function consolidatedBalanceSheet(array $memberIds, int $year, int $month): array
     {
-        $endDate = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->toDateString();
+        $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth()->toDateString();
 
         $categories = [
-            'asset'     => ['label' => 'Aset', 'normal' => 'debit'],
+            'asset' => ['label' => 'Aset', 'normal' => 'debit'],
             'liability' => ['label' => 'Kewajiban', 'normal' => 'credit'],
-            'equity'    => ['label' => 'Ekuitas', 'normal' => 'credit'],
+            'equity' => ['label' => 'Ekuitas', 'normal' => 'credit'],
         ];
 
         $result = [];
@@ -125,7 +125,7 @@ class ConsolidationService
             $perMember = [];
 
             foreach ($memberIds as $tid) {
-                $tenant = \App\Models\Tenant::find($tid);
+                $tenant = Tenant::find($tid);
                 $accounts = ChartOfAccount::where('tenant_id', $tid)
                     ->where('type', $type)
                     ->where('is_header', false)
@@ -135,13 +135,13 @@ class ConsolidationService
                 $memberTotal = 0;
                 foreach ($accounts as $acc) {
                     $debit = (float) JournalEntryLine::where('account_id', $acc->id)
-                        ->whereHas('journalEntry', fn($q) => $q
+                        ->whereHas('journalEntry', fn ($q) => $q
                             ->where('tenant_id', $tid)
                             ->where('status', 'posted')
                             ->where('date', '<=', $endDate))
                         ->sum('debit');
                     $credit = (float) JournalEntryLine::where('account_id', $acc->id)
-                        ->whereHas('journalEntry', fn($q) => $q
+                        ->whereHas('journalEntry', fn ($q) => $q
                             ->where('tenant_id', $tid)
                             ->where('status', 'posted')
                             ->where('date', '<=', $endDate))
@@ -156,8 +156,8 @@ class ConsolidationService
             }
 
             $result[$type] = [
-                'label'      => $meta['label'],
-                'total'      => $total,
+                'label' => $meta['label'],
+                'total' => $total,
                 'per_member' => $perMember,
             ];
         }
@@ -176,20 +176,20 @@ class ConsolidationService
             ->with(['fromTenant', 'toTenant'])
             ->get();
 
-        $byType = $transactions->groupBy('transaction_type')->map(fn($items) => [
-            'count'  => $items->count(),
+        $byType = $transactions->groupBy('transaction_type')->map(fn ($items) => [
+            'count' => $items->count(),
             'amount' => $items->sum('amount'),
         ]);
 
         return [
-            'total'      => (float) $transactions->sum('amount'),
-            'by_type'    => $byType->toArray(),
-            'items'      => $transactions->map(fn($t) => [
-                'from'   => $t->fromTenant?->name ?? "#{$t->from_tenant_id}",
-                'to'     => $t->toTenant?->name ?? "#{$t->to_tenant_id}",
-                'type'   => $t->transaction_type,
+            'total' => (float) $transactions->sum('amount'),
+            'by_type' => $byType->toArray(),
+            'items' => $transactions->map(fn ($t) => [
+                'from' => $t->fromTenant?->name ?? "#{$t->from_tenant_id}",
+                'to' => $t->toTenant?->name ?? "#{$t->to_tenant_id}",
+                'type' => $t->transaction_type,
                 'amount' => (float) $t->amount,
-                'ref'    => $t->reference_type,
+                'ref' => $t->reference_type,
             ])->toArray(),
         ];
     }
@@ -205,10 +205,12 @@ class ConsolidationService
             ->where('is_active', true)
             ->pluck('id');
 
-        if ($accountIds->isEmpty()) return 0;
+        if ($accountIds->isEmpty()) {
+            return 0;
+        }
 
         return (float) JournalEntryLine::whereIn('account_id', $accountIds)
-            ->whereHas('journalEntry', fn($q) => $q
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('tenant_id', $tenantId)
                 ->where('status', 'posted')
                 ->whereYear('date', $year)
@@ -228,20 +230,22 @@ class ConsolidationService
         $result = ['operating' => 0, 'investing' => 0, 'financing' => 0, 'per_member' => []];
 
         foreach ($memberIds as $tid) {
-            $tenant = \App\Models\Tenant::find($tid);
+            $tenant = Tenant::find($tid);
             $cashAccounts = ChartOfAccount::where('tenant_id', $tid)
                 ->whereIn('code', $cashCodes)->pluck('id');
 
-            if ($cashAccounts->isEmpty()) continue;
+            if ($cashAccounts->isEmpty()) {
+                continue;
+            }
 
             $inflow = (float) JournalEntryLine::whereIn('account_id', $cashAccounts)
-                ->whereHas('journalEntry', fn($q) => $q
+                ->whereHas('journalEntry', fn ($q) => $q
                     ->where('tenant_id', $tid)->where('status', 'posted')
                     ->whereYear('date', $year)->whereMonth('date', $month))
                 ->sum('debit');
 
             $outflow = (float) JournalEntryLine::whereIn('account_id', $cashAccounts)
-                ->whereHas('journalEntry', fn($q) => $q
+                ->whereHas('journalEntry', fn ($q) => $q
                     ->where('tenant_id', $tid)->where('status', 'posted')
                     ->whereYear('date', $year)->whereMonth('date', $month))
                 ->sum('credit');
@@ -249,14 +253,15 @@ class ConsolidationService
             $net = $inflow - $outflow;
             $result['operating'] += $net;
             $result['per_member'][] = [
-                'name'    => $tenant?->name ?? "#{$tid}",
-                'inflow'  => $inflow,
+                'name' => $tenant?->name ?? "#{$tid}",
+                'inflow' => $inflow,
                 'outflow' => $outflow,
-                'net'     => $net,
+                'net' => $net,
             ];
         }
 
         $result['net_change'] = $result['operating'] + $result['investing'] + $result['financing'];
+
         return $result;
     }
 
@@ -298,23 +303,23 @@ class ConsolidationService
      */
     public function createIntercompanyTransaction(
         CompanyGroup $group,
-        int    $fromTenantId,
-        int    $toTenantId,
+        int $fromTenantId,
+        int $toTenantId,
         string $type,
-        float  $amount,
+        float $amount,
         string $description,
         string $date
     ): InterCompanyTransaction {
         return InterCompanyTransaction::create([
             'company_group_id' => $group->id,
-            'from_tenant_id'   => $fromTenantId,
-            'to_tenant_id'     => $toTenantId,
+            'from_tenant_id' => $fromTenantId,
+            'to_tenant_id' => $toTenantId,
             'transaction_type' => $type,
-            'amount'           => $amount,
-            'description'      => $description,
+            'amount' => $amount,
+            'description' => $description,
             'transaction_date' => $date,
-            'currency'         => $group->currency_code ?? 'IDR',
-            'status'           => 'pending',
+            'currency' => $group->currency_code ?? 'IDR',
+            'status' => 'pending',
             'created_by_user_id' => auth()->id(),
         ]);
     }

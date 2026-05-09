@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Models\ErrorLog;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Enhanced error context enricher.
- * 
+ *
  * Adds valuable debugging information to error logs:
  * - Current user context
  * - Request details
@@ -38,7 +37,7 @@ class ErrorContextEnricher
      */
     protected static function getRequestContext(): array
     {
-        if (!request()) {
+        if (! request()) {
             return [];
         }
 
@@ -73,7 +72,7 @@ class ErrorContextEnricher
      */
     protected static function getUserContext(): array
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return ['user' => ['authenticated' => false]];
         }
 
@@ -123,14 +122,14 @@ class ErrorContextEnricher
         }
 
         // Strategy 2: Fallback - get from route parameter
-        if (!$tenantId && request()) {
+        if (! $tenantId && request()) {
             $tenantId = request()->route('tenant')
                 ?? request()->route('tenant_id')
                 ?? request()->input('tenant_id');
         }
 
         // Strategy 3: Fallback - get from request header (for API calls)
-        if (!$tenantId && request()) {
+        if (! $tenantId && request()) {
             $tenantId = request()->header('X-Tenant-ID')
                 ?? request()->header('X-Tenant');
         }
@@ -157,8 +156,8 @@ class ErrorContextEnricher
                 'environment' => app()->environment(),
                 'timezone' => config('app.timezone'),
                 'locale' => app()->getLocale(),
-                'memory_usage' => round(memory_get_usage(true) / 1024 / 1024, 2) . ' MB',
-                'peak_memory' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB',
+                'memory_usage' => round(memory_get_usage(true) / 1024 / 1024, 2).' MB',
+                'peak_memory' => round(memory_get_peak_usage(true) / 1024 / 1024, 2).' MB',
                 'server_time' => now()->toIso8601String(),
                 'uptime' => self::getServerUptime(),
             ],
@@ -245,6 +244,7 @@ class ErrorContextEnricher
         if ($similarError && $similarError->occurrence_count < 100) {
             // Increment occurrence instead of creating new record
             $similarError->incrementOccurrence();
+
             return $similarError;
         }
 
@@ -270,7 +270,7 @@ class ErrorContextEnricher
 
     /**
      * Resolve tenant_id dari berbagai source dengan prioritas
-     * 
+     *
      * Priority:
      * 1. Authenticated user's tenant_id
      * 2. Route parameter (tenant atau tenant_id)

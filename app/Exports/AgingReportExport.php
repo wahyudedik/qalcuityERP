@@ -4,19 +4,22 @@ namespace App\Exports;
 
 use App\Models\Invoice;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class AgingReportExport implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class AgingReportExport implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $tenantName = 'Qalcuity ERP',
     ) {}
 
-    public function title(): string { return 'AR Aging'; }
+    public function title(): string
+    {
+        return 'AR Aging';
+    }
 
     public function columnWidths(): array
     {
@@ -42,19 +45,19 @@ class AgingReportExport implements FromArray, WithTitle, WithStyles, WithColumnW
         // Build aging buckets per customer
         $aging = [];
         foreach ($invoices as $inv) {
-            $cid  = $inv->customer_id;
+            $cid = $inv->customer_id;
             $name = $inv->customer?->name ?? 'Unknown';
             $days = max(0, (int) now()->startOfDay()->diffInDays($inv->due_date->startOfDay(), false) * -1);
 
             $bucket = match (true) {
-                $days <= 0  => 'current',
+                $days <= 0 => 'current',
                 $days <= 30 => '1-30',
                 $days <= 60 => '31-60',
                 $days <= 90 => '61-90',
-                default     => '90+',
+                default => '90+',
             };
 
-            if (!isset($aging[$cid])) {
+            if (! isset($aging[$cid])) {
                 $aging[$cid] = ['customer' => $name, 'current' => 0, '1-30' => 0, '31-60' => 0, '61-90' => 0, '90+' => 0, 'total' => 0];
             }
 
@@ -62,14 +65,14 @@ class AgingReportExport implements FromArray, WithTitle, WithStyles, WithColumnW
             $aging[$cid]['total'] += (float) $inv->remaining_amount;
         }
 
-        usort($aging, fn($a, $b) => $b['total'] <=> $a['total']);
+        usort($aging, fn ($a, $b) => $b['total'] <=> $a['total']);
 
-        $fmt  = fn($n) => $n > 0 ? round($n, 0) : '';
+        $fmt = fn ($n) => $n > 0 ? round($n, 0) : '';
         $rows = [];
 
         $rows[] = [$this->tenantName];
         $rows[] = ['LAPORAN AGING PIUTANG (AR AGING)'];
-        $rows[] = ['Per Tanggal: ' . now()->format('d M Y')];
+        $rows[] = ['Per Tanggal: '.now()->format('d M Y')];
         $rows[] = ['Customer', 'Belum Jatuh Tempo', '1-30 Hari', '31-60 Hari', '61-90 Hari', '> 90 Hari', 'Total'];
 
         $totals = ['current' => 0, '1-30' => 0, '31-60' => 0, '61-90' => 0, '90+' => 0, 'total' => 0];

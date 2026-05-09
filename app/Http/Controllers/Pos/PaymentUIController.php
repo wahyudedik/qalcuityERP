@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
-use App\Models\TenantPaymentGateway;
 use App\Models\PaymentTransaction;
-use Illuminate\Http\Request;
+use App\Models\TenantPaymentGateway;
 
 class PaymentUIController extends Controller
 {

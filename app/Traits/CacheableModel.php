@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * CacheableModel Trait
- * 
+ *
  * Automatically invalidates cache when models are created, updated, or deleted.
  * Integrates with QueryCacheService for intelligent cache management.
- * 
+ *
  * Usage:
  * class Product extends Model
  * {
  *     use CacheableModel;
- *     
+ *
  *     protected $cacheModule = 'products';
  * }
  */
@@ -48,9 +48,6 @@ trait CacheableModel
 
     /**
      * Invalidate cache for this model
-     * 
-     * @param string $event
-     * @return void
      */
     public function invalidateCache(string $event): void
     {
@@ -60,7 +57,7 @@ trait CacheableModel
             $tenantId = $this->getTenantId();
 
             if ($tenantId && $module) {
-                $method = "invalidate" . ucfirst($module);
+                $method = 'invalidate'.ucfirst($module);
 
                 if (method_exists($cacheService, $method)) {
                     $cacheService->{$method}($tenantId, $this->id ?? null);
@@ -78,7 +75,7 @@ trait CacheableModel
             }
         } catch (\Exception $e) {
             // Don't break the application if cache fails
-            Log::error("Cache invalidation failed: " . $e->getMessage(), [
+            Log::error('Cache invalidation failed: '.$e->getMessage(), [
                 'model' => get_class($this),
                 'event' => $event,
             ]);
@@ -87,8 +84,6 @@ trait CacheableModel
 
     /**
      * Get cache module name
-     * 
-     * @return string|null
      */
     protected function getCacheModule(): ?string
     {
@@ -97,8 +92,6 @@ trait CacheableModel
 
     /**
      * Get tenant ID from model
-     * 
-     * @return int|null
      */
     protected function getTenantId(): ?int
     {

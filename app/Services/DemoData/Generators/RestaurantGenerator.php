@@ -16,9 +16,9 @@ class RestaurantGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId       = $ctx->tenantId;
+        $tenantId = $ctx->tenantId;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // 1. Restaurant Menu (container)
         $menuId = null;
@@ -29,7 +29,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed restaurant menu', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['menus'] = 0;
         }
@@ -43,7 +43,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed menu items', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['menu_items'] = 0;
         }
@@ -56,7 +56,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed restaurant tables', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['tables'] = 0;
         }
@@ -69,7 +69,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed F&B orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['fb_orders'] = 0;
         }
@@ -82,7 +82,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed kitchen inventory', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['kitchen_supplies'] = 0;
         }
@@ -95,14 +95,14 @@ class RestaurantGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RestaurantGenerator: failed to seed employees', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['employees'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -123,16 +123,16 @@ class RestaurantGenerator extends BaseIndustryGenerator
         }
 
         return (int) DB::table('restaurant_menus')->insertGetId([
-            'tenant_id'       => $tenantId,
-            'name'            => 'Menu Utama Restoran',
-            'description'     => 'Menu lengkap restoran mencakup makanan utama, minuman, dan dessert',
-            'type'            => 'all_day',
-            'available_from'  => '07:00:00',
+            'tenant_id' => $tenantId,
+            'name' => 'Menu Utama Restoran',
+            'description' => 'Menu lengkap restoran mencakup makanan utama, minuman, dan dessert',
+            'type' => 'all_day',
+            'available_from' => '07:00:00',
             'available_until' => '22:00:00',
-            'is_active'       => true,
-            'display_order'   => 1,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'is_active' => true,
+            'display_order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -142,10 +142,11 @@ class RestaurantGenerator extends BaseIndustryGenerator
 
     private function seedMenuItems(int $tenantId, ?int $menuId): array
     {
-        if (!$menuId) {
+        if (! $menuId) {
             $this->logWarning('RestaurantGenerator: no menu_id available, skipping menu items', [
                 'tenant_id' => $tenantId,
             ]);
+
             return [];
         }
 
@@ -182,27 +183,28 @@ class RestaurantGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $menuItemIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('menu_items')->insertGetId([
-                'tenant_id'        => $tenantId,
-                'menu_id'          => $menuId,
-                'category_id'      => null,
-                'name'             => $item['name'],
-                'description'      => 'Menu ' . $item['name'] . ' pilihan restoran',
-                'price'            => $item['price'],
-                'cost'             => $item['cost'],
-                'category'         => $item['category'],
-                'allergens'        => null,
-                'dietary_info'     => null,
+                'tenant_id' => $tenantId,
+                'menu_id' => $menuId,
+                'category_id' => null,
+                'name' => $item['name'],
+                'description' => 'Menu '.$item['name'].' pilihan restoran',
+                'price' => $item['price'],
+                'cost' => $item['cost'],
+                'category' => $item['category'],
+                'allergens' => null,
+                'dietary_info' => null,
                 'preparation_time' => $item['prep_time'],
-                'is_available'     => true,
-                'daily_limit'      => null,
-                'sold_today'       => 0,
-                'display_order'    => $item['order'],
-                'created_at'       => now(),
-                'updated_at'       => now(),
+                'is_available' => true,
+                'daily_limit' => null,
+                'sold_today' => 0,
+                'display_order' => $item['order'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $menuItemIds[] = (int) $id;
@@ -242,14 +244,14 @@ class RestaurantGenerator extends BaseIndustryGenerator
             }
 
             DB::table('restaurant_tables')->insert([
-                'tenant_id'    => $tenantId,
+                'tenant_id' => $tenantId,
                 'table_number' => $t['table_number'],
-                'capacity'     => $t['capacity'],
-                'location'     => $t['location'],
-                'status'       => $t['status'],
-                'is_active'    => true,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'capacity' => $t['capacity'],
+                'location' => $t['location'],
+                'status' => $t['status'],
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;
@@ -268,6 +270,7 @@ class RestaurantGenerator extends BaseIndustryGenerator
             $this->logWarning('RestaurantGenerator: no menu items available for F&B orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
@@ -276,17 +279,18 @@ class RestaurantGenerator extends BaseIndustryGenerator
             ->where('tenant_id', $tenantId)
             ->value('id');
 
-        if (!$userId) {
+        if (! $userId) {
             $this->logWarning('RestaurantGenerator: no user found for tenant, skipping F&B orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $count = 0;
 
         for ($i = 1; $i <= 10; $i++) {
-            $orderNumber = 'RST-DIN-' . $tenantId . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+            $orderNumber = 'RST-DIN-'.$tenantId.'-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT);
 
             $exists = DB::table('fb_orders')
                 ->where('tenant_id', $tenantId)
@@ -299,39 +303,39 @@ class RestaurantGenerator extends BaseIndustryGenerator
             }
 
             $tableNumber = ($i % 6) + 1; // rotate through tables 1–6
-            $orderedAt   = Carbon::now()->subDays(rand(1, 60))->subHours(rand(0, 8));
+            $orderedAt = Carbon::now()->subDays(rand(1, 60))->subHours(rand(0, 8));
 
             // Pick 2 menu items per order (rotate through available items)
-            $offset        = ($i - 1) % max(1, count($menuItemIds) - 1);
+            $offset = ($i - 1) % max(1, count($menuItemIds) - 1);
             $selectedItems = array_slice($menuItemIds, $offset, 2);
             if (empty($selectedItems)) {
                 $selectedItems = [$menuItemIds[0]];
             }
 
-            $subtotal   = 0;
+            $subtotal = 0;
             $orderItems = [];
 
             foreach ($selectedItems as $menuItemId) {
                 $menuItem = DB::table('menu_items')->where('id', $menuItemId)->first();
-                if (!$menuItem) {
+                if (! $menuItem) {
                     continue;
                 }
-                $qty       = rand(1, 3);
-                $price     = (float) $menuItem->price;
+                $qty = rand(1, 3);
+                $price = (float) $menuItem->price;
                 $itemTotal = $qty * $price;
                 $subtotal += $itemTotal;
 
                 $orderItems[] = [
-                    'tenant_id'        => $tenantId,
-                    'menu_item_id'     => $menuItemId,
-                    'item_name'        => $menuItem->name,
-                    'quantity'         => $qty,
-                    'unit_price'       => $price,
-                    'subtotal'         => $itemTotal,
+                    'tenant_id' => $tenantId,
+                    'menu_item_id' => $menuItemId,
+                    'item_name' => $menuItem->name,
+                    'quantity' => $qty,
+                    'unit_price' => $price,
+                    'subtotal' => $itemTotal,
                     'special_requests' => null,
-                    'status'           => 'served',
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
+                    'status' => 'served',
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -339,36 +343,36 @@ class RestaurantGenerator extends BaseIndustryGenerator
                 continue;
             }
 
-            $taxAmount     = round($subtotal * 0.10, 2);
+            $taxAmount = round($subtotal * 0.10, 2);
             $serviceCharge = round($subtotal * 0.05, 2);
-            $totalAmount   = $subtotal + $taxAmount + $serviceCharge;
+            $totalAmount = $subtotal + $taxAmount + $serviceCharge;
 
             $orderId = DB::table('fb_orders')->insertGetId([
-                'tenant_id'            => $tenantId,
-                'order_number'         => $orderNumber,
-                'order_type'           => 'restaurant_dine_in',
-                'guest_id'             => null,
-                'reservation_id'       => null,
-                'room_number'          => null,
-                'table_number'         => null, // FK to users in schema — pass null
-                'created_by'           => $userId,
-                'server_id'            => null,
-                'status'               => 'completed',
-                'subtotal'             => $subtotal,
-                'tax_amount'           => $taxAmount,
-                'service_charge'       => $serviceCharge,
-                'discount_amount'      => 0,
-                'total_amount'         => $totalAmount,
+                'tenant_id' => $tenantId,
+                'order_number' => $orderNumber,
+                'order_type' => 'restaurant_dine_in',
+                'guest_id' => null,
+                'reservation_id' => null,
+                'room_number' => null,
+                'table_number' => null, // FK to users in schema — pass null
+                'created_by' => $userId,
+                'server_id' => null,
+                'status' => 'completed',
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'service_charge' => $serviceCharge,
+                'discount_amount' => 0,
+                'total_amount' => $totalAmount,
                 'special_instructions' => null,
-                'ordered_at'           => $orderedAt,
-                'confirmed_at'         => $orderedAt->copy()->addMinutes(2),
-                'prepared_at'          => $orderedAt->copy()->addMinutes(15),
-                'served_at'            => $orderedAt->copy()->addMinutes(20),
-                'completed_at'         => $orderedAt->copy()->addMinutes(60),
-                'payment_status'       => 'paid',
-                'payment_method'       => ($i % 2 === 0) ? 'credit_card' : 'cash',
-                'created_at'           => now(),
-                'updated_at'           => now(),
+                'ordered_at' => $orderedAt,
+                'confirmed_at' => $orderedAt->copy()->addMinutes(2),
+                'prepared_at' => $orderedAt->copy()->addMinutes(15),
+                'served_at' => $orderedAt->copy()->addMinutes(20),
+                'completed_at' => $orderedAt->copy()->addMinutes(60),
+                'payment_status' => 'paid',
+                'payment_method' => ($i % 2 === 0) ? 'credit_card' : 'cash',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($orderItems as &$oi) {
@@ -392,8 +396,8 @@ class RestaurantGenerator extends BaseIndustryGenerator
         $supplies = [
             ['name' => 'Beras Premium',    'unit' => 'kg',    'current_stock' => 50,  'minimum_stock' => 10, 'cost_per_unit' => 12000],
             ['name' => 'Minyak Goreng',    'unit' => 'liter', 'current_stock' => 20,  'minimum_stock' => 5,  'cost_per_unit' => 18000],
-            ['name' => 'Daging Ayam Segar','unit' => 'kg',    'current_stock' => 15,  'minimum_stock' => 5,  'cost_per_unit' => 35000],
-            ['name' => 'Daging Sapi Lokal','unit' => 'kg',    'current_stock' => 10,  'minimum_stock' => 3,  'cost_per_unit' => 120000],
+            ['name' => 'Daging Ayam Segar', 'unit' => 'kg',    'current_stock' => 15,  'minimum_stock' => 5,  'cost_per_unit' => 35000],
+            ['name' => 'Daging Sapi Lokal', 'unit' => 'kg',    'current_stock' => 10,  'minimum_stock' => 3,  'cost_per_unit' => 120000],
             ['name' => 'Telur Ayam',       'unit' => 'butir', 'current_stock' => 200, 'minimum_stock' => 50, 'cost_per_unit' => 2000],
             ['name' => 'Tepung Terigu',    'unit' => 'kg',    'current_stock' => 25,  'minimum_stock' => 5,  'cost_per_unit' => 10000],
             ['name' => 'Gula Pasir',       'unit' => 'kg',    'current_stock' => 15,  'minimum_stock' => 3,  'cost_per_unit' => 14000],
@@ -421,22 +425,22 @@ class RestaurantGenerator extends BaseIndustryGenerator
             }
 
             $rows[] = [
-                'tenant_id'         => $tenantId,
-                'name'              => $s['name'],
-                'unit'              => $s['unit'],
-                'current_stock'     => $s['current_stock'],
-                'minimum_stock'     => $s['minimum_stock'],
-                'cost_per_unit'     => $s['cost_per_unit'],
-                'category_id'       => null,
-                'supplier_name'     => null,
+                'tenant_id' => $tenantId,
+                'name' => $s['name'],
+                'unit' => $s['unit'],
+                'current_stock' => $s['current_stock'],
+                'minimum_stock' => $s['minimum_stock'],
+                'cost_per_unit' => $s['cost_per_unit'],
+                'category_id' => null,
+                'supplier_name' => null,
                 'last_restocked_at' => Carbon::now()->subDays(rand(1, 14))->format('Y-m-d'),
-                'is_active'         => true,
-                'created_at'        => now(),
-                'updated_at'        => now(),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             $this->bulkInsert('fb_supplies', $rows);
         }
 
@@ -469,21 +473,21 @@ class RestaurantGenerator extends BaseIndustryGenerator
             }
 
             DB::table('employees')->insert([
-                'tenant_id'    => $tenantId,
-                'employee_id'  => $e['employee_id'],
-                'name'         => $e['name'],
-                'email'        => strtolower(str_replace(' ', '.', $e['name'])) . '@demo-restaurant.com',
-                'phone'        => '0819-' . str_pad((string) (10000000 + $i * 3333333), 8, '0', STR_PAD_LEFT),
-                'position'     => $e['position'],
-                'department'   => $e['department'],
-                'join_date'    => Carbon::now()->subMonths(rand(3, 24))->format('Y-m-d'),
-                'status'       => 'active',
-                'salary'       => $e['salary'],
-                'bank_name'    => 'BCA',
-                'bank_account' => '2' . str_pad((string) (100000000 + $i * 111111111), 9, '0', STR_PAD_LEFT),
-                'address'      => 'Jakarta',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'tenant_id' => $tenantId,
+                'employee_id' => $e['employee_id'],
+                'name' => $e['name'],
+                'email' => strtolower(str_replace(' ', '.', $e['name'])).'@demo-restaurant.com',
+                'phone' => '0819-'.str_pad((string) (10000000 + $i * 3333333), 8, '0', STR_PAD_LEFT),
+                'position' => $e['position'],
+                'department' => $e['department'],
+                'join_date' => Carbon::now()->subMonths(rand(3, 24))->format('Y-m-d'),
+                'status' => 'active',
+                'salary' => $e['salary'],
+                'bank_name' => 'BCA',
+                'bank_account' => '2'.str_pad((string) (100000000 + $i * 111111111), 9, '0', STR_PAD_LEFT),
+                'address' => 'Jakarta',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $count++;

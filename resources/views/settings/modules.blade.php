@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Pengaturan Modul')
 
@@ -195,6 +195,8 @@
                     ],
                     'Manajemen & Analitik' => ['projects', 'reports', 'project_billing'],
                     'Industri & Vertikal' => ['hotel', 'fnb', 'spa', 'agriculture', 'livestock', 'telecom'],
+                    'Healthcare & SimRS' => ['healthcare'],
+                    'Tour, Konstruksi & Industri Lain' => ['tour_travel', 'construction', 'cosmetic', 'printing'],
                 ];
             @endphp
 

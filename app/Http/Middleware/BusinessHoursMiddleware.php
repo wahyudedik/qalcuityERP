@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Patient;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,14 +13,14 @@ class BusinessHoursMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string $mode = 'warn'): Response
     {
         $user = $request->user();
 
         // Skip if not authenticated
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -48,7 +49,7 @@ class BusinessHoursMiddleware
             switch ($mode) {
                 case 'block':
                     // Block access outside business hours (except emergency)
-                    if (!$this->isEmergencyAccess($request)) {
+                    if (! $this->isEmergencyAccess($request)) {
                         return response()->view('errors.healthcare-after-hours', [
                             'business_hours' => $businessHours,
                             'current_time' => now(),
@@ -61,8 +62,8 @@ class BusinessHoursMiddleware
                     // Allow but add warning to session
                     session()->flash(
                         'warning',
-                        'You are accessing the system outside of business hours (' .
-                        $businessHours['display'] . '). This access has been logged.'
+                        'You are accessing the system outside of business hours ('.
+                        $businessHours['display'].'). This access has been logged.'
                     );
                     break;
 
@@ -91,7 +92,7 @@ class BusinessHoursMiddleware
 
         // Check if weekends are restricted
         $allowWeekends = config('healthcare.business_hours.allow_weekends', false);
-        if (!$allowWeekends && ($dayOfWeek === 0 || $dayOfWeek === 6)) {
+        if (! $allowWeekends && ($dayOfWeek === 0 || $dayOfWeek === 6)) {
             return true;
         }
 
@@ -118,8 +119,8 @@ class BusinessHoursMiddleware
             'allow_weekends' => $allowWeekends,
             'display' => sprintf(
                 '%s - %s%s',
-                str_pad($startHour, 2, '0', STR_PAD_LEFT) . ':00',
-                str_pad($endHour, 2, '0', STR_PAD_LEFT) . ':00',
+                str_pad($startHour, 2, '0', STR_PAD_LEFT).':00',
+                str_pad($endHour, 2, '0', STR_PAD_LEFT).':00',
                 $allowWeekends ? ' (Mon-Sun)' : ' (Mon-Fri)'
             ),
         ];
@@ -141,7 +142,7 @@ class BusinessHoursMiddleware
         // Check if accessing critical patient
         $patientId = $request->route('patient') ?? $request->route('id');
         if ($patientId) {
-            $patient = \App\Models\Patient::find($patientId);
+            $patient = Patient::find($patientId);
             if ($patient && $patient->is_critical) {
                 return true;
             }
@@ -207,7 +208,7 @@ class BusinessHoursMiddleware
                 // Notification::route('mail', config('healthcare.security.alert_email'))
                 //     ->notify(new AfterHoursAccessAlert($user, $request));
             } catch (\Exception $e) {
-                Log::error('Failed to send after-hours alert: ' . $e->getMessage());
+                Log::error('Failed to send after-hours alert: '.$e->getMessage());
             }
         }
     }

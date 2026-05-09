@@ -7,8 +7,6 @@ use App\Models\CrmLead;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\PayrollRun;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\Project;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
@@ -49,25 +47,25 @@ class CrossModuleQueryService
      * stok (stok kritis, nilai persediaan) untuk insight bisnis terintegrasi.
      *
      * @param  array  $args  ['period' => 'this_month']
-     * @return array
      */
     public function queryAkuntansiInventory(array $args = []): array
     {
-        $period            = $args['period'] ?? 'this_month';
+        $period = $args['period'] ?? 'this_month';
         $unavailableModules = [];
-        $data              = [];
+        $data = [];
 
         $startTime = microtime(true);
 
         // ── Modul Akuntansi ───────────────────────────────────────────────────
         if ($this->isModuleActive('accounting')) {
             $akuntansi = $this->runSafe('accounting', $startTime, function () use ($period) {
-                $income  = $this->queryTransactions('income', $period);
+                $income = $this->queryTransactions('income', $period);
                 $expense = $this->queryTransactions('expense', $period);
+
                 return [
-                    'pendapatan'    => $income,
-                    'pengeluaran'   => $expense,
-                    'profit'        => $income - $expense,
+                    'pendapatan' => $income,
+                    'pengeluaran' => $expense,
+                    'profit' => $income - $expense,
                     'profit_status' => ($income - $expense) >= 0 ? 'SURPLUS' : 'DEFISIT',
                 ];
             });
@@ -85,9 +83,10 @@ class CrossModuleQueryService
         if ($this->isModuleActive('inventory')) {
             $inventory = $this->runSafe('inventory', $startTime, function () {
                 $criticalCount = $this->queryCriticalStock();
-                $totalValue    = $this->queryInventoryValue();
+                $totalValue = $this->queryInventoryValue();
+
                 return [
-                    'stok_kritis'     => $criticalCount,
+                    'stok_kritis' => $criticalCount,
                     'nilai_persediaan' => $totalValue,
                 ];
             });
@@ -105,9 +104,9 @@ class CrossModuleQueryService
         $correlation = [];
         if (isset($data['akuntansi'], $data['inventory'])) {
             $profit = $data['akuntansi']['profit'];
-            $nilai  = $data['inventory']['nilai_persediaan'];
+            $nilai = $data['inventory']['nilai_persediaan'];
             if ($nilai > 0) {
-                $correlation['rasio_profit_ke_persediaan'] = round($profit / $nilai * 100, 2) . '%';
+                $correlation['rasio_profit_ke_persediaan'] = round($profit / $nilai * 100, 2).'%';
             }
             if ($data['inventory']['stok_kritis'] > 0) {
                 $correlation['peringatan'] = "Ada {$data['inventory']['stok_kritis']} produk dengan stok kritis yang dapat mempengaruhi pendapatan.";
@@ -128,25 +127,25 @@ class CrossModuleQueryService
      * biaya tenaga kerja dan produktivitas karyawan.
      *
      * @param  array  $args  ['period' => 'this_month']
-     * @return array
      */
     public function queryAkuntansiHrm(array $args = []): array
     {
-        $period            = $args['period'] ?? 'this_month';
+        $period = $args['period'] ?? 'this_month';
         $unavailableModules = [];
-        $data              = [];
+        $data = [];
 
         $startTime = microtime(true);
 
         // ── Modul Akuntansi ───────────────────────────────────────────────────
         if ($this->isModuleActive('accounting')) {
             $akuntansi = $this->runSafe('accounting', $startTime, function () use ($period) {
-                $income  = $this->queryTransactions('income', $period);
+                $income = $this->queryTransactions('income', $period);
                 $expense = $this->queryTransactions('expense', $period);
+
                 return [
-                    'pendapatan'  => $income,
+                    'pendapatan' => $income,
                     'pengeluaran' => $expense,
-                    'profit'      => $income - $expense,
+                    'profit' => $income - $expense,
                 ];
             });
 
@@ -196,7 +195,7 @@ class CrossModuleQueryService
         $correlation = [];
         if (isset($data['akuntansi'], $data['hrm']) && $data['hrm']['karyawan_aktif'] > 0) {
             $revenuePerEmployee = $data['akuntansi']['pendapatan'] / $data['hrm']['karyawan_aktif'];
-            $correlation['pendapatan_per_karyawan'] = 'Rp ' . number_format($revenuePerEmployee, 0, ',', '.');
+            $correlation['pendapatan_per_karyawan'] = 'Rp '.number_format($revenuePerEmployee, 0, ',', '.');
         }
 
         return $this->buildResponse($data, $unavailableModules, $correlation);
@@ -213,13 +212,12 @@ class CrossModuleQueryService
      * untuk analisis peluang bisnis dan kesiapan fulfillment.
      *
      * @param  array  $args  ['period' => 'this_month']
-     * @return array
      */
     public function queryPenjualanCrmInventory(array $args = []): array
     {
-        $period            = $args['period'] ?? 'this_month';
+        $period = $args['period'] ?? 'this_month';
         $unavailableModules = [];
-        $data              = [];
+        $data = [];
 
         $startTime = microtime(true);
 
@@ -229,7 +227,7 @@ class CrossModuleQueryService
                 $orders = SalesOrder::withoutGlobalScopes()
                     ->where('tenant_id', $this->tenantId)
                     ->where('status', '!=', 'cancelled')
-                    ->when($period === 'this_month', fn($q) => $q
+                    ->when($period === 'this_month', fn ($q) => $q
                         ->whereMonth('date', now()->month)
                         ->whereYear('date', now()->year))
                     ->selectRaw('status, count(*) as total, sum(total) as nilai')
@@ -239,9 +237,9 @@ class CrossModuleQueryService
                 $totalRevenue = $orders->whereIn('status', ['confirmed', 'processing', 'shipped', 'delivered', 'completed'])->sum('nilai');
 
                 return [
-                    'total_order'   => $orders->sum('total'),
+                    'total_order' => $orders->sum('total'),
                     'total_revenue' => $totalRevenue,
-                    'per_status'    => $orders->pluck('total', 'status')->toArray(),
+                    'per_status' => $orders->pluck('total', 'status')->toArray(),
                 ];
             });
 
@@ -272,10 +270,10 @@ class CrossModuleQueryService
                     ->value('weighted') ?? 0;
 
                 return [
-                    'total_leads'      => $leads->sum('total'),
-                    'nilai_pipeline'   => $totalPipeline,
+                    'total_leads' => $leads->sum('total'),
+                    'nilai_pipeline' => $totalPipeline,
                     'nilai_tertimbang' => $weightedValue,
-                    'per_stage'        => $leads->pluck('total', 'stage')->toArray(),
+                    'per_stage' => $leads->pluck('total', 'stage')->toArray(),
                 ];
             });
 
@@ -292,7 +290,7 @@ class CrossModuleQueryService
         if ($this->isModuleActive('inventory')) {
             $inventory = $this->runSafe('inventory', $startTime, function () {
                 return [
-                    'stok_kritis'      => $this->queryCriticalStock(),
+                    'stok_kritis' => $this->queryCriticalStock(),
                     'nilai_persediaan' => $this->queryInventoryValue(),
                 ];
             });
@@ -310,9 +308,9 @@ class CrossModuleQueryService
         $correlation = [];
         if (isset($data['crm'], $data['penjualan'])) {
             $pipeline = $data['crm']['nilai_pipeline'];
-            $revenue  = $data['penjualan']['total_revenue'];
+            $revenue = $data['penjualan']['total_revenue'];
             if ($pipeline > 0) {
-                $correlation['potensi_konversi'] = 'Rp ' . number_format($pipeline, 0, ',', '.');
+                $correlation['potensi_konversi'] = 'Rp '.number_format($pipeline, 0, ',', '.');
             }
         }
         if (isset($data['inventory']) && $data['inventory']['stok_kritis'] > 0) {
@@ -333,13 +331,12 @@ class CrossModuleQueryService
      * analisis produktivitas dan biaya SDM secara menyeluruh.
      *
      * @param  array  $args  ['period' => 'this_month']
-     * @return array
      */
     public function queryHrmPayrollAbsensi(array $args = []): array
     {
-        $period            = $args['period'] ?? now()->format('Y-m');
+        $period = $args['period'] ?? now()->format('Y-m');
         $unavailableModules = [];
-        $data              = [];
+        $data = [];
 
         $startTime = microtime(true);
 
@@ -361,8 +358,8 @@ class CrossModuleQueryService
                     ->count();
 
                 return [
-                    'karyawan_aktif'         => $activeCount,
-                    'kontrak_akan_berakhir'  => $contractExpiring,
+                    'karyawan_aktif' => $activeCount,
+                    'kontrak_akan_berakhir' => $contractExpiring,
                 ];
             });
 
@@ -383,20 +380,20 @@ class CrossModuleQueryService
                     ->where('period', $period)
                     ->first(['status', 'total_gross', 'total_deductions', 'total_net']);
 
-                if (!$run) {
+                if (! $run) {
                     return [
-                        'status'           => 'belum_diproses',
+                        'status' => 'belum_diproses',
                         'total_gaji_kotor' => null,
-                        'total_potongan'   => null,
-                        'total_gaji_bersih'=> null,
+                        'total_potongan' => null,
+                        'total_gaji_bersih' => null,
                     ];
                 }
 
                 return [
-                    'status'           => $run->status,
+                    'status' => $run->status,
                     'total_gaji_kotor' => $run->total_gross,
-                    'total_potongan'   => $run->total_deductions,
-                    'total_gaji_bersih'=> $run->total_net,
+                    'total_potongan' => $run->total_deductions,
+                    'total_gaji_bersih' => $run->total_net,
                 ];
             });
 
@@ -424,17 +421,17 @@ class CrossModuleQueryService
                     ->pluck('total', 'status')
                     ->toArray();
 
-                $totalHadir  = $summary['present'] ?? 0;
-                $totalAbsen  = $summary['absent'] ?? 0;
-                $totalIzin   = ($summary['leave'] ?? 0) + ($summary['late'] ?? 0);
+                $totalHadir = $summary['present'] ?? 0;
+                $totalAbsen = $summary['absent'] ?? 0;
+                $totalIzin = ($summary['leave'] ?? 0) + ($summary['late'] ?? 0);
                 $totalRecord = array_sum($summary);
 
                 return [
-                    'total_hadir'  => $totalHadir,
-                    'total_absen'  => $totalAbsen,
-                    'total_izin'   => $totalIzin,
+                    'total_hadir' => $totalHadir,
+                    'total_absen' => $totalAbsen,
+                    'total_izin' => $totalIzin,
                     'total_record' => $totalRecord,
-                    'per_status'   => $summary,
+                    'per_status' => $summary,
                 ];
             });
 
@@ -451,14 +448,14 @@ class CrossModuleQueryService
         $correlation = [];
         if (isset($data['hrm'], $data['payroll']) && $data['hrm']['karyawan_aktif'] > 0 && isset($data['payroll']['total_gaji_bersih']) && $data['payroll']['total_gaji_bersih'] !== null) {
             $gajiPerKaryawan = $data['payroll']['total_gaji_bersih'] / $data['hrm']['karyawan_aktif'];
-            $correlation['rata_gaji_per_karyawan'] = 'Rp ' . number_format($gajiPerKaryawan, 0, ',', '.');
+            $correlation['rata_gaji_per_karyawan'] = 'Rp '.number_format($gajiPerKaryawan, 0, ',', '.');
         }
         if (isset($data['hrm']) && $data['hrm']['kontrak_akan_berakhir'] > 0) {
             $correlation['peringatan_kontrak'] = "{$data['hrm']['kontrak_akan_berakhir']} karyawan memiliki kontrak yang akan berakhir dalam 30 hari.";
         }
         if (isset($data['absensi']) && $data['absensi']['total_record'] > 0) {
             $tingkatKehadiran = round($data['absensi']['total_hadir'] / $data['absensi']['total_record'] * 100, 1);
-            $correlation['tingkat_kehadiran'] = $tingkatKehadiran . '%';
+            $correlation['tingkat_kehadiran'] = $tingkatKehadiran.'%';
         }
 
         return $this->buildResponse($data, $unavailableModules, $correlation);
@@ -475,14 +472,13 @@ class CrossModuleQueryService
      * untuk analisis profitabilitas proyek dan kesehatan arus kas.
      *
      * @param  array  $args  ['period' => 'this_month', 'status' => null]
-     * @return array
      */
     public function queryProjectKeuangan(array $args = []): array
     {
-        $period            = $args['period'] ?? 'this_month';
-        $projectStatus     = $args['status'] ?? null;
+        $period = $args['period'] ?? 'this_month';
+        $projectStatus = $args['status'] ?? null;
         $unavailableModules = [];
-        $data              = [];
+        $data = [];
 
         $startTime = microtime(true);
 
@@ -498,17 +494,17 @@ class CrossModuleQueryService
 
                 $projects = $query->get(['id', 'name', 'status', 'budget', 'actual_cost', 'progress']);
 
-                $totalBudget     = $projects->sum('budget');
+                $totalBudget = $projects->sum('budget');
                 $totalActualCost = $projects->sum('actual_cost');
-                $byStatus        = $projects->groupBy('status')->map->count();
+                $byStatus = $projects->groupBy('status')->map->count();
 
                 return [
-                    'total_proyek'    => $projects->count(),
-                    'total_budget'    => (float) $totalBudget,
+                    'total_proyek' => $projects->count(),
+                    'total_budget' => (float) $totalBudget,
                     'total_realisasi' => (float) $totalActualCost,
-                    'variance'        => (float) ($totalBudget - $totalActualCost),
-                    'per_status'      => $byStatus->toArray(),
-                    'rata_progress'   => $projects->isNotEmpty()
+                    'variance' => (float) ($totalBudget - $totalActualCost),
+                    'per_status' => $byStatus->toArray(),
+                    'rata_progress' => $projects->isNotEmpty()
                         ? round($projects->avg('progress'), 1)
                         : 0,
                 ];
@@ -526,7 +522,7 @@ class CrossModuleQueryService
         // ── Modul Keuangan ────────────────────────────────────────────────────
         if ($this->isModuleActive('accounting')) {
             $keuangan = $this->runSafe('accounting', $startTime, function () use ($period) {
-                $income  = $this->queryTransactions('income', $period);
+                $income = $this->queryTransactions('income', $period);
                 $expense = $this->queryTransactions('expense', $period);
 
                 // Piutang jatuh tempo
@@ -537,9 +533,9 @@ class CrossModuleQueryService
                     ->sum('remaining_amount');
 
                 return [
-                    'pendapatan'  => $income,
+                    'pendapatan' => $income,
                     'pengeluaran' => $expense,
-                    'profit'      => $income - $expense,
+                    'profit' => $income - $expense,
                     'piutang_jatuh_tempo' => $overdueAr,
                 ];
             });
@@ -558,13 +554,13 @@ class CrossModuleQueryService
         if (isset($data['project'])) {
             $variance = $data['project']['variance'];
             if ($variance < 0) {
-                $correlation['peringatan_budget'] = 'Total realisasi biaya proyek melebihi budget sebesar Rp ' . number_format(abs($variance), 0, ',', '.') . '.';
+                $correlation['peringatan_budget'] = 'Total realisasi biaya proyek melebihi budget sebesar Rp '.number_format(abs($variance), 0, ',', '.').'.';
             } elseif ($variance > 0) {
-                $correlation['sisa_budget'] = 'Sisa budget proyek: Rp ' . number_format($variance, 0, ',', '.') . '.';
+                $correlation['sisa_budget'] = 'Sisa budget proyek: Rp '.number_format($variance, 0, ',', '.').'.';
             }
         }
         if (isset($data['keuangan']) && $data['keuangan']['piutang_jatuh_tempo'] > 0) {
-            $correlation['piutang_jatuh_tempo'] = 'Piutang jatuh tempo: Rp ' . number_format($data['keuangan']['piutang_jatuh_tempo'], 0, ',', '.') . '.';
+            $correlation['piutang_jatuh_tempo'] = 'Piutang jatuh tempo: Rp '.number_format($data['keuangan']['piutang_jatuh_tempo'], 0, ',', '.').'.';
         }
 
         return $this->buildResponse($data, $unavailableModules, $correlation);
@@ -582,6 +578,7 @@ class CrossModuleQueryService
         if (empty($this->activeModules)) {
             return true; // Jika tidak ada filter, anggap semua aktif
         }
+
         return in_array(strtolower($module), array_map('strtolower', $this->activeModules), true);
     }
 
@@ -595,9 +592,10 @@ class CrossModuleQueryService
 
         if ($elapsed >= self::MODULE_TIMEOUT_SECONDS) {
             Log::warning("CrossModuleQueryService: skip modul '{$moduleName}' karena mendekati timeout", [
-                'tenant_id'  => $this->tenantId,
+                'tenant_id' => $this->tenantId,
                 'elapsed_ms' => round($elapsed * 1000),
             ]);
+
             return null;
         }
 
@@ -606,8 +604,9 @@ class CrossModuleQueryService
         } catch (\Throwable $e) {
             Log::warning("CrossModuleQueryService: query modul '{$moduleName}' gagal", [
                 'tenant_id' => $this->tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -619,15 +618,15 @@ class CrossModuleQueryService
     private function buildResponse(array $data, array $unavailableModules, array $correlation = []): array
     {
         $response = [
-            'status'             => 'success',
-            'data'               => $data,
-            'correlation'        => $correlation,
-            'unavailable_modules'=> array_values(array_unique($unavailableModules)),
+            'status' => 'success',
+            'data' => $data,
+            'correlation' => $correlation,
+            'unavailable_modules' => array_values(array_unique($unavailableModules)),
         ];
 
-        if (!empty($unavailableModules)) {
+        if (! empty($unavailableModules)) {
             $response['partial'] = true;
-            $response['message'] = 'Hasil parsial. Modul tidak tersedia: ' . implode(', ', array_unique($unavailableModules)) . '.';
+            $response['message'] = 'Hasil parsial. Modul tidak tersedia: '.implode(', ', array_unique($unavailableModules)).'.';
         }
 
         return $response;
@@ -643,12 +642,12 @@ class CrossModuleQueryService
             ->where('type', $type);
 
         return (float) match (strtolower($period)) {
-            'today'      => $query->whereDate('date', today())->sum('amount'),
-            'this_week'  => $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])->sum('amount'),
+            'today' => $query->whereDate('date', today())->sum('amount'),
+            'this_week' => $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])->sum('amount'),
             'this_month' => $query->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount'),
             'last_month' => $query->whereMonth('date', now()->subMonth()->month)->whereYear('date', now()->subMonth()->year)->sum('amount'),
-            'this_year'  => $query->whereYear('date', now()->year)->sum('amount'),
-            default      => strlen($period) === 7
+            'this_year' => $query->whereYear('date', now()->year)->sum('amount'),
+            default => strlen($period) === 7
                 ? $query->whereYear('date', substr($period, 0, 4))->whereMonth('date', substr($period, 5, 2))->sum('amount')
                 : $query->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount'),
         };

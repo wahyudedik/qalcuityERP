@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 class ThemePreservationTest extends TestCase
 {
     private string $appLayoutPath = 'resources/views/layouts/app.blade.php';
+
     private string $themeManagerPath = 'resources/js/theme-manager.js';
 
     // ── Post dark mode removal: localStorage cleanup ──────────────────────
@@ -29,7 +30,7 @@ class ThemePreservationTest extends TestCase
      */
     public function test_theme_initialization_script_exists_in_layout(): void
     {
-        if (!file_exists($this->appLayoutPath)) {
+        if (! file_exists($this->appLayoutPath)) {
             $this->markTestSkipped("Layout file tidak ditemukan: {$this->appLayoutPath}");
         }
 
@@ -38,7 +39,7 @@ class ThemePreservationTest extends TestCase
         $this->assertStringContainsString(
             'localStorage',
             $content,
-            "Layout harus mengandung script localStorage (cleanup script)"
+            'Layout harus mengandung script localStorage (cleanup script)'
         );
     }
 
@@ -49,7 +50,7 @@ class ThemePreservationTest extends TestCase
      */
     public function test_theme_script_reads_theme_key_from_localstorage(): void
     {
-        if (!file_exists($this->appLayoutPath)) {
+        if (! file_exists($this->appLayoutPath)) {
             $this->markTestSkipped("Layout file tidak ditemukan: {$this->appLayoutPath}");
         }
 
@@ -82,7 +83,7 @@ class ThemePreservationTest extends TestCase
         $this->assertEquals(
             'dark',
             $savedTheme,
-            "Tema yang disimpan harus bisa dibaca kembali (persistence)"
+            'Tema yang disimpan harus bisa dibaca kembali (persistence)'
         );
 
         $localStorage['theme'] = 'light';
@@ -91,7 +92,7 @@ class ThemePreservationTest extends TestCase
         $this->assertEquals(
             'light',
             $savedTheme,
-            "Perubahan tema harus tersimpan dan bisa dibaca kembali"
+            'Perubahan tema harus tersimpan dan bisa dibaca kembali'
         );
     }
 
@@ -122,8 +123,13 @@ class ThemePreservationTest extends TestCase
     public function test_theme_script_handles_system_mode(): void
     {
         $applyTheme = function (string $theme, bool $osDark): string {
-            if ($theme === 'dark') return 'dark';
-            if ($theme === 'light') return 'light';
+            if ($theme === 'dark') {
+                return 'dark';
+            }
+            if ($theme === 'light') {
+                return 'light';
+            }
+
             return $osDark ? 'dark' : 'light';
         };
 
@@ -145,6 +151,7 @@ class ThemePreservationTest extends TestCase
             if ($theme === 'light') {
                 return 'light';
             }
+
             return $osDark ? 'dark' : 'light';
         };
 
@@ -206,7 +213,7 @@ class ThemePreservationTest extends TestCase
      */
     public function test_theme_manager_dispatches_theme_changed_event(): void
     {
-        if (!file_exists($this->themeManagerPath)) {
+        if (! file_exists($this->themeManagerPath)) {
             $this->markTestSkipped("ThemeManager file tidak ditemukan: {$this->themeManagerPath}");
         }
 
@@ -226,7 +233,7 @@ class ThemePreservationTest extends TestCase
      */
     public function test_theme_changed_event_uses_dispatch(): void
     {
-        if (!file_exists($this->themeManagerPath)) {
+        if (! file_exists($this->themeManagerPath)) {
             $this->markTestSkipped("ThemeManager file tidak ditemukan: {$this->themeManagerPath}");
         }
 
@@ -236,7 +243,7 @@ class ThemePreservationTest extends TestCase
             str_contains($content, 'dispatchEvent') ||
                 str_contains($content, 'CustomEvent') ||
                 str_contains($content, 'emit('),
-            "ThemeManager harus menggunakan dispatchEvent atau CustomEvent untuk mengirim event tema"
+            'ThemeManager harus menggunakan dispatchEvent atau CustomEvent untuk mengirim event tema'
         );
     }
 
@@ -263,13 +270,13 @@ class ThemePreservationTest extends TestCase
 
         $dispatchThemeChanged('dark', true);
 
-        $this->assertCount(1, $receivedEvents, "Listener harus menerima event theme-changed");
+        $this->assertCount(1, $receivedEvents, 'Listener harus menerima event theme-changed');
         $this->assertEquals('dark', $receivedEvents[0]['theme']);
         $this->assertTrue($receivedEvents[0]['isDark']);
 
         $dispatchThemeChanged('light', false);
 
-        $this->assertCount(2, $receivedEvents, "Listener harus menerima semua event theme-changed");
+        $this->assertCount(2, $receivedEvents, 'Listener harus menerima semua event theme-changed');
         $this->assertEquals('light', $receivedEvents[1]['theme']);
         $this->assertFalse($receivedEvents[1]['isDark']);
     }
@@ -301,8 +308,8 @@ class ThemePreservationTest extends TestCase
             $listener();
         }
 
-        $this->assertTrue($receivedByListener1, "Listener 1 harus menerima event theme-changed");
-        $this->assertTrue($receivedByListener2, "Listener 2 harus menerima event theme-changed");
-        $this->assertTrue($receivedByListener3, "Listener 3 harus menerima event theme-changed");
+        $this->assertTrue($receivedByListener1, 'Listener 1 harus menerima event theme-changed');
+        $this->assertTrue($receivedByListener2, 'Listener 2 harus menerima event theme-changed');
+        $this->assertTrue($receivedByListener3, 'Listener 3 harus menerima event theme-changed');
     }
 }

@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserSession extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -39,6 +38,7 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(User::class);
     }
+
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);

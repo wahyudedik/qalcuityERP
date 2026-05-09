@@ -17,34 +17,34 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('crop_cycles', function (Blueprint $table) {
-            if (!Schema::hasColumn('crop_cycles', 'variety')) {
+            if (! Schema::hasColumn('crop_cycles', 'variety')) {
                 $table->string('variety')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'area_hectares')) {
+            if (! Schema::hasColumn('crop_cycles', 'area_hectares')) {
                 $table->decimal('area_hectares', 10, 2)->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'field_location')) {
+            if (! Schema::hasColumn('crop_cycles', 'field_location')) {
                 $table->string('field_location')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'growth_stage')) {
+            if (! Schema::hasColumn('crop_cycles', 'growth_stage')) {
                 $table->string('growth_stage')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'estimated_yield_tons')) {
+            if (! Schema::hasColumn('crop_cycles', 'estimated_yield_tons')) {
                 $table->float('estimated_yield_tons')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'actual_yield_tons')) {
+            if (! Schema::hasColumn('crop_cycles', 'actual_yield_tons')) {
                 $table->float('actual_yield_tons')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'status')) {
+            if (! Schema::hasColumn('crop_cycles', 'status')) {
                 $table->string('status')->default('active');
             }
-            if (!Schema::hasColumn('crop_cycles', 'planting_date')) {
+            if (! Schema::hasColumn('crop_cycles', 'planting_date')) {
                 $table->date('planting_date')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'expected_harvest_date')) {
+            if (! Schema::hasColumn('crop_cycles', 'expected_harvest_date')) {
                 $table->date('expected_harvest_date')->nullable();
             }
-            if (!Schema::hasColumn('crop_cycles', 'actual_harvest_date')) {
+            if (! Schema::hasColumn('crop_cycles', 'actual_harvest_date')) {
                 $table->date('actual_harvest_date')->nullable();
             }
         });

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Medicine extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -184,6 +184,7 @@ class Medicine extends Model
         if ($this->purchase_price > 0) {
             return (($this->selling_price - $this->purchase_price) / $this->purchase_price) * 100;
         }
+
         return 0;
     }
 }

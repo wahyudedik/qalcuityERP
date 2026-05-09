@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('writeoffs')) {
+        if (! Schema::hasTable('writeoffs')) {
             Schema::create('writeoffs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->timestamp('approved_at')->nullable();
                 $table->timestamp('posted_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'type']);
                 $table->index(['reference_type', 'reference_id']);

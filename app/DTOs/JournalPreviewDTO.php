@@ -4,7 +4,7 @@ namespace App\DTOs;
 
 /**
  * JournalPreviewDTO - Data Transfer Object untuk preview journal entry
- * 
+ *
  * Digunakan untuk menampilkan preview journal sebelum di-approve dan di-save ke database
  */
 class JournalPreviewDTO
@@ -70,7 +70,7 @@ class JournalPreviewDTO
             $errors[] = 'Journal lines tidak boleh kosong';
         }
 
-        if (!$this->isBalanced) {
+        if (! $this->isBalanced) {
             $errors[] = 'Journal tidak balance: Debit ≠ Credit';
         }
 
@@ -80,11 +80,11 @@ class JournalPreviewDTO
 
         foreach ($this->lines as $index => $line) {
             if (empty($line['account_id'])) {
-                $errors[] = "Line #" . ($index + 1) . ": Account tidak valid";
+                $errors[] = 'Line #'.($index + 1).': Account tidak valid';
             }
 
             if (($line['debit'] ?? 0) <= 0 && ($line['credit'] ?? 0) <= 0) {
-                $errors[] = "Line #" . ($index + 1) . ": Debit atau Credit harus lebih dari 0";
+                $errors[] = 'Line #'.($index + 1).': Debit atau Credit harus lebih dari 0';
             }
         }
 

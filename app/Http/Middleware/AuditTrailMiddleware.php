@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AuditLog;
+use App\Models\Patient;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +14,7 @@ class AuditTrailMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string $resourceType = 'medical_record'): Response
     {
@@ -36,9 +38,9 @@ class AuditTrailMiddleware
             ];
 
             // Log to database if AuditLog model exists
-            if (class_exists(\App\Models\AuditLog::class)) {
+            if (class_exists(AuditLog::class)) {
                 try {
-                    \App\Models\AuditLog::create([
+                    AuditLog::create([
                         'user_id' => $user->id,
                         'tenant_id' => $user->tenant_id,
                         'action' => $request->method(),
@@ -55,7 +57,7 @@ class AuditTrailMiddleware
                     ]);
                 } catch (\Exception $e) {
                     // Fallback to log file if database insert fails
-                    Log::warning('Failed to create audit log entry: ' . $e->getMessage());
+                    Log::warning('Failed to create audit log entry: '.$e->getMessage());
                 }
             }
 
@@ -77,7 +79,7 @@ class AuditTrailMiddleware
 
             // Alert if accessing patient outside assigned department
             if ($request->route('patient')) {
-                $patient = \App\Models\Patient::find($request->route('patient'));
+                $patient = Patient::find($request->route('patient'));
 
                 if ($patient && $user->department_id && $patient->assigned_department_id) {
                     if ($user->department_id !== $patient->assigned_department_id) {

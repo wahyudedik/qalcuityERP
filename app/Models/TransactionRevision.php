@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -17,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class TransactionRevision extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'model_type', 'model_id', 'revision',
         'reason', 'snapshot_before', 'snapshot_after',
@@ -25,8 +25,8 @@ class TransactionRevision extends Model
 
     protected $casts = [
         'snapshot_before' => 'array',
-        'snapshot_after'  => 'array',
-        'finalized_at'    => 'datetime',
+        'snapshot_after' => 'array',
+        'finalized_at' => 'datetime',
     ];
 
     public function tenant(): BelongsTo

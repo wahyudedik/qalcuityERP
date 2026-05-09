@@ -2,9 +2,9 @@
 
 namespace App\Observers;
 
-use App\Models\ProductStock;
-use App\Models\EcommerceProductMapping;
 use App\Jobs\SyncMarketplaceStock;
+use App\Models\EcommerceProductMapping;
+use App\Models\ProductStock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -13,7 +13,7 @@ class ProductStockObserver
     public function updated(ProductStock $stock): void
     {
         // Only trigger if quantity changed
-        if (!$stock->isDirty('quantity')) {
+        if (! $stock->isDirty('quantity')) {
             return;
         }
 

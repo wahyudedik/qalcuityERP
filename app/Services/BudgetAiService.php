@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Budget;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -34,12 +35,14 @@ class BudgetAiService
      */
     public function predictOverrun(int $tenantId, string $period, Collection $budgets): array
     {
-        if ($budgets->isEmpty()) return [];
+        if ($budgets->isEmpty()) {
+            return [];
+        }
 
         [$year, $month] = explode('-', $period);
-        $daysInMonth  = cal_days_in_month(CAL_GREGORIAN, (int)$month, (int)$year);
-        $today        = now();
-        $periodDate   = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, (int) $month, (int) $year);
+        $today = now();
+        $periodDate = Carbon::createFromDate($year, $month, 1);
 
         // Hari yang sudah lewat di bulan ini (min 1 untuk hindari div/0)
         $daysPassed = $periodDate->isSameMonth($today)
@@ -49,33 +52,35 @@ class BudgetAiService
         $results = [];
 
         foreach ($budgets as $budget) {
-            if ($budget->amount <= 0) continue;
+            if ($budget->amount <= 0) {
+                continue;
+            }
 
             // Burn rate harian
-            $burnRate  = $budget->realized / $daysPassed;
+            $burnRate = $budget->realized / $daysPassed;
             $projected = $burnRate * $daysInMonth;
-            $overrun   = $projected - $budget->amount;
-            $pct       = round($projected / $budget->amount * 100, 1);
+            $overrun = $projected - $budget->amount;
+            $pct = round($projected / $budget->amount * 100, 1);
 
             // Histori: berapa bulan terakhir (6 bulan) yang over budget
             $historyOver = $this->countHistoryOverruns($tenantId, $budget->name, $period, 6);
 
             // Risk level
             $risk = match (true) {
-                $pct >= 110                          => 'high',
-                $pct >= 90 || $historyOver >= 3      => 'medium',
-                $pct >= 75 || $historyOver >= 2      => 'low',
-                default                              => 'safe',
+                $pct >= 110 => 'high',
+                $pct >= 90 || $historyOver >= 3 => 'medium',
+                $pct >= 75 || $historyOver >= 2 => 'low',
+                default => 'safe',
             };
 
-            $projFmt = 'Rp ' . number_format($projected, 0, ',', '.');
-            $budFmt  = 'Rp ' . number_format($budget->amount, 0, ',', '.');
+            $projFmt = 'Rp '.number_format($projected, 0, ',', '.');
+            $budFmt = 'Rp '.number_format($budget->amount, 0, ',', '.');
 
             $message = match ($risk) {
-                'high'   => "Proyeksi akhir bulan {$projFmt} ({$pct}% dari anggaran). Kemungkinan besar overrun.",
+                'high' => "Proyeksi akhir bulan {$projFmt} ({$pct}% dari anggaran). Kemungkinan besar overrun.",
                 'medium' => "Proyeksi {$projFmt} mendekati batas anggaran {$budFmt}. Perlu dipantau.",
-                'low'    => "Tren realisasi normal, proyeksi {$projFmt}. Masih dalam batas aman.",
-                default  => "Realisasi terkendali. Proyeksi {$projFmt} dari anggaran {$budFmt}.",
+                'low' => "Tren realisasi normal, proyeksi {$projFmt}. Masih dalam batas aman.",
+                default => "Realisasi terkendali. Proyeksi {$projFmt} dari anggaran {$budFmt}.",
             };
 
             if ($historyOver >= 2) {
@@ -83,12 +88,12 @@ class BudgetAiService
             }
 
             $results[$budget->id] = [
-                'risk'           => $risk,
-                'projected'      => round($projected, 2),
+                'risk' => $risk,
+                'projected' => round($projected, 2),
                 'overrun_amount' => round($overrun, 2),
-                'pct'            => $pct,
-                'message'        => $message,
-                'history_over'   => $historyOver,
+                'pct' => $pct,
+                'message' => $message,
+                'history_over' => $historyOver,
             ];
         }
 
@@ -101,7 +106,7 @@ class BudgetAiService
     private function countHistoryOverruns(int $tenantId, string $name, string $currentPeriod, int $months): int
     {
         $periods = [];
-        $date = \Carbon\Carbon::createFromFormat('Y-m', $currentPeriod)->subMonth();
+        $date = Carbon::createFromFormat('Y-m', $currentPeriod)->subMonth();
         for ($i = 0; $i < $months; $i++) {
             $periods[] = $date->format('Y-m');
             $date->subMonth();
@@ -136,7 +141,7 @@ class BudgetAiService
         [$year, $month] = explode('-', $period);
 
         // Periode yang sama tahun lalu
-        $lastYearPeriod = ($year - 1) . '-' . $month;
+        $lastYearPeriod = ($year - 1).'-'.$month;
 
         $lastYear = Budget::where('tenant_id', $tenantId)
             ->where('period', $lastYearPeriod)
@@ -159,7 +164,7 @@ class BudgetAiService
         $suggestions = [];
 
         foreach ($lastYear as $budget) {
-            $basis  = $budget->realized > 0 ? $budget->realized : $budget->amount;
+            $basis = $budget->realized > 0 ? $budget->realized : $budget->amount;
             $buffer = $basis * 0.10;
             $suggested = round($basis + $buffer, -3); // bulatkan ke ribuan
 
@@ -171,19 +176,19 @@ class BudgetAiService
                 ->first();
 
             $suggestions[] = [
-                'name'               => $budget->name,
-                'department'         => $budget->department,
-                'category'           => $budget->category,
-                'suggested_amount'   => $suggested,
-                'basis_amount'       => $basis,
-                'confidence'         => $budget->realized > 0 ? 'high' : 'medium',
-                'basis'              => $budget->realized > 0
+                'name' => $budget->name,
+                'department' => $budget->department,
+                'category' => $budget->category,
+                'suggested_amount' => $suggested,
+                'basis_amount' => $basis,
+                'confidence' => $budget->realized > 0 ? 'high' : 'medium',
+                'basis' => $budget->realized > 0
                     ? 'Realisasi tahun lalu + buffer 10%'
                     : 'Anggaran tahun lalu + buffer 10% (realisasi tidak tersedia)',
                 'last_year_realized' => $budget->realized,
-                'last_year_amount'   => $budget->amount,
-                'already_exists'     => $existing !== null,
-                'existing_amount'    => $existing?->amount,
+                'last_year_amount' => $budget->amount,
+                'already_exists' => $existing !== null,
+                'existing_amount' => $existing?->amount,
             ];
         }
 
@@ -196,7 +201,7 @@ class BudgetAiService
     private function suggestFromRecentMonths(int $tenantId, string $period): array
     {
         $recentPeriods = [];
-        $date = \Carbon\Carbon::createFromFormat('Y-m', $period)->subMonth();
+        $date = Carbon::createFromFormat('Y-m', $period)->subMonth();
         for ($i = 0; $i < 3; $i++) {
             $recentPeriods[] = $date->format('Y-m');
             $date->subMonth();
@@ -208,15 +213,17 @@ class BudgetAiService
             ->get()
             ->groupBy('name');
 
-        if ($recent->isEmpty()) return [];
+        if ($recent->isEmpty()) {
+            return [];
+        }
 
         $suggestions = [];
 
         foreach ($recent as $name => $items) {
             $avgRealized = $items->avg('realized');
-            $avgAmount   = $items->avg('amount');
-            $basis       = $avgRealized > 0 ? $avgRealized : $avgAmount;
-            $suggested   = round($basis * 1.05, -3);
+            $avgAmount = $items->avg('amount');
+            $basis = $avgRealized > 0 ? $avgRealized : $avgAmount;
+            $suggested = round($basis * 1.05, -3);
 
             $existing = Budget::where('tenant_id', $tenantId)
                 ->where('name', $name)
@@ -225,17 +232,17 @@ class BudgetAiService
                 ->first();
 
             $suggestions[] = [
-                'name'               => $name,
-                'department'         => $items->first()->department,
-                'category'           => $items->first()->category,
-                'suggested_amount'   => $suggested,
-                'basis_amount'       => round($basis, 2),
-                'confidence'         => 'low',
-                'basis'              => 'Rata-rata ' . count($recentPeriods) . ' bulan terakhir + buffer 5%',
+                'name' => $name,
+                'department' => $items->first()->department,
+                'category' => $items->first()->category,
+                'suggested_amount' => $suggested,
+                'basis_amount' => round($basis, 2),
+                'confidence' => 'low',
+                'basis' => 'Rata-rata '.count($recentPeriods).' bulan terakhir + buffer 5%',
                 'last_year_realized' => null,
-                'last_year_amount'   => null,
-                'already_exists'     => $existing !== null,
-                'existing_amount'    => $existing?->amount,
+                'last_year_amount' => null,
+                'already_exists' => $existing !== null,
+                'existing_amount' => $existing?->amount,
             ];
         }
 

@@ -2,34 +2,40 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property \Carbon\Carbon $check_in_date
- * @property \Carbon\Carbon $check_out_date
- * @property \Carbon\Carbon|null $actual_check_in
- * @property \Carbon\Carbon|null $actual_check_out
- * @property \Carbon\Carbon|null $cancelled_at
+ * @property Carbon $check_in_date
+ * @property Carbon $check_out_date
+ * @property Carbon|null $actual_check_in
+ * @property Carbon|null $actual_check_out
+ * @property Carbon|null $cancelled_at
  */
 class Reservation extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
-    const STATUS_PENDING     = 'pending';
-    const STATUS_CONFIRMED   = 'confirmed';
-    const STATUS_CHECKED_IN  = 'checked_in';
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_CONFIRMED = 'confirmed';
+
+    const STATUS_CHECKED_IN = 'checked_in';
+
     const STATUS_CHECKED_OUT = 'checked_out';
-    const STATUS_CANCELLED   = 'cancelled';
-    const STATUS_NO_SHOW     = 'no_show';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_NO_SHOW = 'no_show';
 
     const STATUSES = [
         self::STATUS_PENDING,
@@ -144,7 +150,7 @@ class Reservation extends Model
         return $this->hasMany(ReservationRoom::class);
     }
 
-    public function rooms(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function rooms(): BelongsToMany
     {
         return $this->belongsToMany(Room::class, 'reservation_rooms')
             ->withPivot(['check_in_date', 'check_out_date', 'rate_per_night', 'status'])

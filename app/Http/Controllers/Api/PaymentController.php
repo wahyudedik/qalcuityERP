@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TenantPaymentGateway;
 use App\Models\PaymentTransaction;
 use App\Models\SalesOrder;
+use App\Models\TenantPaymentGateway;
 use App\Services\PaymentGatewayService;
+use App\Services\WebhookHandlerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
@@ -72,7 +72,7 @@ class PaymentController extends Controller
             ->with('salesOrder')
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return response()->json(['error' => 'Transaction not found'], 404);
         }
 
@@ -130,12 +130,12 @@ class PaymentController extends Controller
                 ?? $request->route('tenant')
                 ?? $this->extractTenantFromPayload($provider, $payload);
 
-            if (!$tenantId) {
+            if (! $tenantId) {
                 return response()->json(['error' => 'Tenant ID not found'], 400);
             }
 
             // Use dedicated webhook handler service
-            $webhookService = new \App\Services\WebhookHandlerService($tenantId);
+            $webhookService = new WebhookHandlerService($tenantId);
 
             $result = match ($provider) {
                 'midtrans' => $webhookService->handleMidtrans($payload, $signature),
@@ -152,6 +152,7 @@ class PaymentController extends Controller
 
         } catch (\Exception $e) {
             \Log::error("Payment webhook error: {$e->getMessage()}");
+
             return response()->json(['error' => 'Internal server error'], 500);
         }
     }
@@ -243,7 +244,7 @@ class PaymentController extends Controller
         }
 
         $gateway->update([
-            'is_active' => !$gateway->is_active,
+            'is_active' => ! $gateway->is_active,
         ]);
 
         return response()->json([

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\PatientVisit;
 use App\Models\MedicalBill;
-use Illuminate\Http\Request;
+use App\Models\PatientVisit;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class TrendAnalysisController extends Controller
 {

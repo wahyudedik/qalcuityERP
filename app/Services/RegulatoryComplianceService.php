@@ -2,17 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\AuditTrail;
 use App\Models\AccessViolation;
-use App\Models\DataAnonymizationLog;
-use App\Models\ComplianceReport;
+use App\Models\AuditTrail;
 use App\Models\BackupLog;
+use App\Models\ComplianceReport;
+use App\Models\DataAnonymizationLog;
 use App\Models\DisasterRecoveryLog;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Storage;
 
 class RegulatoryComplianceService
 {
@@ -53,7 +51,7 @@ class RegulatoryComplianceService
         $role = $user->role ?? 'user';
         $authorizedRoles = $this->getAuthorizedRoles($action);
 
-        if (!in_array($role, $authorizedRoles)) {
+        if (! in_array($role, $authorizedRoles)) {
             $result['reason'] = "Role '{$role}' not authorized for {$action}";
             $result['risk_level'] = 'high';
 
@@ -70,28 +68,31 @@ class RegulatoryComplianceService
         }
 
         // Check if user is assigned to this patient
-        if (!$this->isUserAssignedToPatient($user->id, $patientId)) {
+        if (! $this->isUserAssignedToPatient($user->id, $patientId)) {
             // Allow access with logging for treatment purposes
             if ($reason === 'treatment' && in_array($role, ['doctor', 'nurse'])) {
                 $result['allowed'] = true;
                 $result['reason'] = 'Emergency access logged';
                 $result['risk_level'] = 'medium';
+
                 return $result;
             }
 
             $result['reason'] = 'User not assigned to this patient';
             $result['requires_approval'] = true;
+
             return $result;
         }
 
         // Check business hours
-        if (!$this->isBusinessHours()) {
+        if (! $this->isBusinessHours()) {
             $result['risk_level'] = 'medium';
             $result['reason'] = 'After-hours access - will be reviewed';
         }
 
         $result['allowed'] = true;
         $result['reason'] = 'Access granted';
+
         return $result;
     }
 
@@ -123,7 +124,7 @@ class RegulatoryComplianceService
                 $this->performAnonymization($log);
             }
 
-            Log::info("Data anonymization request created", [
+            Log::info('Data anonymization request created', [
                 'anonymization_number' => $log->anonymization_number,
                 'purpose' => $log->purpose,
                 'records' => $log->total_records,
@@ -145,9 +146,9 @@ class RegulatoryComplianceService
         );
 
         $totalChecks = count($checks);
-        $passedChecks = count(array_filter($checks, fn($c) => $c['status'] === 'pass'));
-        $failedChecks = count(array_filter($checks, fn($c) => $c['status'] === 'fail'));
-        $warningChecks = count(array_filter($checks, fn($c) => $c['status'] === 'warning'));
+        $passedChecks = count(array_filter($checks, fn ($c) => $c['status'] === 'pass'));
+        $failedChecks = count(array_filter($checks, fn ($c) => $c['status'] === 'fail'));
+        $warningChecks = count(array_filter($checks, fn ($c) => $c['status'] === 'warning'));
 
         $complianceScore = $totalChecks > 0
             ? round(($passedChecks / $totalChecks) * 100, 2)
@@ -211,7 +212,7 @@ class RegulatoryComplianceService
                     'verified_at' => now(),
                 ]);
 
-                Log::info("Medical records backup completed", [
+                Log::info('Medical records backup completed', [
                     'backup_number' => $backupLog->backup_number,
                     'records' => $result['total_records'],
                     'size_mb' => $result['backup_size_mb'],
@@ -223,7 +224,7 @@ class RegulatoryComplianceService
                     'error_message' => $e->getMessage(),
                 ]);
 
-                Log::error("Medical records backup failed", [
+                Log::error('Medical records backup failed', [
                     'backup_number' => $backupLog->backup_number,
                     'error' => $e->getMessage(),
                 ]);
@@ -496,13 +497,13 @@ class RegulatoryComplianceService
     protected function generateAnonymizationNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'ANON-' . $date;
+        $prefix = 'ANON-'.$date;
 
-        $last = DataAnonymizationLog::where('anonymization_number', 'like', $prefix . '%')
+        $last = DataAnonymizationLog::where('anonymization_number', 'like', $prefix.'%')
             ->orderBy('anonymization_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->anonymization_number, -4) + 1 : 1,
             4,
             '0',
@@ -513,13 +514,13 @@ class RegulatoryComplianceService
     protected function generateComplianceReportNumber(): string
     {
         $date = now()->format('Ym');
-        $prefix = 'COMP-' . $date;
+        $prefix = 'COMP-'.$date;
 
-        $last = ComplianceReport::where('report_number', 'like', $prefix . '%')
+        $last = ComplianceReport::where('report_number', 'like', $prefix.'%')
             ->orderBy('report_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->report_number, -4) + 1 : 1,
             4,
             '0',
@@ -530,13 +531,13 @@ class RegulatoryComplianceService
     protected function generateBackupNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'BACKUP-' . $date;
+        $prefix = 'BACKUP-'.$date;
 
-        $last = BackupLog::where('backup_number', 'like', $prefix . '%')
+        $last = BackupLog::where('backup_number', 'like', $prefix.'%')
             ->orderBy('backup_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->backup_number, -4) + 1 : 1,
             4,
             '0',
@@ -547,13 +548,13 @@ class RegulatoryComplianceService
     protected function generateDRNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'DR-' . $date;
+        $prefix = 'DR-'.$date;
 
-        $last = DisasterRecoveryLog::where('dr_number', 'like', $prefix . '%')
+        $last = DisasterRecoveryLog::where('dr_number', 'like', $prefix.'%')
             ->orderBy('dr_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->dr_number, -4) + 1 : 1,
             4,
             '0',
@@ -564,13 +565,13 @@ class RegulatoryComplianceService
     protected function generateViolationNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'VIOLATION-' . $date;
+        $prefix = 'VIOLATION-'.$date;
 
-        $last = AccessViolation::where('violation_number', 'like', $prefix . '%')
+        $last = AccessViolation::where('violation_number', 'like', $prefix.'%')
             ->orderBy('violation_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->violation_number, -4) + 1 : 1,
             4,
             '0',

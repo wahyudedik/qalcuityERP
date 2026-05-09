@@ -21,7 +21,7 @@ class LowStockEmailNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $count = count($this->items);
-        $mail  = (new MailMessage)
+        $mail = (new MailMessage)
             ->subject("⚠️ {$count} Produk Stok Menipis")
             ->greeting("Halo, {$notifiable->name}!")
             ->line("{$count} produk memiliki stok di bawah batas minimum:");
@@ -31,7 +31,7 @@ class LowStockEmailNotification extends Notification implements ShouldQueue
         }
 
         if ($count > 10) {
-            $mail->line('...dan ' . ($count - 10) . ' produk lainnya.');
+            $mail->line('...dan '.($count - 10).' produk lainnya.');
         }
 
         return $mail

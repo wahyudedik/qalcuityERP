@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RegistrationDocument extends Model
 {
@@ -42,10 +41,11 @@ class RegistrationDocument extends Model
     // Get file size in MB
     public function getFileSizeMbAttribute(): ?string
     {
-        if (!$this->file_size) {
+        if (! $this->file_size) {
             return null;
         }
-        return number_format($this->file_size / 1024, 2) . ' MB';
+
+        return number_format($this->file_size / 1024, 2).' MB';
     }
 
     // Relationship

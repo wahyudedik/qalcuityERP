@@ -2,15 +2,19 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\Customer;
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 use Throwable;
 
 /**
  * Shopify Connector
- * 
+ *
  * Handles integration with Shopify REST Admin API 2024-01
  * Supports OAuth 2.0 authentication
  */
@@ -82,6 +86,7 @@ class ShopifyConnector extends BaseConnector
                 Log::info('Shopify authentication successful', [
                     'shop' => $this->shopDomain,
                 ]);
+
                 return true;
             }
 
@@ -95,6 +100,7 @@ class ShopifyConnector extends BaseConnector
             Log::error('Shopify authentication error', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -112,7 +118,7 @@ class ShopifyConnector extends BaseConnector
             'grant_options[]' => 'per-user',
         ];
 
-        return "https://{$this->shopDomain}/admin/oauth/authorize?" . http_build_query($params);
+        return "https://{$this->shopDomain}/admin/oauth/authorize?".http_build_query($params);
     }
 
     /**
@@ -149,6 +155,7 @@ class ShopifyConnector extends BaseConnector
             Log::error('Shopify OAuth completion failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -169,7 +176,7 @@ class ShopifyConnector extends BaseConnector
 
         try {
             // Get products from ERP
-            $products = \App\Models\Product::where('tenant_id', $this->integration->tenant_id)
+            $products = Product::where('tenant_id', $this->integration->tenant_id)
                 ->where('is_active', true)
                 ->get();
 
@@ -186,7 +193,7 @@ class ShopifyConnector extends BaseConnector
 
                         if ($result['success']) {
                             // Save mapping
-                            \App\Models\EcommerceProductMapping::create([
+                            EcommerceProductMapping::create([
                                 'tenant_id' => $this->integration->tenant_id,
                                 'product_id' => $product->id,
                                 'channel_id' => $this->integration->id,
@@ -297,7 +304,7 @@ class ShopifyConnector extends BaseConnector
         $variants = [];
 
         // Get stock for this product
-        $stock = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+        $stock = ProductStock::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $product->id)
             ->first();
 
@@ -341,15 +348,15 @@ class ShopifyConnector extends BaseConnector
             foreach ($orders as $shopifyOrder) {
                 try {
                     // Check if order already exists
-                    $exists = \App\Models\SalesOrder::where('tenant_id', $this->integration->tenant_id)
+                    $exists = SalesOrder::where('tenant_id', $this->integration->tenant_id)
                         ->where('external_id', $shopifyOrder['id'])
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $erpOrder = $this->transformOrderFromShopify($shopifyOrder);
 
                         // Create SalesOrder in ERP
-                        \App\Models\SalesOrder::create($erpOrder);
+                        SalesOrder::create($erpOrder);
                         $processed++;
                     }
                 } catch (Throwable $e) {
@@ -406,7 +413,7 @@ class ShopifyConnector extends BaseConnector
     protected function transformOrderFromShopify(array $shopifyOrder): array
     {
         // Find or create customer
-        $customer = \App\Models\Customer::firstOrCreate(
+        $customer = Customer::firstOrCreate(
             [
                 'tenant_id' => $this->integration->tenant_id,
                 'email' => $shopifyOrder['customer']['email'] ?? null,
@@ -463,7 +470,7 @@ class ShopifyConnector extends BaseConnector
 
         try {
             // Get all product stocks
-            $stocks = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+            $stocks = ProductStock::where('tenant_id', $this->integration->tenant_id)
                 ->where('quantity', '>=', 0)
                 ->get();
 
@@ -547,10 +554,10 @@ class ShopifyConnector extends BaseConnector
     public function registerWebhooks(): array
     {
         $webhooks = [
-            ['topic' => 'orders/create', 'address' => config('app.url') . '/api/integrations/webhooks/shopify'],
-            ['topic' => 'orders/updated', 'address' => config('app.url') . '/api/integrations/webhooks/shopify'],
-            ['topic' => 'products/create', 'address' => config('app.url') . '/api/integrations/webhooks/shopify'],
-            ['topic' => 'products/update', 'address' => config('app.url') . '/api/integrations/webhooks/shopify'],
+            ['topic' => 'orders/create', 'address' => config('app.url').'/api/integrations/webhooks/shopify'],
+            ['topic' => 'orders/updated', 'address' => config('app.url').'/api/integrations/webhooks/shopify'],
+            ['topic' => 'products/create', 'address' => config('app.url').'/api/integrations/webhooks/shopify'],
+            ['topic' => 'products/update', 'address' => config('app.url').'/api/integrations/webhooks/shopify'],
         ];
 
         $registered = [];

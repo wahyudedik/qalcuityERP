@@ -14,6 +14,7 @@ class AuditCrudCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:crud {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run CRUD completeness audit.';
 
     public function handle(
@@ -21,13 +22,13 @@ class AuditCrudCommand extends Command
         ModelAnalyzer $modelAnalyzer,
         RouteAnalyzer $routeAnalyzer
     ): int {
-        $report = new AuditReport();
+        $report = new AuditReport;
         $report->addAll($crudAnalyzer->analyze());
         $report->addAll($modelAnalyzer->analyze());
         $report->addAll($routeAnalyzer->analyze());
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

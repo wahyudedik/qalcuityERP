@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Kendaraan operasional
-        if (!Schema::hasTable('fleet_vehicles')) {
+        if (! Schema::hasTable('fleet_vehicles')) {
             Schema::create('fleet_vehicles', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -29,14 +29,14 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'plate_number']);
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Driver / pengemudi
-        if (!Schema::hasTable('fleet_drivers')) {
+        if (! Schema::hasTable('fleet_drivers')) {
             Schema::create('fleet_drivers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -50,13 +50,13 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Trip / penugasan kendaraan
-        if (!Schema::hasTable('fleet_trips')) {
+        if (! Schema::hasTable('fleet_trips')) {
             Schema::create('fleet_trips', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -76,13 +76,13 @@ return new class extends Migration
                 $table->unsignedBigInteger('reference_id')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Fuel log / catatan BBM
-        if (!Schema::hasTable('fleet_fuel_logs')) {
+        if (! Schema::hasTable('fleet_fuel_logs')) {
             Schema::create('fleet_fuel_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -101,13 +101,13 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'vehicle_id', 'date']);
             });
         }
 
         // Maintenance schedule & log
-        if (!Schema::hasTable('fleet_maintenances')) {
+        if (! Schema::hasTable('fleet_maintenances')) {
             Schema::create('fleet_maintenances', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -125,7 +125,7 @@ return new class extends Migration
                 $table->foreignId('journal_entry_id')->nullable()->constrained('journal_entries')->nullOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'vehicle_id', 'status']);
             });
         }

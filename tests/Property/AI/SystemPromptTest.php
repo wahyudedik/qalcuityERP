@@ -63,7 +63,7 @@ class SystemPromptTest extends TestCase
         Config::set('ai.providers.anthropic.max_tokens', 8192);
         Config::set('ai.providers.anthropic.timeout', 60);
 
-        return new AnthropicProvider();
+        return new AnthropicProvider;
     }
 
     /**
@@ -74,6 +74,7 @@ class SystemPromptTest extends TestCase
         $reflection = new ReflectionClass($provider);
         $method = $reflection->getMethod('getSystemPrompt');
         $method->setAccessible(true);
+
         return $method->invoke($provider);
     }
 
@@ -95,7 +96,7 @@ class SystemPromptTest extends TestCase
         $this->assertStringContainsString(
             $tenantContext,
             $systemPrompt,
-            "System prompt harus mengandung tenant context yang di-set"
+            'System prompt harus mengandung tenant context yang di-set'
         );
     }
 
@@ -152,7 +153,7 @@ class SystemPromptTest extends TestCase
         $this
             ->forAll(
                 Generators::suchThat(
-                    fn(string $s) => trim($s) !== '',
+                    fn (string $s) => trim($s) !== '',
                     Generators::string()
                 ),
                 Generators::elements(array_keys(self::LANGUAGE_KEYWORDS))
@@ -165,7 +166,7 @@ class SystemPromptTest extends TestCase
                 $this->assertStringContainsString(
                     $tenantContext,
                     $systemPrompt,
-                    "System prompt harus mengandung tenant context '{$tenantContext}' " .
+                    "System prompt harus mengandung tenant context '{$tenantContext}' ".
                         "untuk language '{$language}'. Property 8 dilanggar."
                 );
             });
@@ -194,7 +195,7 @@ class SystemPromptTest extends TestCase
                 $this->assertStringContainsString(
                     $expectedKeyword,
                     $systemPrompt,
-                    "System prompt untuk language '{$language}' harus mengandung keyword " .
+                    "System prompt untuk language '{$language}' harus mengandung keyword ".
                         "'{$expectedKeyword}'. Property 8 dilanggar."
                 );
             });
@@ -213,7 +214,7 @@ class SystemPromptTest extends TestCase
         $this
             ->forAll(
                 Generators::suchThat(
-                    fn(string $s) => trim($s) !== '',
+                    fn (string $s) => trim($s) !== '',
                     Generators::string()
                 ),
                 Generators::elements(array_keys(self::LANGUAGE_KEYWORDS))
@@ -229,14 +230,14 @@ class SystemPromptTest extends TestCase
                 $this->assertStringContainsString(
                     $tenantContext,
                     $systemPrompt,
-                    "System prompt harus mengandung tenant context. Property 8 dilanggar."
+                    'System prompt harus mengandung tenant context. Property 8 dilanggar.'
                 );
 
                 // System prompt harus mengandung keyword bahasa
                 $this->assertStringContainsString(
                     $expectedKeyword,
                     $systemPrompt,
-                    "System prompt harus mengandung keyword bahasa '{$expectedKeyword}' " .
+                    "System prompt harus mengandung keyword bahasa '{$expectedKeyword}' ".
                         "untuk language '{$language}'. Property 8 dilanggar."
                 );
             });
@@ -266,7 +267,7 @@ class SystemPromptTest extends TestCase
                 $this->assertStringNotContainsString(
                     'KONTEKS BISNIS',
                     $systemPrompt,
-                    "System prompt tanpa tenant context tidak boleh mengandung section " .
+                    'System prompt tanpa tenant context tidak boleh mengandung section '.
                         "'KONTEKS BISNIS' untuk language '{$language}'. Property 8 dilanggar."
                 );
             });

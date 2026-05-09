@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Services\WebPushService;
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class ErpNotification extends Model
 {
     use BelongsToTenant;
+
     protected $table = 'erp_notifications';
 
     protected $fillable = ['tenant_id', 'user_id', 'type', 'module', 'title', 'body', 'data', 'read_at'];
@@ -25,17 +27,17 @@ class ErpNotification extends Model
         static::created(function (self $notification) {
             try {
                 if ($notification->user_id) {
-                    app(\App\Services\WebPushService::class)->sendToUser(
+                    app(WebPushService::class)->sendToUser(
                         $notification->user_id,
                         $notification->title,
                         $notification->body,
                         $notification->data['url'] ?? '/notifications',
-                        'erp-' . $notification->type,
+                        'erp-'.$notification->type,
                     );
                 }
             } catch (\Throwable $e) {
                 // Don't fail the main operation if push fails
-                \Illuminate\Support\Facades\Log::debug('Push notification failed: ' . $e->getMessage());
+                Log::debug('Push notification failed: '.$e->getMessage());
             }
         });
     }
@@ -44,6 +46,7 @@ class ErpNotification extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -72,25 +75,25 @@ class ErpNotification extends Model
     public static function moduleMap(): array
     {
         return [
-            'low_stock'               => 'inventory',
-            'product_expiry'          => 'inventory',
-            'expiry_soon'             => 'inventory',
-            'expiry_expired'          => 'inventory',
-            'invoice_overdue_batch'   => 'finance',
+            'low_stock' => 'inventory',
+            'product_expiry' => 'inventory',
+            'expiry_soon' => 'inventory',
+            'expiry_expired' => 'inventory',
+            'invoice_overdue_batch' => 'finance',
             'invoice_overdue_summary' => 'finance',
-            'budget_alert'            => 'finance',
-            'missing_report'          => 'hrm',
-            'asset_maintenance_due'   => 'hrm',
-            'ai_advisor'              => 'ai',
-            'ai_digest'               => 'ai',
-            'trial_expiry'            => 'system',
-            'reminder'                => 'system',
-            'ecommerce_sync'          => 'ecommerce',
-            'ecommerce_stock_sync'    => 'ecommerce',
-            'ecommerce_price_sync'    => 'ecommerce',
-            'ecommerce_order'         => 'ecommerce',
-            'ecommerce_error'         => 'ecommerce',
-            'marketplace_sync'        => 'ecommerce',
+            'budget_alert' => 'finance',
+            'missing_report' => 'hrm',
+            'asset_maintenance_due' => 'hrm',
+            'ai_advisor' => 'ai',
+            'ai_digest' => 'ai',
+            'trial_expiry' => 'system',
+            'reminder' => 'system',
+            'ecommerce_sync' => 'ecommerce',
+            'ecommerce_stock_sync' => 'ecommerce',
+            'ecommerce_price_sync' => 'ecommerce',
+            'ecommerce_order' => 'ecommerce',
+            'ecommerce_error' => 'ecommerce',
+            'marketplace_sync' => 'ecommerce',
         ];
     }
 
@@ -98,8 +101,11 @@ class ErpNotification extends Model
     {
         $map = self::moduleMap();
         foreach ($map as $key => $module) {
-            if (str_starts_with($type, $key)) return $module;
+            if (str_starts_with($type, $key)) {
+                return $module;
+            }
         }
+
         return 'system';
     }
 }

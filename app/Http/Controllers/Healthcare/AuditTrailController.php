@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditTrail;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AuditTrailController extends Controller
@@ -34,7 +35,7 @@ class AuditTrailController extends Controller
 
         $logs = $query->orderBy('created_at', 'desc')->paginate(50);
 
-        $users = \App\Models\User::select('id', 'name')->get();
+        $users = User::select('id', 'name')->get();
 
         $statistics = [
             'total_logs' => AuditTrail::count(),
@@ -49,6 +50,7 @@ class AuditTrailController extends Controller
     public function show(AuditTrail $log)
     {
         $log->load(['user']);
+
         return view('healthcare.audit-trail.show', compact('log'));
     }
 

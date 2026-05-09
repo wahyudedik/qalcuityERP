@@ -2,16 +2,16 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
 use App\Models\IntegrationSyncLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 use Throwable;
 
 /**
  * Base Connector for all marketplace integrations
- * 
+ *
  * All marketplace connectors should extend this class
  * and implement the required abstract methods.
  */
@@ -31,13 +31,16 @@ abstract class BaseConnector
      * Rate limit settings
      */
     protected int $maxRequestsPerMinute = 60;
+
     protected int $requestCount = 0;
+
     protected $lastRequestTime;
 
     /**
      * Retry settings
      */
     protected int $maxRetries = 3;
+
     protected int $retryDelay = 1000; // milliseconds
 
     /**
@@ -69,44 +72,43 @@ abstract class BaseConnector
 
     /**
      * Authenticate with the marketplace
-     * 
+     *
      * @return bool Success status
      */
     abstract public function authenticate(): bool;
 
     /**
      * Sync products from ERP to marketplace
-     * 
+     *
      * @return array Sync results
      */
     abstract public function syncProducts(): array;
 
     /**
      * Sync orders from marketplace to ERP
-     * 
+     *
      * @return array Sync results
      */
     abstract public function syncOrders(): array;
 
     /**
      * Sync inventory levels
-     * 
+     *
      * @return array Sync results
      */
     abstract public function syncInventory(): array;
 
     /**
      * Register webhooks on marketplace
-     * 
+     *
      * @return array Registered webhooks
      */
     abstract public function registerWebhooks(): array;
 
     /**
      * Handle incoming webhook from marketplace
-     * 
-     * @param array $payload Webhook payload
-     * @return void
+     *
+     * @param  array  $payload  Webhook payload
      */
     abstract public function handleWebhook(array $payload): void;
 
@@ -345,7 +347,7 @@ abstract class BaseConnector
     protected function getMarketplaceProductId(int $erpProductId): ?string
     {
         // Check in product mappings
-        $mapping = \App\Models\EcommerceProductMapping::where('tenant_id', $this->integration->tenant_id)
+        $mapping = EcommerceProductMapping::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $erpProductId)
             ->where('channel_id', $this->integration->id)
             ->first();
@@ -359,7 +361,7 @@ abstract class BaseConnector
     protected function getErpProductId(string $marketplaceProductId): ?int
     {
         // Check in product mappings
-        $mapping = \App\Models\EcommerceProductMapping::where('tenant_id', $this->integration->tenant_id)
+        $mapping = EcommerceProductMapping::where('tenant_id', $this->integration->tenant_id)
             ->where('external_id', $marketplaceProductId)
             ->where('channel_id', $this->integration->id)
             ->first();

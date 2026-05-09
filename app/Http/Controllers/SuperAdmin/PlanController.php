@@ -13,26 +13,27 @@ class PlanController extends Controller
     public function index(): View
     {
         $plans = SubscriptionPlan::orderBy('sort_order')->get();
+
         return view('super-admin.plans.index', compact('plans'));
     }
 
     public function create(): View
     {
-        return view('super-admin.plans.form', ['plan' => new SubscriptionPlan()]);
+        return view('super-admin.plans.form', ['plan' => new SubscriptionPlan]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'slug'             => 'required|string|max:50|unique:subscription_plans,slug',
-            'price_monthly'    => 'required|numeric|min:0',
-            'price_yearly'     => 'required|numeric|min:0',
-            'max_users'        => 'required|integer|min:-1',
-            'max_ai_messages'  => 'required|integer|min:-1',
-            'trial_days'       => 'required|integer|min:0',
-            'sort_order'       => 'required|integer|min:0',
-            'is_active'        => 'boolean',
+            'name' => 'required|string|max:100',
+            'slug' => 'required|string|max:50|unique:subscription_plans,slug',
+            'price_monthly' => 'required|numeric|min:0',
+            'price_yearly' => 'required|numeric|min:0',
+            'max_users' => 'required|integer|min:-1',
+            'max_ai_messages' => 'required|integer|min:-1',
+            'trial_days' => 'required|integer|min:0',
+            'sort_order' => 'required|integer|min:0',
+            'is_active' => 'boolean',
         ]);
 
         $data['features'] = $this->buildFeatures($request);
@@ -52,15 +53,15 @@ class PlanController extends Controller
     public function update(Request $request, SubscriptionPlan $plan): RedirectResponse
     {
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'slug'             => 'required|string|max:50|unique:subscription_plans,slug,' . $plan->id,
-            'price_monthly'    => 'required|numeric|min:0',
-            'price_yearly'     => 'required|numeric|min:0',
-            'max_users'        => 'required|integer|min:-1',
-            'max_ai_messages'  => 'required|integer|min:-1',
-            'trial_days'       => 'required|integer|min:0',
-            'sort_order'       => 'required|integer|min:0',
-            'is_active'        => 'boolean',
+            'name' => 'required|string|max:100',
+            'slug' => 'required|string|max:50|unique:subscription_plans,slug,'.$plan->id,
+            'price_monthly' => 'required|numeric|min:0',
+            'price_yearly' => 'required|numeric|min:0',
+            'max_users' => 'required|integer|min:-1',
+            'max_ai_messages' => 'required|integer|min:-1',
+            'trial_days' => 'required|integer|min:0',
+            'sort_order' => 'required|integer|min:0',
+            'is_active' => 'boolean',
         ]);
 
         $data['features'] = $this->buildFeatures($request);
@@ -79,14 +80,16 @@ class PlanController extends Controller
         }
 
         $plan->delete();
+
         return redirect()->route('super-admin.plans.index')
             ->with('success', 'Paket berhasil dihapus.');
     }
 
     public function toggleActive(SubscriptionPlan $plan): RedirectResponse
     {
-        $plan->update(['is_active' => !$plan->is_active]);
-        return back()->with('success', "Paket \"{$plan->name}\" " . ($plan->is_active ? 'diaktifkan' : 'dinonaktifkan') . '.');
+        $plan->update(['is_active' => ! $plan->is_active]);
+
+        return back()->with('success', "Paket \"{$plan->name}\" ".($plan->is_active ? 'diaktifkan' : 'dinonaktifkan').'.');
     }
 
     public function seed(): RedirectResponse
@@ -94,6 +97,7 @@ class PlanController extends Controller
         foreach (SubscriptionPlan::defaultPlans() as $planData) {
             SubscriptionPlan::updateOrCreate(['slug' => $planData['slug']], $planData);
         }
+
         return redirect()->route('super-admin.plans.index')
             ->with('success', '3 paket default berhasil dibuat/diperbarui.');
     }
@@ -120,6 +124,7 @@ class PlanController extends Controller
         if (empty($features) && $request->filled('features')) {
             $features = $this->parseFeatures($request->input('features', ''));
         }
+
         return array_values(array_unique($features));
     }
 }

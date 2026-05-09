@@ -2,20 +2,18 @@
 
 namespace App\Services;
 
+use App\Models\OccupancyForecast;
 use App\Models\PricingRecommendation;
 use App\Models\RatePlan;
-use App\Models\RoomType;
 use App\Models\RevenueSnapshot;
-use App\Models\OccupancyForecast;
-use App\Models\CompetitorRate;
+use App\Models\Room;
+use App\Models\RoomType;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * RateOptimizationService - Yield Management and Rate Optimization
- * 
+ *
  * Features:
  * - Revenue optimization algorithms
  * - Length of stay optimization
@@ -26,7 +24,9 @@ use Illuminate\Support\Facades\Log;
 class RateOptimizationService
 {
     private int $tenantId;
+
     private DynamicPricingEngine $pricingEngine;
+
     private OccupancyForecastingService $forecastingService;
 
     public function __construct(int $tenantId)
@@ -129,6 +129,7 @@ class RateOptimizationService
 
         if ($existing) {
             $existing->update($data);
+
             return $existing->fresh();
         }
 
@@ -164,29 +165,29 @@ class RateOptimizationService
             if ($difference > 10) {
                 $reasons[] = "Competitors averaging {$competitorAvg} ({$difference}% higher)";
             } elseif ($difference < -10) {
-                $reasons[] = "Competitors averaging {$competitorAvg} (" . abs($difference) . "% lower)";
+                $reasons[] = "Competitors averaging {$competitorAvg} (".abs($difference).'% lower)';
             }
         }
 
         // Event factor
-        if (!empty($factors['active_events'])) {
+        if (! empty($factors['active_events'])) {
             $events = implode(', ', $factors['active_events']);
             $reasons[] = "Special events affecting demand: {$events}";
         }
 
         // Day of week factor
         if ($factors['is_weekend']) {
-            $reasons[] = "Weekend premium pricing opportunity";
+            $reasons[] = 'Weekend premium pricing opportunity';
         }
 
         // Adjustment summary
         $adjustments = $optimalRate['adjustments'];
-        if (!empty($adjustments)) {
+        if (! empty($adjustments)) {
             $adjustmentNames = array_column($adjustments, 'type');
-            $reasons[] = "Applied adjustments: " . implode(', ', $adjustmentNames);
+            $reasons[] = 'Applied adjustments: '.implode(', ', $adjustmentNames);
         }
 
-        return implode('. ', $reasons) . '.';
+        return implode('. ', $reasons).'.';
     }
 
     /**
@@ -287,12 +288,12 @@ class RateOptimizationService
         $forecasts = OccupancyForecast::where('tenant_id', $this->tenantId)
             ->whereBetween('forecast_date', [
                 $date->format('Y-m-d'),
-                $date->copy()->addDays(7)->format('Y-m-d')
+                $date->copy()->addDays(7)->format('Y-m-d'),
             ])
             ->get();
 
-        $highDemandDates = $forecasts->filter(fn($f) => $f->projected_occupancy_rate >= 85);
-        $lowDemandDates = $forecasts->filter(fn($f) => $f->projected_occupancy_rate <= 40);
+        $highDemandDates = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate >= 85);
+        $lowDemandDates = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate <= 40);
 
         $restrictions = [];
 
@@ -341,7 +342,7 @@ class RateOptimizationService
             $breakdown = $snapshot->breakdown_by_channel ?? [];
 
             foreach ($breakdown as $channel => $data) {
-                if (!isset($channelData[$channel])) {
+                if (! isset($channelData[$channel])) {
                     $channelData[$channel] = [
                         'bookings' => 0,
                         'revenue' => 0,
@@ -378,7 +379,7 @@ class RateOptimizationService
         }
 
         // Sort by net revenue
-        uasort($channelData, fn($a, $b) => $b['net_revenue'] <=> $a['net_revenue']);
+        uasort($channelData, fn ($a, $b) => $b['net_revenue'] <=> $a['net_revenue']);
 
         // Generate recommendations
         $recommendations = [];
@@ -390,7 +391,7 @@ class RateOptimizationService
             $recommendations[] = [
                 'priority' => 'high',
                 'action' => 'increase_direct_bookings',
-                'message' => 'Direct bookings at ' . round($directPercentage, 1) . '%. Target: 40%+',
+                'message' => 'Direct bookings at '.round($directPercentage, 1).'%. Target: 40%+',
                 'suggested_actions' => [
                     'Offer exclusive perks for direct bookings',
                     'Implement best rate guarantee',
@@ -402,10 +403,10 @@ class RateOptimizationService
         // Find high-commission channels
         $highCommissionChannels = array_filter(
             $channelData,
-            fn($d) => $d['commission_percentage'] > 15
+            fn ($d) => $d['commission_percentage'] > 15
         );
 
-        if (!empty($highCommissionChannels)) {
+        if (! empty($highCommissionChannels)) {
             $channelNames = implode(', ', array_keys($highCommissionChannels));
             $recommendations[] = [
                 'priority' => 'medium',
@@ -481,7 +482,7 @@ class RateOptimizationService
             ];
         }
 
-        $roomCount = \App\Models\Room::where('tenant_id', $this->tenantId)
+        $roomCount = Room::where('tenant_id', $this->tenantId)
             ->where('status', '!=', 'out_of_order')
             ->count();
 
@@ -536,7 +537,7 @@ class RateOptimizationService
                     ->where('id', $update['room_type_id'])
                     ->first();
 
-                if (!$roomType) {
+                if (! $roomType) {
                     throw new \Exception('Room type not found');
                 }
 

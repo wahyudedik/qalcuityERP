@@ -28,10 +28,8 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
     /** @var array<string> */
     private array $fallbackChain;
 
-    /** @var ReflectionClass */
     private ReflectionClass $reflection;
 
-    /** @var \ReflectionMethod */
     private \ReflectionMethod $callWithFallback;
 
     protected function setUp(): void
@@ -45,11 +43,11 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
         ];
 
         config([
-            'gemini.model'               => 'gemini-2.5-flash',
-            'gemini.fallback_models'     => $this->fallbackChain,
+            'gemini.model' => 'gemini-2.5-flash',
+            'gemini.fallback_models' => $this->fallbackChain,
             'gemini.rate_limit_cooldown' => 60,
-            'gemini.quota_cooldown'      => 3600,
-            'gemini.api_key'             => 'test-key',
+            'gemini.quota_cooldown' => 3600,
+            'gemini.api_key' => 'test-key',
         ]);
 
         Cache::flush();
@@ -104,7 +102,7 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testAllModelsUnavailableDispatchesEventAndReturnsUserFriendlyMessage(): void
+    public function test_all_models_unavailable_dispatches_event_and_returns_user_friendly_message(): void
     {
         // Feature: gemini-model-auto-switching, Property 7: AllModelsUnavailable event and user-friendly error
 
@@ -160,13 +158,13 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
                 // ── Assert: AllModelsUnavailable event was dispatched ──
                 Event::assertDispatched(
                     AllModelsUnavailable::class,
-                    fn($event) => is_array($event->unavailableModels) && count($event->unavailableModels) > 0
+                    fn ($event) => is_array($event->unavailableModels) && count($event->unavailableModels) > 0
                 );
             });
     }
 
     #[ErisRepeat(repeat: 100)]
-    public function testAllModelsUnavailableResponseNeverContainsRawApiError(): void
+    public function test_all_models_unavailable_response_never_contains_raw_api_error(): void
     {
         // Feature: gemini-model-auto-switching, Property 7: AllModelsUnavailable event and user-friendly error
 
@@ -176,7 +174,7 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
             ->forAll(
                 // Generate a random raw error message that should never appear in the response
                 Generators::map(
-                    fn(int $len) => 'API_ERROR_' . str_repeat('x', $len),
+                    fn (int $len) => 'API_ERROR_'.str_repeat('x', $len),
                     Generators::choose(1, 40)
                 )
             )
@@ -199,14 +197,14 @@ class GeminiServiceAllModelsUnavailablePropertyTest extends TestCase
                 $this->assertNotSame(
                     $rawErrorMessage,
                     $response['text'] ?? null,
-                    "Raw API error message must never be returned to the caller."
+                    'Raw API error message must never be returned to the caller.'
                 );
 
                 // ── Assert: the user-friendly message is always returned ──
                 $this->assertSame(
                     $expectedMessage,
                     $response['text'],
-                    "Response must always contain the user-friendly Indonesian message when all models fail."
+                    'Response must always contain the user-friendly Indonesian message when all models fail.'
                 );
 
                 // ── Assert: AllModelsUnavailable event was dispatched ──

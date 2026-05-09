@@ -3,15 +3,18 @@
 namespace App\Services;
 
 use App\Models\TenantStorageConfig;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use Aws\S3\S3Client;
+use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 
 /**
  * Cloud Storage Service
- * 
+ *
  * Multi-cloud storage integration (S3, Google Cloud Storage, Azure Blob Storage).
- * 
+ *
  * Note: Requires optional packages:
  * - aws/aws-sdk-php (for S3)
  * - google/cloud-storage (for GCS)
@@ -36,7 +39,7 @@ class CloudStorageService
      */
     public function upload(string $filePath, string $fileName, array $options = []): string
     {
-        if (!$this->config) {
+        if (! $this->config) {
             // Use local storage
             return $this->uploadToLocal($filePath, $fileName, $options);
         }
@@ -54,7 +57,7 @@ class CloudStorageService
      */
     public function download(string $filePath): string
     {
-        if (!$this->config) {
+        if (! $this->config) {
             return Storage::get($filePath);
         }
 
@@ -71,7 +74,7 @@ class CloudStorageService
      */
     public function delete(string $filePath): bool
     {
-        if (!$this->config) {
+        if (! $this->config) {
             return Storage::delete($filePath);
         }
 
@@ -88,7 +91,7 @@ class CloudStorageService
      */
     public function getUrl(string $filePath, int $expiration = 3600): string
     {
-        if (!$this->config) {
+        if (! $this->config) {
             return Storage::url($filePath);
         }
 
@@ -118,11 +121,11 @@ class CloudStorageService
      */
     protected function uploadToS3(string $filePath, string $fileName, array $options = []): string
     {
-        if (!class_exists('\\Aws\\S3\\S3Client')) {
+        if (! class_exists('\\Aws\\S3\\S3Client')) {
             throw new \Exception('AWS SDK not installed. Run: composer require aws/aws-sdk-php');
         }
 
-        $s3Client = new \Aws\S3\S3Client($this->config->getStorageConfig());
+        $s3Client = new S3Client($this->config->getStorageConfig());
 
         $key = "documents/{$fileName}";
         $content = file_get_contents($filePath);
@@ -142,11 +145,11 @@ class CloudStorageService
      */
     protected function downloadFromS3(string $filePath): string
     {
-        if (!class_exists('\\Aws\\S3\\S3Client')) {
+        if (! class_exists('\\Aws\\S3\\S3Client')) {
             throw new \Exception('AWS SDK not installed. Run: composer require aws/aws-sdk-php');
         }
 
-        $s3Client = new \Aws\S3\S3Client($this->config->getStorageConfig());
+        $s3Client = new S3Client($this->config->getStorageConfig());
 
         $result = $s3Client->getObject([
             'Bucket' => $this->config->bucket_name,
@@ -161,11 +164,11 @@ class CloudStorageService
      */
     protected function deleteFromS3(string $filePath): bool
     {
-        if (!class_exists('\\Aws\\S3\\S3Client')) {
+        if (! class_exists('\\Aws\\S3\\S3Client')) {
             throw new \Exception('AWS SDK not installed. Run: composer require aws/aws-sdk-php');
         }
 
-        $s3Client = new \Aws\S3\S3Client($this->config->getStorageConfig());
+        $s3Client = new S3Client($this->config->getStorageConfig());
 
         $s3Client->deleteObject([
             'Bucket' => $this->config->bucket_name,
@@ -180,11 +183,11 @@ class CloudStorageService
      */
     protected function getS3Url(string $filePath, int $expiration = 3600): string
     {
-        if (!class_exists('\\Aws\\S3\\S3Client')) {
+        if (! class_exists('\\Aws\\S3\\S3Client')) {
             throw new \Exception('AWS SDK not installed. Run: composer require aws/aws-sdk-php');
         }
 
-        $s3Client = new \Aws\S3\S3Client($this->config->getStorageConfig());
+        $s3Client = new S3Client($this->config->getStorageConfig());
 
         $command = $s3Client->getCommand('GetObject', [
             'Bucket' => $this->config->bucket_name,
@@ -201,11 +204,11 @@ class CloudStorageService
      */
     protected function uploadToGcs(string $filePath, string $fileName, array $options = []): string
     {
-        if (!class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
+        if (! class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
             throw new \Exception('Google Cloud SDK not installed. Run: composer require google/cloud-storage');
         }
 
-        $storageClient = new \Google\Cloud\Storage\StorageClient([
+        $storageClient = new StorageClient([
             'keyFilePath' => config('services.gcs.key_file_path'),
         ]);
 
@@ -225,11 +228,11 @@ class CloudStorageService
      */
     protected function downloadFromGcs(string $filePath): string
     {
-        if (!class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
+        if (! class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
             throw new \Exception('Google Cloud SDK not installed. Run: composer require google/cloud-storage');
         }
 
-        $storageClient = new \Google\Cloud\Storage\StorageClient([
+        $storageClient = new StorageClient([
             'keyFilePath' => config('services.gcs.key_file_path'),
         ]);
 
@@ -244,11 +247,11 @@ class CloudStorageService
      */
     protected function deleteFromGcs(string $filePath): bool
     {
-        if (!class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
+        if (! class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
             throw new \Exception('Google Cloud SDK not installed. Run: composer require google/cloud-storage');
         }
 
-        $storageClient = new \Google\Cloud\Storage\StorageClient([
+        $storageClient = new StorageClient([
             'keyFilePath' => config('services.gcs.key_file_path'),
         ]);
 
@@ -264,11 +267,11 @@ class CloudStorageService
      */
     protected function getGcsUrl(string $filePath, int $expiration = 3600): string
     {
-        if (!class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
+        if (! class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
             throw new \Exception('Google Cloud SDK not installed. Run: composer require google/cloud-storage');
         }
 
-        $storageClient = new \Google\Cloud\Storage\StorageClient([
+        $storageClient = new StorageClient([
             'keyFilePath' => config('services.gcs.key_file_path'),
         ]);
 
@@ -283,11 +286,11 @@ class CloudStorageService
      */
     protected function uploadToAzure(string $filePath, string $fileName, array $options = []): string
     {
-        if (!class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
+        if (! class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
             throw new \Exception('Azure SDK not installed. Run: composer require microsoft/azure-storage-blob');
         }
 
-        $blobClient = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+        $blobClient = BlobRestProxy::createBlobService(
             "DefaultEndpointsProtocol=https;AccountName={$this->config->access_key};AccountKey={$this->config->secret_key};EndpointSuffix=core.windows.net"
         );
 
@@ -304,11 +307,11 @@ class CloudStorageService
      */
     protected function downloadFromAzure(string $filePath): string
     {
-        if (!class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
+        if (! class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
             throw new \Exception('Azure SDK not installed. Run: composer require microsoft/azure-storage-blob');
         }
 
-        $blobClient = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+        $blobClient = BlobRestProxy::createBlobService(
             "DefaultEndpointsProtocol=https;AccountName={$this->config->access_key};AccountKey={$this->config->secret_key};EndpointSuffix=core.windows.net"
         );
 
@@ -322,11 +325,11 @@ class CloudStorageService
      */
     protected function deleteFromAzure(string $filePath): bool
     {
-        if (!class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
+        if (! class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
             throw new \Exception('Azure SDK not installed. Run: composer require microsoft/azure-storage-blob');
         }
 
-        $blobClient = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+        $blobClient = BlobRestProxy::createBlobService(
             "DefaultEndpointsProtocol=https;AccountName={$this->config->access_key};AccountKey={$this->config->secret_key};EndpointSuffix=core.windows.net"
         );
 
@@ -340,7 +343,7 @@ class CloudStorageService
      */
     protected function getAzureUrl(string $filePath, int $expiration = 3600): string
     {
-        if (!class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
+        if (! class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
             throw new \Exception('Azure SDK not installed. Run: composer require microsoft/azure-storage-blob');
         }
 
@@ -354,6 +357,7 @@ class CloudStorageService
 
         // For now, return the direct URL (SAS token generation requires additional setup)
         Log::warning('Azure SAS URL generation not fully implemented. Returning direct URL.');
+
         return $baseUrl;
     }
 
@@ -362,7 +366,7 @@ class CloudStorageService
      */
     public function testConnection(): bool
     {
-        if (!$this->config) {
+        if (! $this->config) {
             return Storage::exists('/');
         }
 
@@ -374,7 +378,8 @@ class CloudStorageService
                 default => false,
             };
         } catch (\Exception $e) {
-            Log::error("Cloud storage connection test failed: " . $e->getMessage());
+            Log::error('Cloud storage connection test failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -384,12 +389,13 @@ class CloudStorageService
      */
     protected function testS3Connection(): bool
     {
-        if (!class_exists('\\Aws\\S3\\S3Client')) {
+        if (! class_exists('\\Aws\\S3\\S3Client')) {
             return false;
         }
 
-        $s3Client = new \Aws\S3\S3Client($this->config->getStorageConfig());
+        $s3Client = new S3Client($this->config->getStorageConfig());
         $s3Client->listBuckets();
+
         return true;
     }
 
@@ -398,14 +404,15 @@ class CloudStorageService
      */
     protected function testGcsConnection(): bool
     {
-        if (!class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
+        if (! class_exists('\\Google\\Cloud\\Storage\\StorageClient')) {
             return false;
         }
 
-        $storageClient = new \Google\Cloud\Storage\StorageClient([
+        $storageClient = new StorageClient([
             'keyFilePath' => config('services.gcs.key_file_path'),
         ]);
         $storageClient->buckets(); // Corrected method name
+
         return true;
     }
 
@@ -414,14 +421,15 @@ class CloudStorageService
      */
     protected function testAzureConnection(): bool
     {
-        if (!class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
+        if (! class_exists('\\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy')) {
             return false;
         }
 
-        $blobClient = \MicrosoftAzure\Storage\Blob\BlobRestProxy::createBlobService(
+        $blobClient = BlobRestProxy::createBlobService(
             "DefaultEndpointsProtocol=https;AccountName={$this->config->access_key};AccountKey={$this->config->secret_key};EndpointSuffix=core.windows.net"
         );
         $blobClient->listBlobs($this->config->bucket_name);
+
         return true;
     }
 
@@ -438,7 +446,7 @@ class CloudStorageService
      */
     public function getStorageUsage(): array
     {
-        if (!$this->config) {
+        if (! $this->config) {
             return [
                 'provider' => 'local',
                 'total_size' => 0,

@@ -7,6 +7,7 @@ use App\Models\LoyaltyPoint;
 use App\Models\LoyaltyProgram;
 use App\Models\LoyaltyTier;
 use App\Models\LoyaltyTransaction;
+use App\Services\LoyaltyPointService;
 use Illuminate\Http\Request;
 
 class LoyaltyController extends Controller
@@ -26,7 +27,7 @@ class LoyaltyController extends Controller
 
         if ($request->search) {
             $s = $request->search;
-            $query->whereHas('customer', fn($q) => $q->where('name', 'like', "%$s%"));
+            $query->whereHas('customer', fn ($q) => $q->where('name', 'like', "%$s%"));
         }
         if ($request->tier) {
             $query->where('tier', $request->tier);
@@ -87,7 +88,7 @@ class LoyaltyController extends Controller
         ]);
 
         // BUG-CRM-003 FIX: Use atomic service instead of increment()
-        $result = app(\App\Services\LoyaltyPointService::class)->earnPoints(
+        $result = app(LoyaltyPointService::class)->earnPoints(
             $this->tid(),
             $data['customer_id'],
             $data['transaction_amount'],
@@ -95,7 +96,7 @@ class LoyaltyController extends Controller
             $data['reference'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->withErrors(['points' => $result['message']]);
         }
 
@@ -114,20 +115,20 @@ class LoyaltyController extends Controller
         ]);
 
         // BUG-CRM-003 FIX: Use atomic service instead of decrement()
-        $result = app(\App\Services\LoyaltyPointService::class)->redeemPoints(
+        $result = app(LoyaltyPointService::class)->redeemPoints(
             $this->tid(),
             $data['customer_id'],
             $data['points'],
             $data['reference'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->withErrors(['points' => $result['message']]);
         }
 
         return back()->with(
             'success',
-            "{$result['points_redeemed']} poin ditukar senilai Rp " . number_format($result['value'], 0, ',', '.') . ". Balance: {$result['new_balance']}"
+            "{$result['points_redeemed']} poin ditukar senilai Rp ".number_format($result['value'], 0, ',', '.').". Balance: {$result['new_balance']}"
         );
     }
 
@@ -137,6 +138,7 @@ class LoyaltyController extends Controller
         $txs = LoyaltyTransaction::where('tenant_id', $this->tid())
             ->where('customer_id', $customer->id)
             ->orderByDesc('created_at')->paginate(20);
+
         return response()->json($txs);
     }
 
@@ -149,7 +151,7 @@ class LoyaltyController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $result = app(\App\Services\LoyaltyPointService::class)->getBalance(
+        $result = app(LoyaltyPointService::class)->getBalance(
             $this->tid(),
             $customer->id,
             $program->id
@@ -170,13 +172,13 @@ class LoyaltyController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $result = app(\App\Services\LoyaltyPointService::class)->recalculateBalance(
+        $result = app(LoyaltyPointService::class)->recalculateBalance(
             $this->tid(),
             $customer->id,
             $program->id
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json(['success' => false, 'message' => $result['message']], 400);
         }
 

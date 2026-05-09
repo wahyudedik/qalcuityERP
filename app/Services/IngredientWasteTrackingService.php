@@ -59,11 +59,11 @@ class IngredientWasteTrackingService
         return [
             'total_waste_cost' => $wastes->sum('total_waste_cost'),
             'total_items_wasted' => $wastes->count(),
-            'by_type' => $wastes->groupBy('waste_type')->map(fn($group) => [
+            'by_type' => $wastes->groupBy('waste_type')->map(fn ($group) => [
                 'count' => $group->count(),
                 'total_cost' => $group->sum('total_waste_cost'),
             ]),
-            'by_department' => $wastes->groupBy('department')->map(fn($group) => [
+            'by_department' => $wastes->groupBy('department')->map(fn ($group) => [
                 'count' => $group->count(),
                 'total_cost' => $group->sum('total_waste_cost'),
             ]),
@@ -199,7 +199,7 @@ class IngredientWasteTrackingService
                 'end' => $endDate->format('Y-m-d'),
             ],
             'summary' => $this->getWasteStats($tenantId, $startDate, $endDate),
-            'details' => $wastes->map(fn($waste) => [
+            'details' => $wastes->map(fn ($waste) => [
                 'date' => $waste->wasted_at->format('Y-m-d H:i'),
                 'item' => $waste->item_name,
                 'quantity' => $waste->quantity_wasted,
@@ -231,7 +231,7 @@ class IngredientWasteTrackingService
     private function getTopWastedItems($wastes): array
     {
         return $wastes->groupBy('item_name')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'item_name' => $group->first()->item_name,
                 'total_quantity' => $group->sum('quantity_wasted'),
                 'unit' => $group->first()->unit,

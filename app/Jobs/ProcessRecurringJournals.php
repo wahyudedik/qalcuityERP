@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\AccountingPeriod;
 use App\Models\JournalEntry;
 use App\Models\RecurringJournal;
+use App\Services\PeriodLockService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +24,7 @@ class ProcessRecurringJournals implements ShouldQueue
 
         RecurringJournal::where('is_active', true)
             ->where('next_run_date', '<=', $today)
-            ->where(fn($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $today))
             ->get()
             ->each(function (RecurringJournal $recurring) use ($today) {
                 try {
@@ -31,11 +32,11 @@ class ProcessRecurringJournals implements ShouldQueue
                         $date = $today->toDateString();
 
                         // BUG-FIN-002 FIX: Check period lock before auto-creating journal
-                        $periodLockService = app(\App\Services\PeriodLockService::class);
+                        $periodLockService = app(PeriodLockService::class);
                         if ($periodLockService->isLocked($recurring->tenant_id, $date)) {
                             $lockInfo = $periodLockService->getLockInfo($recurring->tenant_id, $date);
                             Log::warning(
-                                "Recurring journal skipped: Periode {$lockInfo} sudah dikunci. " .
+                                "Recurring journal skipped: Periode {$lockInfo} sudah dikunci. ".
                                 "RecurringJournal ID: {$recurring->id}, Date: {$date}"
                             );
                             // Skip this run, update next_run_date
@@ -43,6 +44,7 @@ class ProcessRecurringJournals implements ShouldQueue
                                 'last_run_date' => $today,
                                 'next_run_date' => $recurring->calculateNextRun(),
                             ]);
+
                             return;
                         }
 
@@ -54,7 +56,7 @@ class ProcessRecurringJournals implements ShouldQueue
                             'user_id' => $recurring->user_id,
                             'number' => JournalEntry::generateNumber($recurring->tenant_id, 'JRE'),
                             'date' => $today,
-                            'description' => $recurring->name . ' (Otomatis)',
+                            'description' => $recurring->name.' (Otomatis)',
                             'currency_code' => 'IDR',
                             'currency_rate' => 1,
                             'status' => 'draft',
@@ -84,10 +86,10 @@ class ProcessRecurringJournals implements ShouldQueue
                 } catch (\DomainException $e) {
                     // Periode locked/closed — skip jurnal ini, jangan gagalkan job
                     Log::warning(
-                        "ProcessRecurringJournals skipped for ID {$recurring->id}: " . $e->getMessage()
+                        "ProcessRecurringJournals skipped for ID {$recurring->id}: ".$e->getMessage()
                     );
                 } catch (\Throwable $e) {
-                    Log::error("ProcessRecurringJournals failed for ID {$recurring->id}: " . $e->getMessage());
+                    Log::error("ProcessRecurringJournals failed for ID {$recurring->id}: ".$e->getMessage());
                 }
             });
     }

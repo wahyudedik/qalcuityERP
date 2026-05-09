@@ -95,8 +95,8 @@ class QueryAnalyzer implements AnalyzerInterface
                 $this->basePath = getcwd();
             }
         }
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
     }
 
     /**
@@ -168,9 +168,9 @@ class QueryAnalyzer implements AnalyzerInterface
      * Looks for ->get() or ::all() calls in public methods that don't
      * have pagination, chunking, or limiting nearby.
      *
-     * @param string $sourceCode Full file source code
-     * @param string $className Fully-qualified class name
-     * @param string $filePath Absolute file path
+     * @param  string  $sourceCode  Full file source code
+     * @param  string  $className  Fully-qualified class name
+     * @param  string  $filePath  Absolute file path
      * @return AuditFinding[]
      */
     public function detectUnboundedQueries(string $sourceCode, string $className, string $filePath): array
@@ -184,7 +184,7 @@ class QueryAnalyzer implements AnalyzerInterface
 
             // Only check methods that look like they return list views (index, list, etc.)
             // or any method that uses ->get() / ::all()
-            if (!$this->hasUnboundedQueryCall($methodBody)) {
+            if (! $this->hasUnboundedQueryCall($methodBody)) {
                 continue;
             }
 
@@ -200,12 +200,12 @@ class QueryAnalyzer implements AnalyzerInterface
                 severity: Severity::Medium,
                 title: "Unbounded query in {$shortClass}::{$methodName}()",
                 description: "Method {$methodName}() in {$shortClass} uses ->get() or ::all() without "
-                    . "pagination, chunking, or result limiting. This can cause memory exhaustion "
-                    . "on large datasets.",
+                    .'pagination, chunking, or result limiting. This can cause memory exhaustion '
+                    .'on large datasets.',
                 file: $this->relativePath($filePath),
                 line: $method['line'],
-                recommendation: "Use ->paginate(), ->simplePaginate(), ->chunk(), ->cursor(), or ->limit() "
-                    . "to bound the query results.",
+                recommendation: 'Use ->paginate(), ->simplePaginate(), ->chunk(), ->cursor(), or ->limit() '
+                    .'to bound the query results.',
                 metadata: [
                     'controller' => $className,
                     'method' => $methodName,
@@ -224,9 +224,9 @@ class QueryAnalyzer implements AnalyzerInterface
      * relationship properties are accessed in a foreach loop
      * without prior eager loading (->with() or ->load()).
      *
-     * @param string $sourceCode Full file source code
-     * @param string $className Fully-qualified class name
-     * @param string $filePath Absolute file path
+     * @param  string  $sourceCode  Full file source code
+     * @param  string  $className  Fully-qualified class name
+     * @param  string  $filePath  Absolute file path
      * @return AuditFinding[]
      */
     public function detectNPlusOnePatterns(string $sourceCode, string $className, string $filePath): array
@@ -252,7 +252,7 @@ class QueryAnalyzer implements AnalyzerInterface
             }
 
             // Look for collection fetch followed by foreach with relationship access
-            if (!$this->hasCollectionFetchInLoop($methodBody)) {
+            if (! $this->hasCollectionFetchInLoop($methodBody)) {
                 continue;
             }
 
@@ -263,12 +263,12 @@ class QueryAnalyzer implements AnalyzerInterface
                 severity: Severity::Medium,
                 title: "Potential N+1 query in {$shortClass}::{$methodName}()",
                 description: "Method {$methodName}() in {$shortClass} appears to fetch a collection "
-                    . "and access relationship properties in a loop without eager loading "
-                    . "(->with() or ->load()). This causes N+1 database queries.",
+                    .'and access relationship properties in a loop without eager loading '
+                    .'(->with() or ->load()). This causes N+1 database queries.',
                 file: $this->relativePath($filePath),
                 line: $method['line'],
                 recommendation: "Add ->with(['relationship_name']) to the query to eager load relationships, "
-                    . "or use ->load() on the collection before the loop.",
+                    .'or use ->load() on the collection before the loop.',
                 metadata: [
                     'controller' => $className,
                     'method' => $methodName,
@@ -286,9 +286,9 @@ class QueryAnalyzer implements AnalyzerInterface
      * Scans for DB::select(), DB::table(), DB::raw(), DB::statement()
      * calls and checks if tenant_id appears in the query context.
      *
-     * @param string $sourceCode Full file source code
-     * @param string $className Fully-qualified class name
-     * @param string $filePath Absolute file path
+     * @param  string  $sourceCode  Full file source code
+     * @param  string  $className  Fully-qualified class name
+     * @param  string  $filePath  Absolute file path
      * @return AuditFinding[]
      */
     public function detectRawQueriesWithoutTenantId(string $sourceCode, string $className, string $filePath): array
@@ -300,7 +300,7 @@ class QueryAnalyzer implements AnalyzerInterface
             $line = $lines[$i];
 
             foreach (self::RAW_QUERY_PATTERNS as $pattern) {
-                if (!preg_match($pattern, $line)) {
+                if (! preg_match($pattern, $line)) {
                     continue;
                 }
 
@@ -325,14 +325,14 @@ class QueryAnalyzer implements AnalyzerInterface
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
-                    title: "Raw query without tenant_id in {$shortClass}" . ($methodName ? "::{$methodName}()" : ''),
+                    title: "Raw query without tenant_id in {$shortClass}".($methodName ? "::{$methodName}()" : ''),
                     description: "A {$queryType} call in {$shortClass} does not appear to filter by tenant_id. "
-                        . "Raw queries bypass Eloquent's BelongsToTenant global scope, so tenant_id "
-                        . "must be explicitly included to prevent cross-tenant data leakage.",
+                        ."Raw queries bypass Eloquent's BelongsToTenant global scope, so tenant_id "
+                        .'must be explicitly included to prevent cross-tenant data leakage.',
                     file: $this->relativePath($filePath),
                     line: $i + 1,
-                    recommendation: "Add a WHERE tenant_id = ? clause to the raw query, or refactor to use "
-                        . "Eloquent models with the BelongsToTenant trait.",
+                    recommendation: 'Add a WHERE tenant_id = ? clause to the raw query, or refactor to use '
+                        .'Eloquent models with the BelongsToTenant trait.',
                     metadata: [
                         'class' => $className,
                         'method' => $methodName,
@@ -360,7 +360,7 @@ class QueryAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -462,7 +462,7 @@ class QueryAnalyzer implements AnalyzerInterface
             $fetchMatch
         );
 
-        if (!$hasCollectionFetch) {
+        if (! $hasCollectionFetch) {
             return false;
         }
 
@@ -470,8 +470,8 @@ class QueryAnalyzer implements AnalyzerInterface
 
         // Look for a foreach loop iterating over that variable
         // and accessing a chained relationship (e.g., $item->relation->field or $item->relation)
-        $foreachPattern = '/foreach\s*\(\s*\$' . preg_quote($collectionVar, '/') . '\s+as\s+\$(\w+)\s*\)/';
-        if (!preg_match($foreachPattern, $methodBody, $foreachMatch)) {
+        $foreachPattern = '/foreach\s*\(\s*\$'.preg_quote($collectionVar, '/').'\s+as\s+\$(\w+)\s*\)/';
+        if (! preg_match($foreachPattern, $methodBody, $foreachMatch)) {
             return false;
         }
 
@@ -479,7 +479,8 @@ class QueryAnalyzer implements AnalyzerInterface
 
         // Check if the loop body accesses a chained property (potential relationship)
         // Pattern: $item->something->something (two levels of property access)
-        $relationAccessPattern = '/\$' . preg_quote($itemVar, '/') . '->\w+->\w+/';
+        $relationAccessPattern = '/\$'.preg_quote($itemVar, '/').'->\w+->\w+/';
+
         return (bool) preg_match($relationAccessPattern, $methodBody);
     }
 
@@ -549,6 +550,7 @@ class QueryAnalyzer implements AnalyzerInterface
                 return $matches[1];
             }
         }
+
         return null;
     }
 
@@ -604,7 +606,7 @@ class QueryAnalyzer implements AnalyzerInterface
             $braceCount += substr_count($stripped, '{');
             $braceCount -= substr_count($stripped, '}');
 
-            if (!$foundOpenBrace && $braceCount > 0) {
+            if (! $foundOpenBrace && $braceCount > 0) {
                 $foundOpenBrace = true;
             }
 
@@ -635,6 +637,7 @@ class QueryAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -643,7 +646,7 @@ class QueryAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

@@ -2,7 +2,9 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Product;
 use App\Services\CertificateService;
+use App\Services\ProductQrService;
 use Carbon\Carbon;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
@@ -18,15 +20,15 @@ use Tests\TestCase;
  */
 class CertificateServicePropertyTest extends TestCase
 {
-    use TestTrait;
     use DatabaseTransactions;
+    use TestTrait;
 
     private CertificateService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $mockQrService = Mockery::mock(\App\Services\ProductQrService::class);
+        $mockQrService = Mockery::mock(ProductQrService::class);
         $this->service = new CertificateService($mockQrService);
     }
 
@@ -42,7 +44,7 @@ class CertificateServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 5: HMAC Hash Determinism
      */
     #[ErisRepeat(repeat: 100)]
-    public function testHmacHashDeterminism(): void
+    public function test_hmac_hash_determinism(): void
     {
         $this
             ->forAll(
@@ -53,30 +55,30 @@ class CertificateServicePropertyTest extends TestCase
             )
             ->then(function (int $productId, int $tenantId, string $sku, string $certificateNumber) {
                 // Create a mock Product with the generated attributes
-                $product = Mockery::mock(\App\Models\Product::class)->makePartial();
+                $product = Mockery::mock(Product::class)->makePartial();
                 $product->setRawAttributes([
-                    'id'        => $productId,
+                    'id' => $productId,
                     'tenant_id' => $tenantId,
-                    'sku'       => $sku,
+                    'sku' => $sku,
                 ]);
 
                 // Use a fixed timestamp within this single call (deterministic)
                 $issuedAt = Carbon::now();
 
                 // Compute hash twice with identical inputs
-                $hashFirst  = $this->service->computeHash($product, $certificateNumber, $issuedAt);
+                $hashFirst = $this->service->computeHash($product, $certificateNumber, $issuedAt);
                 $hashSecond = $this->service->computeHash($product, $certificateNumber, $issuedAt);
 
                 $this->assertIsString(
                     $hashFirst,
-                    "computeHash() must return a string"
+                    'computeHash() must return a string'
                 );
 
                 $this->assertSame(
                     $hashFirst,
                     $hashSecond,
-                    "computeHash() must be deterministic: same inputs must always produce the same hash. " .
-                    "product_id={$productId}, tenant_id={$tenantId}, sku={$sku}, " .
+                    'computeHash() must be deterministic: same inputs must always produce the same hash. '.
+                    "product_id={$productId}, tenant_id={$tenantId}, sku={$sku}, ".
                     "certificate_number={$certificateNumber}, issued_at={$issuedAt->toIso8601String()}"
                 );
 
@@ -95,7 +97,7 @@ class CertificateServicePropertyTest extends TestCase
      * // Feature: product-qr-certificate, Property 4: Certificate Number Uniqueness
      */
     #[ErisRepeat(repeat: 100)]
-    public function testCertificateNumberUniqueness(): void
+    public function test_certificate_number_uniqueness(): void
     {
         $this
             ->forAll(
@@ -115,8 +117,8 @@ class CertificateServicePropertyTest extends TestCase
                 $this->assertCount(
                     count($certificateNumbers),
                     $uniqueNumbers,
-                    "All {$n} generated certificate numbers must be unique. " .
-                    "Got duplicates: " . implode(', ', array_diff_assoc($certificateNumbers, $uniqueNumbers))
+                    "All {$n} generated certificate numbers must be unique. ".
+                    'Got duplicates: '.implode(', ', array_diff_assoc($certificateNumbers, $uniqueNumbers))
                 );
             });
     }

@@ -18,28 +18,28 @@ enum AiUseCase: string
     // Operasional harian: chatbot, CRUD AI, parsing, notifikasi
     // -------------------------------------------------------------------------
 
-    case CHATBOT             = 'chatbot';
-    case CRUD_AI             = 'crud_ai';
-    case AUTO_REPLY          = 'auto_reply';
-    case INVOICE_PARSING     = 'invoice_parsing';
-    case DOCUMENT_PARSING    = 'document_parsing';
-    case NOTIFICATION_AI     = 'notification_ai';
+    case CHATBOT = 'chatbot';
+    case CRUD_AI = 'crud_ai';
+    case AUTO_REPLY = 'auto_reply';
+    case INVOICE_PARSING = 'invoice_parsing';
+    case DOCUMENT_PARSING = 'document_parsing';
+    case NOTIFICATION_AI = 'notification_ai';
     case PRODUCT_DESCRIPTION = 'product_description';
-    case EMAIL_DRAFT         = 'email_draft';
+    case EMAIL_DRAFT = 'email_draft';
 
-        // -------------------------------------------------------------------------
-        // Heavyweight Use Cases — Claude Sonnet
-        // Analitik berat: laporan keuangan, forecasting, audit, rekomendasi bisnis
-        // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Heavyweight Use Cases — Claude Sonnet
+    // Analitik berat: laporan keuangan, forecasting, audit, rekomendasi bisnis
+    // -------------------------------------------------------------------------
 
-    case FINANCIAL_REPORT         = 'financial_report';
-    case FORECASTING              = 'forecasting';
-    case DECISION_SUPPORT         = 'decision_support';
-    case AUDIT_ANALYSIS           = 'audit_analysis';
-    case BUSINESS_RECOMMENDATION  = 'business_recommendation';
-    case BANK_RECONCILIATION_AI   = 'bank_reconciliation_ai';
-    case BUDGET_ANALYSIS          = 'budget_analysis';
-    case ANOMALY_DETECTION        = 'anomaly_detection';
+    case FINANCIAL_REPORT = 'financial_report';
+    case FORECASTING = 'forecasting';
+    case DECISION_SUPPORT = 'decision_support';
+    case AUDIT_ANALYSIS = 'audit_analysis';
+    case BUSINESS_RECOMMENDATION = 'business_recommendation';
+    case BANK_RECONCILIATION_AI = 'bank_reconciliation_ai';
+    case BUDGET_ANALYSIS = 'budget_analysis';
+    case ANOMALY_DETECTION = 'anomaly_detection';
 
     /**
      * Menentukan apakah use case ini termasuk kategori heavyweight.

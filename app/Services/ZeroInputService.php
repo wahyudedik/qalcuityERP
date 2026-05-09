@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Enums\AiUseCase;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\ZeroInputLog;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * ZeroInputService — Task 56
@@ -33,15 +35,15 @@ class ZeroInputService
 
         $log = ZeroInputLog::create([
             'tenant_id' => $tenantId,
-            'user_id'   => $userId,
-            'channel'   => 'photo',
-            'status'    => 'processing',
+            'user_id' => $userId,
+            'channel' => 'photo',
+            'status' => 'processing',
             'file_path' => $path,
         ]);
 
         try {
             $mimeType = $file->getMimeType();
-            $base64   = base64_encode(file_get_contents($file->getRealPath()));
+            $base64 = base64_encode(file_get_contents($file->getRealPath()));
 
             $prompt = $this->buildOcrPrompt();
             $response = $this->gemini->chatWithMedia(
@@ -53,18 +55,18 @@ class ZeroInputService
             );
 
             $extracted = $this->parseAiResponse($response['text'] ?? '');
-            $module    = $this->detectModule($extracted);
+            $module = $this->detectModule($extracted);
             $confidence = (float) ($extracted['confidence'] ?? 0);
             unset($extracted['confidence']); // don't store in extracted_data
 
             $log->update([
-                'status'           => 'mapped',
-                'mapped_module'    => $module,
-                'extracted_data'   => $extracted,
+                'status' => 'mapped',
+                'mapped_module' => $module,
+                'extracted_data' => $extracted,
                 'confidence_score' => $confidence,
             ]);
         } catch (\Throwable $e) {
-            Log::error("ZeroInput photo error: " . $e->getMessage());
+            Log::error('ZeroInput photo error: '.$e->getMessage());
             $log->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
         }
 
@@ -78,28 +80,28 @@ class ZeroInputService
     {
         $log = ZeroInputLog::create([
             'tenant_id' => $tenantId,
-            'user_id'   => $userId,
-            'channel'   => $channel,
-            'status'    => 'processing',
+            'user_id' => $userId,
+            'channel' => $channel,
+            'status' => 'processing',
             'raw_input' => $text,
         ]);
 
         try {
-            $prompt   = $this->buildTextPrompt($text);
+            $prompt = $this->buildTextPrompt($text);
             $response = $this->gemini->chat($prompt, [], [], AiUseCase::DOCUMENT_PARSING->value);
             $extracted = $this->parseAiResponse($response['text'] ?? '');
-            $module    = $this->detectModule($extracted);
+            $module = $this->detectModule($extracted);
             $confidence = (float) ($extracted['confidence'] ?? 0);
             unset($extracted['confidence']);
 
             $log->update([
-                'status'           => 'mapped',
-                'mapped_module'    => $module,
-                'extracted_data'   => $extracted,
+                'status' => 'mapped',
+                'mapped_module' => $module,
+                'extracted_data' => $extracted,
                 'confidence_score' => $confidence,
             ]);
         } catch (\Throwable $e) {
-            Log::error("ZeroInput text error: " . $e->getMessage());
+            Log::error('ZeroInput text error: '.$e->getMessage());
             $log->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
         }
 
@@ -115,20 +117,20 @@ class ZeroInputService
             return ['success' => false, 'message' => 'Data belum siap untuk diproses.'];
         }
 
-        $data   = $log->extracted_data;
+        $data = $log->extracted_data;
         $module = $log->mapped_module;
 
         try {
             $result = match ($module) {
-                'expense'  => $this->createExpense($log->tenant_id, $log->user_id, $data),
-                'product'  => $this->createProduct($log->tenant_id, $data),
+                'expense' => $this->createExpense($log->tenant_id, $log->user_id, $data),
+                'product' => $this->createProduct($log->tenant_id, $data),
                 'customer' => $this->createCustomer($log->tenant_id, $data),
-                default    => ['success' => false, 'message' => "Modul '{$module}' belum didukung untuk auto-create."],
+                default => ['success' => false, 'message' => "Modul '{$module}' belum didukung untuk auto-create."],
             };
 
             if ($result['success']) {
                 $log->update([
-                    'status'          => 'created',
+                    'status' => 'created',
                     'created_records' => $result['records'] ?? [],
                 ]);
             }
@@ -143,14 +145,14 @@ class ZeroInputService
 
     private function createExpense(int $tenantId, int $userId, array $data): array
     {
-        $expense = \App\Models\Transaction::create([
-            'tenant_id'   => $tenantId,
-            'user_id'     => $userId,
-            'type'        => 'expense',
-            'amount'      => $data['total'] ?? $data['amount'] ?? 0,
+        $expense = Transaction::create([
+            'tenant_id' => $tenantId,
+            'user_id' => $userId,
+            'type' => 'expense',
+            'amount' => $data['total'] ?? $data['amount'] ?? 0,
             'description' => $data['description'] ?? $data['merchant'] ?? 'Dari Zero Input',
-            'date'        => $data['date'] ?? today()->toDateString(),
-            'reference'   => 'ZI-' . now()->format('YmdHis'),
+            'date' => $data['date'] ?? today()->toDateString(),
+            'reference' => 'ZI-'.now()->format('YmdHis'),
         ]);
 
         return ['success' => true, 'records' => [['type' => 'expense', 'id' => $expense->id]]];
@@ -162,14 +164,14 @@ class ZeroInputService
             return ['success' => false, 'message' => 'Nama produk tidak ditemukan.'];
         }
 
-        $product = \App\Models\Product::create([
-            'tenant_id'  => $tenantId,
-            'name'       => $data['name'],
-            'sku'        => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)) . '-' . rand(100, 999),
+        $product = Product::create([
+            'tenant_id' => $tenantId,
+            'name' => $data['name'],
+            'sku' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)).'-'.rand(100, 999),
             'price_sell' => $data['price'] ?? 0,
-            'price_buy'  => $data['cost_price'] ?? 0,
-            'unit'       => $data['unit'] ?? 'pcs',
-            'is_active'  => true,
+            'price_buy' => $data['cost_price'] ?? 0,
+            'unit' => $data['unit'] ?? 'pcs',
+            'is_active' => true,
         ]);
 
         return ['success' => true, 'records' => [['type' => 'product', 'id' => $product->id]]];
@@ -181,12 +183,12 @@ class ZeroInputService
             return ['success' => false, 'message' => 'Nama customer tidak ditemukan.'];
         }
 
-        $customer = \App\Models\Customer::create([
+        $customer = Customer::create([
             'tenant_id' => $tenantId,
-            'name'      => $data['name'],
-            'phone'     => $data['phone'] ?? null,
-            'email'     => $data['email'] ?? null,
-            'address'   => $data['address'] ?? null,
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'address' => $data['address'] ?? null,
             'is_active' => true,
         ]);
 
@@ -197,7 +199,7 @@ class ZeroInputService
 
     private function buildOcrPrompt(): string
     {
-        return <<<PROMPT
+        return <<<'PROMPT'
 Kamu adalah sistem OCR ERP. Ekstrak semua informasi dari gambar nota/struk/dokumen ini.
 Kembalikan HANYA JSON valid dengan format berikut (tanpa markdown, tanpa penjelasan):
 {
@@ -249,19 +251,26 @@ PROMPT;
         $text = trim($text);
 
         $data = json_decode($text, true);
+
         return is_array($data) ? $data : ['raw' => $text];
     }
 
     private function detectModule(array $data): string
     {
-        if (!empty($data['module'])) return $data['module'];
+        if (! empty($data['module'])) {
+            return $data['module'];
+        }
 
         // Heuristik sederhana
-        if (!empty($data['items']) && count($data['items']) > 0) {
+        if (! empty($data['items']) && count($data['items']) > 0) {
             return 'expense';
         }
-        if (!empty($data['customer_name'])) return 'sales_order';
-        if (!empty($data['supplier_name'])) return 'purchase';
+        if (! empty($data['customer_name'])) {
+            return 'sales_order';
+        }
+        if (! empty($data['supplier_name'])) {
+            return 'purchase';
+        }
 
         return 'expense'; // default
     }

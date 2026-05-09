@@ -17,10 +17,10 @@ class OrderService
     {
         return DB::transaction(function () use ($data) {
             // BUG-FB-001 FIX: Validate ingredient stock before creating order
-            $stockService = new FbRecipeStockService();
+            $stockService = new FbRecipeStockService;
             $stockValidation = $stockService->validateOrderItems($data['items']);
 
-            if (!$stockValidation['valid']) {
+            if (! $stockValidation['valid']) {
                 throw new \Exception($stockValidation['message']);
             }
 
@@ -94,10 +94,10 @@ class OrderService
 
         // BUG-FB-001 FIX: Deduct ingredient stock when order is completed
         if ($newStatus === 'completed') {
-            $stockService = new FbRecipeStockService();
+            $stockService = new FbRecipeStockService;
             $deductionResult = $stockService->deductIngredientStock($order);
 
-            if (!$deductionResult['success']) {
+            if (! $deductionResult['success']) {
                 Log::error('F&B Stock deduction failed', [
                     'order_id' => $orderId,
                     'errors' => $deductionResult['errors'],
@@ -115,7 +115,7 @@ class OrderService
     {
         $order = FbOrder::findOrFail($orderId);
 
-        if (!$order->canBeCancelled()) {
+        if (! $order->canBeCancelled()) {
             throw new \Exception('Order cannot be cancelled at this stage');
         }
 

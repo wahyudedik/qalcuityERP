@@ -19,6 +19,7 @@ class DarkModeInlineStyleTest extends TestCase
         if (str_contains($relativePath, '/pdf/') || str_contains($relativePath, '\\pdf\\')) {
             return true;
         }
+
         return false;
     }
 
@@ -42,7 +43,7 @@ class DarkModeInlineStyleTest extends TestCase
         $violations = [];
         $viewDir = 'resources/views';
 
-        if (!is_dir($viewDir)) {
+        if (! is_dir($viewDir)) {
             $this->markTestSkipped("Directory {$viewDir} tidak ditemukan");
         }
 
@@ -59,11 +60,11 @@ class DarkModeInlineStyleTest extends TestCase
         ];
 
         foreach ($iterator as $file) {
-            if (!$file->isFile() || !str_ends_with($file->getFilename(), '.blade.php')) {
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
 
-            $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $relativePath = str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file->getPathname());
 
             if ($this->shouldSkipFile($relativePath)) {
                 continue;
@@ -78,7 +79,7 @@ class DarkModeInlineStyleTest extends TestCase
                 }
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $line)) {
-                        $violations[] = "{$relativePath}:{$lineNum}: " . trim($line);
+                        $violations[] = "{$relativePath}:{$lineNum}: ".trim($line);
                         if (count($violations) >= 15) {
                             break 3;
                         }
@@ -90,8 +91,8 @@ class DarkModeInlineStyleTest extends TestCase
 
         $this->assertEmpty(
             $violations,
-            "Bug 1.7: Ditemukan " . count($violations) . " inline style dengan background putih hardcoded " .
-            "yang akan override dark mode:\n" .
+            'Bug 1.7: Ditemukan '.count($violations).' inline style dengan background putih hardcoded '.
+            "yang akan override dark mode:\n".
             implode("\n", array_slice($violations, 0, 10))
         );
     }
@@ -105,7 +106,7 @@ class DarkModeInlineStyleTest extends TestCase
         $violations = [];
         $viewDir = 'resources/views';
 
-        if (!is_dir($viewDir)) {
+        if (! is_dir($viewDir)) {
             $this->markTestSkipped("Directory {$viewDir} tidak ditemukan");
         }
 
@@ -121,11 +122,11 @@ class DarkModeInlineStyleTest extends TestCase
         ];
 
         foreach ($iterator as $file) {
-            if (!$file->isFile() || !str_ends_with($file->getFilename(), '.blade.php')) {
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
 
-            $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $relativePath = str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file->getPathname());
 
             if ($this->shouldSkipFile($relativePath)) {
                 continue;
@@ -140,7 +141,7 @@ class DarkModeInlineStyleTest extends TestCase
                 }
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $line)) {
-                        $violations[] = "{$relativePath}:{$lineNum}: " . trim($line);
+                        $violations[] = "{$relativePath}:{$lineNum}: ".trim($line);
                         if (count($violations) >= 15) {
                             break 3;
                         }
@@ -152,8 +153,8 @@ class DarkModeInlineStyleTest extends TestCase
 
         $this->assertEmpty(
             $violations,
-            "Bug 1.7: Ditemukan " . count($violations) . " inline style dengan color hitam hardcoded " .
-            "yang akan override dark mode:\n" .
+            'Bug 1.7: Ditemukan '.count($violations).' inline style dengan color hitam hardcoded '.
+            "yang akan override dark mode:\n".
             implode("\n", array_slice($violations, 0, 10))
         );
     }

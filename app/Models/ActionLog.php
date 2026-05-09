@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class ActionLog extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -41,10 +41,12 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function undoneBy()
     {
         return $this->belongsTo(User::class, 'undone_by_user_id');
@@ -55,7 +57,7 @@ use HasFactory, BelongsToTenant;
      */
     public function undo(): bool
     {
-        if (!$this->can_undo || $this->undone) {
+        if (! $this->can_undo || $this->undone) {
             return false;
         }
 
@@ -83,7 +85,8 @@ use HasFactory, BelongsToTenant;
 
             return true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Undo failed: ' . $e->getMessage());
+            Log::error('Undo failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -93,7 +96,7 @@ use HasFactory, BelongsToTenant;
      */
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 

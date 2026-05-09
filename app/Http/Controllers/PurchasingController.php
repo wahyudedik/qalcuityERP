@@ -4,21 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\GoodsReceipt;
-use App\Models\GoodsReceiptItem;
 use App\Models\Payable;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequisition;
-use App\Models\PurchaseRequisitionItem;
 use App\Models\Rfq;
-use App\Models\RfqItem;
 use App\Models\RfqResponse;
+use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\DocumentNumberService;
 use App\Services\GlPostingService;
+use App\Services\GoodsReceiptValidationService;
 use App\Services\InventoryCostingService;
+use App\Services\PeriodLockService;
+use App\Services\PoApprovalService;
 use App\Services\TransactionStateMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -61,7 +62,7 @@ class PurchasingController extends Controller
 
         ActivityLog::record(
             'payable_created',
-            "Hutang usaha {$number} dibuat dari PO {$po->number} (Rp " . number_format($po->total, 0, ',', '.') . ")",
+            "Hutang usaha {$number} dibuat dari PO {$po->number} (Rp ".number_format($po->total, 0, ',', '.').')',
             $payable
         );
 
@@ -77,7 +78,7 @@ class PurchasingController extends Controller
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
         }
 
         $suppliers = $query->orderBy('name')->paginate(20)->withQueryString();
@@ -138,8 +139,8 @@ class PurchasingController extends Controller
         }
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%$s%")));
         }
 
         $orders = $query->latest('date')->paginate(20)->withQueryString();
@@ -177,7 +178,7 @@ class PurchasingController extends Controller
         $tid = $this->tenantId();
 
         // Cek period lock
-        app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Purchase Order');
+        app(PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Purchase Order');
 
         $subtotal = 0;
         $itemsData = [];
@@ -219,7 +220,7 @@ class PurchasingController extends Controller
         $po->items()->createMany($itemsData);
 
         $supplierName = $po->supplier->name ?? '-';
-        ActivityLog::record('purchase_order_created', "PO dibuat: {$po->number} (Supplier: {$supplierName}, Total: Rp " . number_format($subtotal, 0, ',', '.') . ")", $po, [], $po->toArray());
+        ActivityLog::record('purchase_order_created', "PO dibuat: {$po->number} (Supplier: {$supplierName}, Total: Rp ".number_format($subtotal, 0, ',', '.').')', $po, [], $po->toArray());
 
         return back()->with('success', "PO {$po->number} berhasil dibuat.");
     }
@@ -233,7 +234,7 @@ class PurchasingController extends Controller
 
         // Task 35: Cek apakah boleh ubah status operasional
         // Status operasional (sent/partial/received) hanya bisa diubah jika sudah posted
-        if (in_array($data['status'], ['sent', 'partial', 'received']) && !$order->isPosted()) {
+        if (in_array($data['status'], ['sent', 'partial', 'received']) && ! $order->isPosted()) {
             return back()->with('error', 'PO harus diposting terlebih dahulu sebelum bisa diproses.');
         }
 
@@ -288,7 +289,8 @@ class PurchasingController extends Controller
         }
 
         try {
-            $approvalRequest = app(\App\Services\PoApprovalService::class)->createApprovalRequest($order);
+            $approvalRequest = app(PoApprovalService::class)->createApprovalRequest($order);
+
             return back()->with('success', "PO {$order->number} diajukan untuk approval.");
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -303,13 +305,13 @@ class PurchasingController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $result = app(\App\Services\PoApprovalService::class)->approvePo(
+        $result = app(PoApprovalService::class)->approvePo(
             auth()->user(),
             $order,
             $data['notes'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -324,13 +326,13 @@ class PurchasingController extends Controller
             'reason' => 'required|string',
         ]);
 
-        $result = app(\App\Services\PoApprovalService::class)->rejectPo(
+        $result = app(PoApprovalService::class)->rejectPo(
             auth()->user(),
             $order,
             $data['reason']
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->with('error', $result['message']);
         }
 
@@ -341,7 +343,7 @@ class PurchasingController extends Controller
     {
         abort_unless($order->tenant_id === $this->tenantId(), 403);
 
-        $history = app(\App\Services\PoApprovalService::class)->getApprovalHistory($order);
+        $history = app(PoApprovalService::class)->getApprovalHistory($order);
 
         return response()->json([
             'success' => true,
@@ -354,7 +356,7 @@ class PurchasingController extends Controller
     {
         abort_unless($order->tenant_id === $this->tenantId(), 403);
 
-        $summary = app(\App\Services\GoodsReceiptValidationService::class)->getReceiptSummary($order);
+        $summary = app(GoodsReceiptValidationService::class)->getReceiptSummary($order);
 
         return response()->json([
             'success' => true,
@@ -366,7 +368,7 @@ class PurchasingController extends Controller
     {
         abort_unless($order->tenant_id === $this->tenantId(), 403);
 
-        if (!in_array($order->status, ['draft', 'cancelled'])) {
+        if (! in_array($order->status, ['draft', 'cancelled'])) {
             return back()->with('error', 'Hanya PO berstatus Draft atau Dibatalkan yang bisa dihapus.');
         }
 
@@ -402,8 +404,9 @@ class PurchasingController extends Controller
         $tid = $this->tenantId();
         $query = PurchaseRequisition::where('tenant_id', $tid)->with('requester');
 
-        if ($request->status)
+        if ($request->status) {
             $query->where('status', $request->status);
+        }
 
         $requisitions = $query->latest()->paginate(20)->withQueryString();
         $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
@@ -485,7 +488,7 @@ class PurchasingController extends Controller
         ]);
 
         $label = $data['action'] === 'approved' ? 'disetujui' : 'ditolak';
-        ActivityLog::record('pr_' . $data['action'], "PR {$requisition->number} {$label}", $requisition);
+        ActivityLog::record('pr_'.$data['action'], "PR {$requisition->number} {$label}", $requisition);
 
         return back()->with('success', "PR {$requisition->number} berhasil {$label}.");
     }
@@ -510,7 +513,7 @@ class PurchasingController extends Controller
             'user_id' => auth()->id(),
             'warehouse_id' => $data['warehouse_id'],
             'purchase_requisition_id' => $requisition->id,
-            'number' => 'PO-' . strtoupper(Str::random(8)),
+            'number' => 'PO-'.strtoupper(Str::random(8)),
             'status' => 'draft',
             'date' => $data['date'],
             'subtotal' => $requisition->estimated_total,
@@ -520,7 +523,7 @@ class PurchasingController extends Controller
 
         foreach ($requisition->items as $item) {
             // Skip items without product_id (free-text items)
-            if (!$item->product_id) {
+            if (! $item->product_id) {
                 continue;
             }
 
@@ -585,7 +588,7 @@ class PurchasingController extends Controller
             'status' => 'open',
         ]);
 
-        $rfq->items()->createMany(array_map(fn($i) => [
+        $rfq->items()->createMany(array_map(fn ($i) => [
             'product_id' => $i['product_id'] ?? null,
             'description' => $i['description'],
             'quantity' => $i['quantity'],
@@ -654,7 +657,7 @@ class PurchasingController extends Controller
             'warehouse_id' => $data['warehouse_id'],
             'rfq_id' => $rfq->id,
             'purchase_requisition_id' => $rfq->purchase_requisition_id,
-            'number' => 'PO-' . strtoupper(Str::random(8)),
+            'number' => 'PO-'.strtoupper(Str::random(8)),
             'status' => 'draft',
             'date' => $data['date'],
             'subtotal' => $selected->total_price,
@@ -726,17 +729,18 @@ class PurchasingController extends Controller
         $po = PurchaseOrder::where('tenant_id', $tid)->findOrFail($data['purchase_order_id']);
 
         // BUG-PO-002 FIX: Validate against over-acceptance
-        $validation = app(\App\Services\GoodsReceiptValidationService::class)->validateReceipt($po, $data['items']);
+        $validation = app(GoodsReceiptValidationService::class)->validateReceipt($po, $data['items']);
 
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             $errorMessages = collect($validation['errors'])->map(function ($error) {
                 if (isset($error['product_name'])) {
                     return "{$error['product_name']}: {$error['error']} (Ordered: {$error['ordered']}, Already Received: {$error['already_received']}, Remaining: {$error['remaining']}, Attempted: {$error['attempted']})";
                 }
+
                 return $error['error'];
             })->toArray();
 
-            return back()->with('error', 'Validation failed: ' . implode(' | ', $errorMessages));
+            return back()->with('error', 'Validation failed: '.implode(' | ', $errorMessages));
         }
 
         $gr = GoodsReceipt::create([
@@ -770,7 +774,7 @@ class PurchasingController extends Controller
 
                 // Record cost-in for AVCO/FIFO (no-op for 'simple' tenants)
                 if ($item['quantity_accepted'] > 0) {
-                    $movement = \App\Models\StockMovement::where('tenant_id', $tid)
+                    $movement = StockMovement::where('tenant_id', $tid)
                         ->where('product_id', $item['product_id'])
                         ->where('warehouse_id', $data['warehouse_id'])
                         ->where('type', 'in')
@@ -785,8 +789,8 @@ class PurchasingController extends Controller
             }
         }
         $po->load('items');
-        $allReceived = $po->items->every(fn($i) => $i->quantity_received >= $i->quantity_ordered);
-        $anyReceived = $po->items->some(fn($i) => $i->quantity_received > 0);
+        $allReceived = $po->items->every(fn ($i) => $i->quantity_received >= $i->quantity_ordered);
+        $anyReceived = $po->items->some(fn ($i) => $i->quantity_received > 0);
         $po->update(['status' => $allReceived ? 'received' : ($anyReceived ? 'partial' : $po->status)]);
 
         // GL posting if fully received
@@ -827,8 +831,8 @@ class PurchasingController extends Controller
 
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%$s%")));
         }
 
         $orders = $query->latest('date')->paginate(15)->withQueryString();
@@ -837,7 +841,7 @@ class PurchasingController extends Controller
         $matchingData = $orders->map(function (PurchaseOrder $po) {
             $poTotal = (float) $po->total;
             $grTotal = $po->goodsReceipts->where('status', 'confirmed')
-                ->flatMap->items->sum(fn($i) => $i->quantity_accepted * ($po->items->firstWhere('id', $i->purchase_order_item_id)?->price ?? 0));
+                ->flatMap->items->sum(fn ($i) => $i->quantity_accepted * ($po->items->firstWhere('id', $i->purchase_order_item_id)?->price ?? 0));
             $invTotal = $po->payable->sum('amount');
 
             $poQty = $po->items->sum('quantity_ordered');

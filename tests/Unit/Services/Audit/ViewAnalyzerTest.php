@@ -25,7 +25,7 @@ class ViewAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/view_analyzer_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/view_analyzer_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -535,32 +535,33 @@ BLADE);
      */
     private function writeFixture(string $relativePath, string $content): string
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
+
         return $fullPath;
     }
 
     /**
      * Filter findings by the 'check' metadata key.
      *
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return AuditFinding[]
      */
     private function filterByCheck(array $findings, string $check): array
     {
         return array_values(array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
         ));
     }
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

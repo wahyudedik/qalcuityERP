@@ -12,8 +12,11 @@ class NotificationDigestEmail extends Notification implements ShouldQueue
     use Queueable;
 
     protected array $groupedNotifications;
+
     protected string $frequency;
+
     protected $startDate;
+
     protected $endDate;
 
     /**
@@ -47,8 +50,8 @@ class NotificationDigestEmail extends Notification implements ShouldQueue
             : 'Ringkasan Notifikasi Mingguan';
 
         $dateRange = $this->startDate->format('d M Y');
-        if ($this->endDate && !$this->startDate->eq($this->endDate)) {
-            $dateRange .= ' - ' . $this->endDate->format('d M Y');
+        if ($this->endDate && ! $this->startDate->eq($this->endDate)) {
+            $dateRange .= ' - '.$this->endDate->format('d M Y');
         }
 
         $mailMessage = (new MailMessage)
@@ -61,7 +64,7 @@ class NotificationDigestEmail extends Notification implements ShouldQueue
         // Add sections for each module
         foreach ($this->groupedNotifications['by_module'] as $module => $data) {
             $moduleLabel = $this->getModuleLabel($module);
-            $mailMessage->line("─────────────────────");
+            $mailMessage->line('─────────────────────');
             $mailMessage->line("📂 {$moduleLabel} ({$data['count']} notifikasi, {$data['unread']} belum dibaca)");
 
             // Show top 5 notifications per module
@@ -77,7 +80,7 @@ class NotificationDigestEmail extends Notification implements ShouldQueue
             }
         }
 
-        $mailMessage->line("─────────────────────")
+        $mailMessage->line('─────────────────────')
             ->action('Lihat Semua Notifikasi', url('/notifications'))
             ->line('Terima kasih telah menggunakan Qalcuity ERP!');
 

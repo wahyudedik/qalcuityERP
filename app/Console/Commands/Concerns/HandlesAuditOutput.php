@@ -12,7 +12,9 @@ use Illuminate\Console\Command;
 trait HandlesAuditOutput
 {
     abstract protected function line($string, $verbosity = null);
+
     abstract protected function info($string, $verbosity = null);
+
     abstract protected function table($headers, $rows, $tableStyle = 'default', array $columnStyles = []);
 
     protected function resolveSeverityFilter(?string $severity): ?Severity
@@ -33,7 +35,7 @@ trait HandlesAuditOutput
     protected function renderAuditReport(AuditReport $report, string $format, ?string $outputPath = null): void
     {
         $format = strtolower($format);
-        if (!in_array($format, ['console', 'json', 'markdown'], true)) {
+        if (! in_array($format, ['console', 'json', 'markdown'], true)) {
             $format = 'console';
         }
 
@@ -44,6 +46,7 @@ trait HandlesAuditOutput
                 file_put_contents($outputPath, $payload);
                 $this->info("Report written to {$outputPath}");
             }
+
             return;
         }
 
@@ -54,6 +57,7 @@ trait HandlesAuditOutput
                 file_put_contents($outputPath, $payload);
                 $this->info("Report written to {$outputPath}");
             }
+
             return;
         }
 
@@ -70,6 +74,6 @@ trait HandlesAuditOutput
 
         $this->table(['Severity', 'Category', 'Title', 'File', 'Line'], $rows);
         $summary = $report->getSummary();
-        $this->info('Total findings: ' . $summary['total_findings']);
+        $this->info('Total findings: '.$summary['total_findings']);
     }
 }

@@ -6,6 +6,7 @@ use App\Exceptions\MarketplaceApiException;
 use App\Exceptions\RateLimitException;
 use App\Models\EcommerceChannel;
 use App\Models\ErpNotification;
+use App\Models\User;
 use App\Services\MarketplaceSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,20 +43,20 @@ class SyncMarketplaceStock implements ShouldQueue
                 $channel->update([
                     'last_stock_sync_at' => now(),
                     'sync_errors' => $result['failed'] > 0
-                        ? array_merge($channel->sync_errors ?? [], array_map(fn($e) => ['type' => 'stock', 'time' => now()->toIso8601String(), 'message' => $e], array_slice($result['errors'], 0, 5)))
+                        ? array_merge($channel->sync_errors ?? [], array_map(fn ($e) => ['type' => 'stock', 'time' => now()->toIso8601String(), 'message' => $e], array_slice($result['errors'], 0, 5)))
                         : $channel->sync_errors,
                 ]);
 
                 if ($result['failed'] > 0) {
-                    $admin = \App\Models\User::where('tenant_id', $channel->tenant_id)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->first();
+                    $admin = User::where('tenant_id', $channel->tenant_id)->whereHas('roles', fn ($q) => $q->where('name', 'admin'))->first();
                     if ($admin) {
                         ErpNotification::create([
                             'tenant_id' => $channel->tenant_id,
-                            'user_id'   => $admin->id,
-                            'type'      => 'marketplace_sync',
-                            'title'     => 'Sync Stok Marketplace Gagal Sebagian',
-                            'body'      => "{$result['failed']} produk gagal sync stok ke {$channel->platform} ({$channel->shop_name}). {$result['success']} berhasil.",
-                            'data'      => json_encode($result),
+                            'user_id' => $admin->id,
+                            'type' => 'marketplace_sync',
+                            'title' => 'Sync Stok Marketplace Gagal Sebagian',
+                            'body' => "{$result['failed']} produk gagal sync stok ke {$channel->platform} ({$channel->shop_name}). {$result['success']} berhasil.",
+                            'data' => json_encode($result),
                         ]);
                     }
                 }
@@ -65,6 +66,7 @@ class SyncMarketplaceStock implements ShouldQueue
                 $delay = min(600, pow(2, $this->attempts()) * 10);
                 Log::info('Marketplace rate limit hit, releasing with backoff', ['delay' => $delay, 'channel_id' => $channel->id]);
                 $this->release($delay);
+
                 return;
             } catch (MarketplaceApiException $e) {
                 throw $e;

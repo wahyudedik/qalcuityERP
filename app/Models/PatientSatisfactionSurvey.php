@@ -136,7 +136,7 @@ class PatientSatisfactionSurvey extends Model
      */
     public function getNpsCategoryAttribute()
     {
-        if (!$this->nps_score) {
+        if (! $this->nps_score) {
             return null;
         }
 
@@ -152,7 +152,7 @@ class PatientSatisfactionSurvey extends Model
      */
     public function hasComplaints()
     {
-        return !empty($this->complaints) || !empty($this->negative_feedback);
+        return ! empty($this->complaints) || ! empty($this->negative_feedback);
     }
 
     /**

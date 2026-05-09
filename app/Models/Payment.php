@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Payment extends Model
 {
-    use BelongsToTenant;
     use AuditsChanges;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -38,10 +37,12 @@ class Payment extends Model
     {
         return $this->morphTo();
     }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

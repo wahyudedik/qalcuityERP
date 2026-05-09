@@ -109,6 +109,6 @@ class TeleconsultationPayment extends Model
      */
     public function canRefund(): bool
     {
-        return $this->status === 'success' && !$this->refunded_at;
+        return $this->status === 'success' && ! $this->refunded_at;
     }
 }

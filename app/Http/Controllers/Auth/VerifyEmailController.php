@@ -17,9 +17,10 @@ class VerifyEmailController extends Controller
         if ($request->user()->hasVerifiedEmail()) {
             // Jika admin dan belum onboarding, arahkan ke sana
             $user = $request->user();
-            if ($user->isAdmin() && $user->tenant && !$user->tenant->onboarding_completed) {
+            if ($user->isAdmin() && $user->tenant && ! $user->tenant->onboarding_completed) {
                 return redirect()->route('onboarding.index');
             }
+
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
@@ -28,7 +29,7 @@ class VerifyEmailController extends Controller
         }
 
         $user = $request->user();
-        if ($user->isAdmin() && $user->tenant && !$user->tenant->onboarding_completed) {
+        if ($user->isAdmin() && $user->tenant && ! $user->tenant->onboarding_completed) {
             return redirect()->route('onboarding.index');
         }
 

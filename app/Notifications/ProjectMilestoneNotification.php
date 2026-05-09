@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\ConstructionProject;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ProjectMilestoneNotification extends Notification implements ShouldQueue
@@ -22,17 +23,17 @@ class ProjectMilestoneNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'project_milestone', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 

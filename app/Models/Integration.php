@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Integration extends Model
 {
-use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -120,7 +120,7 @@ use HasFactory, SoftDeletes, BelongsToTenant;
     {
         $config = $this->configs()->where('key', $key)->first();
 
-        if (!$config) {
+        if (! $config) {
             return $default;
         }
 
@@ -156,7 +156,7 @@ use HasFactory, SoftDeletes, BelongsToTenant;
     {
         $expiresAt = $this->oauth_tokens['expires_at'] ?? null;
 
-        if (!$expiresAt) {
+        if (! $expiresAt) {
             return true;
         }
 
@@ -168,7 +168,7 @@ use HasFactory, SoftDeletes, BelongsToTenant;
      */
     public function getConnectorClass(): string
     {
-        $className = ucfirst($this->slug) . 'Connector';
+        $className = ucfirst($this->slug).'Connector';
 
         return "App\\Services\\Integrations\\{$className}";
     }

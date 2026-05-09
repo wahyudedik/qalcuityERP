@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\TenantApiSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use App\Models\TenantApiSetting;
 
 class FaceRecognitionService
 {
     protected string $pythonServiceUrl;
+
     protected string $apiKey;
 
     public function __construct(protected ?int $tenantId = null)
@@ -27,7 +27,7 @@ class FaceRecognitionService
     public function registerFace(int $employeeId, string $imagePath): array
     {
         try {
-            if (!file_exists($imagePath)) {
+            if (! file_exists($imagePath)) {
                 throw new \Exception("Image file not found: {$imagePath}");
             }
 
@@ -41,8 +41,8 @@ class FaceRecognitionService
                     'employee_id' => $employeeId,
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Face registration failed: " . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Face registration failed: '.$response->body());
             }
 
             $result = $response->json();
@@ -73,7 +73,7 @@ class FaceRecognitionService
     public function recognizeFace(string $imagePath): array
     {
         try {
-            if (!file_exists($imagePath)) {
+            if (! file_exists($imagePath)) {
                 throw new \Exception("Image file not found: {$imagePath}");
             }
 
@@ -84,8 +84,8 @@ class FaceRecognitionService
                 ->attach('image', file_get_contents($imagePath), basename($imagePath))
                 ->post("{$this->pythonServiceUrl}/api/face/recognize");
 
-            if (!$response->successful()) {
-                throw new \Exception("Face recognition failed: " . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Face recognition failed: '.$response->body());
             }
 
             $result = $response->json();
@@ -120,8 +120,8 @@ class FaceRecognitionService
                 ->attach('image', file_get_contents($imagePath), basename($imagePath))
                 ->post("{$this->pythonServiceUrl}/api/face/liveness");
 
-            if (!$response->successful()) {
-                throw new \Exception("Liveness check failed: " . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Liveness check failed: '.$response->body());
             }
 
             $result = $response->json();
@@ -152,17 +152,17 @@ class FaceRecognitionService
             // Step 1: Verify liveness
             $liveness = $this->verifyLiveness($imagePath);
 
-            if (!$liveness['success'] || !$liveness['is_live']) {
+            if (! $liveness['success'] || ! $liveness['is_live']) {
                 return [
                     'success' => false,
-                    'message' => 'Liveness verification failed: ' . ($liveness['message'] ?? 'Unknown error'),
+                    'message' => 'Liveness verification failed: '.($liveness['message'] ?? 'Unknown error'),
                 ];
             }
 
             // Step 2: Recognize face
             $recognition = $this->recognizeFace($imagePath);
 
-            if (!$recognition['success'] || !$recognition['employee_id']) {
+            if (! $recognition['success'] || ! $recognition['employee_id']) {
                 return [
                     'success' => false,
                     'message' => 'Face not recognized',
@@ -207,8 +207,8 @@ class FaceRecognitionService
                 ->attach('image', file_get_contents($imagePath), basename($imagePath))
                 ->post("{$this->pythonServiceUrl}/api/face/detect");
 
-            if (!$response->successful()) {
-                throw new \Exception("Face detection failed: " . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Face detection failed: '.$response->body());
             }
 
             $result = $response->json();
@@ -288,8 +288,8 @@ class FaceRecognitionService
                     'camera_index' => $cameraIndex,
                 ]);
 
-            if (!$response->successful()) {
-                throw new \Exception("Camera capture failed: " . $response->body());
+            if (! $response->successful()) {
+                throw new \Exception('Camera capture failed: '.$response->body());
             }
 
             $result = $response->json();

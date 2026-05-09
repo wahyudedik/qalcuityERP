@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class RBACMiddleware
@@ -81,13 +82,13 @@ class RBACMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string $requiredPermission): Response
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login')
                 ->with('error', 'Anda harus login terlebih dahulu.');
         }
@@ -98,9 +99,9 @@ class RBACMiddleware
         }
 
         // Check if user has the required permission
-        if (!$this->hasPermission($user, $requiredPermission)) {
+        if (! $this->hasPermission($user, $requiredPermission)) {
             // Log unauthorized access attempt
-            \Illuminate\Support\Facades\Log::warning('Unauthorized healthcare access attempt', [
+            Log::warning('Unauthorized healthcare access attempt', [
                 'user_id' => $user->id,
                 'user_name' => $user->name,
                 'required_permission' => $requiredPermission,
@@ -161,7 +162,8 @@ class RBACMiddleware
      */
     public static function getRolePermissions(string $role): array
     {
-        $instance = new self();
+        $instance = new self;
+
         return $instance->rolePermissions[$role] ?? [];
     }
 
@@ -170,7 +172,8 @@ class RBACMiddleware
      */
     public static function getAvailableRoles(): array
     {
-        $instance = new self();
+        $instance = new self;
+
         return array_keys($instance->rolePermissions);
     }
 }

@@ -54,9 +54,9 @@ class ArchiveDataCommand extends Command
         ?int $tenantId,
         bool $dryRun
     ): int {
-        $this->info("Starting data archival process...");
-        $this->line("Tenant: " . ($tenantId ?? 'All'));
-        $this->line("Mode: " . ($dryRun ? 'DRY RUN' : 'LIVE'));
+        $this->info('Starting data archival process...');
+        $this->line('Tenant: '.($tenantId ?? 'All'));
+        $this->line('Mode: '.($dryRun ? 'DRY RUN' : 'LIVE'));
         $this->newLine();
 
         $results = $archivalService->archiveAll($tenantId, $dryRun);
@@ -76,7 +76,7 @@ class ArchiveDataCommand extends Command
                     $totalArchived += $count;
                 }
             } else {
-                $this->error("✗ {$type}: " . ($result['error'] ?? 'Unknown error'));
+                $this->error("✗ {$type}: ".($result['error'] ?? 'Unknown error'));
                 $failed++;
             }
         }
@@ -84,9 +84,9 @@ class ArchiveDataCommand extends Command
         $this->newLine();
 
         if ($dryRun) {
-            $this->info("Dry run completed. No data was deleted.");
+            $this->info('Dry run completed. No data was deleted.');
         } else {
-            $this->info("Archival completed successfully!");
+            $this->info('Archival completed successfully!');
             $this->line("Total archived: <info>{$totalArchived}</info> records");
 
             if ($failed > 0) {
@@ -94,7 +94,7 @@ class ArchiveDataCommand extends Command
             }
         }
 
-        Log::info("Data archival completed", [
+        Log::info('Data archival completed', [
             'tenant_id' => $tenantId,
             'dry_run' => $dryRun,
             'total_archived' => $totalArchived,
@@ -126,15 +126,18 @@ class ArchiveDataCommand extends Command
                     $count = $result['archived_count'] ?? 0;
                     $this->info("Successfully archived {$count} {$type} records");
                 }
+
                 return self::SUCCESS;
             } else {
-                $this->error("Failed: " . ($result['message'] ?? 'Unknown error'));
+                $this->error('Failed: '.($result['message'] ?? 'Unknown error'));
+
                 return self::FAILURE;
             }
 
         } catch (\InvalidArgumentException $e) {
             $this->error($e->getMessage());
-            $this->line("Available types: " . implode(', ', $this->getAvailableTypes()));
+            $this->line('Available types: '.implode(', ', $this->getAvailableTypes()));
+
             return self::INVALID;
         }
     }
@@ -146,8 +149,8 @@ class ArchiveDataCommand extends Command
         DataArchivalService $archivalService,
         ?int $tenantId
     ): int {
-        $this->info("Data Archival Statistics");
-        $this->line("Tenant: " . ($tenantId ?? 'All'));
+        $this->info('Data Archival Statistics');
+        $this->line('Tenant: '.($tenantId ?? 'All'));
         $this->newLine();
 
         $stats = $archivalService->getStatistics($tenantId);

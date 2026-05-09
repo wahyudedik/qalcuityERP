@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
-use App\Models\Guest;
 use App\Models\HousekeepingTask;
 use App\Models\Reservation;
 use App\Models\Room;

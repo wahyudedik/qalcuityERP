@@ -2,16 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\PatientMessage;
-use App\Models\MessageAttachment;
-use App\Models\MedicalCertificateRequest;
 use App\Models\HealthEducationContent;
-use App\Models\NotificationLog;
+use App\Models\MedicalCertificateRequest;
+use App\Models\MessageAttachment;
+use App\Models\PatientMessage;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class PatientPortalService
 {
@@ -59,7 +56,7 @@ class PatientPortalService
                 $bookingData['appointment_time']
             );
 
-            if (!$available) {
+            if (! $available) {
                 throw new Exception('Doctor is not available at the selected time');
             }
 
@@ -69,7 +66,7 @@ class PatientPortalService
             // Send confirmation notification
             $this->sendAppointmentConfirmation($appointment);
 
-            Log::info("Patient booked appointment", [
+            Log::info('Patient booked appointment', [
                 'patient_id' => $bookingData['patient_id'],
                 'doctor_id' => $bookingData['doctor_id'],
                 'appointment_id' => $appointment->id,
@@ -118,7 +115,7 @@ class PatientPortalService
             ->where('patient_id', $patientId)
             ->first();
 
-        if (!$result) {
+        if (! $result) {
             throw new Exception('Lab result not found');
         }
 
@@ -155,7 +152,7 @@ class PatientPortalService
                 ->where('patient_id', $paymentData['patient_id'])
                 ->first();
 
-            if (!$bill) {
+            if (! $bill) {
                 throw new Exception('Bill not found');
             }
 
@@ -179,7 +176,7 @@ class PatientPortalService
             // Send payment confirmation
             $this->sendPaymentConfirmation($bill, $payment);
 
-            Log::info("Patient paid bill", [
+            Log::info('Patient paid bill', [
                 'patient_id' => $paymentData['patient_id'],
                 'bill_id' => $bill->id,
                 'amount' => $bill->total_amount,
@@ -243,7 +240,7 @@ class PatientPortalService
             // Notify doctor/admin
             $this->notifyCertificateRequest($request);
 
-            Log::info("Patient requested medical certificate", [
+            Log::info('Patient requested medical certificate', [
                 'request_number' => $request->request_number,
                 'patient_id' => $requestData['patient_id'],
                 'type' => $request->certificate_type,
@@ -284,7 +281,7 @@ class PatientPortalService
             // Notify recipient
             $this->notifyNewMessage($message);
 
-            Log::info("Patient sent message to doctor", [
+            Log::info('Patient sent message to doctor', [
                 'message_number' => $message->message_number,
                 'patient_id' => $messageData['patient_id'],
                 'doctor_id' => $messageData['doctor_id'],
@@ -498,7 +495,7 @@ class PatientPortalService
             ->where('status', 'scheduled')
             ->exists();
 
-        return !$conflict;
+        return ! $conflict;
     }
 
     protected function createAppointment(array $bookingData)
@@ -582,13 +579,13 @@ class PatientPortalService
     protected function generateCertificateNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'CERT-' . $date;
+        $prefix = 'CERT-'.$date;
 
-        $last = MedicalCertificateRequest::where('request_number', 'like', $prefix . '%')
+        $last = MedicalCertificateRequest::where('request_number', 'like', $prefix.'%')
             ->orderBy('request_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->request_number, -4) + 1 : 1,
             4,
             '0',
@@ -599,13 +596,13 @@ class PatientPortalService
     protected function generateMessageNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'MSG-' . $date;
+        $prefix = 'MSG-'.$date;
 
-        $last = PatientMessage::where('message_number', 'like', $prefix . '%')
+        $last = PatientMessage::where('message_number', 'like', $prefix.'%')
             ->orderBy('message_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->message_number, -6) + 1 : 1,
             6,
             '0',

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CosmeticBatchRecord;
+use App\Models\CosmeticFormula;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class BatchPdfExportService
             'reworkLogs',
             'producer',
             'qcInspector',
-            'creator'
+            'creator',
         ]);
 
         $yieldAnalysis = app(BatchProductionService::class)->analyzeYield($batch);
@@ -53,7 +54,7 @@ class BatchPdfExportService
             'reworkLogs',
             'producer',
             'qcInspector',
-            'creator'
+            'creator',
         ]);
 
         $yieldAnalysis = app(BatchProductionService::class)->analyzeYield($batch);
@@ -101,10 +102,10 @@ class BatchPdfExportService
         $batch->load([
             'formula',
             'qualityChecks',
-            'qcInspector'
+            'qcInspector',
         ]);
 
-        if (!$batch->isReleased()) {
+        if (! $batch->isReleased()) {
             throw new \InvalidArgumentException('Batch must be released to generate CoA');
         }
 
@@ -129,7 +130,7 @@ class BatchPdfExportService
         $service = app(BatchProductionService::class);
         $trends = $service->getYieldTrends($formulaId, $months);
 
-        $formula = \App\Models\CosmeticFormula::findOrFail($formulaId);
+        $formula = CosmeticFormula::findOrFail($formulaId);
 
         $data = [
             'formula' => $formula,

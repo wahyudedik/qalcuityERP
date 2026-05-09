@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Two-Factor Authentication
-        if (!Schema::hasTable('two_factor_auth')) {
+        if (! Schema::hasTable('two_factor_auth')) {
             Schema::create('two_factor_auth', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -29,7 +30,7 @@ return new class extends Migration {
         }
 
         // 2. Granular Permissions
-        if (!Schema::hasTable('permissions')) {
+        if (! Schema::hasTable('permissions')) {
             Schema::create('permissions', function (Blueprint $table) {
                 $table->id();
                 $table->string('name')->unique(); // e.g., 'invoices.create'
@@ -42,7 +43,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('role_permission')) {
+        if (! Schema::hasTable('role_permission')) {
             // Check if roles table exists before creating foreign key
             if (Schema::hasTable('roles')) {
                 Schema::create('role_permission', function (Blueprint $table) {
@@ -55,13 +56,13 @@ return new class extends Migration {
                 });
             } else {
                 // Create table without foreign key if roles table doesn't exist
-                if (!Schema::hasTable('role_permission')) {
+                if (! Schema::hasTable('role_permission')) {
                     Schema::create('role_permission', function (Blueprint $table) {
                         $table->id();
                         $table->unsignedBigInteger('role_id');
                         $table->foreignId('permission_id')->constrained()->onDelete('cascade');
                         $table->timestamps();
-    
+
                         $table->unique(['role_id', 'permission_id']);
                         $table->index('role_id');
                     });
@@ -70,7 +71,7 @@ return new class extends Migration {
         }
 
         // 3. Data Encryption Keys
-        if (!Schema::hasTable('encryption_keys')) {
+        if (! Schema::hasTable('encryption_keys')) {
             Schema::create('encryption_keys', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -89,7 +90,7 @@ return new class extends Migration {
         }
 
         // 4. GDPR/PDP Consent & Data Requests
-        if (!Schema::hasTable('data_consents')) {
+        if (! Schema::hasTable('data_consents')) {
             Schema::create('data_consents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -108,7 +109,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('data_requests')) {
+        if (! Schema::hasTable('data_requests')) {
             Schema::create('data_requests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -129,7 +130,7 @@ return new class extends Migration {
         }
 
         // 5. Enhanced Audit Logs
-        if (!Schema::hasTable('audit_logs_enhanced')) {
+        if (! Schema::hasTable('audit_logs_enhanced')) {
             Schema::create('audit_logs_enhanced', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -156,7 +157,7 @@ return new class extends Migration {
         }
 
         // 6. Session Management & Device Tracking
-        if (!Schema::hasTable('user_sessions')) {
+        if (! Schema::hasTable('user_sessions')) {
             Schema::create('user_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -182,7 +183,7 @@ return new class extends Migration {
         }
 
         // 7. IP Whitelisting
-        if (!Schema::hasTable('ip_whitelist')) {
+        if (! Schema::hasTable('ip_whitelist')) {
             Schema::create('ip_whitelist', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -200,7 +201,7 @@ return new class extends Migration {
         }
 
         // 8. Security Events (Failed logins, suspicious activity)
-        if (!Schema::hasTable('security_events')) {
+        if (! Schema::hasTable('security_events')) {
             Schema::create('security_events', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

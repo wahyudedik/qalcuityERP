@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class DefectRecord extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'quality_check_id',
@@ -40,10 +41,10 @@ class DefectRecord extends Model
         parent::boot();
 
         static::creating(function ($defect) {
-            if (!$defect->defect_code) {
-                $defect->defect_code = 'DEF-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            if (! $defect->defect_code) {
+                $defect->defect_code = 'DEF-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
-            if (!$defect->reported_by) {
+            if (! $defect->reported_by) {
                 $defect->reported_by = Auth::id();
             }
         });
@@ -79,7 +80,7 @@ class DefectRecord extends Model
         return $this->belongsTo(User::class, 'resolved_by');
     }
 
-    public function resolve(string $rootCause, string $correctiveAction, string $preventiveAction = null, string $resolvedBy = null)
+    public function resolve(string $rootCause, string $correctiveAction, ?string $preventiveAction = null, ?string $resolvedBy = null)
     {
         $this->update([
             'root_cause' => $rootCause,

@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Suppliers;
 
 use App\Http\Controllers\Controller;
-use App\Services\SupplierScorecardService;
-use App\Services\StrategicSourcingService;
 use App\Models\SourcingOpportunity;
+use App\Services\StrategicSourcingService;
+use App\Services\SupplierScorecardService;
 use Illuminate\Http\Request;
 
 class SupplierScorecardController extends Controller
 {
     protected $scorecardService;
+
     protected $sourcingService;
 
     public function __construct(
@@ -38,7 +39,7 @@ class SupplierScorecardController extends Controller
     public function detail($supplierId)
     {
         // Ensure supplierId is an integer
-        if (!is_numeric($supplierId)) {
+        if (! is_numeric($supplierId)) {
             abort(404, 'Supplier tidak ditemukan');
         }
 
@@ -53,7 +54,7 @@ class SupplierScorecardController extends Controller
     public function generate(Request $request)
     {
         $validated = $request->validate([
-            'period' => 'required|in:monthly,quarterly,yearly'
+            'period' => 'required|in:monthly,quarterly,yearly',
         ]);
 
         try {
@@ -66,7 +67,7 @@ class SupplierScorecardController extends Controller
                 ->with('success', "Berhasil membuat {$generated} scorecard!");
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Gagal membuat scorecard: ' . $e->getMessage());
+                ->with('error', 'Gagal membuat scorecard: '.$e->getMessage());
         }
     }
 
@@ -125,7 +126,7 @@ class SupplierScorecardController extends Controller
                 ->with('success', 'Opportunity berhasil dibuat!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Gagal membuat opportunity: ' . $e->getMessage())
+                ->with('error', 'Gagal membuat opportunity: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -151,7 +152,7 @@ class SupplierScorecardController extends Controller
                 ->with('success', 'Status opportunity berhasil diupdate!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Gagal update status: ' . $e->getMessage());
+                ->with('error', 'Gagal update status: '.$e->getMessage());
         }
     }
 
@@ -201,6 +202,6 @@ class SupplierScorecardController extends Controller
 
         return response($csv)
             ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', 'attachment; filename="supplier_scorecards_' . date('Y-m-d') . '.csv"');
+            ->header('Content-Disposition', 'attachment; filename="supplier_scorecards_'.date('Y-m-d').'.csv"');
     }
 }

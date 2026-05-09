@@ -34,6 +34,7 @@ class BluetoothScannerService
             ];
         } catch (\Exception $e) {
             Log::error('Bluetooth Scan Error', ['error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -62,6 +63,7 @@ class BluetoothScannerService
                 'device' => $deviceAddress,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -75,13 +77,13 @@ class BluetoothScannerService
             // For HID mode scanners, they act as keyboard input
             // This method is for serial-based Bluetooth scanners
 
-            if (!function_exists('dio_open')) {
+            if (! function_exists('dio_open')) {
                 throw new \Exception('PHP DIO extension required for serial Bluetooth');
             }
 
             $device = @dio_open($port, O_RDWR | O_NONBLOCK);
 
-            if (!$device) {
+            if (! $device) {
                 throw new \Exception("Cannot open Bluetooth port: {$port}");
             }
 
@@ -108,9 +110,10 @@ class BluetoothScannerService
 
             @dio_close($device);
 
-            return !empty($barcode) ? trim($barcode) : null;
+            return ! empty($barcode) ? trim($barcode) : null;
         } catch (\Exception $e) {
             Log::error('Barcode Read Error', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -123,12 +126,14 @@ class BluetoothScannerService
         try {
             if (PHP_OS === 'Linux') {
                 exec("bluetoothctl disconnect {$deviceAddress}");
+
                 return true;
             }
 
             return false;
         } catch (\Exception $e) {
             Log::error('Bluetooth Disconnect Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }

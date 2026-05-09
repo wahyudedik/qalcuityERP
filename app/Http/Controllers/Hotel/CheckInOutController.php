@@ -10,18 +10,18 @@ use App\Models\PreArrivalForm;
 use App\Models\Reservation;
 use App\Services\CheckInOutService;
 use App\Services\RoomAvailabilityService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
  * @property-read Reservation $reservation
  */
-
 class CheckInOutController extends Controller
 {
     private CheckInOutService $checkInOutService;
+
     private RoomAvailabilityService $availabilityService;
 
     public function __construct(

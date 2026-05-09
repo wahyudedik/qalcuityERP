@@ -4,20 +4,23 @@ namespace App\Services\Integrations;
 
 use App\Models\AccountingIntegration;
 use App\Models\AccountingSyncLog;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
  * JurnalIdConnector — Integrasi dengan Jurnal.id
- * 
+ *
  * Menyediakan sinkronisasi jurnal dan laporan keuangan dengan Jurnal.id.
- * 
+ *
  * Requirement 16: Integrasi akuntansi (Jurnal.id, Accurate Online) berfungsi:
  * sinkronisasi data jurnal dan laporan keuangan berjalan dengan benar
  */
 class JurnalIdConnector extends BaseConnector
 {
     protected const API_BASE_URL = 'https://api.jurnal.id/v1';
+
     protected const TIMEOUT = 30;
 
     public function __construct(AccountingIntegration $integration)
@@ -33,7 +36,7 @@ class JurnalIdConnector extends BaseConnector
         try {
             $response = Http::withToken($this->integration->access_token)
                 ->timeout(self::TIMEOUT)
-                ->get(self::API_BASE_URL . '/companies');
+                ->get(self::API_BASE_URL.'/companies');
 
             if ($response->successful()) {
                 return ['success' => true, 'message' => 'Koneksi ke Jurnal.id berhasil'];
@@ -51,7 +54,7 @@ class JurnalIdConnector extends BaseConnector
 
             return [
                 'success' => false,
-                'error' => 'Koneksi gagal: ' . $e->getMessage(),
+                'error' => 'Koneksi gagal: '.$e->getMessage(),
             ];
         }
     }
@@ -76,17 +79,18 @@ class JurnalIdConnector extends BaseConnector
 
             foreach ($journalIds as $journalId) {
                 try {
-                    $journal = \App\Models\JournalEntry::find($journalId);
-                    if (!$journal) {
+                    $journal = JournalEntry::find($journalId);
+                    if (! $journal) {
                         $failed++;
                         $errors[] = "Jurnal ID {$journalId} tidak ditemukan";
+
                         continue;
                     }
 
                     $payload = $this->formatJournalPayload($journal);
                     $response = Http::withToken($this->integration->access_token)
                         ->timeout(self::TIMEOUT)
-                        ->post(self::API_BASE_URL . '/journals', $payload);
+                        ->post(self::API_BASE_URL.'/journals', $payload);
 
                     if ($response->successful()) {
                         $synced++;
@@ -96,11 +100,11 @@ class JurnalIdConnector extends BaseConnector
                         ]);
                     } else {
                         $failed++;
-                        $errors[] = "Jurnal {$journal->number}: " . ($response->json('message') ?? 'Sync gagal');
+                        $errors[] = "Jurnal {$journal->number}: ".($response->json('message') ?? 'Sync gagal');
                     }
                 } catch (\Throwable $e) {
                     $failed++;
-                    $errors[] = "Jurnal ID {$journalId}: " . $e->getMessage();
+                    $errors[] = "Jurnal ID {$journalId}: ".$e->getMessage();
                     Log::error('JurnalIdConnector: sync journal error', [
                         'journal_id' => $journalId,
                         'error' => $e->getMessage(),
@@ -155,17 +159,18 @@ class JurnalIdConnector extends BaseConnector
 
             foreach ($invoiceIds as $invoiceId) {
                 try {
-                    $invoice = \App\Models\Invoice::find($invoiceId);
-                    if (!$invoice) {
+                    $invoice = Invoice::find($invoiceId);
+                    if (! $invoice) {
                         $failed++;
                         $errors[] = "Invoice ID {$invoiceId} tidak ditemukan";
+
                         continue;
                     }
 
                     $payload = $this->formatInvoicePayload($invoice);
                     $response = Http::withToken($this->integration->access_token)
                         ->timeout(self::TIMEOUT)
-                        ->post(self::API_BASE_URL . '/sales-invoices', $payload);
+                        ->post(self::API_BASE_URL.'/sales-invoices', $payload);
 
                     if ($response->successful()) {
                         $synced++;
@@ -175,11 +180,11 @@ class JurnalIdConnector extends BaseConnector
                         ]);
                     } else {
                         $failed++;
-                        $errors[] = "Invoice {$invoice->number}: " . ($response->json('message') ?? 'Sync gagal');
+                        $errors[] = "Invoice {$invoice->number}: ".($response->json('message') ?? 'Sync gagal');
                     }
                 } catch (\Throwable $e) {
                     $failed++;
-                    $errors[] = "Invoice ID {$invoiceId}: " . $e->getMessage();
+                    $errors[] = "Invoice ID {$invoiceId}: ".$e->getMessage();
                     Log::error('JurnalIdConnector: sync invoice error', [
                         'invoice_id' => $invoiceId,
                         'error' => $e->getMessage(),
@@ -222,7 +227,7 @@ class JurnalIdConnector extends BaseConnector
         try {
             $response = Http::withToken($this->integration->access_token)
                 ->timeout(self::TIMEOUT)
-                ->get(self::API_BASE_URL . '/reports/' . $reportType, [
+                ->get(self::API_BASE_URL.'/reports/'.$reportType, [
                     'period' => $period,
                 ]);
 
@@ -246,7 +251,7 @@ class JurnalIdConnector extends BaseConnector
 
             return [
                 'success' => false,
-                'error' => 'Gagal mengambil laporan: ' . $e->getMessage(),
+                'error' => 'Gagal mengambil laporan: '.$e->getMessage(),
             ];
         }
     }
@@ -254,7 +259,7 @@ class JurnalIdConnector extends BaseConnector
     /**
      * Format jurnal untuk Jurnal.id API
      */
-    protected function formatJournalPayload(\App\Models\JournalEntry $journal): array
+    protected function formatJournalPayload(JournalEntry $journal): array
     {
         return [
             'date' => $journal->date->format('Y-m-d'),
@@ -275,7 +280,7 @@ class JurnalIdConnector extends BaseConnector
     /**
      * Format invoice untuk Jurnal.id API
      */
-    protected function formatInvoicePayload(\App\Models\Invoice $invoice): array
+    protected function formatInvoicePayload(Invoice $invoice): array
     {
         return [
             'date' => $invoice->invoice_date->format('Y-m-d'),
@@ -302,6 +307,7 @@ class JurnalIdConnector extends BaseConnector
     public static function verifyWebhookSignature(string $payload, string $signature, string $secret): bool
     {
         $expected = hash_hmac('sha256', $payload, $secret);
+
         return hash_equals($expected, $signature);
     }
 }

@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VariantInventory extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -66,6 +65,7 @@ use HasFactory, BelongsToTenant;
     public function getFormattedQuantityAttribute(): string
     {
         $sign = $this->quantity >= 0 ? '+' : '';
-        return $sign . number_format($this->quantity);
+
+        return $sign.number_format($this->quantity);
     }
 }

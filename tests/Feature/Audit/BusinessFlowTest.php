@@ -16,18 +16,18 @@ use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\Supplier;
+use App\Models\SupplierInvoice;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Task 24.4: Integration test for Sales, Purchasing, Payroll, POS end-to-end flows
- * 
+ *
  * Validates: Requirements 9.1, 9.2, 9.4, 9.5
- * 
+ *
  * This test ensures that:
  * - Complete business flows work from start to finish
  * - Data flows correctly between modules
@@ -37,10 +37,15 @@ use Tests\TestCase;
 class BusinessFlowTest extends TestCase
 {
     protected Tenant $tenant;
+
     protected User $user;
+
     protected Customer $customer;
+
     protected Supplier $supplier;
+
     protected Warehouse $warehouse;
+
     protected Product $product;
 
     protected function setUp(): void
@@ -199,7 +204,7 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals(10, $stock->fresh()->quantity);
 
         // 3. Create Supplier Invoice
-        $supplierInvoice = \App\Models\SupplierInvoice::create([
+        $supplierInvoice = SupplierInvoice::create([
             'tenant_id' => $this->tenant->id,
             'purchase_order_id' => $po->id,
             'supplier_id' => $this->supplier->id,
@@ -218,7 +223,7 @@ class BusinessFlowTest extends TestCase
         // 4. Record Payment to Supplier
         $payment = Payment::create([
             'tenant_id' => $this->tenant->id,
-            'payable_type' => \App\Models\SupplierInvoice::class,
+            'payable_type' => SupplierInvoice::class,
             'payable_id' => $supplierInvoice->id,
             'amount' => 77700,
             'payment_date' => today(),
@@ -310,7 +315,7 @@ class BusinessFlowTest extends TestCase
             'user_id' => $this->user->id,
             'number' => 'JE-PAYROLL-001',
             'date' => today(),
-            'description' => "Payroll for " . today()->format('F Y'),
+            'description' => 'Payroll for '.today()->format('F Y'),
             'reference_type' => 'payroll',
             'reference_id' => $payrollRun->id,
             'status' => 'posted',
@@ -494,6 +499,3 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals('paid', $invoice->fresh()->status);
     }
 }
-
-
-

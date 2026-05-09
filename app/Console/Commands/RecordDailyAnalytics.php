@@ -2,6 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Appointment;
+use App\Models\Bed;
+use App\Models\DailyAnalytics;
+use App\Models\LabOrder;
+use App\Models\MedicalBill;
+use App\Models\OutpatientVisit;
+use App\Models\Patient;
+use App\Models\PatientAdmission;
+use App\Models\Payment;
+use App\Models\Prescription;
+use App\Models\RadiologyExam;
+use App\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,8 +47,8 @@ class RecordDailyAnalytics extends Command
         $tenantId = $this->option('tenant');
 
         $tenants = $tenantId
-            ? [\App\Models\Tenant::find($tenantId)]
-            : \App\Models\Tenant::whereHas('users', function ($q) {
+            ? [Tenant::find($tenantId)]
+            : Tenant::whereHas('users', function ($q) {
                 $q->whereHas('roles', function ($q) {
                     $q->where('name', 'admin');
                 });
@@ -75,58 +87,58 @@ class RecordDailyAnalytics extends Command
         $this->info("Processing tenant {$tenantId} for {$dateStr}...");
 
         // Patient Statistics
-        $newPatients = \App\Models\Patient::where('tenant_id', $tenantId)
+        $newPatients = Patient::where('tenant_id', $tenantId)
             ->whereDate('created_at', $dateStr)
             ->count();
 
-        $totalPatients = \App\Models\Patient::where('tenant_id', $tenantId)->count();
+        $totalPatients = Patient::where('tenant_id', $tenantId)->count();
 
         // Visit Statistics
-        $totalVisits = \App\Models\OutpatientVisit::where('tenant_id', $tenantId)
+        $totalVisits = OutpatientVisit::where('tenant_id', $tenantId)
             ->whereDate('visit_date', $dateStr)
             ->count();
 
-        $completedVisits = \App\Models\OutpatientVisit::where('tenant_id', $tenantId)
+        $completedVisits = OutpatientVisit::where('tenant_id', $tenantId)
             ->whereDate('visit_date', $dateStr)
             ->where('status', 'completed')
             ->count();
 
         // Admission Statistics
-        $newAdmissions = \App\Models\PatientAdmission::where('tenant_id', $tenantId)
+        $newAdmissions = PatientAdmission::where('tenant_id', $tenantId)
             ->whereDate('admission_date', $dateStr)
             ->count();
 
-        $discharges = \App\Models\PatientAdmission::where('tenant_id', $tenantId)
+        $discharges = PatientAdmission::where('tenant_id', $tenantId)
             ->whereDate('discharge_date', $dateStr)
             ->count();
 
         // Appointment Statistics
-        $scheduledAppointments = \App\Models\Appointment::where('tenant_id', $tenantId)
+        $scheduledAppointments = Appointment::where('tenant_id', $tenantId)
             ->whereDate('appointment_date', $dateStr)
             ->where('status', 'scheduled')
             ->count();
 
-        $completedAppointments = \App\Models\Appointment::where('tenant_id', $tenantId)
+        $completedAppointments = Appointment::where('tenant_id', $tenantId)
             ->whereDate('appointment_date', $dateStr)
             ->where('status', 'completed')
             ->count();
 
-        $noShows = \App\Models\Appointment::where('tenant_id', $tenantId)
+        $noShows = Appointment::where('tenant_id', $tenantId)
             ->whereDate('appointment_date', $dateStr)
             ->where('status', 'no_show')
             ->count();
 
         // Revenue Statistics
-        $dailyRevenue = \App\Models\MedicalBill::where('tenant_id', $tenantId)
+        $dailyRevenue = MedicalBill::where('tenant_id', $tenantId)
             ->whereDate('bill_date', $dateStr)
             ->sum('total_amount');
 
-        $paymentsReceived = \App\Models\Payment::where('tenant_id', $tenantId)
+        $paymentsReceived = Payment::where('tenant_id', $tenantId)
             ->whereDate('payment_date', $dateStr)
             ->sum('amount');
 
         // Department Statistics
-        $departmentStats = \App\Models\OutpatientVisit::where('tenant_id', $tenantId)
+        $departmentStats = OutpatientVisit::where('tenant_id', $tenantId)
             ->whereDate('visit_date', $dateStr)
             ->select('department', DB::raw('COUNT(*) as count'))
             ->groupBy('department')
@@ -135,29 +147,29 @@ class RecordDailyAnalytics extends Command
             ->toArray();
 
         // Bed Occupancy
-        $totalBeds = \App\Models\Bed::where('tenant_id', $tenantId)->count();
-        $occupiedBeds = \App\Models\Bed::where('tenant_id', $tenantId)
+        $totalBeds = Bed::where('tenant_id', $tenantId)->count();
+        $occupiedBeds = Bed::where('tenant_id', $tenantId)
             ->where('status', 'occupied')
             ->count();
         $occupancyRate = $totalBeds > 0 ? ($occupiedBeds / $totalBeds * 100) : 0;
 
         // Lab & Radiology
-        $labOrders = \App\Models\LabOrder::where('tenant_id', $tenantId)
+        $labOrders = LabOrder::where('tenant_id', $tenantId)
             ->whereDate('order_date', $dateStr)
             ->count();
 
-        $radiologyExams = \App\Models\RadiologyExam::where('tenant_id', $tenantId)
+        $radiologyExams = RadiologyExam::where('tenant_id', $tenantId)
             ->whereDate('exam_date', $dateStr)
             ->count();
 
         // Pharmacy
-        $prescriptionsFilled = \App\Models\Prescription::where('tenant_id', $tenantId)
+        $prescriptionsFilled = Prescription::where('tenant_id', $tenantId)
             ->whereDate('dispensed_date', $dateStr)
             ->where('status', 'dispensed')
             ->count();
 
         // Store snapshot
-        \App\Models\DailyAnalytics::updateOrCreate(
+        DailyAnalytics::updateOrCreate(
             [
                 'tenant_id' => $tenantId,
                 'date' => $dateStr,
@@ -191,7 +203,7 @@ class RecordDailyAnalytics extends Command
 
         $this->line("  ✓ New Patients: {$newPatients}");
         $this->line("  ✓ Total Visits: {$totalVisits}");
-        $this->line("  ✓ Revenue: Rp " . number_format($dailyRevenue, 0, ',', '.'));
+        $this->line('  ✓ Revenue: Rp '.number_format($dailyRevenue, 0, ',', '.'));
         $this->line("  ✓ Occupancy: {$occupancyRate}%");
     }
 }

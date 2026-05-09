@@ -2,16 +2,16 @@
 
 namespace App\Services\Manufacturing;
 
-use App\Models\SalesOrder;
 use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Services\GeminiService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Predictive MRP Service
- * 
+ *
  * AI-powered demand forecasting using Gemini
  * Analyzes historical data, seasonality, and trends
  */
@@ -111,7 +111,7 @@ class PredictiveMRPService
             foreach ($order->items as $item) {
                 $productKey = $item->product_id;
 
-                if (!isset($monthlyData[$productKey])) {
+                if (! isset($monthlyData[$productKey])) {
                     $monthlyData[$productKey] = [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product?->name ?? 'Unknown',
@@ -120,7 +120,7 @@ class PredictiveMRPService
                     ];
                 }
 
-                if (!isset($monthlyData[$productKey]['monthly_sales'][$monthKey])) {
+                if (! isset($monthlyData[$productKey]['monthly_sales'][$monthKey])) {
                     $monthlyData[$productKey]['monthly_sales'][$monthKey] = 0;
                 }
 
@@ -136,8 +136,9 @@ class PredictiveMRPService
      */
     private function getCurrentInventoryLevels(int $tenantId, ?int $productId = null): array
     {
-        $query = ProductStock::where('tenant_id', $tenantId)
-            ->with(['product', 'warehouse']);
+        $query = ProductStock::whereHas('warehouse', function ($q) use ($tenantId) {
+            $q->where('tenant_id', $tenantId)->where('is_active', true);
+        })->with(['product', 'warehouse']);
 
         if ($productId) {
             $query->where('product_id', $productId);
@@ -169,10 +170,11 @@ class PredictiveMRPService
     private function getSupplierLeadTimes(int $tenantId): array
     {
         // Get average lead time from PO history
+        // Uses 'updated_at' as proxy for received date and 'date' as order date
         $leadTimes = PurchaseOrder::where('tenant_id', $tenantId)
-            ->whereNotNull('received_at')
-            ->whereNotNull('expected_delivery_date')
-            ->selectRaw('supplier_id, AVG(DATEDIFF(received_at, expected_delivery_date)) as avg_lead_variance')
+            ->where('status', 'received')
+            ->whereNotNull('expected_date')
+            ->selectRaw('supplier_id, AVG(DATEDIFF(updated_at, expected_date)) as avg_lead_variance')
             ->groupBy('supplier_id')
             ->get();
 
@@ -180,7 +182,7 @@ class PredictiveMRPService
             return [
                 $item->supplier_id => [
                     'avg_lead_variance_days' => round($item->avg_lead_variance, 1),
-                ]
+                ],
             ];
         })->toArray();
     }

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -14,10 +15,10 @@ class SuperAdminSeeder extends Seeder
             ['email' => 'info@qalcuity.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', \Illuminate\Support\Str::random(32))),
+                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', Str::random(32))),
                 'role' => 'super_admin',
-                'tenant_id' => null, 
-                'is_active' => true, 
+                'tenant_id' => null,
+                'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );

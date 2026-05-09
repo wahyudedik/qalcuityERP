@@ -16,9 +16,13 @@ class CompanyGroupController extends Controller
     {
         $user = auth()->user();
         // Owner or super_admin can access
-        if ($group->owner_user_id === $user->id || $user->isSuperAdmin()) return;
+        if ($group->owner_user_id === $user->id || $user->isSuperAdmin()) {
+            return;
+        }
         // Member tenant admin can also access
-        if ($user->tenant_id && $group->members()->where('tenant_id', $user->tenant_id)->exists()) return;
+        if ($user->tenant_id && $group->members()->where('tenant_id', $user->tenant_id)->exists()) {
+            return;
+        }
         abort(403);
     }
 
@@ -42,13 +46,13 @@ class CompanyGroupController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'currency_code' => 'required|string|max:10',
         ]);
 
         $group = CompanyGroup::create([
             'owner_user_id' => auth()->id(),
-            'name'          => $data['name'],
+            'name' => $data['name'],
             'currency_code' => $data['currency_code'],
         ]);
 
@@ -97,7 +101,7 @@ class CompanyGroupController extends Controller
             'tenant_id' => 'required|exists:tenants,id',
         ]);
 
-        if (!$companyGroup->members()->where('tenant_id', $data['tenant_id'])->exists()) {
+        if (! $companyGroup->members()->where('tenant_id', $data['tenant_id'])->exists()) {
             $companyGroup->members()->create([
                 'tenant_id' => $data['tenant_id'],
                 'role' => 'member',
@@ -111,6 +115,7 @@ class CompanyGroupController extends Controller
     {
         $this->authorizeGroup($companyGroup);
         $companyGroup->members()->where('tenant_id', $tenant->id)->delete();
+
         return back()->with('success', 'Perusahaan dihapus dari grup.');
     }
 
@@ -120,11 +125,11 @@ class CompanyGroupController extends Controller
 
         $data = $request->validate([
             'from_tenant_id' => 'required|exists:tenants,id',
-            'to_tenant_id'   => 'required|exists:tenants,id|different:from_tenant_id',
-            'type'           => 'required|in:sale,loan,expense_allocation,dividend,management_fee',
-            'amount'         => 'required|numeric|min:1',
-            'description'    => 'nullable|string|max:255',
-            'date'           => 'required|date',
+            'to_tenant_id' => 'required|exists:tenants,id|different:from_tenant_id',
+            'type' => 'required|in:sale,loan,expense_allocation,dividend,management_fee',
+            'amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:255',
+            'date' => 'required|date',
         ]);
 
         $this->consolidation->createIntercompanyTransaction(
@@ -143,19 +148,21 @@ class CompanyGroupController extends Controller
     public function postTransaction(InterCompanyTransaction $transaction)
     {
         $group = CompanyGroup::find($transaction->company_group_id);
-        abort_if(!$group, 404);
+        abort_if(! $group, 404);
         $this->authorizeGroup($group);
         $transaction->update(['status' => 'posted']);
+
         return back()->with('success', 'Transaksi diposting.');
     }
 
     public function voidTransaction(InterCompanyTransaction $transaction)
     {
         $group = CompanyGroup::find($transaction->company_group_id);
-        abort_if(!$group, 404);
+        abort_if(! $group, 404);
         $this->authorizeGroup($group);
         abort_if($transaction->status !== 'pending', 422, 'Hanya transaksi pending yang bisa di-void.');
         $transaction->update(['status' => 'voided']);
+
         return back()->with('success', 'Transaksi di-void.');
     }
 
@@ -179,14 +186,14 @@ class CompanyGroupController extends Controller
         $csv .= "Perusahaan,Omzet,Biaya,Laba\n";
         foreach ($report['revenues'] as $tid => $rev) {
             $exp = $report['expenses'][$tid]['amount'] ?? 0;
-            $csv .= "\"{$rev['name']}\",{$rev['amount']},{$exp}," . ($rev['amount'] - $exp) . "\n";
+            $csv .= "\"{$rev['name']}\",{$rev['amount']},{$exp},".($rev['amount'] - $exp)."\n";
         }
         $csv .= "\"TOTAL\",{$report['total_revenue']},{$report['total_expense']},{$report['consolidated_profit']}\n";
         $csv .= "\"Eliminasi Intercompany\",,,{$report['elimination']['total']}\n";
         $csv .= "\"LABA KONSOLIDASI (setelah eliminasi)\",,,{$report['consolidated_profit']}\n\n";
 
         // Balance Sheet
-        if (!empty($report['balance_sheet'])) {
+        if (! empty($report['balance_sheet'])) {
             $csv .= "NERACA KONSOLIDASI\n";
             foreach ($report['balance_sheet'] as $type => $data) {
                 $csv .= "\"{$data['label']}\",,,{$data['total']}\n";
@@ -197,7 +204,7 @@ class CompanyGroupController extends Controller
         }
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }

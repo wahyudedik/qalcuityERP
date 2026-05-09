@@ -13,11 +13,22 @@ class DeliveryOrderItem extends Model
     ];
 
     protected $casts = [
-        'quantity_ordered'   => 'decimal:4',
+        'quantity_ordered' => 'decimal:4',
         'quantity_delivered' => 'decimal:4',
     ];
 
-    public function deliveryOrder(): BelongsTo    { return $this->belongsTo(DeliveryOrder::class); }
-    public function salesOrderItem(): BelongsTo   { return $this->belongsTo(SalesOrderItem::class); }
-    public function product(): BelongsTo          { return $this->belongsTo(Product::class); }
+    public function deliveryOrder(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryOrder::class);
+    }
+
+    public function salesOrderItem(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrderItem::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

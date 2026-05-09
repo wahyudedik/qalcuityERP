@@ -2,13 +2,14 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * BUG-HOTEL-001 FIX: Add database-level constraint to prevent double booking
      * This is defense-in-depth alongside application-level locking
      */
@@ -44,10 +45,10 @@ return new class extends Migration {
                     )
                 )
             ");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Check constraints not supported in older MySQL versions
             // Application-level validation will handle this
-            \Log::warning('Check constraint not supported: ' . $e->getMessage());
+            Log::warning('Check constraint not supported: '.$e->getMessage());
         }
     }
 
@@ -63,7 +64,7 @@ return new class extends Migration {
 
         try {
             DB::statement('ALTER TABLE reservations DROP CONSTRAINT chk_no_overlapping_reservations');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Constraint might not exist
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -80,18 +81,22 @@ class NotificationPreference extends Model
             ->first();
 
         // Default: enabled if no preference record exists
-        if (!$pref)
+        if (! $pref) {
             return true;
+        }
 
         return (bool) $pref->{$channel};
     }
 
     public static function normalizeType(string $type): string
     {
-        if (str_starts_with($type, 'expiry_'))
+        if (str_starts_with($type, 'expiry_')) {
             return 'product_expiry';
-        if (str_starts_with($type, 'invoice_overdue'))
+        }
+        if (str_starts_with($type, 'invoice_overdue')) {
             return 'invoice_overdue';
+        }
+
         return $type;
     }
 
@@ -100,17 +105,17 @@ class NotificationPreference extends Model
      */
     public function isInQuietHours(): bool
     {
-        if (!$this->is_dnd) {
+        if (! $this->is_dnd) {
             return false;
         }
 
-        if (!$this->quiet_hours_start || !$this->quiet_hours_end) {
+        if (! $this->quiet_hours_start || ! $this->quiet_hours_end) {
             return false;
         }
 
         $now = now();
-        $start = \Carbon\Carbon::parse($this->quiet_hours_start);
-        $end = \Carbon\Carbon::parse($this->quiet_hours_end);
+        $start = Carbon::parse($this->quiet_hours_start);
+        $end = Carbon::parse($this->quiet_hours_end);
 
         // Handle overnight quiet hours (e.g., 22:00 - 06:00)
         if ($start > $end) {
@@ -125,7 +130,7 @@ class NotificationPreference extends Model
      */
     public function isModuleEnabled(string $module): bool
     {
-        if (!$this->module_preferences) {
+        if (! $this->module_preferences) {
             return true; // Default enabled if not set
         }
 

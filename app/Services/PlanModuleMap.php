@@ -6,41 +6,120 @@ class PlanModuleMap
 {
     /**
      * Mapping of plan slugs to their allowed module keys.
-     * 
-     * TASK 8.1: Audit complete — all 34 modules from ModuleRecommendationService::ALL_MODULES
+     *
+     * TASK 8.1: Audit complete â€” all 34 modules from ModuleRecommendationService::ALL_MODULES
      * are now properly registered across all subscription plans.
      */
     const PLAN_MODULES = [
         'starter' => [
-            'pos', 'inventory', 'sales', 'invoicing', 'reports',
+            'pos',
+            'inventory',
+            'sales',
+            'invoicing',
+            'reports',
         ],
         'trial' => [
-            'pos', 'inventory', 'sales', 'invoicing', 'reports',
+            'pos',
+            'inventory',
+            'sales',
+            'invoicing',
+            'reports',
         ],
         'business' => [
-            'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
-            'crm', 'accounting', 'budget', 'helpdesk', 'commission',
-            'consignment', 'subscription_billing', 'reimbursement', 'reports',
-            'loyalty', 'bank_reconciliation',
+            'pos',
+            'inventory',
+            'purchasing',
+            'sales',
+            'invoicing',
+            'crm',
+            'accounting',
+            'budget',
+            'helpdesk',
+            'commission',
+            'consignment',
+            'subscription_billing',
+            'reimbursement',
+            'reports',
+            'loyalty',
+            'bank_reconciliation',
+            'ecommerce',
+            'mobile',
         ],
         'professional' => [
-            'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
-            'hrm', 'payroll', 'crm', 'accounting', 'budget',
-            'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce',
-            'projects', 'assets', 'commission', 'helpdesk', 'project_billing',
-            'loyalty', 'bank_reconciliation', 'reports', 'landed_cost',
-            'consignment', 'subscription_billing', 'reimbursement', 'wms',
-            'agriculture', 'livestock',
+            'pos',
+            'inventory',
+            'purchasing',
+            'sales',
+            'invoicing',
+            'hrm',
+            'payroll',
+            'crm',
+            'accounting',
+            'budget',
+            'production',
+            'manufacturing',
+            'fleet',
+            'contracts',
+            'ecommerce',
+            'projects',
+            'assets',
+            'commission',
+            'helpdesk',
+            'project_billing',
+            'loyalty',
+            'bank_reconciliation',
+            'reports',
+            'landed_cost',
+            'consignment',
+            'subscription_billing',
+            'reimbursement',
+            'wms',
+            'agriculture',
+            'livestock',
+            'mobile',
         ],
         'enterprise' => [
             // All modules available in enterprise plan
-            'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
-            'hrm', 'payroll', 'crm', 'accounting', 'budget',
-            'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce',
-            'projects', 'assets', 'commission', 'helpdesk', 'project_billing',
-            'loyalty', 'bank_reconciliation', 'reports', 'landed_cost',
-            'consignment', 'subscription_billing', 'reimbursement', 'wms',
-            'agriculture', 'livestock', 'hotel', 'fnb', 'spa', 'telecom',
+            'pos',
+            'inventory',
+            'purchasing',
+            'sales',
+            'invoicing',
+            'hrm',
+            'payroll',
+            'crm',
+            'accounting',
+            'budget',
+            'production',
+            'manufacturing',
+            'fleet',
+            'contracts',
+            'ecommerce',
+            'projects',
+            'assets',
+            'commission',
+            'helpdesk',
+            'project_billing',
+            'loyalty',
+            'bank_reconciliation',
+            'reports',
+            'landed_cost',
+            'consignment',
+            'subscription_billing',
+            'reimbursement',
+            'wms',
+            'agriculture',
+            'livestock',
+            'hotel',
+            'fnb',
+            'spa',
+            'telecom',
+            'healthcare',
+            'tour_travel',
+            'construction',
+            'cosmetic',
+            'printing',
+            'mobile',
         ],
     ];
 
@@ -50,7 +129,7 @@ class PlanModuleMap
      */
     public static function getAllowedModules(?string $planSlug = null): array
     {
-        if ($planSlug === null || !isset(self::PLAN_MODULES[$planSlug])) {
+        if ($planSlug === null || ! isset(self::PLAN_MODULES[$planSlug])) {
             return ModuleRecommendationService::ALL_MODULES;
         }
 
@@ -82,6 +161,6 @@ class PlanModuleMap
     {
         $allowed = self::getAllowedModules($planSlug);
 
-        return array_values(array_filter($modules, fn($module) => !in_array($module, $allowed, true)));
+        return array_values(array_filter($modules, fn($module) => ! in_array($module, $allowed, true)));
     }
 }

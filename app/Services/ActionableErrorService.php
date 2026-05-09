@@ -64,11 +64,12 @@ class ActionableErrorService
     {
         $error = ErrorLogEnhanced::find($errorId);
 
-        if (!$error) {
+        if (! $error) {
             return false;
         }
 
         $error->markAsResolved($notes);
+
         return true;
     }
 
@@ -121,7 +122,7 @@ class ActionableErrorService
             default => 'ERR'
         };
 
-        return "{$prefix}-" . strtoupper(substr(md5($errorType . time()), 0, 8));
+        return "{$prefix}-".strtoupper(substr(md5($errorType.time()), 0, 8));
     }
 
     /**
@@ -149,7 +150,7 @@ class ActionableErrorService
                 'solutions' => [
                     'Tambah stok produk terlebih dahulu',
                     'Kurangi quantity pada transaksi',
-                    'Pilih produk alternatif'
+                    'Pilih produk alternatif',
                 ],
                 'severity' => 'error',
                 'action_required' => true,
@@ -162,7 +163,7 @@ class ActionableErrorService
                 'solutions' => [
                     'Periksa koneksi internet Anda',
                     'Coba metode pembayaran lain',
-                    'Hubungi bank jika masalah berlanjut'
+                    'Hubungi bank jika masalah berlanjut',
                 ],
                 'severity' => 'error',
                 'action_required' => true,
@@ -174,7 +175,7 @@ class ActionableErrorService
                 'message_template' => 'Anda tidak memiliki izin untuk {action}',
                 'solutions' => [
                     'Hubungi administrator untuk meminta akses',
-                    'Gunakan akun dengan role yang sesuai'
+                    'Gunakan akun dengan role yang sesuai',
                 ],
                 'severity' => 'warning',
                 'action_required' => false,
@@ -186,7 +187,7 @@ class ActionableErrorService
                 'message_template' => 'Terjadi kesalahan saat mengakses database',
                 'solutions' => [
                     'Coba lagi dalam beberapa saat',
-                    'Hubungi technical support jika masalah berlanjut'
+                    'Hubungi technical support jika masalah berlanjut',
                 ],
                 'severity' => 'critical',
                 'action_required' => true,

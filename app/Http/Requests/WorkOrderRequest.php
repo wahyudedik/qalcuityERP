@@ -16,15 +16,15 @@ class WorkOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'number'          => ['nullable', 'string', 'max:100'],
-            'product_id'      => ['nullable', 'integer', 'exists:products,id'],
-            'quantity'        => ['required', 'numeric', 'min:0'],
-            'planned_start'   => ['nullable', 'date'],
-            'planned_end'     => ['nullable', 'date'],
-            'actual_start'    => ['nullable', 'date'],
-            'actual_end'      => ['nullable', 'date'],
-            'status'          => ['required', Rule::in(WorkOrder::STATUSES)],
-            'notes'           => ['nullable', 'string', 'max:1000'],
+            'number' => ['nullable', 'string', 'max:100'],
+            'product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'quantity' => ['required', 'numeric', 'min:0'],
+            'planned_start' => ['nullable', 'date'],
+            'planned_end' => ['nullable', 'date'],
+            'actual_start' => ['nullable', 'date'],
+            'actual_end' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(WorkOrder::STATUSES)],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

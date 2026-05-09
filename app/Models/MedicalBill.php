@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MedicalBill extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'patient_id',
@@ -122,7 +122,7 @@ class MedicalBill extends Model
      */
     public function isOverdue()
     {
-        return $this->due_date && $this->due_date < now() && !$this->isFullyPaid();
+        return $this->due_date && $this->due_date < now() && ! $this->isFullyPaid();
     }
 
     /**
@@ -133,6 +133,7 @@ class MedicalBill extends Model
         if ($this->patient_payable > 0) {
             return round(($this->amount_paid / $this->patient_payable) * 100, 2);
         }
+
         return 0;
     }
 
@@ -151,14 +152,19 @@ class MedicalBill extends Model
     {
         $days = $this->aging_days;
 
-        if ($days <= 30)
+        if ($days <= 30) {
             return 'current';
-        if ($days <= 60)
+        }
+        if ($days <= 60) {
             return '31-60';
-        if ($days <= 90)
+        }
+        if ($days <= 90) {
             return '61-90';
-        if ($days <= 120)
+        }
+        if ($days <= 120) {
             return '91-120';
+        }
+
         return '120+';
     }
 }

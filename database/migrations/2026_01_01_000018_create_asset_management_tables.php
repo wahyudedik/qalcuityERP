@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('assets')) {
+        if (! Schema::hasTable('assets')) {
             Schema::create('assets', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -31,7 +32,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('asset_maintenances')) {
+        if (! Schema::hasTable('asset_maintenances')) {
             Schema::create('asset_maintenances', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -49,7 +50,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('asset_depreciations')) {
+        if (! Schema::hasTable('asset_depreciations')) {
             Schema::create('asset_depreciations', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');

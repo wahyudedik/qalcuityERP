@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use PHPUnit\Framework\TestCase;
 use Eris\Generator;
 use Eris\TestTrait;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Preservation Property Tests — Working Blade Views Remain Unchanged
@@ -28,7 +28,7 @@ class BladeViewPreservationTest extends TestCase
         parent::setUp();
 
         $projectRoot = $this->resolveProjectRoot();
-        $this->viewsPath = $projectRoot . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views';
+        $this->viewsPath = $projectRoot.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views';
     }
 
     // ── Helper: resolve project root ─────────────────────────────
@@ -41,14 +41,14 @@ class BladeViewPreservationTest extends TestCase
     {
         $cwd = getcwd();
 
-        if (is_dir($cwd . '/resources/views')) {
+        if (is_dir($cwd.'/resources/views')) {
             return $cwd;
         }
 
         $dir = __DIR__;
         for ($i = 0; $i < 5; $i++) {
             $dir = dirname($dir);
-            if (is_dir($dir . '/resources/views')) {
+            if (is_dir($dir.'/resources/views')) {
                 return $dir;
             }
         }
@@ -65,7 +65,7 @@ class BladeViewPreservationTest extends TestCase
      */
     private function getAllBladeFiles(): array
     {
-        if (!is_dir($this->viewsPath)) {
+        if (! is_dir($this->viewsPath)) {
             return [];
         }
 
@@ -82,6 +82,7 @@ class BladeViewPreservationTest extends TestCase
         }
 
         sort($files);
+
         return $files;
     }
 
@@ -103,7 +104,7 @@ class BladeViewPreservationTest extends TestCase
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
             if (preg_match('/@foreach\(\$\w+\s+as/i', $line)) {
-                if (!str_contains($line, '?? []') && !str_contains($line, '??[]')) {
+                if (! str_contains($line, '?? []') && ! str_contains($line, '??[]')) {
                     return true;
                 }
             }
@@ -116,16 +117,16 @@ class BladeViewPreservationTest extends TestCase
 
         // Category 3: chained Eloquent without ?->
         foreach ($lines as $line) {
-            if (preg_match('/\$\w+->\w+->\w+/', $line) && !str_contains($line, '?->')) {
+            if (preg_match('/\$\w+->\w+->\w+/', $line) && ! str_contains($line, '?->')) {
                 return true;
             }
         }
 
         // Category 4: duplicate canvas IDs
         preg_match_all('/<canvas[^>]+id="([^"{}]+)"/', $content, $matches);
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             $counts = array_count_values($matches[1]);
-            if (array_filter($counts, fn($c) => $c > 1)) {
+            if (array_filter($counts, fn ($c) => $c > 1)) {
                 return true;
             }
         }
@@ -148,7 +149,7 @@ class BladeViewPreservationTest extends TestCase
     {
         return array_values(array_filter(
             $this->getAllBladeFiles(),
-            fn($path) => !$this->isBugCondition(file_get_contents($path))
+            fn ($path) => ! $this->isBugCondition(file_get_contents($path))
         ));
     }
 
@@ -184,7 +185,7 @@ class BladeViewPreservationTest extends TestCase
         foreach ($cleanViews as $filePath) {
             $content = file_get_contents($filePath);
             if ($this->isBugCondition($content)) {
-                $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                 $relPath = str_replace('\\', '/', $relPath);
                 $falseNegatives[] = $relPath;
             }
@@ -193,7 +194,7 @@ class BladeViewPreservationTest extends TestCase
         $this->assertEmpty(
             $falseNegatives,
             "These views were classified as clean but contain bug patterns:\n"
-                . implode("\n", $falseNegatives)
+                .implode("\n", $falseNegatives)
         );
 
         // Log the baseline counts (visible in verbose output)
@@ -219,11 +220,11 @@ class BladeViewPreservationTest extends TestCase
     public function test_blade_components_exist(): void
     {
         $projectRoot = $this->resolveProjectRoot();
-        $componentsPath = $projectRoot . '/resources/views/components';
+        $componentsPath = $projectRoot.'/resources/views/components';
 
         $this->assertDirectoryExists(
             $componentsPath,
-            "Blade components directory must exist at resources/views/components/"
+            'Blade components directory must exist at resources/views/components/'
         );
 
         // Key components that must remain intact
@@ -245,15 +246,15 @@ class BladeViewPreservationTest extends TestCase
 
         $missing = [];
         foreach ($requiredComponents as $component) {
-            $fullPath = $componentsPath . '/' . $component;
-            if (!file_exists($fullPath)) {
+            $fullPath = $componentsPath.'/'.$component;
+            if (! file_exists($fullPath)) {
                 $missing[] = "components/{$component}";
             }
         }
 
         $this->assertEmpty(
             $missing,
-            "These required Blade component files are missing:\n" . implode("\n", $missing)
+            "These required Blade component files are missing:\n".implode("\n", $missing)
         );
     }
 
@@ -269,18 +270,18 @@ class BladeViewPreservationTest extends TestCase
     public function test_layout_files_exist(): void
     {
         $projectRoot = $this->resolveProjectRoot();
-        $layoutsPath = $projectRoot . '/resources/views/layouts';
+        $layoutsPath = $projectRoot.'/resources/views/layouts';
 
         $this->assertDirectoryExists(
             $layoutsPath,
-            "Layouts directory must exist at resources/views/layouts/"
+            'Layouts directory must exist at resources/views/layouts/'
         );
 
         // app.blade.php must exist and contain $slot or @yield('content')
-        $appLayout = $layoutsPath . '/app.blade.php';
+        $appLayout = $layoutsPath.'/app.blade.php';
         $this->assertFileExists(
             $appLayout,
-            "resources/views/layouts/app.blade.php must exist"
+            'resources/views/layouts/app.blade.php must exist'
         );
 
         $appContent = file_get_contents($appLayout);
@@ -291,10 +292,10 @@ class BladeViewPreservationTest extends TestCase
         );
 
         // guest.blade.php must exist and contain $slot or @yield('content')
-        $guestLayout = $layoutsPath . '/guest.blade.php';
+        $guestLayout = $layoutsPath.'/guest.blade.php';
         $this->assertFileExists(
             $guestLayout,
-            "resources/views/layouts/guest.blade.php must exist"
+            'resources/views/layouts/guest.blade.php must exist'
         );
 
         $guestContent = file_get_contents($guestLayout);
@@ -333,15 +334,16 @@ class BladeViewPreservationTest extends TestCase
 
             // Check for duplicates
             $counts = array_count_values($matches[1]);
-            $hasDuplicates = !empty(array_filter($counts, fn($c) => $c > 1));
+            $hasDuplicates = ! empty(array_filter($counts, fn ($c) => $c > 1));
 
-            if (!$hasDuplicates) {
+            if (! $hasDuplicates) {
                 $cleanChartViews[] = $filePath;
             }
         }
 
         if (empty($cleanChartViews)) {
             $this->markTestSkipped('No views with canvas elements found to check.');
+
             return;
         }
 
@@ -351,12 +353,12 @@ class BladeViewPreservationTest extends TestCase
             $content = file_get_contents($filePath);
             preg_match_all('/<canvas[^>]+id="([^"{}]+)"/', $content, $matches);
 
-            if (!empty($matches[1])) {
+            if (! empty($matches[1])) {
                 $counts = array_count_values($matches[1]);
-                $duplicates = array_filter($counts, fn($c) => $c > 1);
+                $duplicates = array_filter($counts, fn ($c) => $c > 1);
 
-                if (!empty($duplicates)) {
-                    $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                if (! empty($duplicates)) {
+                    $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                     $relPath = str_replace('\\', '/', $relPath);
                     foreach (array_keys($duplicates) as $dupId) {
                         $violations[] = sprintf(
@@ -373,7 +375,7 @@ class BladeViewPreservationTest extends TestCase
         $this->assertEmpty(
             $violations,
             "These previously-clean Chart.js views now have duplicate canvas IDs:\n"
-                . implode("\n", $violations)
+                .implode("\n", $violations)
         );
     }
 
@@ -396,6 +398,7 @@ class BladeViewPreservationTest extends TestCase
 
         if (empty($cleanViews)) {
             $this->markTestSkipped('No clean views found to sample.');
+
             return;
         }
 
@@ -409,7 +412,7 @@ class BladeViewPreservationTest extends TestCase
 
             $this->assertFalse(
                 $this->isBugCondition($content),
-                "Clean view has bug pattern: " . basename($filePath)
+                'Clean view has bug pattern: '.basename($filePath)
             );
         });
     }

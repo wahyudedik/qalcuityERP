@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // F&B Supplies/Ingredients
-        if (!Schema::hasTable('fb_supplies'))
+        if (! Schema::hasTable('fb_supplies')) {
             Schema::create('fb_supplies', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -26,9 +27,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'is_active']);
             });
+        }
 
         // F&B Supply Transactions (Stock In/Out)
-        if (!Schema::hasTable('fb_supply_transactions'))
+        if (! Schema::hasTable('fb_supply_transactions')) {
             Schema::create('fb_supply_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -45,9 +47,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'supply_id', 'transaction_date'], 'fb_supply_tx_tenant_supply_date_idx');
             });
+        }
 
         // Recipe Ingredients for F&B (Link menu items to supplies)
-        if (!Schema::hasTable('fb_recipe_ingredients'))
+        if (! Schema::hasTable('fb_recipe_ingredients')) {
             Schema::create('fb_recipe_ingredients', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -60,6 +63,7 @@ return new class extends Migration {
                 $table->unique(['menu_item_id', 'supply_id']);
                 $table->index(['tenant_id', 'menu_item_id']);
             });
+        }
     }
 
     public function down(): void

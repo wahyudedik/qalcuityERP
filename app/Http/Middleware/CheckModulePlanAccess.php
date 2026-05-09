@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ModuleRecommendationService;
 use App\Services\PlanModuleMap;
 use Closure;
 use Illuminate\Http\Request;
@@ -12,14 +13,14 @@ class CheckModulePlanAccess
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string $moduleKey): Response
     {
         $user = $request->user();
 
         // 1. Not authenticated → redirect to login
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -31,7 +32,7 @@ class CheckModulePlanAccess
         $tenant = $request->user()->tenant;
 
         // 3. No tenant → should not happen, but handle gracefully
-        if (!$tenant) {
+        if (! $tenant) {
             abort(403, 'Tenant tidak ditemukan');
         }
 
@@ -44,7 +45,7 @@ class CheckModulePlanAccess
         $planSlug = $tenant->subscriptionPlan->slug ?? $tenant->plan ?? null;
 
         // 6. Check if module is allowed for plan
-        if (!PlanModuleMap::isModuleAllowedForPlan($moduleKey, $planSlug)) {
+        if (! PlanModuleMap::isModuleAllowedForPlan($moduleKey, $planSlug)) {
             // TASK 8.4: Redirect to informative upgrade page
             if ($request->expectsJson()) {
                 return response()->json([
@@ -55,7 +56,7 @@ class CheckModulePlanAccess
             }
 
             // Get module metadata for upgrade page
-            $moduleMeta = \App\Services\ModuleRecommendationService::MODULE_META[$moduleKey] ?? null;
+            $moduleMeta = ModuleRecommendationService::MODULE_META[$moduleKey] ?? null;
             $moduleName = $moduleMeta['label'] ?? ucfirst(str_replace('_', ' ', $moduleKey));
             $moduleDescription = $moduleMeta['desc'] ?? null;
 
@@ -72,7 +73,7 @@ class CheckModulePlanAccess
         }
 
         // 7. Check if tenant has enabled this module
-        if (!$tenant->isModuleEnabled($moduleKey)) {
+        if (! $tenant->isModuleEnabled($moduleKey)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => "Modul {$moduleKey} belum diaktifkan untuk tenant ini",

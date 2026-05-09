@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // RFID Scanner Devices table (create first - no dependencies)
-        if (!Schema::hasTable('rfid_scanner_devices')) {
+        if (! Schema::hasTable('rfid_scanner_devices')) {
             Schema::create('rfid_scanner_devices', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -31,13 +32,13 @@ return new class extends Migration {
                 $table->json('config')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // RFID Tags table
-        if (!Schema::hasTable('rfid_tags')) {
+        if (! Schema::hasTable('rfid_tags')) {
             Schema::create('rfid_tags', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -55,14 +56,14 @@ return new class extends Migration {
                 $table->integer('scan_count')->default(0);
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index('tag_uid');
             });
         }
 
         // RFID Scan Logs table (create last - has foreign keys to both tables above)
-        if (!Schema::hasTable('rfid_scan_logs')) {
+        if (! Schema::hasTable('rfid_scan_logs')) {
             Schema::create('rfid_scan_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -77,7 +78,7 @@ return new class extends Migration {
                 $table->decimal('longitude', 11, 8)->nullable();
                 $table->json('additional_data')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'scan_time']);
                 $table->index('scan_type');
             });

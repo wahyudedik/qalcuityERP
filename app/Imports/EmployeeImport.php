@@ -3,24 +3,28 @@
 namespace App\Imports;
 
 use App\Models\Employee;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Throwable;
 
-class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnError, SkipsOnFailure
+class EmployeeImport implements SkipsOnError, SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
     use SkipsErrors, SkipsFailures;
 
     protected $tenantId;
+
     protected $imported = 0;
+
     protected $updated = 0;
+
     protected $errors = [];
 
     public function __construct(int $tenantId)
@@ -28,9 +32,6 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
         $this->tenantId = $tenantId;
     }
 
-    /**
-     * @param Collection $rows
-     */
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
@@ -114,7 +115,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
      */
     protected function generateNIK(): string
     {
-        return 'EMP' . now()->format('YmdHis') . rand(100, 999);
+        return 'EMP'.now()->format('YmdHis').rand(100, 999);
     }
 
     /**
@@ -128,7 +129,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
 
         if (is_numeric($value)) {
             // Excel date serial number
-            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+            return Date::excelToDateTimeObject($value);
         }
 
         try {
@@ -167,6 +168,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
         }
 
         $stringValue = strtolower((string) $value);
+
         return in_array($stringValue, ['true', 'yes', 'y', '1', 'aktif', 'active']);
     }
 

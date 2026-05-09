@@ -175,7 +175,7 @@ class AuditTrail extends Model
      */
     public function getFormattedChangesAttribute()
     {
-        if (!$this->changed_fields) {
+        if (! $this->changed_fields) {
             return [];
         }
 
@@ -228,13 +228,13 @@ class AuditTrail extends Model
     protected static function generateAuditNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'AUDIT-' . $date;
+        $prefix = 'AUDIT-'.$date;
 
-        $last = self::where('audit_number', 'like', $prefix . '%')
+        $last = self::where('audit_number', 'like', $prefix.'%')
             ->orderBy('audit_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $last ? (int) substr($last->audit_number, -6) + 1 : 1,
             6,
             '0',

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // a) Create marketplace_sync_logs table
-        if (!Schema::hasTable('marketplace_sync_logs')) {
+        if (! Schema::hasTable('marketplace_sync_logs')) {
             Schema::create('marketplace_sync_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id')->index();
@@ -35,7 +35,7 @@ return new class extends Migration
         }
 
         // b) Create ecommerce_webhook_logs table (skip if already exists)
-        if (!Schema::hasTable('ecommerce_webhook_logs')) {
+        if (! Schema::hasTable('ecommerce_webhook_logs')) {
             Schema::create('ecommerce_webhook_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id')->nullable()->index();
@@ -55,7 +55,7 @@ return new class extends Migration
         }
 
         // c) Create product_price_history table
-        if (!Schema::hasTable('product_price_history')) {
+        if (! Schema::hasTable('product_price_history')) {
             Schema::create('product_price_history', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id')->index();
@@ -70,7 +70,7 @@ return new class extends Migration
                 $table->decimal('revenue_before_7d', 18, 2)->default(0);
                 $table->decimal('revenue_after_7d', 18, 2)->default(0);
                 $table->timestamps();
-    
+
                 $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
                 $table->foreign('channel_id')->references('id')->on('ecommerce_channels')->onDelete('set null');
                 $table->foreign('changed_by')->references('id')->on('users')->onDelete('set null');
@@ -86,10 +86,10 @@ return new class extends Migration
 
         // e) Alter ecommerce_channels - add webhook columns
         Schema::table('ecommerce_channels', function (Blueprint $table) {
-            if (!Schema::hasColumn('ecommerce_channels', 'webhook_secret')) {
+            if (! Schema::hasColumn('ecommerce_channels', 'webhook_secret')) {
                 $table->string('webhook_secret')->nullable()->after('sync_errors');
             }
-            if (!Schema::hasColumn('ecommerce_channels', 'webhook_enabled')) {
+            if (! Schema::hasColumn('ecommerce_channels', 'webhook_enabled')) {
                 $table->boolean('webhook_enabled')->default(false)->after('webhook_secret');
             }
         });

@@ -15,13 +15,24 @@ class AffiliatePayout extends Model
     protected function casts(): array
     {
         return [
-            'amount'       => 'decimal:2',
+            'amount' => 'decimal:2',
             'requested_at' => 'datetime',
             'processed_at' => 'datetime',
         ];
     }
 
-    public function affiliate(): BelongsTo { return $this->belongsTo(Affiliate::class); }
-    public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requested_by'); }
-    public function processor(): BelongsTo { return $this->belongsTo(User::class, 'processed_by'); }
+    public function affiliate(): BelongsTo
+    {
+        return $this->belongsTo(Affiliate::class);
+    }
+
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function processor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by');
+    }
 }

@@ -2,19 +2,22 @@
 
 namespace App\Services\Healthcare;
 
-use App\Models\Teleconsultation;
-use App\Models\PaymentTransaction;
-use App\Models\PaymentGateway;
 use App\Models\Invoice;
+use App\Models\PaymentGateway;
+use App\Models\PaymentTransaction;
+use App\Models\Teleconsultation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class TelemedicinePaymentService
 {
     const PROVIDER_MIDTRANS = 'midtrans';
+
     const PROVIDER_XENDIT = 'xendit';
+
     const PROVIDER_DUITKU = 'duitku';
+
     const PROVIDER_TRIPAY = 'tripay';
 
     const PAYMENT_METHODS = [
@@ -35,7 +38,7 @@ class TelemedicinePaymentService
     /**
      * Create payment for telemedicine consultation
      */
-    public function createPayment(Teleconsultation $consultation, string $paymentMethod = 'qris', string $provider = null): array
+    public function createPayment(Teleconsultation $consultation, string $paymentMethod = 'qris', ?string $provider = null): array
     {
         try {
             DB::beginTransaction();
@@ -43,7 +46,7 @@ class TelemedicinePaymentService
             // Get active payment gateway
             $gateway = $this->getActiveGateway($provider);
 
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'No payment gateway configured. Please configure payment gateway in settings.',
@@ -51,7 +54,7 @@ class TelemedicinePaymentService
             }
 
             // Generate transaction number
-            $transactionNumber = 'TELEMED-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $transactionNumber = 'TELEMED-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
             // Create payment transaction
             $paymentTransaction = PaymentTransaction::create([
@@ -119,7 +122,7 @@ class TelemedicinePaymentService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create payment: ' . $e->getMessage(),
+                'error' => 'Failed to create payment: '.$e->getMessage(),
             ];
         }
     }
@@ -152,7 +155,7 @@ class TelemedicinePaymentService
                     break;
             }
 
-            if (!$transaction) {
+            if (! $transaction) {
                 return ['success' => false, 'error' => 'Invalid callback payload'];
             }
 
@@ -161,7 +164,7 @@ class TelemedicinePaymentService
                 ->orWhere('transaction_number', $transaction['transaction_number'])
                 ->first();
 
-            if (!$paymentTransaction) {
+            if (! $paymentTransaction) {
                 return ['success' => false, 'error' => 'Transaction not found'];
             }
 
@@ -215,7 +218,7 @@ class TelemedicinePaymentService
 
             $gateway = $this->getActiveGateway($paymentTransaction->gateway_provider);
 
-            if (!$gateway) {
+            if (! $gateway) {
                 return ['success' => false, 'error' => 'Payment gateway not configured'];
             }
 
@@ -248,6 +251,7 @@ class TelemedicinePaymentService
                 return ['success' => true, 'message' => 'Refund processed successfully'];
             } else {
                 DB::rollBack();
+
                 return $result;
             }
 
@@ -266,7 +270,7 @@ class TelemedicinePaymentService
     /**
      * Get active payment gateway
      */
-    protected function getActiveGateway(string $provider = null): ?PaymentGateway
+    protected function getActiveGateway(?string $provider = null): ?PaymentGateway
     {
         $query = PaymentGateway::where('is_active', true);
 
@@ -573,7 +577,7 @@ class TelemedicinePaymentService
         Invoice::create([
             'tenant_id' => $consultation->tenant_id,
             'patient_id' => $consultation->patient_id,
-            'invoice_number' => 'INV-TELEMED-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'invoice_number' => 'INV-TELEMED-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'invoice_date' => now(),
             'due_date' => now(),
             'total_amount' => $consultation->consultation_fee,
@@ -582,7 +586,7 @@ class TelemedicinePaymentService
             'notes' => "Telemedicine consultation payment - Transaction: {$payment->transaction_number}",
         ]);
 
-        Log::info("Invoice created for telemedicine consultation", [
+        Log::info('Invoice created for telemedicine consultation', [
             'consultation_id' => $consultation->id,
             'payment_transaction' => $payment->transaction_number,
         ]);
@@ -598,7 +602,7 @@ class TelemedicinePaymentService
         $baseUrl = $isProduction ? 'https://api.midtrans.com' : 'https://api.sandbox.midtrans.com';
 
         $payload = [
-            'refund_key' => 'REFUND-' . time(),
+            'refund_key' => 'REFUND-'.time(),
             'amount' => (int) $transaction->amount,
             'reason' => $reason,
         ];
@@ -625,7 +629,7 @@ class TelemedicinePaymentService
     protected function refundXendit(PaymentGateway $gateway, PaymentTransaction $transaction, string $reason): array
     {
         // Xendit VA refunds are typically manual, but we can log the request
-        Log::info("Xendit refund requested", [
+        Log::info('Xendit refund requested', [
             'transaction_id' => $transaction->id,
             'reason' => $reason,
         ]);

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // API tokens for tenant REST API access
-        if (!Schema::hasTable('api_tokens')) {
+        if (! Schema::hasTable('api_tokens')) {
             Schema::create('api_tokens', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -20,14 +20,14 @@ return new class extends Migration
                 $table->timestamp('expires_at')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-    
+
                 $table->index('tenant_id');
                 $table->index('token');
             });
         }
 
         // Outbound webhook subscriptions
-        if (!Schema::hasTable('webhook_subscriptions')) {
+        if (! Schema::hasTable('webhook_subscriptions')) {
             Schema::create('webhook_subscriptions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -39,13 +39,13 @@ return new class extends Migration
                 $table->integer('retry_count')->default(0);
                 $table->timestamp('last_triggered_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index('tenant_id');
             });
         }
 
         // Webhook delivery log
-        if (!Schema::hasTable('webhook_deliveries')) {
+        if (! Schema::hasTable('webhook_deliveries')) {
             Schema::create('webhook_deliveries', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('webhook_subscription_id');
@@ -56,7 +56,7 @@ return new class extends Migration
                 $table->string('status')->default('pending'); // pending, success, failed
                 $table->integer('attempt')->default(1);
                 $table->timestamps();
-    
+
                 $table->index(['webhook_subscription_id', 'status']);
             });
         }

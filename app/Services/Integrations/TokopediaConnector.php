@@ -2,14 +2,19 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\Customer;
+use App\Models\EcommerceProductMapping;
 use App\Models\Integration;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Tokopedia Connector
- * 
+ *
  * Handles integration with Tokopedia Open API
  * Supports OAuth 2.0 authentication
  */
@@ -70,6 +75,7 @@ class TokopediaConnector extends BaseConnector
             if ($response->successful()) {
                 $this->integration->markAsActive();
                 Log::info('Tokopedia authentication successful');
+
                 return true;
             }
 
@@ -78,6 +84,7 @@ class TokopediaConnector extends BaseConnector
             Log::error('Tokopedia authentication failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -93,7 +100,7 @@ class TokopediaConnector extends BaseConnector
         $errors = [];
 
         try {
-            $products = \App\Models\Product::where('tenant_id', $this->integration->tenant_id)
+            $products = Product::where('tenant_id', $this->integration->tenant_id)
                 ->where('is_active', true)
                 ->get();
 
@@ -107,7 +114,7 @@ class TokopediaConnector extends BaseConnector
                         $result = $this->createProduct($product);
 
                         if ($result['success']) {
-                            \App\Models\EcommerceProductMapping::create([
+                            EcommerceProductMapping::create([
                                 'tenant_id' => $this->integration->tenant_id,
                                 'product_id' => $product->id,
                                 'channel_id' => $this->integration->id,
@@ -210,7 +217,7 @@ class TokopediaConnector extends BaseConnector
      */
     protected function transformProductToTokopedia($product): array
     {
-        $stock = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+        $stock = ProductStock::where('tenant_id', $this->integration->tenant_id)
             ->where('product_id', $product->id)
             ->first();
 
@@ -247,13 +254,13 @@ class TokopediaConnector extends BaseConnector
 
                 foreach ($orders as $tokopediaOrder) {
                     try {
-                        $exists = \App\Models\SalesOrder::where('tenant_id', $this->integration->tenant_id)
+                        $exists = SalesOrder::where('tenant_id', $this->integration->tenant_id)
                             ->where('external_id', $tokopediaOrder['id'])
                             ->exists();
 
-                        if (!$exists) {
+                        if (! $exists) {
                             $erpOrder = $this->transformOrderFromTokopedia($tokopediaOrder);
-                            \App\Models\SalesOrder::create($erpOrder);
+                            SalesOrder::create($erpOrder);
                             $processed++;
                         }
                     } catch (Throwable $e) {
@@ -290,7 +297,7 @@ class TokopediaConnector extends BaseConnector
      */
     protected function transformOrderFromTokopedia(array $order): array
     {
-        $customer = \App\Models\Customer::firstOrCreate(
+        $customer = Customer::firstOrCreate(
             [
                 'tenant_id' => $this->integration->tenant_id,
                 'email' => $order['buyer']['email'] ?? null,
@@ -324,7 +331,7 @@ class TokopediaConnector extends BaseConnector
         $failed = 0;
 
         try {
-            $stocks = \App\Models\ProductStock::where('tenant_id', $this->integration->tenant_id)
+            $stocks = ProductStock::where('tenant_id', $this->integration->tenant_id)
                 ->where('quantity', '>=', 0)
                 ->get();
 

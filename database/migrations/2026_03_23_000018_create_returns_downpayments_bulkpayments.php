@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // ── Task 39: Sales Returns (Retur Penjualan) ──────────────
-        if (!Schema::hasTable('sales_returns'))
+        if (! Schema::hasTable('sales_returns')) {
             Schema::create('sales_returns', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -35,8 +36,9 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'invoice_id']);
             });
+        }
 
-        if (!Schema::hasTable('sales_return_items'))
+        if (! Schema::hasTable('sales_return_items')) {
             Schema::create('sales_return_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sales_return_id')->constrained()->cascadeOnDelete();
@@ -48,9 +50,10 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
             });
+        }
 
         // ── Task 40: Purchase Returns (Retur Pembelian) ───────────
-        if (!Schema::hasTable('purchase_returns'))
+        if (! Schema::hasTable('purchase_returns')) {
             Schema::create('purchase_returns', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -76,8 +79,9 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'purchase_order_id']);
             });
+        }
 
-        if (!Schema::hasTable('purchase_return_items'))
+        if (! Schema::hasTable('purchase_return_items')) {
             Schema::create('purchase_return_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('purchase_return_id')->constrained()->cascadeOnDelete();
@@ -89,9 +93,10 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
             });
+        }
 
         // ── Task 41: Down Payments (Uang Muka) ────────────────────
-        if (!Schema::hasTable('down_payments'))
+        if (! Schema::hasTable('down_payments')) {
             Schema::create('down_payments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -115,9 +120,10 @@ return new class extends Migration {
                 $table->index(['tenant_id', 'type', 'party_id']);
                 $table->index(['tenant_id', 'status']);
             });
+        }
 
         // Link DP ke invoice (saat offset)
-        if (!Schema::hasTable('down_payment_applications'))
+        if (! Schema::hasTable('down_payment_applications')) {
             Schema::create('down_payment_applications', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('down_payment_id')->constrained()->cascadeOnDelete();
@@ -129,9 +135,10 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
             });
+        }
 
         // ── Task 42: Bulk Payments ────────────────────────────────
-        if (!Schema::hasTable('bulk_payments'))
+        if (! Schema::hasTable('bulk_payments')) {
             Schema::create('bulk_payments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -151,9 +158,10 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'type', 'party_id']);
             });
+        }
 
         // Detail invoice yang dibayar dalam bulk payment
-        if (!Schema::hasTable('bulk_payment_items'))
+        if (! Schema::hasTable('bulk_payment_items')) {
             Schema::create('bulk_payment_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('bulk_payment_id')->constrained()->cascadeOnDelete();
@@ -164,9 +172,10 @@ return new class extends Migration {
 
                 $table->index(['payable_type', 'payable_id']);
             });
+        }
 
         // ── Task 43: Customer Balance (saldo overpayment) ─────────
-        if (!Schema::hasTable('customer_balances'))
+        if (! Schema::hasTable('customer_balances')) {
             Schema::create('customer_balances', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -176,8 +185,9 @@ return new class extends Migration {
 
                 $table->unique(['tenant_id', 'customer_id']);
             });
+        }
 
-        if (!Schema::hasTable('customer_balance_transactions'))
+        if (! Schema::hasTable('customer_balance_transactions')) {
             Schema::create('customer_balance_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -191,10 +201,11 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'customer_id']);
             });
+        }
 
         // ── Task 43: Partial Delivery tracking ────────────────────
         // SO bisa punya banyak delivery (pengiriman sebagian)
-        if (!Schema::hasTable('delivery_orders'))
+        if (! Schema::hasTable('delivery_orders')) {
             Schema::create('delivery_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -213,8 +224,9 @@ return new class extends Migration {
 
                 $table->index(['tenant_id', 'sales_order_id']);
             });
+        }
 
-        if (!Schema::hasTable('delivery_order_items'))
+        if (! Schema::hasTable('delivery_order_items')) {
             Schema::create('delivery_order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('delivery_order_id')->constrained()->cascadeOnDelete();
@@ -223,23 +235,24 @@ return new class extends Migration {
                 $table->decimal('quantity_delivered', 10, 2)->default(0);
                 $table->timestamps();
             });
+        }
 
         // Tambah kolom ke sales_orders untuk tracking partial delivery
         if (Schema::hasTable('sales_orders')) {
             Schema::table('sales_orders', function (Blueprint $table) {
-                if (!Schema::hasColumn('sales_orders', 'delivered_amount')) {
+                if (! Schema::hasColumn('sales_orders', 'delivered_amount')) {
                     $table->decimal('delivered_amount', 15, 2)->default(0)->after('total');
                 }
-                if (!Schema::hasColumn('sales_orders', 'is_fully_delivered')) {
+                if (! Schema::hasColumn('sales_orders', 'is_fully_delivered')) {
                     $table->boolean('is_fully_delivered')->default(false)->after('delivered_amount');
                 }
             });
         }
 
         // Tambah kolom customer_balance ke customers
-        if (Schema::hasTable('customers') && !Schema::hasColumn('customers', 'credit_balance')) {
+        if (Schema::hasTable('customers') && ! Schema::hasColumn('customers', 'credit_balance')) {
             Schema::table('customers', function (Blueprint $table) {
-                if (!Schema::hasColumn('customers', 'credit_balance')) {
+                if (! Schema::hasColumn('customers', 'credit_balance')) {
                     $table->decimal('credit_balance', 15, 2)->default(0)->after('credit_limit');
                 }
             });

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Cosmetic Formula Service
- * 
+ *
  * TASK-2.24: Centralized service for formula management
  * TASK-2.25: Formula versioning
  * TASK-2.26: Approval workflow
@@ -20,10 +20,9 @@ class CosmeticFormulaService
 {
     /**
      * Create a new cosmetic formula with ingredients
-     * 
-     * @param array $data Formula data
-     * @param array $ingredients Array of ingredient data
-     * @return CosmeticFormula
+     *
+     * @param  array  $data  Formula data
+     * @param  array  $ingredients  Array of ingredient data
      */
     public function createFormula(array $data, array $ingredients = []): CosmeticFormula
     {
@@ -38,14 +37,14 @@ class CosmeticFormulaService
             $formula = CosmeticFormula::create($data);
 
             // Add ingredients if provided
-            if (!empty($ingredients)) {
+            if (! empty($ingredients)) {
                 $this->addIngredients($formula, $ingredients);
             }
 
             Log::info('Cosmetic formula created', [
                 'formula_id' => $formula->id,
                 'formula_code' => $formula->formula_code,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return $formula;
@@ -54,10 +53,6 @@ class CosmeticFormulaService
 
     /**
      * Add ingredients to a formula
-     * 
-     * @param CosmeticFormula $formula
-     * @param array $ingredients
-     * @return void
      */
     public function addIngredients(CosmeticFormula $formula, array $ingredients): void
     {
@@ -84,10 +79,6 @@ class CosmeticFormulaService
 
     /**
      * Update formula ingredients
-     * 
-     * @param CosmeticFormula $formula
-     * @param array $ingredients
-     * @return void
      */
     public function updateIngredients(CosmeticFormula $formula, array $ingredients): void
     {
@@ -100,16 +91,13 @@ class CosmeticFormulaService
 
             Log::info('Formula ingredients updated', [
                 'formula_id' => $formula->id,
-                'ingredient_count' => count($ingredients)
+                'ingredient_count' => count($ingredients),
             ]);
         });
     }
 
     /**
      * Calculate ingredient percentages based on quantities
-     * 
-     * @param CosmeticFormula $formula
-     * @return array
      */
     public function calculatePercentages(CosmeticFormula $formula): array
     {
@@ -130,10 +118,7 @@ class CosmeticFormulaService
 
     /**
      * Scale formula to new batch size
-     * 
-     * @param CosmeticFormula $formula
-     * @param float $newBatchSize
-     * @param string $newUnit
+     *
      * @return array Scaled ingredients
      */
     public function scaleFormula(CosmeticFormula $formula, float $newBatchSize, string $newUnit = 'grams'): array
@@ -173,12 +158,6 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.25: Create formula version
-     * 
-     * @param CosmeticFormula $formula
-     * @param array $changes
-     * @param string $reason
-     * @param bool $major
-     * @return FormulaVersion
      */
     public function createVersion(
         CosmeticFormula $formula,
@@ -208,7 +187,7 @@ class CosmeticFormulaService
                 'formula_id' => $formula->id,
                 'version' => $nextVersion,
                 'major' => $major,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return $version;
@@ -217,18 +196,13 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.25: Compare two formula versions
-     * 
-     * @param CosmeticFormula $formula
-     * @param string $version1
-     * @param string $version2
-     * @return array
      */
     public function compareVersions(CosmeticFormula $formula, string $version1, string $version2): array
     {
         $v1 = $formula->versions()->where('version_number', $version1)->first();
         $v2 = $formula->versions()->where('version_number', $version2)->first();
 
-        if (!$v1 || !$v2) {
+        if (! $v1 || ! $v2) {
             throw new \InvalidArgumentException('One or both versions not found');
         }
 
@@ -251,13 +225,10 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.26: Submit formula for approval
-     * 
-     * @param CosmeticFormula $formula
-     * @return CosmeticFormula
      */
     public function submitForApproval(CosmeticFormula $formula): CosmeticFormula
     {
-        if (!$formula->isDraft()) {
+        if (! $formula->isDraft()) {
             throw new \InvalidArgumentException('Only draft formulas can be submitted for approval');
         }
 
@@ -266,7 +237,7 @@ class CosmeticFormulaService
             throw new \InvalidArgumentException('Formula must have at least one ingredient');
         }
 
-        if (!$formula->target_ph) {
+        if (! $formula->target_ph) {
             throw new \InvalidArgumentException('Target pH must be specified');
         }
 
@@ -276,7 +247,7 @@ class CosmeticFormulaService
 
         Log::info('Formula submitted for approval', [
             'formula_id' => $formula->id,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         return $formula;
@@ -284,14 +255,10 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.26: Approve formula
-     * 
-     * @param CosmeticFormula $formula
-     * @param string $notes
-     * @return CosmeticFormula
      */
     public function approveFormula(CosmeticFormula $formula, string $notes = ''): CosmeticFormula
     {
-        if (!$formula->isTesting()) {
+        if (! $formula->isTesting()) {
             throw new \InvalidArgumentException('Only formulas in testing status can be approved');
         }
 
@@ -315,7 +282,7 @@ class CosmeticFormulaService
             Log::info('Formula approved', [
                 'formula_id' => $formula->id,
                 'approved_by' => Auth::id(),
-                'notes' => $notes
+                'notes' => $notes,
             ]);
 
             return $formula;
@@ -324,14 +291,10 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.26: Reject formula
-     * 
-     * @param CosmeticFormula $formula
-     * @param string $reason
-     * @return CosmeticFormula
      */
     public function rejectFormula(CosmeticFormula $formula, string $reason): CosmeticFormula
     {
-        if (!$formula->isTesting()) {
+        if (! $formula->isTesting()) {
             throw new \InvalidArgumentException('Only formulas in testing status can be rejected');
         }
 
@@ -342,7 +305,7 @@ class CosmeticFormulaService
         Log::warning('Formula rejected', [
             'formula_id' => $formula->id,
             'rejected_by' => Auth::id(),
-            'reason' => $reason
+            'reason' => $reason,
         ]);
 
         return $formula;
@@ -350,24 +313,21 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.26: Move formula to production
-     * 
-     * @param CosmeticFormula $formula
-     * @return CosmeticFormula
      */
     public function moveToProduction(CosmeticFormula $formula): CosmeticFormula
     {
-        if (!$formula->isApproved()) {
+        if (! $formula->isApproved()) {
             throw new \InvalidArgumentException('Only approved formulas can be moved to production');
         }
 
-        if (!$formula->isReadyForProduction()) {
+        if (! $formula->isReadyForProduction()) {
             $missing = [];
 
             if ($formula->ingredients()->count() === 0) {
                 $missing[] = 'ingredients';
             }
 
-            if (!$formula->actual_ph) {
+            if (! $formula->actual_ph) {
                 $missing[] = 'actual pH measurement';
             }
 
@@ -375,11 +335,11 @@ class CosmeticFormulaService
                 ->where('overall_result', 'Pass')
                 ->exists();
 
-            if (!$hasStabilityTest) {
+            if (! $hasStabilityTest) {
                 $missing[] = 'passing stability test';
             }
 
-            throw new \InvalidArgumentException('Formula not ready for production. Missing: ' . implode(', ', $missing));
+            throw new \InvalidArgumentException('Formula not ready for production. Missing: '.implode(', ', $missing));
         }
 
         $formula->update([
@@ -388,7 +348,7 @@ class CosmeticFormulaService
 
         Log::info('Formula moved to production', [
             'formula_id' => $formula->id,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         return $formula;
@@ -396,10 +356,6 @@ class CosmeticFormulaService
 
     /**
      * TASK-2.26: Discontinue formula
-     * 
-     * @param CosmeticFormula $formula
-     * @param string $reason
-     * @return CosmeticFormula
      */
     public function discontinueFormula(CosmeticFormula $formula, string $reason): CosmeticFormula
     {
@@ -409,14 +365,14 @@ class CosmeticFormulaService
 
         $formula->update([
             'status' => 'discontinued',
-            'notes' => ($formula->notes ? $formula->notes . "\n\n" : '') .
-                "Discontinued on " . now()->format('Y-m-d') . " by " . Auth::user()->name . "\nReason: " . $reason,
+            'notes' => ($formula->notes ? $formula->notes."\n\n" : '').
+                'Discontinued on '.now()->format('Y-m-d').' by '.Auth::user()->name."\nReason: ".$reason,
         ]);
 
         Log::warning('Formula discontinued', [
             'formula_id' => $formula->id,
             'reason' => $reason,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         return $formula;
@@ -424,9 +380,6 @@ class CosmeticFormulaService
 
     /**
      * Validate formula ingredient percentages sum to 100%
-     * 
-     * @param CosmeticFormula $formula
-     * @return array
      */
     public function validatePercentages(CosmeticFormula $formula): array
     {
@@ -441,9 +394,6 @@ class CosmeticFormulaService
 
     /**
      * Get formula statistics
-     * 
-     * @param int $tenantId
-     * @return array
      */
     public function getFormulaStatistics(int $tenantId): array
     {
@@ -459,16 +409,13 @@ class CosmeticFormulaService
 
     /**
      * Check ingredient restrictions
-     * 
-     * @param CosmeticFormula $formula
-     * @return array
      */
     public function checkIngredientRestrictions(CosmeticFormula $formula): array
     {
         $violations = [];
 
         foreach ($formula->ingredients as $ingredient) {
-            if (!$ingredient->product_id) {
+            if (! $ingredient->product_id) {
                 continue;
             }
 
@@ -488,7 +435,7 @@ class CosmeticFormulaService
         }
 
         return [
-            'has_violations' => !empty($violations),
+            'has_violations' => ! empty($violations),
             'violations' => $violations,
             'violation_count' => count($violations),
         ];

@@ -67,7 +67,7 @@ class AccountLockoutService
         ]);
 
         // Clear cache
-        Cache::forget($this->cachePrefix . $user->id);
+        Cache::forget($this->cachePrefix.$user->id);
 
         Log::info('Login successful, attempts reset', [
             'user_id' => $user->id,
@@ -81,7 +81,7 @@ class AccountLockoutService
     public function isLocked(User $user): bool
     {
         // Check cache first
-        $cached = Cache::get($this->cachePrefix . $user->id);
+        $cached = Cache::get($this->cachePrefix.$user->id);
         if ($cached !== null) {
             return (bool) $cached;
         }
@@ -89,10 +89,11 @@ class AccountLockoutService
         // Check database
         if ($user->locked_until && $user->locked_until->isFuture()) {
             Cache::put(
-                $this->cachePrefix . $user->id,
+                $this->cachePrefix.$user->id,
                 true,
                 $user->locked_until
             );
+
             return true;
         }
 
@@ -102,7 +103,7 @@ class AccountLockoutService
                 'locked_until' => null,
                 'failed_login_attempts' => 0,
             ]);
-            Cache::forget($this->cachePrefix . $user->id);
+            Cache::forget($this->cachePrefix.$user->id);
         }
 
         return false;
@@ -122,7 +123,7 @@ class AccountLockoutService
 
         // Cache lockout status
         Cache::put(
-            $this->cachePrefix . $user->id,
+            $this->cachePrefix.$user->id,
             true,
             $lockedUntil
         );
@@ -138,7 +139,7 @@ class AccountLockoutService
         try {
             $this->sendLockoutNotification($user, $lockedUntil);
         } catch (\Exception $e) {
-            Log::error('Failed to send lockout notification: ' . $e->getMessage());
+            Log::error('Failed to send lockout notification: '.$e->getMessage());
         }
     }
 
@@ -153,7 +154,7 @@ class AccountLockoutService
             'last_failed_login' => null,
         ]);
 
-        Cache::forget($this->cachePrefix . $user->id);
+        Cache::forget($this->cachePrefix.$user->id);
 
         Log::info('Account manually unlocked', [
             'user_id' => $user->id,
@@ -166,7 +167,7 @@ class AccountLockoutService
      */
     public function getRemainingLockoutTime(User $user): int
     {
-        if (!$user->locked_until || $user->locked_until->isPast()) {
+        if (! $user->locked_until || $user->locked_until->isPast()) {
             return 0;
         }
 
@@ -188,10 +189,10 @@ class AccountLockoutService
         $remainingSeconds = $seconds % 60;
 
         if ($minutes > 0) {
-            return "{$minutes} minute" . ($minutes > 1 ? 's' : '') . " {$remainingSeconds} second" . ($remainingSeconds > 1 ? 's' : '');
+            return "{$minutes} minute".($minutes > 1 ? 's' : '')." {$remainingSeconds} second".($remainingSeconds > 1 ? 's' : '');
         }
 
-        return "{$remainingSeconds} second" . ($remainingSeconds > 1 ? 's' : '');
+        return "{$remainingSeconds} second".($remainingSeconds > 1 ? 's' : '');
     }
 
     /**
@@ -208,6 +209,7 @@ class AccountLockoutService
     public function shouldWarn(User $user): bool
     {
         $warningThreshold = config('security.lockout.warning_threshold', 3);
+
         return $user->failed_login_attempts >= $warningThreshold && $user->failed_login_attempts < $this->maxAttempts;
     }
 

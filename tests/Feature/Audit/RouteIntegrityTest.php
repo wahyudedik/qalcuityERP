@@ -4,15 +4,15 @@ namespace Tests\Feature\Audit;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Task 24.2: Smoke test all main routes return HTTP 200/302
- * 
+ *
  * Validates: Requirements 2.1, 2.2, 2.6
- * 
+ *
  * This test ensures that:
  * - All main routes are accessible without 404/500 errors
  * - Routes return appropriate HTTP status codes (200 for pages, 302 for redirects)
@@ -21,6 +21,7 @@ use Tests\TestCase;
 class RouteIntegrityTest extends TestCase
 {
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void
@@ -53,7 +54,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -71,7 +72,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -90,7 +91,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -107,7 +108,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -125,7 +126,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -141,7 +142,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -157,7 +158,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -172,7 +173,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -189,7 +190,7 @@ class RouteIntegrityTest extends TestCase
         ];
 
         foreach ($routes as $routeName) {
-            if (\Illuminate\Support\Facades\Route::has($routeName)) {
+            if (Route::has($routeName)) {
                 $response = $this->get(route($routeName));
                 $this->assertContains($response->status(), [200, 302], "Route {$routeName} should return 200 or 302");
             }
@@ -206,7 +207,7 @@ class RouteIntegrityTest extends TestCase
     #[Test]
     public function notifications_route_is_accessible()
     {
-        if (\Illuminate\Support\Facades\Route::has('notifications.index')) {
+        if (Route::has('notifications.index')) {
             $response = $this->get(route('notifications.index'));
             $this->assertContains($response->status(), [200, 302]);
         }
@@ -216,7 +217,7 @@ class RouteIntegrityTest extends TestCase
     public function error_pages_exist()
     {
         // Test 404 page
-        $response = $this->get('/non-existent-route-' . uniqid());
+        $response = $this->get('/non-existent-route-'.uniqid());
         $response->assertStatus(404);
 
         // Test 403 page (access denied)
@@ -224,7 +225,7 @@ class RouteIntegrityTest extends TestCase
         $limitedUser = User::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Limited User',
-            'email' => 'limited-' . uniqid() . '@test.com',
+            'email' => 'limited-'.uniqid().'@test.com',
             'password' => bcrypt('password'),
             'role' => 'staff',
             'is_active' => true,
@@ -233,7 +234,7 @@ class RouteIntegrityTest extends TestCase
         $this->actingAs($limitedUser);
 
         // Try to access admin-only route
-        if (\Illuminate\Support\Facades\Route::has('settings.company')) {
+        if (Route::has('settings.company')) {
             $response = $this->get(route('settings.company'));
             // Should either redirect or show 403
             $this->assertContains($response->status(), [302, 403]);
@@ -260,7 +261,7 @@ class RouteIntegrityTest extends TestCase
     public function healthcare_routes_are_accessible_when_module_active()
     {
         // Only test if healthcare routes exist
-        if (\Illuminate\Support\Facades\Route::has('healthcare.index')) {
+        if (Route::has('healthcare.index')) {
             $response = $this->get(route('healthcare.index'));
             $this->assertContains($response->status(), [200, 302]);
         }
@@ -269,14 +270,14 @@ class RouteIntegrityTest extends TestCase
     #[Test]
     public function all_named_routes_have_valid_controllers()
     {
-        $routes = \Illuminate\Support\Facades\Route::getRoutes();
+        $routes = Route::getRoutes();
         $errors = [];
 
         foreach ($routes as $route) {
             $action = $route->getAction();
 
             // Skip closure routes
-            if (!isset($action['controller'])) {
+            if (! isset($action['controller'])) {
                 continue;
             }
 
@@ -288,15 +289,12 @@ class RouteIntegrityTest extends TestCase
                 $controllerClass = $parts[0];
 
                 // Check if controller class exists
-                if (!class_exists($controllerClass)) {
+                if (! class_exists($controllerClass)) {
                     $errors[] = "Controller not found: {$controllerClass} for route {$route->getName()}";
                 }
             }
         }
 
-        $this->assertEmpty($errors, "Found routes with missing controllers:\n" . implode("\n", $errors));
+        $this->assertEmpty($errors, "Found routes with missing controllers:\n".implode("\n", $errors));
     }
 }
-
-
-

@@ -4,7 +4,6 @@ namespace App\Services\DemoData;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class CoreModulesGenerator
 {
@@ -18,14 +17,14 @@ class CoreModulesGenerator
     {
         $ctx = new CoreDataContext(tenantId: $tenantId);
 
-        $ctx->coaMap      = $this->seedCoA($tenantId);
-        $ctx->periodId    = $this->seedAccountingPeriod($tenantId);
+        $ctx->coaMap = $this->seedCoA($tenantId);
+        $ctx->periodId = $this->seedAccountingPeriod($tenantId);
         $ctx->warehouseId = $this->seedWarehouse($tenantId);
 
         $this->seedTaxRates($tenantId);
         $this->seedCostCenters($tenantId);
 
-        $ctx->productIds  = $this->seedProducts($tenantId, $ctx->warehouseId);
+        $ctx->productIds = $this->seedProducts($tenantId, $ctx->warehouseId);
         $ctx->customerIds = $this->seedCustomers($tenantId);
         $ctx->supplierIds = $this->seedSuppliers($tenantId);
         $ctx->employeeIds = $this->seedEmployees($tenantId);
@@ -116,17 +115,17 @@ class CoreModulesGenerator
             }
 
             DB::table('chart_of_accounts')->insert([
-                'tenant_id'      => $tenantId,
-                'code'           => $coa['code'],
-                'name'           => $coa['name'],
-                'type'           => $coa['type'],
+                'tenant_id' => $tenantId,
+                'code' => $coa['code'],
+                'name' => $coa['name'],
+                'type' => $coa['type'],
                 'normal_balance' => $coa['normal_balance'],
-                'level'          => $coa['level'],
-                'is_header'      => $coa['is_header'],
-                'parent_id'      => $parentId,
-                'is_active'      => true,
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'level' => $coa['level'],
+                'is_header' => $coa['is_header'],
+                'parent_id' => $parentId,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
@@ -148,19 +147,19 @@ class CoreModulesGenerator
 
     private function seedAccountingPeriod(int $tenantId): int
     {
-        $year  = now()->year;
+        $year = now()->year;
         $month = now()->month;
 
         // Build 4 consecutive months: 2 before current (closed), current + next (open)
         $periods = [];
         for ($offset = -2; $offset <= 1; $offset++) {
-            $date   = Carbon::now()->startOfMonth()->addMonths($offset);
+            $date = Carbon::now()->startOfMonth()->addMonths($offset);
             $status = $offset < 0 ? 'closed' : 'open';
             $periods[] = [
-                'name'       => $date->translatedFormat('F Y') ?: $date->format('F Y'),
+                'name' => $date->translatedFormat('F Y') ?: $date->format('F Y'),
                 'start_date' => $date->copy()->startOfMonth()->format('Y-m-d'),
-                'end_date'   => $date->copy()->endOfMonth()->format('Y-m-d'),
-                'status'     => $status,
+                'end_date' => $date->copy()->endOfMonth()->format('Y-m-d'),
+                'status' => $status,
             ];
         }
 
@@ -168,7 +167,7 @@ class CoreModulesGenerator
             DB::table('accounting_periods')->updateOrInsert(
                 ['tenant_id' => $tenantId, 'name' => $period['name']],
                 array_merge($period, [
-                    'tenant_id'  => $tenantId,
+                    'tenant_id' => $tenantId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])
@@ -202,11 +201,11 @@ class CoreModulesGenerator
         }
 
         $warehouseId = DB::table('warehouses')->insertGetId([
-            'tenant_id'  => $tenantId,
-            'name'       => 'Gudang Utama',
-            'code'       => 'GDG-UTAMA',
-            'address'    => 'Jl. Industri No. 1',
-            'is_active'  => true,
+            'tenant_id' => $tenantId,
+            'name' => 'Gudang Utama',
+            'code' => 'GDG-UTAMA',
+            'address' => 'Jl. Industri No. 1',
+            'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -231,8 +230,8 @@ class CoreModulesGenerator
             DB::table('tax_rates')->updateOrInsert(
                 ['tenant_id' => $tenantId, 'code' => $tax['code']],
                 array_merge($tax, [
-                    'tenant_id'  => $tenantId,
-                    'is_active'  => true,
+                    'tenant_id' => $tenantId,
+                    'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])
@@ -259,8 +258,8 @@ class CoreModulesGenerator
             DB::table('cost_centers')->updateOrInsert(
                 ['tenant_id' => $tenantId, 'code' => $center['code']],
                 array_merge($center, [
-                    'tenant_id'  => $tenantId,
-                    'is_active'  => true,
+                    'tenant_id' => $tenantId,
+                    'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])
@@ -288,7 +287,7 @@ class CoreModulesGenerator
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($products as $p) {
             $existing = DB::table('products')
@@ -298,19 +297,20 @@ class CoreModulesGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $p['name'],
-                'sku'        => $p['sku'],
-                'category'   => $p['category'],
-                'unit'       => $p['unit'],
-                'price_buy'  => $p['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $p['name'],
+                'sku' => $p['sku'],
+                'category' => $p['category'],
+                'unit' => $p['unit'],
+                'price_buy' => $p['price_buy'],
                 'price_sell' => $p['price_sell'],
-                'stock_min'  => $p['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $p['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -318,16 +318,16 @@ class CoreModulesGenerator
             $productIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $p['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $p['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
         // Bulk insert stock records (idempotent via insertOrIgnore)
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -359,20 +359,21 @@ class CoreModulesGenerator
 
             if ($existing) {
                 $customerIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('customers')->insertGetId([
-                'tenant_id'    => $tenantId,
-                'name'         => $c['name'],
-                'email'        => $c['email'],
-                'phone'        => $c['phone'],
-                'company'      => $c['company'],
-                'address'      => 'Jakarta',
+                'tenant_id' => $tenantId,
+                'name' => $c['name'],
+                'email' => $c['email'],
+                'phone' => $c['phone'],
+                'company' => $c['company'],
+                'address' => 'Jakarta',
                 'credit_limit' => $c['credit_limit'],
-                'is_active'    => true,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $customerIds[] = (int) $id;
@@ -405,21 +406,22 @@ class CoreModulesGenerator
 
             if ($existing) {
                 $supplierIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('suppliers')->insertGetId([
-                'tenant_id'    => $tenantId,
-                'name'         => $s['name'],
-                'email'        => $s['email'],
-                'phone'        => $s['phone'],
-                'company'      => $s['company'],
-                'bank_name'    => $s['bank_name'],
+                'tenant_id' => $tenantId,
+                'name' => $s['name'],
+                'email' => $s['email'],
+                'phone' => $s['phone'],
+                'company' => $s['company'],
+                'bank_name' => $s['bank_name'],
                 'bank_account' => $s['bank_account'],
-                'bank_holder'  => $s['company'],
-                'is_active'    => true,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'bank_holder' => $s['company'],
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $supplierIds[] = (int) $id;
@@ -443,7 +445,7 @@ class CoreModulesGenerator
         ];
 
         $employeeIds = [];
-        $firstId     = null;
+        $firstId = null;
 
         foreach ($employees as $i => $e) {
             $existing = DB::table('employees')
@@ -457,26 +459,27 @@ class CoreModulesGenerator
                 if ($i === 0) {
                     $firstId = (int) $existing->id;
                 }
+
                 continue;
             }
 
             $id = DB::table('employees')->insertGetId([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'employee_id' => $e['employee_id'],
-                'name'        => $e['name'],
-                'email'       => strtolower(str_replace(' ', '.', $e['name'])) . '@demo-company.com',
-                'phone'       => '0812-' . str_pad((string) (10000000 + $i * 1111111), 8, '0', STR_PAD_LEFT),
-                'position'    => $e['position'],
-                'department'  => $e['department'],
-                'join_date'   => Carbon::now()->subMonths(12 + $i * 3)->format('Y-m-d'),
-                'status'      => $e['status'],
-                'salary'      => $e['salary'],
-                'manager_id'  => ($i > 0 && $firstId) ? $firstId : null,
-                'bank_name'   => 'BCA',
-                'bank_account'=> '1' . str_pad((string) (100000000 + $i * 111111111), 9, '0', STR_PAD_LEFT),
-                'address'     => 'Jakarta',
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'name' => $e['name'],
+                'email' => strtolower(str_replace(' ', '.', $e['name'])).'@demo-company.com',
+                'phone' => '0812-'.str_pad((string) (10000000 + $i * 1111111), 8, '0', STR_PAD_LEFT),
+                'position' => $e['position'],
+                'department' => $e['department'],
+                'join_date' => Carbon::now()->subMonths(12 + $i * 3)->format('Y-m-d'),
+                'status' => $e['status'],
+                'salary' => $e['salary'],
+                'manager_id' => ($i > 0 && $firstId) ? $firstId : null,
+                'bank_name' => 'BCA',
+                'bank_account' => '1'.str_pad((string) (100000000 + $i * 111111111), 9, '0', STR_PAD_LEFT),
+                'address' => 'Jakarta',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             if ($i === 0) {

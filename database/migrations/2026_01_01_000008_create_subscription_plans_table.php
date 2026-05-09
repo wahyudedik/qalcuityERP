@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('subscription_plans')) {
+        if (! Schema::hasTable('subscription_plans')) {
             Schema::create('subscription_plans', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');                          // Nama plan: Basic, Pro, Enterprise
@@ -27,10 +27,10 @@ return new class extends Migration
 
         // Tambah kolom plan_expires_at ke tenants
         Schema::table('tenants', function (Blueprint $table) {
-            if (!Schema::hasColumn('tenants', 'plan_expires_at')) {
+            if (! Schema::hasColumn('tenants', 'plan_expires_at')) {
                 $table->timestamp('plan_expires_at')->nullable()->after('trial_ends_at');
             }
-            if (!Schema::hasColumn('tenants', 'subscription_plan_id')) {
+            if (! Schema::hasColumn('tenants', 'subscription_plan_id')) {
                 $table->unsignedBigInteger('subscription_plan_id')->nullable()->after('plan');
             }
         });

@@ -30,9 +30,9 @@ class GenerateInsightsCommand extends Command
 
     public function handle(AiInsightService $service): int
     {
-        $period   = $this->option('period');
+        $period = $this->option('period');
         $tenantId = $this->option('tenant');
-        $sync     = $this->option('sync');
+        $sync = $this->option('sync');
 
         $tenants = $tenantId
             ? Tenant::where('id', $tenantId)->where('is_active', true)->get()
@@ -40,6 +40,7 @@ class GenerateInsightsCommand extends Command
 
         if ($tenants->isEmpty()) {
             $this->warn('Tidak ada tenant aktif ditemukan.');
+
             return self::SUCCESS;
         }
 
@@ -50,7 +51,7 @@ class GenerateInsightsCommand extends Command
         foreach ($tenants as $tenant) {
             if ($sync) {
                 $insights = $service->generateAndSave($tenant->id);
-                $this->line(" Tenant [{$tenant->id}] {$tenant->name}: " . count($insights) . ' insights');
+                $this->line(" Tenant [{$tenant->id}] {$tenant->name}: ".count($insights).' insights');
             } else {
                 GenerateAiInsights::dispatch($tenant->id, $period);
             }

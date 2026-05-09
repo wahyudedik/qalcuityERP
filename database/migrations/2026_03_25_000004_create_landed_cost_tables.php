@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Landed cost header — linked to a PO or GR
-        if (!Schema::hasTable('landed_costs')) {
+        if (! Schema::hasTable('landed_costs')) {
             Schema::create('landed_costs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -25,14 +25,14 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'number']);
                 $table->index(['tenant_id', 'status']);
             });
         }
 
         // Cost components (freight, customs, insurance, etc.)
-        if (!Schema::hasTable('landed_cost_components')) {
+        if (! Schema::hasTable('landed_cost_components')) {
             Schema::create('landed_cost_components', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('landed_cost_id')->constrained()->cascadeOnDelete();
@@ -46,7 +46,7 @@ return new class extends Migration
         }
 
         // Allocation per product line
-        if (!Schema::hasTable('landed_cost_allocations')) {
+        if (! Schema::hasTable('landed_cost_allocations')) {
             Schema::create('landed_cost_allocations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('landed_cost_id')->constrained()->cascadeOnDelete();

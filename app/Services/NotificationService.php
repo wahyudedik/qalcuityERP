@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use App\Jobs\SendErpNotificationBatch;
 use App\Models\AssetMaintenance;
 use App\Models\Budget;
-use App\Models\ErpNotification;
-use App\Models\Invoice;
-use App\Models\ProductBatch;
-use App\Models\ProductStock;
 use App\Models\Employee;
 use App\Models\EmployeeReport;
+use App\Models\ErpNotification;
+use App\Models\Invoice;
+use App\Models\NotificationPreference;
+use App\Models\ProductBatch;
+use App\Models\ProductStock;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\AssetMaintenanceDueNotification;
@@ -27,7 +29,7 @@ class NotificationService
      */
     private function shouldNotify(int $userId, string $type, string $channel = 'in_app'): bool
     {
-        return \App\Models\NotificationPreference::isEnabled($userId, $type, $channel);
+        return NotificationPreference::isEnabled($userId, $type, $channel);
     }
 
     /**
@@ -36,14 +38,15 @@ class NotificationService
     public function checkLowStock(int $tenantId): int
     {
         $lowStocks = ProductStock::with(['product', 'warehouse'])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
+            ->whereHas('product', fn ($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
             ->whereColumn('quantity', '<=', 'products.stock_min')
             ->join('products', 'product_stocks.product_id', '=', 'products.id')
             ->select('product_stocks.*')
             ->get();
 
-        if ($lowStocks->isEmpty())
+        if ($lowStocks->isEmpty()) {
             return 0;
+        }
 
         // Kirim ke semua admin & manager tenant
         $recipients = User::where('tenant_id', $tenantId)
@@ -51,10 +54,10 @@ class NotificationService
             ->pluck('id');
 
         // Preload notification preferences to avoid N+1 queries inside the loop
-        $preferences = \App\Models\NotificationPreference::whereIn('user_id', $recipients)
+        $preferences = NotificationPreference::whereIn('user_id', $recipients)
             ->where('type', 'low_stock')
             ->get()
-            ->keyBy(fn($p) => "{$p->user_id}_{$p->channel}");
+            ->keyBy(fn ($p) => "{$p->user_id}_{$p->channel}");
 
         $count = 0;
         $emailItems = [];
@@ -68,8 +71,9 @@ class NotificationService
                 ->whereDate('created_at', today())
                 ->exists();
 
-            if ($exists)
+            if ($exists) {
                 continue;
+            }
 
             foreach ($recipients as $userId) {
                 $prefKey = "{$userId}_in_app";
@@ -102,7 +106,7 @@ class NotificationService
         }
 
         // Kirim 1 email ringkasan per hari ke admin/manager
-        if (!empty($emailItems)) {
+        if (! empty($emailItems)) {
             $adminUsers = User::whereIn('id', $recipients)->get();
             foreach ($adminUsers as $admin) {
                 $emailPrefKey = "{$admin->id}_email";
@@ -136,8 +140,9 @@ class NotificationService
             ->whereNotIn('id', $submitted)
             ->get();
 
-        if ($missing->isEmpty())
+        if ($missing->isEmpty()) {
             return 0;
+        }
 
         // Kirim ke admin
         $admins = User::where('tenant_id', $tenantId)
@@ -151,11 +156,12 @@ class NotificationService
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($exists)
+        if ($exists) {
             return 0;
+        }
 
         $names = $missing->pluck('name')->take(5)->implode(', ');
-        $more = $missing->count() > 5 ? ' dan ' . ($missing->count() - 5) . ' lainnya' : '';
+        $more = $missing->count() > 5 ? ' dan '.($missing->count() - 5).' lainnya' : '';
 
         foreach ($admins as $userId) {
             if ($this->shouldNotify($userId, 'missing_report', 'in_app')) {
@@ -204,8 +210,9 @@ class NotificationService
             ->with('customer')
             ->get();
 
-        if ($overdueInvoices->isEmpty())
+        if ($overdueInvoices->isEmpty()) {
             return 0;
+        }
 
         // Satu notifikasi batch per hari
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
@@ -213,21 +220,23 @@ class NotificationService
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent)
+        if ($alreadySent) {
             return 0;
+        }
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty())
+        if ($recipients->isEmpty()) {
             return 0;
+        }
 
         $tenant = Tenant::find($tenantId);
         $totalAmount = $overdueInvoices->sum('remaining_amount');
         $count = $overdueInvoices->count();
 
-        $invoiceData = $overdueInvoices->map(fn($inv) => [
+        $invoiceData = $overdueInvoices->map(fn ($inv) => [
             'number' => $inv->number,
             'customer' => $inv->customer?->name ?? '-',
             'amount' => (float) $inv->remaining_amount,
@@ -242,7 +251,7 @@ class NotificationService
                     'type' => 'invoice_overdue_summary',
                     'module' => 'finance',
                     'title' => "⚠️ {$count} Invoice Jatuh Tempo",
-                    'body' => "{$count} invoice senilai Rp " . number_format($totalAmount, 0, ',', '.') . " belum dibayar.",
+                    'body' => "{$count} invoice senilai Rp ".number_format($totalAmount, 0, ',', '.').' belum dibayar.',
                     'data' => ['count' => $count, 'total_amount' => $totalAmount],
                 ]);
             }
@@ -266,35 +275,38 @@ class NotificationService
             ->with('asset')
             ->get();
 
-        if ($maintenances->isEmpty())
+        if ($maintenances->isEmpty()) {
             return 0;
+        }
 
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
             ->where('type', 'asset_maintenance_due')
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent)
+        if ($alreadySent) {
             return 0;
+        }
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty())
+        if ($recipients->isEmpty()) {
             return 0;
+        }
 
         $tenant = Tenant::find($tenantId);
         $count = $maintenances->count();
 
-        $items = $maintenances->map(fn($m) => [
+        $items = $maintenances->map(fn ($m) => [
             'asset_name' => $m->asset?->name ?? '-',
             'type' => $m->type,
             'scheduled_date' => $m->scheduled_date->format('d M Y'),
             'days_until' => (int) now()->startOfDay()->diffInDays($m->scheduled_date, false),
         ])->toArray();
 
-        $overdueCount = count(array_filter($items, fn($i) => $i['days_until'] < 0));
+        $overdueCount = count(array_filter($items, fn ($i) => $i['days_until'] < 0));
         $title = $overdueCount > 0
             ? "🔧 {$overdueCount} Pemeliharaan Aset Terlambat"
             : "🔧 {$count} Jadwal Pemeliharaan Aset Mendatang";
@@ -333,33 +345,36 @@ class NotificationService
             ->whereRaw('(realized / amount * 100) >= 80')
             ->get();
 
-        if ($budgets->isEmpty())
+        if ($budgets->isEmpty()) {
             return 0;
+        }
 
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
             ->where('type', 'budget_alert')
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent)
+        if ($alreadySent) {
             return 0;
+        }
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty())
+        if ($recipients->isEmpty()) {
             return 0;
+        }
 
         $tenant = Tenant::find($tenantId);
-        $exceeded = $budgets->filter(fn($b) => $b->usage_percent >= 100);
-        $warning = $budgets->filter(fn($b) => $b->usage_percent >= 80 && $b->usage_percent < 100);
+        $exceeded = $budgets->filter(fn ($b) => $b->usage_percent >= 100);
+        $warning = $budgets->filter(fn ($b) => $b->usage_percent >= 80 && $b->usage_percent < 100);
 
         $title = $exceeded->isNotEmpty()
             ? "💰 {$exceeded->count()} Anggaran Terlampaui"
             : "💰 {$warning->count()} Anggaran Hampir Habis";
 
-        $budgetData = $budgets->map(fn($b) => [
+        $budgetData = $budgets->map(fn ($b) => [
             'name' => $b->name,
             'department' => $b->department ?? '-',
             'amount' => $b->amount,
@@ -409,8 +424,9 @@ class NotificationService
             ->each(function (Tenant $tenant) use (&$count) {
                 $daysLeft = (int) now()->diffInDays($tenant->trial_ends_at, false);
 
-                if (!in_array($daysLeft, [7, 3, 1]))
+                if (! in_array($daysLeft, [7, 3, 1])) {
                     return;
+                }
 
                 // Cek sudah kirim hari ini
                 $alreadySent = ErpNotification::where('tenant_id', $tenant->id)
@@ -419,8 +435,9 @@ class NotificationService
                     ->whereDate('created_at', today())
                     ->exists();
 
-                if ($alreadySent)
+                if ($alreadySent) {
                     return;
+                }
 
                 $admins = User::where('tenant_id', $tenant->id)
                     ->whereIn('role', ['admin'])
@@ -461,8 +478,9 @@ class NotificationService
             ->whereIn('role', ['admin', 'manager'])
             ->pluck('id');
 
-        if ($recipients->isEmpty())
+        if ($recipients->isEmpty()) {
             return 0;
+        }
 
         $count = 0;
 
@@ -472,21 +490,22 @@ class NotificationService
             ->where('status', 'active')
             ->where('quantity', '>', 0)
             ->where('expiry_date', '>=', today())
-            ->whereHas('product', fn($q) => $q->where('has_expiry', true)->where('is_active', true))
+            ->whereHas('product', fn ($q) => $q->where('has_expiry', true)->where('is_active', true))
             ->get()
-            ->filter(fn($batch) => $batch->daysUntilExpiry() <= ($batch->product->expiry_alert_days ?? 2));
+            ->filter(fn ($batch) => $batch->daysUntilExpiry() <= ($batch->product->expiry_alert_days ?? 2));
 
         foreach ($expiringSoon as $batch) {
             $days = $batch->daysUntilExpiry();
-            $notifKey = "expiry_soon_{$batch->id}_" . today()->format('Ymd');
+            $notifKey = "expiry_soon_{$batch->id}_".today()->format('Ymd');
 
             $exists = ErpNotification::where('tenant_id', $tenantId)
                 ->where('type', $notifKey)
                 ->whereDate('created_at', today())
                 ->exists();
 
-            if ($exists)
+            if ($exists) {
                 continue;
+            }
 
             $label = $days === 0 ? 'hari ini' : "dalam {$days} hari";
 
@@ -498,8 +517,8 @@ class NotificationService
                         'type' => $notifKey,
                         'module' => 'inventory',
                         'title' => '⏰ Produk Akan Expired',
-                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
-                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
+                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** ".
+                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** ".
                             "akan expired {$label} ({$batch->expiry_date->format('d/m/Y')}).",
                         'data' => [
                             'batch_id' => $batch->id,
@@ -520,7 +539,7 @@ class NotificationService
             ->where('status', 'active')
             ->where('quantity', '>', 0)
             ->where('expiry_date', '<', today())
-            ->whereHas('product', fn($q) => $q->where('has_expiry', true)->where('is_active', true))
+            ->whereHas('product', fn ($q) => $q->where('has_expiry', true)->where('is_active', true))
             ->get();
 
         // Auto-update status ke expired
@@ -532,8 +551,9 @@ class NotificationService
                 ->where('type', $notifKey)
                 ->exists();
 
-            if ($exists)
+            if ($exists) {
                 continue;
+            }
 
             foreach ($recipients as $userId) {
                 if ($this->shouldNotify($userId, 'product_expiry', 'in_app')) {
@@ -543,8 +563,8 @@ class NotificationService
                         'type' => $notifKey,
                         'module' => 'inventory',
                         'title' => '🔴 Produk Expired',
-                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
-                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
+                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** ".
+                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** ".
                             "sudah EXPIRED sejak {$batch->expiry_date->format('d/m/Y')}. Segera lakukan tindakan.",
                         'data' => [
                             'batch_id' => $batch->id,
@@ -569,7 +589,7 @@ class NotificationService
         $results = [];
 
         Tenant::where('is_active', true)->each(function (Tenant $tenant) use (&$results) {
-            \App\Jobs\SendErpNotificationBatch::dispatch($tenant->id, 'all');
+            SendErpNotificationBatch::dispatch($tenant->id, 'all');
             $results[$tenant->slug] = ['queued' => true];
         });
 

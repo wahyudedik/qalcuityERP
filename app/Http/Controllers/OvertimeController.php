@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\ErpNotification;
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Services\OvertimeApprovalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -87,7 +88,7 @@ class OvertimeController extends Controller
                 'user_id' => $admin->id,
                 'type' => 'overtime_request',
                 'title' => '⏰ Pengajuan Lembur Baru',
-                'body' => "Ada pengajuan lembur dari karyawan yang menunggu persetujuan.",
+                'body' => 'Ada pengajuan lembur dari karyawan yang menunggu persetujuan.',
                 'data' => ['date' => $data['date']],
             ]);
         }
@@ -100,22 +101,22 @@ class OvertimeController extends Controller
         abort_unless($overtime->tenant_id === $this->tid(), 403);
 
         // BUG-HRM-004 FIX: Use secure approval service with self-approval prevention
-        $approvalService = new \App\Services\OvertimeApprovalService();
+        $approvalService = new OvertimeApprovalService;
         $result = $approvalService->approve(auth()->user(), $overtime);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->withErrors(['approval' => $result['message']]);
         }
 
         // Notifikasi ke karyawan (jika punya user)
         $overtime->load('employee');
         if ($overtime->employee->user_id) {
-            \App\Models\ErpNotification::create([
+            ErpNotification::create([
                 'tenant_id' => $this->tid(),
                 'user_id' => $overtime->employee->user_id,
                 'type' => 'overtime_approved',
                 'title' => '✅ Lembur Disetujui',
-                'body' => "Lembur Anda pada {$overtime->date->format('d M Y')} ({$overtime->durationLabel()}) telah disetujui oleh {$result['data']['approved_by']}. Upah: Rp " . number_format($result['data']['overtime_pay'], 0, ',', '.'),
+                'body' => "Lembur Anda pada {$overtime->date->format('d M Y')} ({$overtime->durationLabel()}) telah disetujui oleh {$result['data']['approved_by']}. Upah: Rp ".number_format($result['data']['overtime_pay'], 0, ',', '.'),
                 'data' => ['overtime_id' => $overtime->id],
             ]);
         }
@@ -130,22 +131,22 @@ class OvertimeController extends Controller
         $data = $request->validate(['rejection_reason' => 'nullable|string|max:255']);
 
         // BUG-HRM-004 FIX: Use secure rejection service with self-approval prevention
-        $approvalService = new \App\Services\OvertimeApprovalService();
+        $approvalService = new OvertimeApprovalService;
         $result = $approvalService->reject(auth()->user(), $overtime, $data['rejection_reason'] ?? null);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()->withErrors(['approval' => $result['message']]);
         }
 
         // Notifikasi ke karyawan
         $overtime->load('employee');
         if ($overtime->employee->user_id) {
-            \App\Models\ErpNotification::create([
+            ErpNotification::create([
                 'tenant_id' => $this->tid(),
                 'user_id' => $overtime->employee->user_id,
                 'type' => 'overtime_rejected',
                 'title' => '❌ Lembur Ditolak',
-                'body' => "Lembur Anda pada {$overtime->date->format('d M Y')} ditolak." . ($data['rejection_reason'] ? " Alasan: {$data['rejection_reason']}" : ''),
+                'body' => "Lembur Anda pada {$overtime->date->format('d M Y')} ditolak.".($data['rejection_reason'] ? " Alasan: {$data['rejection_reason']}" : ''),
                 'data' => ['overtime_id' => $overtime->id],
             ]);
         }
@@ -158,6 +159,7 @@ class OvertimeController extends Controller
         abort_unless($overtime->tenant_id === $this->tid(), 403);
         abort_unless($overtime->status === 'pending', 422);
         $overtime->delete();
+
         return back()->with('success', 'Pengajuan lembur dihapus.');
     }
 }

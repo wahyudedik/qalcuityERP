@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('harvest_logs')) {
+        if (! Schema::hasTable('harvest_logs')) {
             Schema::create('harvest_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('farm_plot_id')->constrained()->cascadeOnDelete();
@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->string('weather')->nullable();                  // cuaca saat panen
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'harvest_date']);
                 $table->index(['farm_plot_id', 'harvest_date']);
                 $table->index(['crop_cycle_id']);
@@ -36,7 +36,7 @@ return new class extends Migration
         }
 
         // Grade breakdown per harvest log
-        if (!Schema::hasTable('harvest_log_grades')) {
+        if (! Schema::hasTable('harvest_log_grades')) {
             Schema::create('harvest_log_grades', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('harvest_log_id')->constrained()->cascadeOnDelete();
@@ -50,7 +50,7 @@ return new class extends Migration
         }
 
         // Workers who participated in harvest
-        if (!Schema::hasTable('harvest_log_workers')) {
+        if (! Schema::hasTable('harvest_log_workers')) {
             Schema::create('harvest_log_workers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('harvest_log_id')->constrained()->cascadeOnDelete();

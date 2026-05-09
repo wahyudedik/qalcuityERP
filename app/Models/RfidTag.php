@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class RfidTag extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'tag_uid',
@@ -102,6 +102,6 @@ class RfidTag extends Model
      */
     public function isAssigned(): bool
     {
-        return !empty($this->taggable_type) && !empty($this->taggable_id);
+        return ! empty($this->taggable_type) && ! empty($this->taggable_id);
     }
 }

@@ -15,7 +15,7 @@ class WorkflowEngine
      */
     public function registerTrigger(string $event, callable $callback): void
     {
-        if (!isset($this->eventListeners[$event])) {
+        if (! isset($this->eventListeners[$event])) {
             $this->eventListeners[$event] = [];
         }
 
@@ -80,7 +80,7 @@ class WorkflowEngine
             if ($this->shouldExecute($schedule, $now)) {
                 try {
                     $workflow->execute([
-                        'triggered_by' => 'schedule:' . $schedule,
+                        'triggered_by' => 'schedule:'.$schedule,
                         'executed_at' => $now->toIso8601String(),
                     ]);
                 } catch (\Exception $e) {
@@ -100,7 +100,7 @@ class WorkflowEngine
      */
     private function shouldExecute(?string $schedule, $now): bool
     {
-        if (!$schedule) {
+        if (! $schedule) {
             return false;
         }
 

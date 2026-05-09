@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PackageSupplierAllocation extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
+        'tenant_id',
         'tour_package_id',
         'supplier_id',
         'service_type',

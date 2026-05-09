@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Diagnosis;
 use App\Models\Patient;
 use App\Models\PatientMedicalRecord;
 use App\Models\PatientVisit;
 use App\Models\Prescription;
-use App\Models\Diagnosis;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 

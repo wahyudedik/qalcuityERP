@@ -33,7 +33,7 @@ abstract class TelecomApiController extends Controller
             'message' => $message,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -45,7 +45,7 @@ abstract class TelecomApiController extends Controller
      */
     protected function logApiRequest(Request $request, string $endpoint, mixed $result = null): void
     {
-        Log::channel('daily')->info("Telecom API Request", [
+        Log::channel('daily')->info('Telecom API Request', [
             'endpoint' => $endpoint,
             'method' => $request->method(),
             'ip' => $request->ip(),

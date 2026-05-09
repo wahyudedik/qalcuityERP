@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\CrmActivity;
 use App\Models\CrmLead;
+use App\Services\LeadConversionService;
 use Illuminate\Http\Request;
 
 class CrmController extends Controller
@@ -21,7 +22,7 @@ class CrmController extends Controller
         }
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
+            $query->where(fn ($q) => $q->where('name', 'like', "%$s%")->orWhere('company', 'like', "%$s%"));
         }
 
         $leads = $query->orderByRaw("FIELD(stage,'new','contacted','qualified','proposal','negotiation','won','lost')")
@@ -41,7 +42,7 @@ class CrmController extends Controller
             ->sum('estimated_value');
 
         $followUpToday = CrmLead::where('tenant_id', $tid)
-            ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))
+            ->whereHas('activities', fn ($q) => $q->where('next_follow_up', '<=', today()))
             ->whereNotIn('stage', [CrmLead::STAGE_WON, CrmLead::STAGE_LOST])
             ->count();
 
@@ -70,7 +71,7 @@ class CrmController extends Controller
             'last_contact_at' => now(),
         ] + $data);
 
-        ActivityLog::record('lead_created', "Lead baru: {$lead->name}" . ($lead->company ? " ({$lead->company})" : ''), $lead, [], $lead->toArray());
+        ActivityLog::record('lead_created', "Lead baru: {$lead->name}".($lead->company ? " ({$lead->company})" : ''), $lead, [], $lead->toArray());
 
         return back()->with('success', "Lead {$data['name']} berhasil ditambahkan.");
     }
@@ -137,7 +138,7 @@ class CrmController extends Controller
             'link_to_customer_id' => 'nullable|exists:customers,id',
         ]);
 
-        $conversionService = app(\App\Services\LeadConversionService::class);
+        $conversionService = app(LeadConversionService::class);
 
         $result = $conversionService->convertLead(
             $lead,
@@ -145,7 +146,7 @@ class CrmController extends Controller
             $data['link_to_customer_id'] ?? null
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             if (isset($result['already_converted'])) {
                 return back()->with('error', $result['message']);
             }
@@ -177,7 +178,7 @@ class CrmController extends Controller
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
 
-        $result = app(\App\Services\LeadConversionService::class)->checkForDuplicates($lead);
+        $result = app(LeadConversionService::class)->checkForDuplicates($lead);
 
         return response()->json([
             'success' => true,
@@ -188,8 +189,9 @@ class CrmController extends Controller
     public function destroy(CrmLead $lead)
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
-        ActivityLog::record('lead_deleted', "Lead dihapus: {$lead->name}" . ($lead->company ? " ({$lead->company})" : ''), $lead, $lead->toArray());
+        ActivityLog::record('lead_deleted', "Lead dihapus: {$lead->name}".($lead->company ? " ({$lead->company})" : ''), $lead, $lead->toArray());
         $lead->delete();
+
         return back()->with('success', 'Lead berhasil dihapus.');
     }
 
@@ -199,7 +201,7 @@ class CrmController extends Controller
 
         $stages = CrmLead::STAGES;
         $leads = CrmLead::where('tenant_id', $tid)
-            ->with(['activities' => fn($q) => $q->latest()->limit(1)])
+            ->with(['activities' => fn ($q) => $q->latest()->limit(1)])
             ->orderByDesc('estimated_value')
             ->get()
             ->groupBy('stage');
@@ -212,7 +214,7 @@ class CrmController extends Controller
         $wonThisMonth = CrmLead::where('tenant_id', $tid)->where('stage', CrmLead::STAGE_WON)
             ->whereMonth('updated_at', now()->month)->sum('estimated_value');
         $followUpToday = CrmLead::where('tenant_id', $tid)
-            ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))
+            ->whereHas('activities', fn ($q) => $q->where('next_follow_up', '<=', today()))
             ->whereNotIn('stage', [CrmLead::STAGE_WON, CrmLead::STAGE_LOST])->count();
 
         return view('crm.kanban', compact('leads', 'stages', 'stageStats', 'wonThisMonth', 'followUpToday'));
@@ -236,6 +238,7 @@ class CrmController extends Controller
         };
 
         $lead->update(['stage' => $request->stage, 'probability' => $prob, 'last_contact_at' => now()]);
+
         return response()->json(['ok' => true]);
     }
 }

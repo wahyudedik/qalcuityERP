@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Bom extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'product_id',
@@ -33,10 +33,12 @@ class Bom extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
+
     public function lines(): HasMany
     {
         return $this->hasMany(BomLine::class)->orderBy('sort_order');
@@ -62,14 +64,14 @@ class Bom extends Model
             ]);
 
             throw new \RuntimeException(
-                "BOM explosion gagal: Circular reference terdeteksi atau BOM terlalu dalam (level {$level}). " .
+                "BOM explosion gagal: Circular reference terdeteksi atau BOM terlalu dalam (level {$level}). ".
                 "Periksa BOM #{$this->id} ({$this->name}) - kemungkinan ada referensi melingkar."
             );
         }
 
         // BUG-MFG-001 FIX: Check for circular reference
         if (in_array($this->id, $visitedBomIds)) {
-            $cyclePath = implode(' → ', $visitedBomIds) . " → {$this->id}";
+            $cyclePath = implode(' → ', $visitedBomIds)." → {$this->id}";
 
             \Log::error('BOM circular reference detected', [
                 'bom_id' => $this->id,
@@ -78,7 +80,7 @@ class Bom extends Model
             ]);
 
             throw new \RuntimeException(
-                "BOM circular reference terdeteksi! BOM #{$this->id} ({$this->name}) sudah ada di chain. " .
+                "BOM circular reference terdeteksi! BOM #{$this->id} ({$this->name}) sudah ada di chain. ".
                 "Cycle path: {$cyclePath}. Perbaiki BOM structure untuk menghapus circular reference."
             );
         }
@@ -88,7 +90,7 @@ class Bom extends Model
 
         // Only pre-load the full tree at the root call (level 0).
         // Deeper recursive calls reuse already-loaded relations.
-        if ($level === 0 && !$this->relationLoaded('lines')) {
+        if ($level === 0 && ! $this->relationLoaded('lines')) {
             $this->load(self::buildNestedWith($maxDepth));
         }
 
@@ -104,9 +106,9 @@ class Bom extends Model
                 // BUG-MFG-001 FIX: Check self-reference
                 if ($line->child_bom_id == $this->id) {
                     throw new \RuntimeException(
-                        "BOM self-reference terdeteksi! BOM #{$this->id} ({$this->name}) " .
-                        "refer ke dirinya sendiri di line product #{$line->product_id}. " .
-                        "BOM tidak boleh memiliki child_bom_id yang sama dengan parent BOM."
+                        "BOM self-reference terdeteksi! BOM #{$this->id} ({$this->name}) ".
+                        "refer ke dirinya sendiri di line product #{$line->product_id}. ".
+                        'BOM tidak boleh memiliki child_bom_id yang sama dengan parent BOM.'
                     );
                 }
 
@@ -142,6 +144,7 @@ class Bom extends Model
             $path .= '.childBom.lines';
             $with = $path;
         }
+
         return $with;
     }
 
@@ -153,6 +156,7 @@ class Bom extends Model
     {
         try {
             $this->explode(1, 0, 10, []);
+
             return false; // No circular reference
         } catch (\RuntimeException $e) {
             if (str_contains($e->getMessage(), 'circular reference')) {
@@ -169,7 +173,7 @@ class Bom extends Model
     public function getHierarchyPath(array $visitedIds = []): array
     {
         if (in_array($this->id, $visitedIds)) {
-            return ['(circular) ' . $this->name];
+            return ['(circular) '.$this->name];
         }
 
         $visitedIds[] = $this->id;
@@ -180,7 +184,7 @@ class Bom extends Model
             if ($line->childBom) {
                 $childPath = $line->childBom->getHierarchyPath($visitedIds);
                 foreach ($childPath as $childName) {
-                    $path[] = '  └─ ' . $childName;
+                    $path[] = '  └─ '.$childName;
                 }
             }
         }

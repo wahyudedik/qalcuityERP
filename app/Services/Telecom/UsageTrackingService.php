@@ -2,8 +2,8 @@
 
 namespace App\Services\Telecom;
 
+use App\Models\NetworkAlert;
 use App\Models\TelecomSubscription;
-use App\Models\HotspotUser;
 use App\Models\UsageTracking;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,12 +15,10 @@ class UsageTrackingService
 {
     /**
      * Record usage for a subscription.
-     * 
-     * @param TelecomSubscription $subscription
-     * @param int $bytesIn Download bytes
-     * @param int $bytesOut Upload bytes
-     * @param array $metadata Additional data
-     * @return UsageTracking
+     *
+     * @param  int  $bytesIn  Download bytes
+     * @param  int  $bytesOut  Upload bytes
+     * @param  array  $metadata  Additional data
      */
     public function recordUsage(TelecomSubscription $subscription, int $bytesIn, int $bytesOut, array $metadata = []): UsageTracking
     {
@@ -31,10 +29,10 @@ class UsageTrackingService
             $subscription->increment('quota_used_bytes', $bytesTotal);
 
             // Check if quota exceeded
-            if ($subscription->package && !$subscription->package->isUnlimited()) {
+            if ($subscription->package && ! $subscription->package->isUnlimited()) {
                 $quotaExceeded = $subscription->quota_used_bytes >= $subscription->package->quota_bytes;
 
-                if ($quotaExceeded && !$subscription->quota_exceeded) {
+                if ($quotaExceeded && ! $subscription->quota_exceeded) {
                     $subscription->update(['quota_exceeded' => true]);
 
                     // Trigger webhook or notification here
@@ -68,10 +66,8 @@ class UsageTrackingService
 
     /**
      * Get usage summary for a subscription.
-     * 
-     * @param TelecomSubscription $subscription
-     * @param string $period daily|weekly|monthly
-     * @return array
+     *
+     * @param  string  $period  daily|weekly|monthly
      */
     public function getUsageSummary(TelecomSubscription $subscription, string $period = 'monthly'): array
     {
@@ -91,7 +87,7 @@ class UsageTrackingService
         $quotaRemaining = 0;
         $quotaUsedPercent = 0;
 
-        if ($subscription->package && !$subscription->package->isUnlimited()) {
+        if ($subscription->package && ! $subscription->package->isUnlimited()) {
             $quotaRemaining = max(0, $subscription->package->quota_bytes - $subscription->quota_used_bytes);
             $quotaUsedPercent = ($subscription->quota_used_bytes / $subscription->package->quota_bytes) * 100;
         }
@@ -123,7 +119,7 @@ class UsageTrackingService
     protected function handleQuotaExceeded(TelecomSubscription $subscription): void
     {
         // Create alert
-        \App\Models\NetworkAlert::create([
+        NetworkAlert::create([
             'tenant_id' => $subscription->tenant_id,
             'subscription_id' => $subscription->id,
             'alert_type' => 'quota_exceeded',
@@ -138,9 +134,9 @@ class UsageTrackingService
                 $adapter = RouterAdapterFactory::create($subscription->device);
                 $adapter->disconnectUser($subscription->hotspot_username);
             } catch (\Exception $e) {
-                Log::error("Failed to disconnect user after quota exceeded", [
+                Log::error('Failed to disconnect user after quota exceeded', [
                     'subscription_id' => $subscription->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -172,6 +168,6 @@ class UsageTrackingService
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 }

@@ -12,10 +12,15 @@ class CrmActivity extends Model
 
     // Activity type constants
     const TYPE_CALL = 'call';
+
     const TYPE_EMAIL = 'email';
+
     const TYPE_MEETING = 'meeting';
+
     const TYPE_WHATSAPP = 'whatsapp';
+
     const TYPE_DEMO = 'demo';
+
     const TYPE_PROPOSAL = 'proposal';
 
     const TYPES = [
@@ -29,8 +34,11 @@ class CrmActivity extends Model
 
     // Outcome constants
     const OUTCOME_INTERESTED = 'interested';
+
     const OUTCOME_NOT_INTERESTED = 'not_interested';
+
     const OUTCOME_FOLLOW_UP = 'follow_up';
+
     const OUTCOME_CLOSED = 'closed';
 
     const OUTCOMES = [

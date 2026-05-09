@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TeleconsultationFeedback;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -72,7 +73,7 @@ class TelemedicineFeedbackService
             ')
             ->first();
 
-        if (!$stats || $stats->total_feedbacks == 0) {
+        if (! $stats || $stats->total_feedbacks == 0) {
             return [
                 'total_feedbacks' => 0,
                 'avg_rating' => 0,
@@ -119,7 +120,7 @@ class TelemedicineFeedbackService
     /**
      * Get recent feedback for doctor.
      */
-    public function getDoctorRecentFeedback(int $doctorId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public function getDoctorRecentFeedback(int $doctorId, int $limit = 10): Collection
     {
         return TeleconsultationFeedback::where('doctor_id', $doctorId)
             ->with(['consultation', 'patient'])

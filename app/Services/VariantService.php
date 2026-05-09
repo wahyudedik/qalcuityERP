@@ -22,7 +22,7 @@ class VariantService
             $createdVariants = [];
 
             foreach ($variants as $variantData) {
-                $variant = new ProductVariant();
+                $variant = new ProductVariant;
                 $variant->tenant_id = $tenantId;
                 $variant->formula_id = $formulaId;
                 $variant->sku = $variantData['sku'] ?? $this->generateSku($formula, $variantData);
@@ -81,6 +81,7 @@ class VariantService
         $groupedVariants = $variants->groupBy(function ($variant) {
             $attrs = $variant->attributes;
             ksort($attrs);
+
             return json_encode($attrs);
         });
 
@@ -103,12 +104,12 @@ class VariantService
 
         $attrSuffix = '';
         foreach ($attributes as $key => $value) {
-            $attrSuffix .= '-' . strtoupper(substr($value, 0, 3));
+            $attrSuffix .= '-'.strtoupper(substr($value, 0, 3));
         }
 
-        $sizeSuffix = $size ? '-' . $size : '';
+        $sizeSuffix = $size ? '-'.$size : '';
 
-        return $formulaCode . $attrSuffix . $sizeSuffix;
+        return $formulaCode.$attrSuffix.$sizeSuffix;
     }
 
     /**
@@ -121,10 +122,10 @@ class VariantService
         foreach ($variants as $variant) {
             if (is_array($variant->attributes)) {
                 foreach ($variant->attributes as $key => $value) {
-                    if (!isset($uniqueAttrs[$key])) {
+                    if (! isset($uniqueAttrs[$key])) {
                         $uniqueAttrs[$key] = [];
                     }
-                    if (!in_array($value, $uniqueAttrs[$key])) {
+                    if (! in_array($value, $uniqueAttrs[$key])) {
                         $uniqueAttrs[$key][] = $value;
                     }
                 }
@@ -154,7 +155,7 @@ class VariantService
      */
     public function toggleVariant(ProductVariant $variant): ProductVariant
     {
-        $variant->is_active = !$variant->is_active;
+        $variant->is_active = ! $variant->is_active;
         $variant->save();
 
         Log::info('Variant toggled', [

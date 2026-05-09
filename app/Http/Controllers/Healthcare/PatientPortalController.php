@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\LabOrder;
+use App\Models\LabResult;
+use App\Models\MedicalBill;
 use App\Models\OutpatientVisit;
 use App\Models\Prescription;
-use App\Models\LabOrder;
-use App\Models\MedicalBill;
-use App\Models\LabResult;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,7 @@ class PatientPortalController extends Controller
     {
         $patient = auth()->user()->patient;
 
-        if (!$patient) {
+        if (! $patient) {
             abort(403, 'No patient profile linked to this account');
         }
 
@@ -35,7 +35,7 @@ class PatientPortalController extends Controller
     {
         $patient = auth()->user()->patient;
 
-        if (!$patient) {
+        if (! $patient) {
             return view('healthcare.patient-portal.dashboard', [
                 'patient' => null,
                 'statistics' => [],

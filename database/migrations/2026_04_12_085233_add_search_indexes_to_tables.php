@@ -2,10 +2,11 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      * Add indexes to improve search performance across modules
@@ -74,13 +75,13 @@ return new class extends Migration {
      */
     private function addIndexIfNotExists(string $table, array $columns, string $indexName): void
     {
-        $exists = DB::select("
+        $exists = DB::select('
             SELECT COUNT(*) as count 
             FROM information_schema.statistics 
             WHERE table_schema = DATABASE() 
             AND table_name = ? 
             AND index_name = ?
-        ", [$table, $indexName]);
+        ', [$table, $indexName]);
 
         if ($exists[0]->count == 0) {
             Schema::table($table, function (Blueprint $table) use ($columns) {

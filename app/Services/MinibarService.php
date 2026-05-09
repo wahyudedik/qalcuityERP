@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\MenuItem;
 use App\Models\MinibarInventory;
 use App\Models\MinibarTransaction;
-use App\Models\MenuItem;
 use Illuminate\Support\Facades\DB;
 
 class MinibarService
@@ -45,7 +45,7 @@ class MinibarService
                 ->where('menu_item_id', $data['menu_item_id'])
                 ->firstOrFail();
 
-            if (!$inventory->consume($data['quantity'])) {
+            if (! $inventory->consume($data['quantity'])) {
                 throw new \Exception('Insufficient stock in minibar');
             }
 

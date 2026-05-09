@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\HousekeepingTask;
 use App\Models\MaintenanceRequest;
 use App\Models\Room;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class HousekeepingService
 {
@@ -41,7 +41,7 @@ class HousekeepingService
                 'overdue' => MaintenanceRequest::where('tenant_id', $tenantId)
                     ->where('status', '!=', 'completed')
                     ->where(function ($q) {
-                        $q->whereRaw("TIMESTAMPDIFF(HOUR, created_at, NOW()) > 
+                        $q->whereRaw("TIMESTAMPDIFF(HOUR, created_at, NOW()) >
                             CASE priority
                                 WHEN 'urgent' THEN 2
                                 WHEN 'high' THEN 8
@@ -120,7 +120,7 @@ class HousekeepingService
 
         // BUG-HOTEL-003 FIX: Update room status to cleaning
         if ($task->room && $task->room->status === 'dirty') {
-            $statusService = new HousekeepingStatusService();
+            $statusService = new HousekeepingStatusService;
             $statusService->startCleaning($task->room, $task);
         }
 
@@ -145,7 +145,7 @@ class HousekeepingService
 
         // BUG-HOTEL-003 FIX: Use proper status transition service
         if (in_array($task->type, ['checkout_clean', 'stay_clean', 'deep_clean'])) {
-            $statusService = new HousekeepingStatusService();
+            $statusService = new HousekeepingStatusService;
             $statusService->completeCleaning(
                 $task->room,
                 $task,
@@ -232,7 +232,9 @@ class HousekeepingService
     {
         return Room::where('tenant_id', $tenantId)
             ->where('status', $status)
-            ->with(['roomType', 'housekeepingTasks.pending'])
+            ->with(['roomType', 'housekeepingTasks' => function ($query) {
+                $query->where('status', 'pending');
+            }])
             ->get()
             ->map(function ($room) {
                 return [
@@ -250,7 +252,7 @@ class HousekeepingService
     /**
      * Generate daily housekeeping report
      */
-    public function generateDailyReport(int $tenantId, \Carbon\Carbon $date): array
+    public function generateDailyReport(int $tenantId, Carbon $date): array
     {
         return [
             'date' => $date->format('Y-m-d'),

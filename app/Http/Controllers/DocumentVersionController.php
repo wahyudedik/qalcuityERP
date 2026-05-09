@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Services\DocumentVersioningService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class DocumentVersionController extends Controller
 {
@@ -57,7 +56,7 @@ class DocumentVersionController extends Controller
         $version = $this->versioningService->createVersion($document, $validated);
 
         return redirect()->back()
-            ->with('success', 'Document version created successfully (v' . $version->version . ')');
+            ->with('success', 'Document version created successfully (v'.$version->version.')');
     }
 
     /**
@@ -98,7 +97,7 @@ class DocumentVersionController extends Controller
 
         $version = $this->versioningService->getVersion($document, $versionNumber);
 
-        if (!$version) {
+        if (! $version) {
             abort(404, 'Version not found');
         }
 

@@ -114,24 +114,28 @@ class MonitoringController extends Controller
     public function resolveError(ErrorLog $error): RedirectResponse
     {
         $error->update(['is_resolved' => true, 'resolved_at' => now()]);
+
         return back()->with('success', 'Error ditandai sebagai resolved.');
     }
 
     public function resolveAllErrors(): RedirectResponse
     {
         ErrorLog::where('is_resolved', false)->update(['is_resolved' => true, 'resolved_at' => now()]);
+
         return back()->with('success', 'Semua error ditandai sebagai resolved.');
     }
 
     public function deleteError(ErrorLog $error): RedirectResponse
     {
         $error->delete();
+
         return back()->with('success', 'Error log dihapus.');
     }
 
     public function clearErrors(): RedirectResponse
     {
         ErrorLog::where('is_resolved', true)->delete();
+
         return back()->with('success', 'Error log yang sudah resolved berhasil dibersihkan.');
     }
 
@@ -240,21 +244,21 @@ class MonitoringController extends Controller
         // ── Step 2: Optional / newer-module tables – each wrapped independently
         $o = [];
         $optSql = [
-            'fleet_active' => "SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1",
-            'fleet_exp' => "SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1 AND (registration_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY) OR insurance_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY))",
+            'fleet_active' => 'SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1',
+            'fleet_exp' => 'SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1 AND (registration_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY) OR insurance_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY))',
             'fleet_maint_due' => "SELECT COUNT(*) AS v FROM fleet_maintenances WHERE status = 'scheduled' AND scheduled_date <= DATE_ADD(NOW(),INTERVAL 7 DAY)",
             'contracts_active' => "SELECT COUNT(*) AS v FROM contracts WHERE status = 'active'",
             'contracts_exp' => "SELECT COUNT(*) AS v FROM contracts WHERE status = 'active' AND end_date BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY)",
             'contract_billing' => "SELECT COUNT(*) AS v FROM contract_billings WHERE status = 'pending'",
             'consign_ship' => "SELECT COUNT(*) AS v FROM consignment_shipments WHERE status IN ('shipped','partial_sold')",
             'consign_settle' => "SELECT COUNT(*) AS v FROM consignment_sales_reports WHERE status IN ('draft','confirmed')",
-            'commission_total' => "SELECT COUNT(*) AS v FROM commission_calculations",
+            'commission_total' => 'SELECT COUNT(*) AS v FROM commission_calculations',
             'commission_unpaid' => "SELECT COUNT(*) AS v FROM commission_calculations WHERE status = 'approved'",
             'helpdesk_open' => "SELECT COUNT(*) AS v FROM helpdesk_tickets WHERE status NOT IN ('resolved','closed')",
             'helpdesk_overdue' => "SELECT COUNT(*) AS v FROM helpdesk_tickets WHERE status NOT IN ('resolved','closed') AND sla_resolve_due IS NOT NULL AND sla_resolve_due < NOW()",
             'subscr_active' => "SELECT COUNT(*) AS v FROM customer_subscriptions WHERE status = 'active'",
             'subscr_due' => "SELECT COUNT(*) AS v FROM customer_subscriptions WHERE status = 'active' AND next_billing_date < CURDATE()",
-            'landed_total' => "SELECT COUNT(*) AS v FROM landed_costs",
+            'landed_total' => 'SELECT COUNT(*) AS v FROM landed_costs',
             'landed_draft' => "SELECT COUNT(*) AS v FROM landed_costs WHERE status = 'draft'",
         ];
 
@@ -277,8 +281,8 @@ class MonitoringController extends Controller
             }
         }
 
-        $g = fn(string $key): int => $c[$key] ?? 0;
-        $f = fn(string $key): int => $o[$key] ?? 0;
+        $g = fn (string $key): int => $c[$key] ?? 0;
+        $f = fn (string $key): int => $o[$key] ?? 0;
 
         // ── Step 3: Assemble module array ─────────────────────────────────────
         $modules = [
@@ -292,14 +296,14 @@ class MonitoringController extends Controller
                 'label' => 'Invoice',
                 'total' => $g('invoices_total'),
                 'alerts' => $g('invoices_overdue') > 0
-                    ? [['type' => 'warning', 'msg' => $g('invoices_overdue') . ' invoice jatuh tempo']]
+                    ? [['type' => 'warning', 'msg' => $g('invoices_overdue').' invoice jatuh tempo']]
                     : [],
             ],
             'inventory' => [
                 'label' => 'Inventori',
                 'total' => $g('products_active'),
                 'alerts' => $g('products_low_stock') > 0
-                    ? [['type' => 'warning', 'msg' => $g('products_low_stock') . ' produk stok rendah']]
+                    ? [['type' => 'warning', 'msg' => $g('products_low_stock').' produk stok rendah']]
                     : [],
             ],
             'purchasing' => [
@@ -311,7 +315,7 @@ class MonitoringController extends Controller
                 'label' => 'Akuntansi / GL',
                 'total' => $g('journal_entries_total'),
                 'alerts' => $g('journal_entries_old_draft') > 0
-                    ? [['type' => 'warning', 'msg' => $g('journal_entries_old_draft') . ' jurnal draft > 7 hari']]
+                    ? [['type' => 'warning', 'msg' => $g('journal_entries_old_draft').' jurnal draft > 7 hari']]
                     : [],
             ],
             'hrm' => [
@@ -323,58 +327,58 @@ class MonitoringController extends Controller
                 'label' => 'Manufaktur',
                 'total' => $g('work_orders_total'),
                 'alerts' => $g('work_orders_stuck') > 0
-                    ? [['type' => 'warning', 'msg' => $g('work_orders_stuck') . ' WO in-progress > 30 hari']]
+                    ? [['type' => 'warning', 'msg' => $g('work_orders_stuck').' WO in-progress > 30 hari']]
                     : [],
             ],
             'fleet' => [
                 'label' => 'Fleet',
                 'total' => $f('fleet_active'),
                 'alerts' => array_values(array_filter([
-                    $f('fleet_exp') > 0 ? ['type' => 'warning', 'msg' => $f('fleet_exp') . ' kendaraan STNK/asuransi segera expired'] : null,
-                    $f('fleet_maint_due') > 0 ? ['type' => 'info', 'msg' => $f('fleet_maint_due') . ' maintenance terjadwal minggu ini'] : null,
+                    $f('fleet_exp') > 0 ? ['type' => 'warning', 'msg' => $f('fleet_exp').' kendaraan STNK/asuransi segera expired'] : null,
+                    $f('fleet_maint_due') > 0 ? ['type' => 'info', 'msg' => $f('fleet_maint_due').' maintenance terjadwal minggu ini'] : null,
                 ])),
             ],
             'contracts' => [
                 'label' => 'Kontrak',
                 'total' => $f('contracts_active'),
                 'alerts' => array_values(array_filter([
-                    $f('contracts_exp') > 0 ? ['type' => 'warning', 'msg' => $f('contracts_exp') . ' kontrak segera expired'] : null,
-                    $f('contract_billing') > 0 ? ['type' => 'info', 'msg' => $f('contract_billing') . ' billing pending'] : null,
+                    $f('contracts_exp') > 0 ? ['type' => 'warning', 'msg' => $f('contracts_exp').' kontrak segera expired'] : null,
+                    $f('contract_billing') > 0 ? ['type' => 'info', 'msg' => $f('contract_billing').' billing pending'] : null,
                 ])),
             ],
             'consignment' => [
                 'label' => 'Konsinyasi',
                 'total' => $f('consign_ship'),
                 'alerts' => $f('consign_settle') > 0
-                    ? [['type' => 'info', 'msg' => $f('consign_settle') . ' settlement pending']]
+                    ? [['type' => 'info', 'msg' => $f('consign_settle').' settlement pending']]
                     : [],
             ],
             'commission' => [
                 'label' => 'Komisi Sales',
                 'total' => $f('commission_total'),
                 'alerts' => $f('commission_unpaid') > 0
-                    ? [['type' => 'info', 'msg' => $f('commission_unpaid') . ' komisi approved belum dibayar']]
+                    ? [['type' => 'info', 'msg' => $f('commission_unpaid').' komisi approved belum dibayar']]
                     : [],
             ],
             'helpdesk' => [
                 'label' => 'Helpdesk',
                 'total' => $f('helpdesk_open'),
                 'alerts' => $f('helpdesk_overdue') > 0
-                    ? [['type' => 'critical', 'msg' => $f('helpdesk_overdue') . ' tiket SLA overdue']]
+                    ? [['type' => 'critical', 'msg' => $f('helpdesk_overdue').' tiket SLA overdue']]
                     : [],
             ],
             'subscription_billing' => [
                 'label' => 'Subscription Billing',
                 'total' => $f('subscr_active'),
                 'alerts' => $f('subscr_due') > 0
-                    ? [['type' => 'warning', 'msg' => $f('subscr_due') . ' subscription jatuh tempo']]
+                    ? [['type' => 'warning', 'msg' => $f('subscr_due').' subscription jatuh tempo']]
                     : [],
             ],
             'landed_cost' => [
                 'label' => 'Landed Cost',
                 'total' => $f('landed_total'),
                 'alerts' => $f('landed_draft') > 0
-                    ? [['type' => 'info', 'msg' => $f('landed_draft') . ' landed cost masih draft']]
+                    ? [['type' => 'info', 'msg' => $f('landed_draft').' landed cost masih draft']]
                     : [],
             ],
             'crm' => [
@@ -394,8 +398,8 @@ class MonitoringController extends Controller
             ],
         ];
 
-        $totalAlerts = collect($modules)->sum(fn($m) => count($m['alerts']));
-        $criticalAlerts = collect($modules)->sum(fn($m) => collect($m['alerts'])->where('type', 'critical')->count());
+        $totalAlerts = collect($modules)->sum(fn ($m) => count($m['alerts']));
+        $criticalAlerts = collect($modules)->sum(fn ($m) => collect($m['alerts'])->where('type', 'critical')->count());
 
         return [
             'modules' => $modules,
@@ -413,9 +417,11 @@ class MonitoringController extends Controller
                 $days = floor($seconds / 86400);
                 $hours = floor(($seconds % 86400) / 3600);
                 $mins = floor(($seconds % 3600) / 60);
+
                 return "{$days}d {$hours}h {$mins}m";
             }
         }
+
         return 'N/A';
     }
 }

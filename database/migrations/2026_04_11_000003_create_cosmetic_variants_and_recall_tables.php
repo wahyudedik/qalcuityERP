@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run migrations for Product Variants & Recall Management.
      */
     public function up(): void
     {
         // 1. Product Variants - Variant matrix for cosmetic products
-        if (!Schema::hasTable('product_variants')) {
+        if (! Schema::hasTable('product_variants')) {
             Schema::create('product_variants', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -36,7 +37,7 @@ return new class extends Migration {
         }
 
         // 2. Variant Attributes - Individual attribute values
-        if (!Schema::hasTable('variant_attributes')) {
+        if (! Schema::hasTable('variant_attributes')) {
             Schema::create('variant_attributes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -51,7 +52,7 @@ return new class extends Migration {
         }
 
         // 3. Product Recalls - Recall management
-        if (!Schema::hasTable('product_recalls')) {
+        if (! Schema::hasTable('product_recalls')) {
             Schema::create('product_recalls', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -83,7 +84,7 @@ return new class extends Migration {
         }
 
         // 4. Distribution Channels - Channel tracking
-        if (!Schema::hasTable('distribution_channels')) {
+        if (! Schema::hasTable('distribution_channels')) {
             Schema::create('distribution_channels', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -106,7 +107,7 @@ return new class extends Migration {
         }
 
         // 5. Channel Sales - Sales per channel tracking
-        if (!Schema::hasTable('channel_sales')) {
+        if (! Schema::hasTable('channel_sales')) {
             Schema::create('channel_sales', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

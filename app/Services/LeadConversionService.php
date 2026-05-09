@@ -23,7 +23,6 @@ class LeadConversionService
     /**
      * BUG-CRM-001 FIX: Comprehensive duplicate detection
      *
-     * @param CrmLead $lead
      * @return array ['has_duplicates' => bool, 'duplicates' => array, 'suggestion' => string]
      */
     public function checkForDuplicates(CrmLead $lead): array
@@ -108,8 +107,8 @@ class LeadConversionService
         if ($lead->name) {
             $similarCustomers = Customer::where('tenant_id', $tid)
                 ->where(function ($q) use ($lead) {
-                    $q->where('name', 'LIKE', '%' . $lead->name . '%')
-                        ->orWhere('name', 'LIKE', '%' . str_replace(' ', '%', $lead->name) . '%');
+                    $q->where('name', 'LIKE', '%'.$lead->name.'%')
+                        ->orWhere('name', 'LIKE', '%'.str_replace(' ', '%', $lead->name).'%');
                 })
                 ->limit(5)
                 ->get();
@@ -118,7 +117,7 @@ class LeadConversionService
                 // Skip if already found in exact matches
                 $alreadyFound = collect($duplicates)->contains('customer_id', $similar->id);
 
-                if (!$alreadyFound) {
+                if (! $alreadyFound) {
                     $similarity = $this->calculateSimilarity($lead->name, $similar->name);
 
                     if ($similarity >= 80) {
@@ -158,11 +157,11 @@ class LeadConversionService
                             'customer_phone' => $existingCustomer->phone,
                             'customer_company' => $existingCustomer->company,
                             'match_field' => 'lead.converted_to_customer_id',
-                            'match_value' => "Lead sudah dikonversi ke customer ini",
+                            'match_value' => 'Lead sudah dikonversi ke customer ini',
                             'suggestion' => 'Lead ini sudah pernah dikonversi sebelumnya',
-                        ]
+                        ],
                     ],
-                    'suggestion' => 'Lead ini sudah dikonversi ke customer #' . $existingCustomer->id,
+                    'suggestion' => 'Lead ini sudah dikonversi ke customer #'.$existingCustomer->id,
                 ];
             }
         }
@@ -173,11 +172,11 @@ class LeadConversionService
         });
 
         return [
-            'has_duplicates' => !empty($duplicates),
+            'has_duplicates' => ! empty($duplicates),
             'already_converted' => false,
             'duplicates' => $duplicates,
-            'suggestion' => !empty($duplicates)
-                ? "Ditemukan " . count($duplicates) . " potential duplicate(s). Review sebelum convert."
+            'suggestion' => ! empty($duplicates)
+                ? 'Ditemukan '.count($duplicates).' potential duplicate(s). Review sebelum convert.'
                 : 'Tidak ada duplicate yang terdeteksi. Aman untuk convert.',
         ];
     }
@@ -185,10 +184,8 @@ class LeadConversionService
     /**
      * BUG-CRM-001 FIX: Convert lead to customer with duplicate prevention
      *
-     * @param CrmLead $lead
-     * @param bool $forceCreate Force create even if duplicates found
-     * @param int|null $linkToCustomerId Link to existing customer instead of creating new
-     * @return array
+     * @param  bool  $forceCreate  Force create even if duplicates found
+     * @param  int|null  $linkToCustomerId  Link to existing customer instead of creating new
      */
     public function convertLead(CrmLead $lead, bool $forceCreate = false, ?int $linkToCustomerId = null): array
     {
@@ -216,7 +213,7 @@ class LeadConversionService
         }
 
         // If duplicates found and not forcing
-        if ($duplicateCheck['has_duplicates'] && !$forceCreate && !$linkToCustomerId) {
+        if ($duplicateCheck['has_duplicates'] && ! $forceCreate && ! $linkToCustomerId) {
             return [
                 'success' => false,
                 'has_duplicates' => true,
@@ -231,7 +228,7 @@ class LeadConversionService
             $existingCustomer = Customer::where('tenant_id', $lead->tenant_id)
                 ->find($linkToCustomerId);
 
-            if (!$existingCustomer) {
+            if (! $existingCustomer) {
                 return [
                     'success' => false,
                     'message' => 'Customer tidak ditemukan.',
@@ -304,7 +301,7 @@ class LeadConversionService
 
         // Convert 08 to 628 (Indonesian format)
         if (substr($normalized, 0, 1) === '0' && substr($normalized, 1, 1) === '8') {
-            $normalized = '62' . substr($normalized, 1);
+            $normalized = '62'.substr($normalized, 1);
         }
 
         return $normalized;

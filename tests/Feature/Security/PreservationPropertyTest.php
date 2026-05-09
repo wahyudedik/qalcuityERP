@@ -10,6 +10,7 @@ use App\Models\UserPermission;
 use App\Services\PermissionService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
@@ -28,6 +29,7 @@ class PreservationPropertyTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private PermissionService $permissionService;
 
     protected function setUp(): void
@@ -142,7 +144,7 @@ class PreservationPropertyTest extends TestCase
         $restrictedModules = ['audit', 'taxes', 'bank', 'cost_centers', 'company_groups'];
 
         foreach ($restrictedModules as $module) {
-            if (!isset($managerDefaults[$module])) {
+            if (! isset($managerDefaults[$module])) {
                 $result = $this->permissionService->check($manager, $module, 'delete');
                 $this->assertFalse(
                     $result,
@@ -170,12 +172,12 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertTrue(
             $this->permissionService->check($kasir, 'pos', 'view'),
-            "Kasir harus mendapat akses ke pos.view"
+            'Kasir harus mendapat akses ke pos.view'
         );
 
         $this->assertTrue(
             $this->permissionService->check($kasir, 'pos', 'create'),
-            "Kasir harus mendapat akses ke pos.create"
+            'Kasir harus mendapat akses ke pos.create'
         );
     }
 
@@ -192,7 +194,7 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertFalse(
             $this->permissionService->check($kasir, 'suppliers', 'view'),
-            "Kasir tidak boleh mendapat akses ke suppliers.view"
+            'Kasir tidak boleh mendapat akses ke suppliers.view'
         );
     }
 
@@ -268,7 +270,8 @@ class PreservationPropertyTest extends TestCase
         $user = $this->createUserWithRole('admin');
 
         // Buat mock model tanpa tenant_id (model global/shared)
-        $globalModel = new class {
+        $globalModel = new class
+        {
             // Tidak punya property tenant_id
             public string $name = 'GlobalModel';
         };
@@ -282,7 +285,7 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertFalse(
             $blocked,
-            "Model tanpa tenant_id tidak boleh diblokir oleh EnforceTenantIsolation"
+            'Model tanpa tenant_id tidak boleh diblokir oleh EnforceTenantIsolation'
         );
     }
 
@@ -298,13 +301,13 @@ class PreservationPropertyTest extends TestCase
 
         // Model dengan tenant_id yang sama dengan user
         $customField = CustomField::create([
-            'tenant_id'  => $user->tenant_id,
-            'module'     => 'invoice',
-            'key'        => 'cf_test_' . uniqid(),
-            'label'      => 'Test Field',
-            'type'       => 'text',
-            'required'   => false,
-            'is_active'  => true,
+            'tenant_id' => $user->tenant_id,
+            'module' => 'invoice',
+            'key' => 'cf_test_'.uniqid(),
+            'label' => 'Test Field',
+            'type' => 'text',
+            'required' => false,
+            'is_active' => true,
             'sort_order' => 1,
         ]);
 
@@ -316,7 +319,7 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertFalse(
             $blocked,
-            "Model dengan tenant_id yang sama tidak boleh diblokir oleh EnforceTenantIsolation"
+            'Model dengan tenant_id yang sama tidak boleh diblokir oleh EnforceTenantIsolation'
         );
     }
 
@@ -339,7 +342,7 @@ class PreservationPropertyTest extends TestCase
         // EnforceTenantIsolation bypass check
         $this->assertTrue(
             $superAdmin->isSuperAdmin(),
-            "super_admin harus bypass EnforceTenantIsolation"
+            'super_admin harus bypass EnforceTenantIsolation'
         );
     }
 
@@ -373,14 +376,14 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertTrue(
             $hasHealthcareAccess,
-            "Admin harus mendapat akses healthcare via HealthcareAccessMiddleware"
+            'Admin harus mendapat akses healthcare via HealthcareAccessMiddleware'
         );
 
         // super_admin juga mendapat akses (bypass check)
         $superAdmin = $this->createUserWithRole('super_admin');
         $this->assertTrue(
             $superAdmin->isSuperAdmin(),
-            "super_admin harus bypass HealthcareAccessMiddleware via isSuperAdmin()"
+            'super_admin harus bypass HealthcareAccessMiddleware via isSuperAdmin()'
         );
     }
 
@@ -403,7 +406,7 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertTrue(
             $hasHealthcareAccess,
-            "Admin harus mendapat akses healthcare via HealthcareAccessMiddleware"
+            'Admin harus mendapat akses healthcare via HealthcareAccessMiddleware'
         );
     }
 
@@ -425,7 +428,7 @@ class PreservationPropertyTest extends TestCase
         $this->assertNotEquals(
             403,
             $response->getStatusCode(),
-            "Admin tidak boleh mendapat 403 saat mengakses /healthcare/patients"
+            'Admin tidak boleh mendapat 403 saat mengakses /healthcare/patients'
         );
     }
 
@@ -447,7 +450,7 @@ class PreservationPropertyTest extends TestCase
         $this->assertNotEquals(
             403,
             $response->getStatusCode(),
-            "Supervisor tidak boleh mendapat 403 saat mengakses /healthcare/patients"
+            'Supervisor tidak boleh mendapat 403 saat mengakses /healthcare/patients'
         );
     }
 
@@ -470,25 +473,25 @@ class PreservationPropertyTest extends TestCase
         // Kasir tidak punya akses suppliers by default
         $this->assertFalse(
             $this->permissionService->check($kasir, 'suppliers', 'view'),
-            "Kasir tidak boleh punya akses suppliers.view by default"
+            'Kasir tidak boleh punya akses suppliers.view by default'
         );
 
         // Tambahkan override granted=true
         UserPermission::create([
             'tenant_id' => $kasir->tenant_id,
-            'user_id'   => $kasir->id,
-            'module'    => 'suppliers',
-            'action'    => 'view',
-            'granted'   => true,
+            'user_id' => $kasir->id,
+            'module' => 'suppliers',
+            'action' => 'view',
+            'granted' => true,
         ]);
 
         // Bust cache
-        \Illuminate\Support\Facades\Cache::forget("user_perms_v2:{$kasir->id}");
+        Cache::forget("user_perms_v2:{$kasir->id}");
 
         // Sekarang harus mendapat akses karena override
         $this->assertTrue(
             $this->permissionService->check($kasir, 'suppliers', 'view'),
-            "Override granted=true harus diprioritaskan di atas role default untuk kasir"
+            'Override granted=true harus diprioritaskan di atas role default untuk kasir'
         );
     }
 
@@ -506,20 +509,20 @@ class PreservationPropertyTest extends TestCase
         // Admin punya akses semua by default
         $this->assertTrue(
             $this->permissionService->check($admin, 'sales', 'delete'),
-            "Admin harus punya akses sales.delete by default"
+            'Admin harus punya akses sales.delete by default'
         );
 
         // Tambahkan override granted=false
         UserPermission::create([
             'tenant_id' => $admin->tenant_id,
-            'user_id'   => $admin->id,
-            'module'    => 'sales',
-            'action'    => 'delete',
-            'granted'   => false,
+            'user_id' => $admin->id,
+            'module' => 'sales',
+            'action' => 'delete',
+            'granted' => false,
         ]);
 
         // Bust cache
-        \Illuminate\Support\Facades\Cache::forget("user_perms_v2:{$admin->id}");
+        Cache::forget("user_perms_v2:{$admin->id}");
 
         // Override denied harus berlaku
         // Note: PermissionService::check() memeriksa isSuperAdmin() dan isAdmin() SEBELUM override
@@ -530,24 +533,24 @@ class PreservationPropertyTest extends TestCase
         // Staff punya akses sales.view by default
         $this->assertTrue(
             $this->permissionService->check($staff, 'sales', 'view'),
-            "Staff harus punya akses sales.view by default"
+            'Staff harus punya akses sales.view by default'
         );
 
         // Tambahkan override denied untuk staff
         UserPermission::create([
             'tenant_id' => $staff->tenant_id,
-            'user_id'   => $staff->id,
-            'module'    => 'sales',
-            'action'    => 'view',
-            'granted'   => false,
+            'user_id' => $staff->id,
+            'module' => 'sales',
+            'action' => 'view',
+            'granted' => false,
         ]);
 
-        \Illuminate\Support\Facades\Cache::forget("user_perms_v2:{$staff->id}");
+        Cache::forget("user_perms_v2:{$staff->id}");
 
         // Override denied harus berlaku untuk staff
         $this->assertFalse(
             $this->permissionService->check($staff, 'sales', 'view'),
-            "Override granted=false harus diprioritaskan di atas role default untuk staff"
+            'Override granted=false harus diprioritaskan di atas role default untuk staff'
         );
     }
 
@@ -569,12 +572,12 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertTrue(
             $this->permissionService->check($admin, 'suppliers', 'view'),
-            "Admin harus mendapat akses ke suppliers.view"
+            'Admin harus mendapat akses ke suppliers.view'
         );
 
         $this->assertTrue(
             $this->permissionService->check($admin, 'suppliers', 'create'),
-            "Admin harus mendapat akses ke suppliers.create"
+            'Admin harus mendapat akses ke suppliers.create'
         );
     }
 
@@ -590,7 +593,7 @@ class PreservationPropertyTest extends TestCase
 
         $this->assertTrue(
             $this->permissionService->check($manager, 'suppliers', 'view'),
-            "Manager harus mendapat akses ke suppliers.view"
+            'Manager harus mendapat akses ke suppliers.view'
         );
     }
 
@@ -661,12 +664,12 @@ class PreservationPropertyTest extends TestCase
         $targetTenant = $tenant ?? $this->tenant;
 
         return User::create([
-            'tenant_id'         => $targetTenant->id,
-            'name'              => ucfirst($role) . ' Test',
-            'email'             => $role . '-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => $role,
-            'is_active'         => true,
+            'tenant_id' => $targetTenant->id,
+            'name' => ucfirst($role).' Test',
+            'email' => $role.'-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => $role,
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
     }

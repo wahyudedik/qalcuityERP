@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\Currency;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
  * CurrencyService - Currency conversion and rate management
- * 
+ *
  * BUG-FIN-003 FIX: Added stale rate detection and cache invalidation
  */
 class CurrencyService
@@ -26,7 +27,7 @@ class CurrencyService
         $from = $this->getCurrency($fromCode);
         $to = $this->getCurrency($toCode);
 
-        if (!$from || !$to) {
+        if (! $from || ! $to) {
             return $amount;
         }
 
@@ -36,6 +37,7 @@ class CurrencyService
 
         // amount → IDR → target currency
         $idr = $amount * $from->rate_to_idr;
+
         return $to->rate_to_idr > 0 ? $idr / $to->rate_to_idr : $idr;
     }
 
@@ -53,15 +55,16 @@ class CurrencyService
     public function getRate(string $code): float
     {
         $currency = $this->getCurrency($code);
+
         return $currency?->rate_to_idr ?? 1.0;
     }
 
     /**
      * Daftar currency aktif untuk tenant.
      */
-    public function activeCurrencies(int $tenantId): \Illuminate\Database\Eloquent\Collection
+    public function activeCurrencies(int $tenantId): Collection
     {
-        return Currency::where(fn($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
+        return Currency::where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
             ->where('is_active', true)
             ->orderBy('code')
             ->get();
@@ -69,13 +72,12 @@ class CurrencyService
 
     /**
      * BUG-FIN-003 FIX: Get stale currencies report
-     * 
-     * @param int $tenantId
+     *
      * @return array ['warning' => [...], 'critical' => [...]]
      */
     public function getStaleCurrenciesReport(int $tenantId): array
     {
-        $currencies = Currency::where(fn($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
+        $currencies = Currency::where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
             ->where('is_active', true)
             ->where('is_base', false)
             ->get();
@@ -115,11 +117,8 @@ class CurrencyService
 
     /**
      * BUG-FIN-003 FIX: Bust cache for specific currency
-     * 
+     *
      * Call this after rate update to ensure fresh data
-     * 
-     * @param string $currencyCode
-     * @return void
      */
     public function bustCache(string $currencyCode): void
     {
@@ -129,11 +128,8 @@ class CurrencyService
 
     /**
      * BUG-FIN-003 FIX: Bust all currency caches
-     * 
+     *
      * Call this after bulk rate update
-     * 
-     * @param array $currencyCodes
-     * @return void
      */
     public function bustAllCaches(array $currencyCodes): void
     {
@@ -147,16 +143,12 @@ class CurrencyService
         return Cache::remember(
             "currency_{$code}",
             300,
-            fn() =>
-            Currency::where('code', strtoupper($code))->first()
+            fn () => Currency::where('code', strtoupper($code))->first()
         );
     }
 
     /**
      * BUG-FIN-003 FIX: Check and log stale rate warnings
-     * 
-     * @param Currency $currency
-     * @return void
      */
     private function checkAndLogStaleRate(Currency $currency): void
     {
@@ -168,7 +160,7 @@ class CurrencyService
 
         if ($status === 'stale_warning') {
             $days = $currency->getDaysSinceLastUpdate();
-            Log::warning("CurrencyService: Stale rate detected", [
+            Log::warning('CurrencyService: Stale rate detected', [
                 'currency' => $currency->code,
                 'days_since_update' => $days,
                 'rate' => $currency->rate_to_idr,
@@ -176,7 +168,7 @@ class CurrencyService
             ]);
         } elseif ($status === 'stale_critical') {
             $days = $currency->getDaysSinceLastUpdate();
-            Log::critical("CurrencyService: CRITICAL stale rate - conversion may be inaccurate!", [
+            Log::critical('CurrencyService: CRITICAL stale rate - conversion may be inaccurate!', [
                 'currency' => $currency->code,
                 'days_since_update' => $days ?? 'never',
                 'rate' => $currency->rate_to_idr,

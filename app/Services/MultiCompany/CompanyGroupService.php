@@ -3,8 +3,8 @@
 namespace App\Services\MultiCompany;
 
 use App\Models\CompanyGroup;
-use App\Models\TenantGroupMember;
 use App\Models\Tenant;
+use App\Models\TenantGroupMember;
 
 class CompanyGroupService
 {
@@ -138,6 +138,7 @@ class CompanyGroupService
 
             if ($member) {
                 $member->update(['ownership_percentage' => $newPercentage]);
+
                 return true;
             }
 

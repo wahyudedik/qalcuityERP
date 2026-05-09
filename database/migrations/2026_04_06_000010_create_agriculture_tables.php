@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Weather Data Table
-        if (!Schema::hasTable('weather_data')) {
+        if (! Schema::hasTable('weather_data')) {
             Schema::create('weather_data', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -42,7 +43,7 @@ return new class extends Migration {
         }
 
         // Crop Cycles Table
-        if (!Schema::hasTable('crop_cycles')) {
+        if (! Schema::hasTable('crop_cycles')) {
             Schema::create('crop_cycles', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -69,7 +70,7 @@ return new class extends Migration {
         }
 
         // Pest Detections Table
-        if (!Schema::hasTable('pest_detections')) {
+        if (! Schema::hasTable('pest_detections')) {
             Schema::create('pest_detections', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -96,7 +97,7 @@ return new class extends Migration {
         }
 
         // Irrigation Schedules Table
-        if (!Schema::hasTable('irrigation_schedules')) {
+        if (! Schema::hasTable('irrigation_schedules')) {
             Schema::create('irrigation_schedules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -125,7 +126,7 @@ return new class extends Migration {
         }
 
         // Irrigation Logs Table
-        if (!Schema::hasTable('irrigation_logs')) {
+        if (! Schema::hasTable('irrigation_logs')) {
             Schema::create('irrigation_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -142,7 +143,7 @@ return new class extends Migration {
         }
 
         // Market Prices Table
-        if (!Schema::hasTable('market_prices')) {
+        if (! Schema::hasTable('market_prices')) {
             Schema::create('market_prices', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -167,7 +168,7 @@ return new class extends Migration {
         }
 
         // Price Alerts Table
-        if (!Schema::hasTable('price_alerts')) {
+        if (! Schema::hasTable('price_alerts')) {
             Schema::create('price_alerts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

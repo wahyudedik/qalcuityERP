@@ -6,9 +6,11 @@ use App\Models\Budget;
 use App\Models\Employee;
 use App\Models\InsightRead;
 use App\Models\Invoice;
-use App\Models\Product;
 use App\Models\ProactiveInsight;
+use App\Models\Product;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * ProactiveInsightEngine menganalisis kondisi bisnis tenant secara terjadwal
@@ -47,9 +49,9 @@ class ProactiveInsightEngine
                 }
             } catch (\Throwable $e) {
                 // Log error, skip kondisi ini, lanjutkan kondisi lain
-                \Illuminate\Support\Facades\Log::warning('ProactiveInsightEngine: gagal mengecek kondisi', [
+                Log::warning('ProactiveInsightEngine: gagal mengecek kondisi', [
                     'tenant_id' => $tenantId,
-                    'error'     => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -74,7 +76,7 @@ class ProactiveInsightEngine
                 $query->whereNull('suppressed_until')
                     ->orWhere('suppressed_until', '<', now());
             })
-            ->when(!empty($readInsightIds), function ($query) use ($readInsightIds) {
+            ->when(! empty($readInsightIds), function ($query) use ($readInsightIds) {
                 $query->whereNotIn('id', $readInsightIds);
             })
             ->orderByRaw("FIELD(urgency, 'critical', 'high', 'medium', 'low')")
@@ -99,10 +101,10 @@ class ProactiveInsightEngine
             InsightRead::firstOrCreate(
                 [
                     'insight_id' => $insight->id,
-                    'user_id'    => $userId,
+                    'user_id' => $userId,
                 ],
                 [
-                    'status'  => $reason === 'handled' ? 'handled' : 'dismissed',
+                    'status' => $reason === 'handled' ? 'handled' : 'dismissed',
                     'read_at' => now(),
                 ]
             );
@@ -133,11 +135,11 @@ class ProactiveInsightEngine
         }
 
         $conditionData = $lowStockProducts->map(fn (Product $p) => [
-            'product_id'   => $p->id,
+            'product_id' => $p->id,
             'product_name' => $p->name,
-            'sku'          => $p->sku,
+            'sku' => $p->sku,
             'current_stock' => $p->totalStock(),
-            'stock_min'    => $p->stock_min,
+            'stock_min' => $p->stock_min,
         ])->toArray();
 
         $hash = $this->makeHash('low_stock', $tenantId, $conditionData);
@@ -154,19 +156,19 @@ class ProactiveInsightEngine
         $suffix = $count > 3 ? " dan {$remaining} produk lainnya" : '';
 
         $insight = ProactiveInsight::create([
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'condition_type' => 'low_stock',
-            'urgency'        => $urgency,
-            'title'          => "Stok {$count} Produk di Bawah Batas Minimum",
-            'description'    => "Terdapat {$count} produk dengan stok di bawah reorder point: {$productNames}{$suffix}.",
+            'urgency' => $urgency,
+            'title' => "Stok {$count} Produk di Bawah Batas Minimum",
+            'description' => "Terdapat {$count} produk dengan stok di bawah reorder point: {$productNames}{$suffix}.",
             'business_impact' => 'Stok yang habis dapat menyebabkan kehilangan penjualan, ketidakpuasan pelanggan, dan gangguan operasional.',
             'recommendations' => [
                 'Segera buat Purchase Order untuk produk-produk yang stoknya kritis.',
                 'Tinjau ulang reorder point untuk memastikan akurasi perencanaan stok.',
                 'Pertimbangkan untuk meningkatkan safety stock pada produk dengan permintaan tinggi.',
             ],
-            'condition_data'  => $conditionData,
-            'condition_hash'  => $hash,
+            'condition_data' => $conditionData,
+            'condition_hash' => $hash,
             'suppressed_until' => null,
         ]);
 
@@ -193,7 +195,7 @@ class ProactiveInsightEngine
 
         $totalOverdue = $overdueInvoices->sum('remaining_amount');
         $conditionData = [
-            'count'         => $overdueInvoices->count(),
+            'count' => $overdueInvoices->count(),
             'total_overdue' => $totalOverdue,
             'oldest_due_date' => $overdueInvoices->min('due_date'),
         ];
@@ -206,22 +208,22 @@ class ProactiveInsightEngine
 
         $count = $overdueInvoices->count();
         $urgency = $totalOverdue >= 50_000_000 ? 'critical' : ($totalOverdue >= 10_000_000 ? 'high' : 'medium');
-        $formattedTotal = 'Rp ' . number_format($totalOverdue, 0, ',', '.');
+        $formattedTotal = 'Rp '.number_format($totalOverdue, 0, ',', '.');
 
         $insight = ProactiveInsight::create([
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'condition_type' => 'overdue_ar',
-            'urgency'        => $urgency,
-            'title'          => "Piutang Jatuh Tempo: {$count} Invoice Belum Dibayar",
-            'description'    => "Terdapat {$count} invoice dengan total piutang {$formattedTotal} yang telah melewati jatuh tempo lebih dari 7 hari.",
+            'urgency' => $urgency,
+            'title' => "Piutang Jatuh Tempo: {$count} Invoice Belum Dibayar",
+            'description' => "Terdapat {$count} invoice dengan total piutang {$formattedTotal} yang telah melewati jatuh tempo lebih dari 7 hari.",
             'business_impact' => 'Piutang yang tidak tertagih berdampak pada arus kas bisnis dan dapat meningkatkan risiko kredit macet.',
             'recommendations' => [
                 'Kirimkan pengingat pembayaran kepada pelanggan yang memiliki invoice jatuh tempo.',
                 'Hubungi pelanggan dengan piutang terbesar untuk negosiasi jadwal pembayaran.',
                 'Tinjau kebijakan kredit dan batas kredit untuk pelanggan berisiko tinggi.',
             ],
-            'condition_data'  => $conditionData,
-            'condition_hash'  => $hash,
+            'condition_data' => $conditionData,
+            'condition_hash' => $hash,
             'suppressed_until' => null,
         ]);
 
@@ -247,12 +249,12 @@ class ProactiveInsightEngine
         }
 
         $conditionData = $budgets->map(fn (Budget $b) => [
-            'budget_id'     => $b->id,
-            'name'          => $b->name,
-            'department'    => $b->department,
-            'period'        => $b->period,
-            'amount'        => $b->amount,
-            'realized'      => $b->realized,
+            'budget_id' => $b->id,
+            'name' => $b->name,
+            'department' => $b->department,
+            'period' => $b->period,
+            'amount' => $b->amount,
+            'realized' => $b->realized,
             'usage_percent' => $b->usage_percent,
         ])->toArray();
 
@@ -271,19 +273,19 @@ class ProactiveInsightEngine
         $suffix = $count > 3 ? " dan {$remaining} anggaran lainnya" : '';
 
         $insight = ProactiveInsight::create([
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'condition_type' => 'budget_exceeded',
-            'urgency'        => $urgency,
-            'title'          => "{$count} Anggaran Mendekati atau Melebihi Batas",
-            'description'    => "Anggaran berikut telah terpakai ≥90%: {$budgetNames}{$suffix}." . ($overBudget > 0 ? " {$overBudget} anggaran sudah melebihi batas." : ''),
+            'urgency' => $urgency,
+            'title' => "{$count} Anggaran Mendekati atau Melebihi Batas",
+            'description' => "Anggaran berikut telah terpakai ≥90%: {$budgetNames}{$suffix}.".($overBudget > 0 ? " {$overBudget} anggaran sudah melebihi batas." : ''),
             'business_impact' => 'Anggaran yang hampir habis dapat mengganggu operasional dan memerlukan persetujuan tambahan anggaran yang memakan waktu.',
             'recommendations' => [
                 'Tinjau pengeluaran yang masih bisa ditunda hingga periode anggaran berikutnya.',
                 'Ajukan revisi anggaran jika pengeluaran tambahan tidak dapat dihindari.',
                 'Identifikasi area penghematan untuk mencegah anggaran terlampaui.',
             ],
-            'condition_data'  => $conditionData,
-            'condition_hash'  => $hash,
+            'condition_data' => $conditionData,
+            'condition_hash' => $hash,
             'suppressed_until' => null,
         ]);
 
@@ -309,11 +311,11 @@ class ProactiveInsightEngine
         }
 
         $conditionData = $expiringEmployees->map(fn (Employee $e) => [
-            'employee_id'   => $e->id,
-            'name'          => $e->name,
-            'position'      => $e->position,
-            'department'    => $e->department,
-            'resign_date'   => $e->resign_date?->toDateString(),
+            'employee_id' => $e->id,
+            'name' => $e->name,
+            'position' => $e->position,
+            'department' => $e->department,
+            'resign_date' => $e->resign_date?->toDateString(),
             'days_remaining' => (int) now()->diffInDays($e->resign_date, false),
         ])->toArray();
 
@@ -334,19 +336,19 @@ class ProactiveInsightEngine
         $suffix = $count > 3 ? " dan {$remaining} karyawan lainnya" : '';
 
         $insight = ProactiveInsight::create([
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'condition_type' => 'contract_expiry',
-            'urgency'        => $urgency,
-            'title'          => "Kontrak {$count} Karyawan Berakhir dalam 30 Hari",
-            'description'    => "Kontrak karyawan berikut akan berakhir dalam 30 hari ke depan: {$employeeNames}{$suffix}.",
+            'urgency' => $urgency,
+            'title' => "Kontrak {$count} Karyawan Berakhir dalam 30 Hari",
+            'description' => "Kontrak karyawan berikut akan berakhir dalam 30 hari ke depan: {$employeeNames}{$suffix}.",
             'business_impact' => 'Kontrak yang berakhir tanpa tindak lanjut dapat menyebabkan kehilangan tenaga kerja terlatih dan gangguan operasional.',
             'recommendations' => [
                 'Segera diskusikan perpanjangan kontrak dengan karyawan yang bersangkutan.',
                 'Siapkan dokumen perpanjangan kontrak atau proses rekrutmen pengganti jika diperlukan.',
                 'Lakukan evaluasi kinerja untuk menentukan kelayakan perpanjangan kontrak.',
             ],
-            'condition_data'  => $conditionData,
-            'condition_hash'  => $hash,
+            'condition_data' => $conditionData,
+            'condition_hash' => $hash,
             'suppressed_until' => null,
         ]);
 
@@ -373,9 +375,9 @@ class ProactiveInsightEngine
 
         $totalUnpaid = $unpaidInvoices->sum('remaining_amount');
         $conditionData = [
-            'count'        => $unpaidInvoices->count(),
+            'count' => $unpaidInvoices->count(),
             'total_unpaid' => $totalUnpaid,
-            'threshold'    => $threshold,
+            'threshold' => $threshold,
         ];
 
         $hash = $this->makeHash('unpaid_invoice', $tenantId, $conditionData);
@@ -386,23 +388,23 @@ class ProactiveInsightEngine
 
         $count = $unpaidInvoices->count();
         $urgency = $totalUnpaid >= 100_000_000 ? 'critical' : ($totalUnpaid >= 25_000_000 ? 'high' : 'medium');
-        $formattedTotal = 'Rp ' . number_format($totalUnpaid, 0, ',', '.');
-        $formattedThreshold = 'Rp ' . number_format($threshold, 0, ',', '.');
+        $formattedTotal = 'Rp '.number_format($totalUnpaid, 0, ',', '.');
+        $formattedThreshold = 'Rp '.number_format($threshold, 0, ',', '.');
 
         $insight = ProactiveInsight::create([
-            'tenant_id'      => $tenantId,
+            'tenant_id' => $tenantId,
             'condition_type' => 'unpaid_invoice',
-            'urgency'        => $urgency,
-            'title'          => "{$count} Invoice Belum Dibayar Melebihi Threshold",
-            'description'    => "Terdapat {$count} invoice belum dibayar dengan nilai masing-masing di atas {$formattedThreshold}. Total: {$formattedTotal}.",
+            'urgency' => $urgency,
+            'title' => "{$count} Invoice Belum Dibayar Melebihi Threshold",
+            'description' => "Terdapat {$count} invoice belum dibayar dengan nilai masing-masing di atas {$formattedThreshold}. Total: {$formattedTotal}.",
             'business_impact' => 'Invoice yang belum dibayar dalam jumlah besar berdampak langsung pada likuiditas dan kemampuan bisnis memenuhi kewajiban keuangan.',
             'recommendations' => [
                 'Prioritaskan penagihan invoice dengan nilai terbesar terlebih dahulu.',
                 'Pertimbangkan untuk menawarkan diskon pembayaran awal (early payment discount) kepada pelanggan.',
                 'Evaluasi kebijakan kredit dan persyaratan pembayaran untuk pelanggan baru.',
             ],
-            'condition_data'  => $conditionData,
-            'condition_hash'  => $hash,
+            'condition_data' => $conditionData,
+            'condition_hash' => $hash,
             'suppressed_until' => null,
         ]);
 
@@ -418,7 +420,7 @@ class ProactiveInsightEngine
      */
     private function makeHash(string $conditionType, int $tenantId, array $conditionData): string
     {
-        return md5($conditionType . ':' . $tenantId . ':' . json_encode($conditionData));
+        return md5($conditionType.':'.$tenantId.':'.json_encode($conditionData));
     }
 
     /**
@@ -444,7 +446,7 @@ class ProactiveInsightEngine
         // Coba ambil dari cache/settings jika ada
         $cacheKey = "tenant:{$tenantId}:unpaid_invoice_threshold";
 
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($tenantId) {
+        return Cache::remember($cacheKey, 3600, function () use ($tenantId) {
             // Cek apakah ada konfigurasi di tabel settings
             try {
                 $setting = DB::table('settings')

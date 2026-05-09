@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ReservationCreatedNotification extends Notification implements ShouldQueue
@@ -18,17 +19,17 @@ class ReservationCreatedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'reservation_created', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
@@ -36,7 +37,7 @@ class ReservationCreatedNotification extends Notification implements ShouldQueue
     {
         $checkIn = $this->reservation->check_in_date->format('d/m/Y');
         $checkOut = $this->reservation->check_out_date->format('d/m/Y');
-        $total = 'Rp ' . number_format($this->reservation->total_price, 0, ',', '.');
+        $total = 'Rp '.number_format($this->reservation->total_price, 0, ',', '.');
 
         return (new MailMessage)
             ->subject("Reservasi Baru: {$this->reservation->guest->name}")

@@ -36,10 +36,12 @@ class AiMemoryService
      */
     public function recordAction(int $tenantId, int $userId, string $action, array $context = []): void
     {
-        $key   = $this->actionToKey($action);
+        $key = $this->actionToKey($action);
         $value = $this->extractValue($action, $context);
 
-        if (!$key || $value === null) return;
+        if (! $key || $value === null) {
+            return;
+        }
 
         $existing = AiMemory::where('tenant_id', $tenantId)
             ->where('user_id', $userId)
@@ -49,18 +51,18 @@ class AiMemoryService
         // Build contextual metadata
         $metadata = $this->buildMetadata($key, $context);
 
-        if (!$existing) {
+        if (! $existing) {
             // First time recording: set first_observed_at and initial confidence
             AiMemory::create([
-                'tenant_id'        => $tenantId,
-                'user_id'          => $userId,
-                'key'              => $key,
-                'value'            => $value,
-                'last_seen_at'     => now(),
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'key' => $key,
+                'value' => $value,
+                'last_seen_at' => now(),
                 'first_observed_at' => now(),
                 'confidence_score' => 0.5,
-                'frequency'        => 1,
-                'metadata'         => $metadata ?: null,
+                'frequency' => 1,
+                'metadata' => $metadata ?: null,
             ]);
         } else {
             // Subsequent update: increment frequency, recalculate confidence
@@ -68,11 +70,11 @@ class AiMemoryService
             $newConfidence = min(1.0, $newFrequency / 10);
 
             $existing->update([
-                'value'            => $value,
-                'last_seen_at'     => now(),
-                'frequency'        => $newFrequency,
+                'value' => $value,
+                'last_seen_at' => now(),
+                'frequency' => $newFrequency,
                 'confidence_score' => $newConfidence,
-                'metadata'         => $metadata ?: $existing->metadata,
+                'metadata' => $metadata ?: $existing->metadata,
             ]);
         }
     }
@@ -88,12 +90,12 @@ class AiMemoryService
             ->orderByDesc('frequency')
             ->get(['key', 'value', 'frequency', 'last_seen_at', 'confidence_score']);
 
-        $prefs = $rows->keyBy('key')->map(fn($m) => $m->value)->toArray();
+        $prefs = $rows->keyBy('key')->map(fn ($m) => $m->value)->toArray();
 
         // Ensure all tracked keys have at least a null entry for callers that expect them
         $allKeys = self::KEYS;
         foreach ($allKeys as $key) {
-            if (!array_key_exists($key, $prefs)) {
+            if (! array_key_exists($key, $prefs)) {
                 $prefs[$key] = null;
             }
         }
@@ -131,10 +133,10 @@ class AiMemoryService
         $context['preferensi_user'] = [];
         foreach ($memories as $m) {
             $context['preferensi_user'][] = [
-                'kategori'        => $m->key,
-                'nilai'           => $m->value,
-                'frekuensi'       => $m->frequency,
-                'kepercayaan'     => round($m->confidence_score, 2),
+                'kategori' => $m->key,
+                'nilai' => $m->value,
+                'frekuensi' => $m->frequency,
+                'kepercayaan' => round($m->confidence_score, 2),
                 'terakhir_terlihat' => $m->last_seen_at?->diffForHumans() ?? '-',
             ];
         }
@@ -143,9 +145,9 @@ class AiMemoryService
         $context['pola_transaksi'] = [];
         foreach ($patterns as $p) {
             $context['pola_transaksi'][] = [
-                'tipe'        => $p->pattern_type,
-                'entitas'     => $p->entity_type,
-                'data'        => $p->pattern_data,
+                'tipe' => $p->pattern_type,
+                'entitas' => $p->entity_type,
+                'data' => $p->pattern_data,
                 'kepercayaan' => round($p->confidence, 2),
             ];
         }
@@ -153,7 +155,7 @@ class AiMemoryService
         // Generate contextual suggestions
         $context['saran_kontekstual'] = $this->generateStructuredSuggestions($memories, $patterns);
 
-        return "## KONTEKS PERSONAL USER (JSON):\n" . json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        return "## KONTEKS PERSONAL USER (JSON):\n".json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -165,14 +167,14 @@ class AiMemoryService
         $prefs = $this->getPreferences($tenantId, $userId);
         $suggestions = [];
 
-        if (!empty($prefs['skipped_steps'])) {
+        if (! empty($prefs['skipped_steps'])) {
             $skipped = is_array($prefs['skipped_steps']) ? $prefs['skipped_steps'] : [$prefs['skipped_steps']];
             foreach ($skipped as $step) {
                 $suggestions[] = "User sering melewati langkah '{$step}'. Pertimbangkan untuk menawarkan jadikan default flow.";
             }
         }
 
-        if (!empty($prefs['preferred_payment_method'])) {
+        if (! empty($prefs['preferred_payment_method'])) {
             $method = is_array($prefs['preferred_payment_method'])
                 ? ($prefs['preferred_payment_method'][0] ?? '')
                 : $prefs['preferred_payment_method'];
@@ -181,7 +183,7 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['default_warehouse'])) {
+        if (! empty($prefs['default_warehouse'])) {
             $wh = is_array($prefs['default_warehouse'])
                 ? ($prefs['default_warehouse'][0] ?? '')
                 : $prefs['default_warehouse'];
@@ -190,22 +192,22 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['frequent_customers'])) {
+        if (! empty($prefs['frequent_customers'])) {
             $customers = is_array($prefs['frequent_customers'])
                 ? array_slice($prefs['frequent_customers'], 0, 3)
                 : [$prefs['frequent_customers']];
-            $suggestions[] = "Customer yang sering digunakan: " . implode(', ', $customers) . ".";
+            $suggestions[] = 'Customer yang sering digunakan: '.implode(', ', $customers).'.';
         }
 
         // New keys (Task 20)
-        if (!empty($prefs['frequent_suppliers'])) {
+        if (! empty($prefs['frequent_suppliers'])) {
             $suppliers = is_array($prefs['frequent_suppliers'])
                 ? array_slice($prefs['frequent_suppliers'], 0, 3)
                 : [$prefs['frequent_suppliers']];
-            $suggestions[] = "Supplier yang sering dipakai: " . implode(', ', $suppliers) . ". Pertimbangkan untuk pre-select supplier ini.";
+            $suggestions[] = 'Supplier yang sering dipakai: '.implode(', ', $suppliers).'. Pertimbangkan untuk pre-select supplier ini.';
         }
 
-        if (!empty($prefs['typical_order_quantity'])) {
+        if (! empty($prefs['typical_order_quantity'])) {
             $qty = is_array($prefs['typical_order_quantity'])
                 ? ($prefs['typical_order_quantity'][0] ?? '')
                 : $prefs['typical_order_quantity'];
@@ -214,7 +216,7 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['preferred_discount'])) {
+        if (! empty($prefs['preferred_discount'])) {
             $disc = is_array($prefs['preferred_discount'])
                 ? ($prefs['preferred_discount'][0] ?? '')
                 : $prefs['preferred_discount'];
@@ -223,7 +225,7 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['preferred_payment_terms'])) {
+        if (! empty($prefs['preferred_payment_terms'])) {
             $terms = is_array($prefs['preferred_payment_terms'])
                 ? ($prefs['preferred_payment_terms'][0] ?? '')
                 : $prefs['preferred_payment_terms'];
@@ -232,7 +234,7 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['preferred_delivery_address'])) {
+        if (! empty($prefs['preferred_delivery_address'])) {
             $addr = is_array($prefs['preferred_delivery_address'])
                 ? ($prefs['preferred_delivery_address'][0] ?? '')
                 : $prefs['preferred_delivery_address'];
@@ -241,7 +243,7 @@ class AiMemoryService
             }
         }
 
-        if (!empty($prefs['tax_preference'])) {
+        if (! empty($prefs['tax_preference'])) {
             $tax = is_array($prefs['tax_preference'])
                 ? ($prefs['tax_preference'][0] ?? '')
                 : $prefs['tax_preference'];
@@ -273,8 +275,8 @@ class AiMemoryService
 
         foreach ($memories as $memory) {
             $frequencyScore = min(1.0, $memory->frequency / 10);
-            $recencyDays    = $memory->last_seen_at ? now()->diffInDays($memory->last_seen_at) : 90;
-            $recencyScore   = max(0.1, 1.0 - ($recencyDays / 90));
+            $recencyDays = $memory->last_seen_at ? now()->diffInDays($memory->last_seen_at) : 90;
+            $recencyScore = max(0.1, 1.0 - ($recencyDays / 90));
             $memory->confidence_score = round(($frequencyScore * 0.6) + ($recencyScore * 0.4), 2);
             $memory->save();
         }
@@ -291,7 +293,9 @@ class AiMemoryService
             ->where('confidence_score', '<', 0.3)
             ->where('updated_at', '<', now()->subDays(90));
 
-        if ($userId) $query->where('user_id', $userId);
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
 
         return $query->delete();
     }
@@ -325,7 +329,7 @@ class AiMemoryService
                     }
                 }
 
-                if (!empty($toDelete)) {
+                if (! empty($toDelete)) {
                     AiMemory::whereIn('id', $toDelete)->delete();
                 }
             });
@@ -342,41 +346,41 @@ class AiMemoryService
     public function saveTaskPattern(int $tenantId, int $userId, AgentPlan $plan): void
     {
         // Kumpulkan nama tool yang digunakan dalam plan
-        $toolNames = array_map(fn($step) => $step->toolName, $plan->steps);
+        $toolNames = array_map(fn ($step) => $step->toolName, $plan->steps);
 
         // Ringkasan langkah-langkah
-        $stepsSummary = array_map(fn($step) => [
-            'order'    => $step->order,
-            'name'     => $step->name,
+        $stepsSummary = array_map(fn ($step) => [
+            'order' => $step->order,
+            'name' => $step->name,
             'toolName' => $step->toolName,
-            'isWrite'  => $step->isWriteOp,
+            'isWrite' => $step->isWriteOp,
         ], $plan->steps);
 
         $patternData = [
-            'goal'          => $plan->goal,
-            'summary'       => $plan->summary,
-            'steps'         => $stepsSummary,
-            'tools_used'    => array_values(array_unique($toolNames)),
-            'language'      => $plan->language,
+            'goal' => $plan->goal,
+            'summary' => $plan->summary,
+            'steps' => $stepsSummary,
+            'tools_used' => array_values(array_unique($toolNames)),
+            'language' => $plan->language,
             'has_write_ops' => $plan->hasWriteOps,
-            'step_count'    => count($plan->steps),
+            'step_count' => count($plan->steps),
         ];
 
         // Hash unik berdasarkan goal + tools untuk dedup
-        $hashKey = md5($tenantId . '|' . $userId . '|' . $plan->goal . '|' . implode(',', $toolNames));
+        $hashKey = md5($tenantId.'|'.$userId.'|'.$plan->goal.'|'.implode(',', $toolNames));
 
         AiLearnedPattern::updateOrCreate(
             [
-                'tenant_id'    => $tenantId,
-                'user_id'      => $userId,
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
                 'pattern_type' => 'task_template',
-                'entity_type'  => 'agent_plan',
-                'entity_id'    => null,
+                'entity_type' => 'agent_plan',
+                'entity_id' => null,
             ],
             [
                 'pattern_data' => array_merge($patternData, ['hash' => $hashKey]),
-                'confidence'   => min(1.0, ($patternData['step_count'] / 10) * 0.8 + 0.2),
-                'analyzed_at'  => now(),
+                'confidence' => min(1.0, ($patternData['step_count'] / 10) * 0.8 + 0.2),
+                'analyzed_at' => now(),
             ]
         );
     }
@@ -394,17 +398,17 @@ class AiMemoryService
         $memMap = $memories->keyBy('key');
 
         $keyMap = [
-            'skipped_steps'             => fn($v) => "User sering melewati langkah '{$v}'. Tawarkan jadikan default flow.",
-            'preferred_payment_method'  => fn($v) => "Default metode pembayaran: '{$v}'.",
-            'default_warehouse'         => fn($v) => "Pre-select gudang '{$v}' untuk transaksi stok.",
-            'frequent_customers'        => fn($v) => "Customer yang sering digunakan: " . (is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v) . ".",
-            'frequent_suppliers'        => fn($v) => "Supplier yang sering dipakai: " . (is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v) . ".",
-            'typical_order_quantity'    => fn($v) => "Rata-rata qty per transaksi: '{$v}'. Gunakan sebagai default quantity.",
-            'preferred_discount'        => fn($v) => "Range diskon yang biasa: '{$v}'.",
-            'preferred_payment_terms'   => fn($v) => "Terms pembayaran favorit: '{$v}'. Pre-fill pada invoice/PO baru.",
-            'preferred_delivery_address' => fn($v) => "Alamat pengiriman default: '{$v}'.",
-            'tax_preference'            => fn($v) => "Preferensi pajak: '{$v}'. Terapkan secara default.",
-            'frequent_products'         => fn($v) => "Produk yang sering digunakan: " . (is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v) . ".",
+            'skipped_steps' => fn ($v) => "User sering melewati langkah '{$v}'. Tawarkan jadikan default flow.",
+            'preferred_payment_method' => fn ($v) => "Default metode pembayaran: '{$v}'.",
+            'default_warehouse' => fn ($v) => "Pre-select gudang '{$v}' untuk transaksi stok.",
+            'frequent_customers' => fn ($v) => 'Customer yang sering digunakan: '.(is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v).'.',
+            'frequent_suppliers' => fn ($v) => 'Supplier yang sering dipakai: '.(is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v).'.',
+            'typical_order_quantity' => fn ($v) => "Rata-rata qty per transaksi: '{$v}'. Gunakan sebagai default quantity.",
+            'preferred_discount' => fn ($v) => "Range diskon yang biasa: '{$v}'.",
+            'preferred_payment_terms' => fn ($v) => "Terms pembayaran favorit: '{$v}'. Pre-fill pada invoice/PO baru.",
+            'preferred_delivery_address' => fn ($v) => "Alamat pengiriman default: '{$v}'.",
+            'tax_preference' => fn ($v) => "Preferensi pajak: '{$v}'. Terapkan secara default.",
+            'frequent_products' => fn ($v) => 'Produk yang sering digunakan: '.(is_array($v) ? implode(', ', array_slice($v, 0, 3)) : $v).'.',
         ];
 
         foreach ($keyMap as $key => $formatter) {
@@ -422,9 +426,9 @@ class AiMemoryService
         // Add pattern-based suggestions
         foreach ($patterns as $p) {
             if ($p->pattern_type === 'frequent_entity' && $p->entity_type) {
-                $label   = ucfirst($p->entity_type);
-                $name    = $p->pattern_data['name'] ?? $p->pattern_data['label'] ?? $p->entity_id ?? '?';
-                $suggestions[] = "{$label} yang sering digunakan berdasarkan pola: '{$name}' (confidence: " . round($p->confidence, 2) . ").";
+                $label = ucfirst($p->entity_type);
+                $name = $p->pattern_data['name'] ?? $p->pattern_data['label'] ?? $p->entity_id ?? '?';
+                $suggestions[] = "{$label} yang sering digunakan berdasarkan pola: '{$name}' (confidence: ".round($p->confidence, 2).').';
             }
         }
 
@@ -439,23 +443,23 @@ class AiMemoryService
         $metadata = [];
 
         // Store contextual information for specific keys
-        if ($key === 'frequent_suppliers' && !empty($context['product_name'])) {
+        if ($key === 'frequent_suppliers' && ! empty($context['product_name'])) {
             $metadata['last_product'] = $context['product_name'];
         }
 
-        if ($key === 'frequent_products' && !empty($context['supplier_name'])) {
+        if ($key === 'frequent_products' && ! empty($context['supplier_name'])) {
             $metadata['last_supplier'] = $context['supplier_name'];
         }
 
-        if ($key === 'preferred_delivery_address' && !empty($context['customer_name'])) {
+        if ($key === 'preferred_delivery_address' && ! empty($context['customer_name'])) {
             $metadata['for_customer'] = $context['customer_name'];
         }
 
-        if ($key === 'preferred_discount' && !empty($context['customer_name'])) {
+        if ($key === 'preferred_discount' && ! empty($context['customer_name'])) {
             $metadata['for_customer'] = $context['customer_name'];
         }
 
-        if ($key === 'typical_order_quantity' && !empty($context['product_name'])) {
+        if ($key === 'typical_order_quantity' && ! empty($context['product_name'])) {
             $metadata['for_product'] = $context['product_name'];
         }
 
@@ -465,28 +469,32 @@ class AiMemoryService
     private function actionToKey(string $action): ?string
     {
         return match (true) {
-            str_contains($action, 'payment_method')    => 'preferred_payment_method',
-            str_contains($action, 'warehouse')          => 'default_warehouse',
-            str_contains($action, 'customer')           => 'frequent_customers',
-            str_contains($action, 'skip')               => 'skipped_steps',
-            str_contains($action, 'product')            => 'frequent_products',
-            str_contains($action, 'report_period')      => 'preferred_report_period',
-            str_contains($action, 'cost_center')        => 'default_cost_center',
-            str_contains($action, 'supplier')           => 'frequent_suppliers',
-            str_contains($action, 'order_quantity')     => 'typical_order_quantity',
-            str_contains($action, 'discount')           => 'preferred_discount',
-            str_contains($action, 'payment_terms')      => 'preferred_payment_terms',
-            str_contains($action, 'delivery_address')   => 'preferred_delivery_address',
-            str_contains($action, 'tax')                => 'tax_preference',
-            default                                     => null,
+            str_contains($action, 'payment_method') => 'preferred_payment_method',
+            str_contains($action, 'warehouse') => 'default_warehouse',
+            str_contains($action, 'customer') => 'frequent_customers',
+            str_contains($action, 'skip') => 'skipped_steps',
+            str_contains($action, 'product') => 'frequent_products',
+            str_contains($action, 'report_period') => 'preferred_report_period',
+            str_contains($action, 'cost_center') => 'default_cost_center',
+            str_contains($action, 'supplier') => 'frequent_suppliers',
+            str_contains($action, 'order_quantity') => 'typical_order_quantity',
+            str_contains($action, 'discount') => 'preferred_discount',
+            str_contains($action, 'payment_terms') => 'preferred_payment_terms',
+            str_contains($action, 'delivery_address') => 'preferred_delivery_address',
+            str_contains($action, 'tax') => 'tax_preference',
+            default => null,
         };
     }
 
     private function extractValue(string $action, array $context): mixed
     {
         // Ambil nilai dari context jika ada
-        if (!empty($context['value'])) return $context['value'];
-        if (!empty($context['name']))  return $context['name'];
+        if (! empty($context['value'])) {
+            return $context['value'];
+        }
+        if (! empty($context['name'])) {
+            return $context['name'];
+        }
 
         // Fallback: gunakan action sebagai value
         return $action;
@@ -495,20 +503,20 @@ class AiMemoryService
     private function keyToLabel(string $key): ?string
     {
         return match ($key) {
-            'preferred_payment_method'   => 'Metode pembayaran favorit',
-            'default_warehouse'          => 'Gudang default',
-            'frequent_customers'         => 'Customer yang sering digunakan',
-            'skipped_steps'              => 'Langkah yang sering dilewati',
-            'frequent_products'          => 'Produk yang sering digunakan',
-            'preferred_report_period'    => 'Periode laporan favorit',
-            'default_cost_center'        => 'Cost center default',
-            'frequent_suppliers'         => 'Supplier yang sering dipakai',
-            'typical_order_quantity'     => 'Rata-rata qty per transaksi',
-            'preferred_discount'         => 'Range diskon yang biasa',
-            'preferred_payment_terms'    => 'Terms pembayaran favorit',
+            'preferred_payment_method' => 'Metode pembayaran favorit',
+            'default_warehouse' => 'Gudang default',
+            'frequent_customers' => 'Customer yang sering digunakan',
+            'skipped_steps' => 'Langkah yang sering dilewati',
+            'frequent_products' => 'Produk yang sering digunakan',
+            'preferred_report_period' => 'Periode laporan favorit',
+            'default_cost_center' => 'Cost center default',
+            'frequent_suppliers' => 'Supplier yang sering dipakai',
+            'typical_order_quantity' => 'Rata-rata qty per transaksi',
+            'preferred_discount' => 'Range diskon yang biasa',
+            'preferred_payment_terms' => 'Terms pembayaran favorit',
             'preferred_delivery_address' => 'Alamat pengiriman default',
-            'tax_preference'             => 'Preferensi pajak',
-            default                      => null,
+            'tax_preference' => 'Preferensi pajak',
+            default => null,
         };
     }
 }

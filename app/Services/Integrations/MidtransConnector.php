@@ -9,13 +9,14 @@ use Throwable;
 
 /**
  * Midtrans Payment Gateway Connector
- * 
+ *
  * Handles payment processing with Midtrans
  * Supports Snap, Core API, and Notifications
  */
 class MidtransConnector extends BaseConnector
 {
     protected string $apiUrl;
+
     protected string $serverKey;
 
     public function __construct(Integration $integration)
@@ -40,12 +41,14 @@ class MidtransConnector extends BaseConnector
             // Midtrans returns 404 for non-existent transaction, which means auth is working
             if ($response->status() === 404 || $response->successful()) {
                 $this->integration->markAsActive();
+
                 return true;
             }
 
             return false;
         } catch (Throwable $e) {
             Log::error('Midtrans authentication failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -172,8 +175,9 @@ class MidtransConnector extends BaseConnector
         ]);
 
         // Verify signature
-        if (!$this->verifyNotification($payload)) {
+        if (! $this->verifyNotification($payload)) {
             Log::error('Midtrans notification signature mismatch');
+
             return;
         }
 
@@ -193,9 +197,9 @@ class MidtransConnector extends BaseConnector
     {
         $signatureKey = hash(
             'sha512',
-            $payload['order_id'] .
-            $payload['status_code'] .
-            $payload['gross_amount'] .
+            $payload['order_id'].
+            $payload['status_code'].
+            $payload['gross_amount'].
             $this->serverKey
         );
 
@@ -243,14 +247,17 @@ class MidtransConnector extends BaseConnector
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncOrders(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function syncInventory(): array
     {
         return ['success' => true, 'processed' => 0, 'failed' => 0];
     }
+
     public function registerWebhooks(): array
     {
         return ['success' => true, 'registered' => []];

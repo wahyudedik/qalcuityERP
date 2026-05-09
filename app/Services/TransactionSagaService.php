@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Saga pattern implementation for multi-step financial transactions.
- * 
+ *
  * A saga is a sequence of local transactions where each step updates
  * the database and publishes an event/message to trigger the next step.
  * If a step fails, compensating transactions are executed to undo
@@ -34,11 +34,12 @@ class TransactionSagaService
     /**
      * Execute a saga with multiple steps and automatic rollback on failure.
      *
-     * @param callable[] $steps Associative array of step_name => callable
-     * @param callable[] $compensations Associative array of step_name => compensation_callable
-     * @param string $sagaType Type identifier for this saga (e.g., 'invoice_payment')
-     * @param array $context Contextual data passed to all steps
+     * @param  callable[]  $steps  Associative array of step_name => callable
+     * @param  callable[]  $compensations  Associative array of step_name => compensation_callable
+     * @param  string  $sagaType  Type identifier for this saga (e.g., 'invoice_payment')
+     * @param  array  $context  Contextual data passed to all steps
      * @return array Result containing success status and data
+     *
      * @throws TransactionException
      */
     public function execute(
@@ -57,7 +58,7 @@ class TransactionSagaService
             foreach ($steps as $stepName => $step) {
                 Log::info("Saga {$sagaType}: Executing step '{$stepName}'", [
                     'context' => $context,
-                    'step_index' => count($this->completedSteps) + 1
+                    'step_index' => count($this->completedSteps) + 1,
                 ]);
 
                 // Execute step
@@ -67,7 +68,7 @@ class TransactionSagaService
                 $this->completedSteps[] = [
                     'name' => $stepName,
                     'result' => $result,
-                    'context' => $context
+                    'context' => $context,
                 ];
 
                 // Update context with result for next step
@@ -82,24 +83,24 @@ class TransactionSagaService
 
             Log::info("Saga {$sagaType}: Completed successfully", [
                 'total_steps' => count($this->completedSteps),
-                'steps' => array_column($this->completedSteps, 'name')
+                'steps' => array_column($this->completedSteps, 'name'),
             ]);
 
             return [
                 'success' => true,
                 'data' => $context,
-                'steps_completed' => $this->completedSteps
+                'steps_completed' => $this->completedSteps,
             ];
 
         } catch (\Throwable $e) {
             Log::error(
-                "Saga {$sagaType}: Failed at step '" .
-                (isset($stepName) ? $stepName : 'unknown') .
+                "Saga {$sagaType}: Failed at step '".
+                (isset($stepName) ? $stepName : 'unknown').
                 "' - Rolling back",
                 [
                     'error' => $e->getMessage(),
                     'completed_steps' => array_column($this->completedSteps, 'name'),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]
             );
 
@@ -109,7 +110,7 @@ class TransactionSagaService
             }
 
             // Execute compensating transactions if needed
-            if (!empty($this->completedSteps)) {
+            if (! empty($this->completedSteps)) {
                 $this->executeCompensations($sagaType, $e);
             }
 
@@ -128,7 +129,7 @@ class TransactionSagaService
     {
         Log::warning("Saga {$sagaType}: Executing compensating transactions", [
             'reason' => $originalException->getMessage(),
-            'steps_to_compensate' => count($this->completedSteps)
+            'steps_to_compensate' => count($this->completedSteps),
         ]);
 
         // Reverse the completed steps
@@ -150,7 +151,7 @@ class TransactionSagaService
                     Log::critical("Saga {$sagaType}: Compensation FAILED for step '{$stepName}'", [
                         'error' => $compensationError->getMessage(),
                         'original_error' => $originalException->getMessage(),
-                        'requires_manual_intervention' => true
+                        'requires_manual_intervention' => true,
                     ]);
 
                     // Don't throw here - continue with other compensations
@@ -166,9 +167,10 @@ class TransactionSagaService
      * Execute a simple atomic operation with automatic rollback.
      * Simpler than full saga when you don't need compensating transactions.
      *
-     * @param callable $operation The database operation to execute
-     * @param string $operationType Type identifier for logging
+     * @param  callable  $operation  The database operation to execute
+     * @param  string  $operationType  Type identifier for logging
      * @return mixed Result from the operation
+     *
      * @throws TransactionException
      */
     public function atomic(callable $operation, string $operationType = 'transaction')
@@ -176,13 +178,13 @@ class TransactionSagaService
         try {
             return DB::transaction($operation);
         } catch (\Throwable $e) {
-            Log::error("Atomic {$operationType} failed: " . $e->getMessage(), [
+            Log::error("Atomic {$operationType} failed: ".$e->getMessage(), [
                 'type' => $operationType,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw TransactionException::rollbackRequired(
-                message: "Atomic {$operationType} failed: " . $e->getMessage(),
+                message: "Atomic {$operationType} failed: ".$e->getMessage(),
                 type: $operationType
             );
         }

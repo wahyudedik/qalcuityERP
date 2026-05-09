@@ -186,7 +186,7 @@
                 <button onclick="document.getElementById('addSpeciesModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.species.store') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.species.catalog.add') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 
@@ -266,7 +266,7 @@
                 <button onclick="document.getElementById('addGradeModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form method="POST" action="{{ route('fisheries.species.store-grade') }}" class="space-y-4">
+            <form method="POST" action="{{ route('fisheries.api.species.grades.add') }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; @endphp
 

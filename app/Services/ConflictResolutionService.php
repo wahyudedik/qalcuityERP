@@ -46,11 +46,11 @@ class ConflictResolutionService
     /**
      * Resolve conflict with strategy
      */
-    public function resolveConflict(int $conflictId, string $strategy, array $mergedData = null): array
+    public function resolveConflict(int $conflictId, string $strategy, ?array $mergedData = null): array
     {
         $conflict = EditConflict::find($conflictId);
 
-        if (!$conflict) {
+        if (! $conflict) {
             return ['success' => false, 'error' => 'Conflict not found'];
         }
 
@@ -67,7 +67,7 @@ class ConflictResolutionService
                     break;
 
                 case 'merge':
-                    if (!$mergedData) {
+                    if (! $mergedData) {
                         return ['success' => false, 'error' => 'Merged data required'];
                     }
                     $conflict->resolveWithMerge($mergedData);
@@ -91,7 +91,7 @@ class ConflictResolutionService
             ];
 
         } catch (\Throwable $e) {
-            Log::error('Conflict resolution failed: ' . $e->getMessage());
+            Log::error('Conflict resolution failed: '.$e->getMessage());
 
             return [
                 'success' => false,
@@ -106,12 +106,12 @@ class ConflictResolutionService
     public function getPendingConflicts(int $limit = 20): array
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
         $tenantId = $user->tenant_id;
-        if (!$tenantId) {
+        if (! $tenantId) {
             return [];
         }
 
@@ -130,7 +130,7 @@ class ConflictResolutionService
     public function getStatistics(): array
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return [
                 'pending_conflicts' => 0,
                 'resolved_today' => 0,
@@ -139,7 +139,7 @@ class ConflictResolutionService
         }
 
         $tenantId = $user->tenant_id;
-        if (!$tenantId) {
+        if (! $tenantId) {
             return [
                 'pending_conflicts' => 0,
                 'resolved_today' => 0,
@@ -166,7 +166,7 @@ class ConflictResolutionService
     {
         $conflict = EditConflict::find($conflictId);
 
-        if (!$conflict) {
+        if (! $conflict) {
             return false;
         }
 

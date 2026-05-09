@@ -75,7 +75,7 @@ class LabTestCatalogController extends Controller
         $test = LabTestCatalog::create($validated);
 
         return redirect()->route('healthcare.lab-tests.show', $test)
-            ->with('success', 'Lab test created: ' . $test->test_code);
+            ->with('success', 'Lab test created: '.$test->test_code);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Security\TwoFactorAuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 /**
@@ -65,7 +66,7 @@ class TwoFactorAuthTest extends TestCase
         session(['2fa_setup_secret' => $secret]);
 
         // Generate valid OTP code
-        $google2fa = new \PragmaRX\Google2FA\Google2FA();
+        $google2fa = new Google2FA;
         $validCode = $google2fa->getCurrentOtp($secret);
 
         // Confirm 2FA
@@ -258,7 +259,7 @@ class TwoFactorAuthTest extends TestCase
         ]);
 
         // Generate valid OTP
-        $google2fa = new \PragmaRX\Google2FA\Google2FA();
+        $google2fa = new Google2FA;
         $validCode = $google2fa->getCurrentOtp($secret);
 
         // Login with email/password

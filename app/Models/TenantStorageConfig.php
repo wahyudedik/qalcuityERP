@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TenantStorageConfig extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'provider',
@@ -68,7 +69,7 @@ class TenantStorageConfig extends Model
      */
     public function getDecryptedSecretKeyAttribute(): ?string
     {
-        if (!$this->secret_key) {
+        if (! $this->secret_key) {
             return null;
         }
 
@@ -91,7 +92,7 @@ class TenantStorageConfig extends Model
      */
     public function getDecryptedAccessKeyAttribute(): ?string
     {
-        if (!$this->access_key) {
+        if (! $this->access_key) {
             return null;
         }
 

@@ -28,7 +28,7 @@ class SampleDataGeneratorService
      */
     private function validateTenant(int $tenantId): void
     {
-        if (!Tenant::where('id', $tenantId)->exists()) {
+        if (! Tenant::where('id', $tenantId)->exists()) {
             throw new \RuntimeException("Tenant with ID {$tenantId} not found.");
         }
     }
@@ -51,15 +51,15 @@ class SampleDataGeneratorService
     protected function resolveGenerator(string $industry): BaseIndustryGenerator
     {
         return match ($industry) {
-            'retail'         => new RetailGenerator(),
-            'restaurant'     => new RestaurantGenerator(),
-            'hotel'          => new HotelGenerator(),
-            'construction'   => new ConstructionGenerator(),
-            'agriculture'    => new AgricultureGenerator(),
-            'manufacturing'  => new ManufacturingGenerator(),
-            'services'       => new ServicesGenerator(),
-            'healthcare'     => new HealthcareGenerator(),
-            default          => new RetailGenerator(),
+            'retail' => new RetailGenerator,
+            'restaurant' => new RestaurantGenerator,
+            'hotel' => new HotelGenerator,
+            'construction' => new ConstructionGenerator,
+            'agriculture' => new AgricultureGenerator,
+            'manufacturing' => new ManufacturingGenerator,
+            'services' => new ServicesGenerator,
+            'healthcare' => new HealthcareGenerator,
+            default => new RetailGenerator,
         };
     }
 
@@ -84,30 +84,30 @@ class SampleDataGeneratorService
         } catch (\RuntimeException $e) {
             return [
                 'success' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
 
         // ── 2. Idempotency check ──────────────────────────────────────────────
         if ($this->isAlreadyGenerated($tenantId, $userId)) {
             return [
-                'success'         => true,
+                'success' => true,
                 'records_created' => 0,
-                'generated_data'  => [],
+                'generated_data' => [],
             ];
         }
 
         // ── 3. Create Demo_Log with status 'processing' ───────────────────────
         $log = SampleDataLog::create([
-            'tenant_id'  => $tenantId,
-            'user_id'    => $userId,
-            'status'     => 'processing',
+            'tenant_id' => $tenantId,
+            'user_id' => $userId,
+            'status' => 'processing',
             'started_at' => now(),
         ]);
 
         // ── 4. Execute inside a DB transaction ────────────────────────────────
-        $failedModules  = [];
-        $coreContext    = null;
+        $failedModules = [];
+        $coreContext = null;
         $industryResult = [];
 
         try {
@@ -115,8 +115,8 @@ class SampleDataGeneratorService
                 $industry, $tenantId, &$coreContext, &$industryResult, &$failedModules
             ) {
                 // ── 4a. Core modules (fatal on failure) ───────────────────────
-                $coreGenerator = new CoreModulesGenerator();
-                $coreContext   = $coreGenerator->generate($tenantId);
+                $coreGenerator = new CoreModulesGenerator;
+                $coreContext = $coreGenerator->generate($tenantId);
 
                 // ── 4b. Industry modules (non-fatal on failure) ───────────────
                 $industryGenerator = $this->resolveGenerator($industry);
@@ -126,29 +126,29 @@ class SampleDataGeneratorService
                 } catch (\Throwable $e) {
                     Log::warning('Industry module generation failed', [
                         'tenant_id' => $tenantId,
-                        'industry'  => $industry,
-                        'error'     => $e->getMessage(),
+                        'industry' => $industry,
+                        'error' => $e->getMessage(),
                     ]);
                     $failedModules[] = $industry;
-                    $industryResult  = [];
+                    $industryResult = [];
                 }
             });
         } catch (\Throwable $e) {
             // Core modules failed — transaction was rolled back
             Log::error('Core module generation failed', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             $log->update([
-                'status'        => 'failed',
+                'status' => 'failed',
                 'error_message' => $e->getMessage(),
-                'completed_at'  => now(),
+                'completed_at' => now(),
             ]);
 
             return [
                 'success' => false,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ];
         }
 
@@ -158,20 +158,20 @@ class SampleDataGeneratorService
 
         $generatedData = array_merge(
             ['core' => $coreContext ? [
-                'products'   => count($coreContext->productIds),
-                'customers'  => count($coreContext->customerIds),
-                'suppliers'  => count($coreContext->supplierIds),
-                'employees'  => count($coreContext->employeeIds),
+                'products' => count($coreContext->productIds),
+                'customers' => count($coreContext->customerIds),
+                'suppliers' => count($coreContext->supplierIds),
+                'employees' => count($coreContext->employeeIds),
             ] : []],
             ['industry' => $industryResult['generated_data'] ?? $industryResult],
             ['failed_modules' => $failedModules]
         );
 
         $log->update([
-            'status'          => 'completed',
+            'status' => 'completed',
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
-            'completed_at'    => now(),
+            'generated_data' => $generatedData,
+            'completed_at' => now(),
         ]);
 
         OnboardingProfile::where('tenant_id', $tenantId)
@@ -179,9 +179,9 @@ class SampleDataGeneratorService
             ->update(['sample_data_generated' => true]);
 
         return [
-            'success'         => true,
+            'success' => true,
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 

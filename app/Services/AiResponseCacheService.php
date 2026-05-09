@@ -29,7 +29,7 @@ class AiResponseCacheService
 
     /**
      * Generate cache key berdasarkan tenant, user, session, dan pesan
-     * 
+     *
      * ✅ FIX: Sekarang termasuk session_id untuk memastikan cache unik per conversation
      */
     public function generateCacheKey(int $tenantId, int $userId, string $message, ?int $sessionId = null): string
@@ -41,7 +41,7 @@ class AiResponseCacheService
         // User bisa punya multiple sessions dengan pesan yang sama tapi context berbeda
         $sessionIdPart = $sessionId ? ":{$sessionId}" : ':no_session';
 
-        return self::CACHE_PREFIX . md5("{$tenantId}:{$userId}{$sessionIdPart}:{$normalizedMessage}");
+        return self::CACHE_PREFIX.md5("{$tenantId}:{$userId}{$sessionIdPart}:{$normalizedMessage}");
     }
 
     /**
@@ -57,9 +57,10 @@ class AiResponseCacheService
      */
     public function has(string $cacheKey): bool
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return false;
         }
+
         return Cache::has($cacheKey);
     }
 
@@ -68,7 +69,7 @@ class AiResponseCacheService
      */
     public function get(string $cacheKey): ?array
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return null;
         }
 
@@ -77,14 +78,16 @@ class AiResponseCacheService
 
             if ($cached && is_array($cached)) {
                 if (config('gemini.optimization.logging_enabled', true)) {
-                    Log::info('AI Response Cache HIT', ['key' => substr($cacheKey, 0, 20) . '...']);
+                    Log::info('AI Response Cache HIT', ['key' => substr($cacheKey, 0, 20).'...']);
                 }
+
                 return $cached;
             }
 
             return null;
         } catch (\Throwable $e) {
-            Log::warning('AI Response Cache GET failed: ' . $e->getMessage());
+            Log::warning('AI Response Cache GET failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -94,7 +97,7 @@ class AiResponseCacheService
      */
     public function put(string $cacheKey, array $response, ?int $ttl = null): bool
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return false;
         }
 
@@ -105,14 +108,15 @@ class AiResponseCacheService
 
             if (config('gemini.optimization.logging_enabled', true)) {
                 Log::info('AI Response Cache PUT', [
-                    'key' => substr($cacheKey, 0, 20) . '...',
+                    'key' => substr($cacheKey, 0, 20).'...',
                     'ttl' => $ttl,
                 ]);
             }
 
             return true;
         } catch (\Throwable $e) {
-            Log::warning('AI Response Cache PUT failed: ' . $e->getMessage());
+            Log::warning('AI Response Cache PUT failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -125,7 +129,8 @@ class AiResponseCacheService
         try {
             return Cache::forget($cacheKey);
         } catch (\Throwable $e) {
-            Log::warning('AI Response Cache FORGET failed: ' . $e->getMessage());
+            Log::warning('AI Response Cache FORGET failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -138,7 +143,7 @@ class AiResponseCacheService
     {
         try {
             // Note: Ini pattern matching sederhana, untuk production bisa pakai tags jika pakai Redis
-            $pattern = self::CACHE_PREFIX . "*";
+            $pattern = self::CACHE_PREFIX.'*';
 
             // Untuk Redis, bisa pakai keys() tapi hati-hati performance
             // Alternatif: gunakan cache tags atau invalidation strategy lain
@@ -146,7 +151,8 @@ class AiResponseCacheService
 
             return true;
         } catch (\Throwable $e) {
-            Log::warning('AI Response Cache FLUSH failed: ' . $e->getMessage());
+            Log::warning('AI Response Cache FLUSH failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -172,7 +178,7 @@ class AiResponseCacheService
             'transaksi hari ini',
             'penjualan hari ini',
             'omzet hari ini',
-            'real-time'
+            'real-time',
         ];
 
         foreach ($realtimeKeywords as $keyword) {
@@ -186,7 +192,7 @@ class AiResponseCacheService
             'laporan mingguan',
             'laporan bulanan',
             'rekap minggu',
-            'rekap bulan'
+            'rekap bulan',
         ];
 
         foreach ($reportKeywords as $keyword) {

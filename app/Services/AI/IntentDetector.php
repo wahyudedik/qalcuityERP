@@ -4,17 +4,17 @@ namespace App\Services\AI;
 
 /**
  * IntentDetector - AI Tool Intent Detection Service
- * 
+ *
  * Detects user intent from chat messages to optimize AI tool declarations.
  * Instead of sending all 100+ tools to Gemini every request, we detect
  * the intent and only send relevant tools, reducing response time by 60-70%.
- * 
+ *
  * Usage:
  * ```php
  * $detector = new IntentDetector();
  * $intent = $detector->detect('Berapa stok kopi hari ini?');
  * // Returns: 'inventory'
- * 
+ *
  * $tools = $registry->getDeclarationsForIntent($intent, $allowedTools);
  * // Returns only inventory-related tools instead of all 100+ tools
  * ```
@@ -23,7 +23,7 @@ class IntentDetector
 {
     /**
      * Intent patterns with keywords
-     * 
+     *
      * Each intent maps to an array of keywords that trigger it.
      * Keywords are checked case-insensitively.
      */
@@ -595,7 +595,7 @@ class IntentDetector
 
     /**
      * Map intents to tool class names
-     * 
+     *
      * This defines which tool classes should be loaded for each intent.
      * If intent is 'general' or no match, all tools are loaded (fallback).
      */
@@ -735,8 +735,8 @@ class IntentDetector
 
     /**
      * Detect intent from user message
-     * 
-     * @param string $message User's chat message
+     *
+     * @param  string  $message  User's chat message
      * @return string Detected intent (e.g., 'sales', 'inventory', 'general')
      */
     public function detect(string $message): string
@@ -767,13 +767,14 @@ class IntentDetector
         }
 
         arsort($scores);
+
         return array_key_first($scores);
     }
 
     /**
      * Get tool classes for detected intent
-     * 
-     * @param string $intent Detected intent
+     *
+     * @param  string  $intent  Detected intent
      * @return array Array of tool class names
      */
     public function getToolClassesForIntent(string $intent): array
@@ -783,9 +784,9 @@ class IntentDetector
 
     /**
      * Detect multiple intents from message (for complex queries)
-     * 
-     * @param string $message User's chat message
-     * @param int $maxIntents Maximum number of intents to return
+     *
+     * @param  string  $message  User's chat message
+     * @param  int  $maxIntents  Maximum number of intents to return
      * @return array Array of intents sorted by relevance
      */
     public function detectMultiple(string $message, int $maxIntents = 3): array
@@ -823,9 +824,9 @@ class IntentDetector
 
     /**
      * Get confidence score for intent detection
-     * 
-     * @param string $message User's chat message
-     * @param string $intent Detected intent
+     *
+     * @param  string  $message  User's chat message
+     * @param  string  $intent  Detected intent
      * @return float Confidence score (0.0 to 1.0)
      */
     public function getConfidence(string $message, string $intent): float
@@ -854,7 +855,7 @@ class IntentDetector
 
     /**
      * Get all available intents
-     * 
+     *
      * @return array Array of intent names
      */
     public function getAvailableIntents(): array
@@ -864,11 +865,10 @@ class IntentDetector
 
     /**
      * Add custom intent pattern (for extensibility)
-     * 
-     * @param string $intent Intent name
-     * @param array $keywords Array of keywords
-     * @param array $toolClasses Array of tool class names
-     * @return void
+     *
+     * @param  string  $intent  Intent name
+     * @param  array  $keywords  Array of keywords
+     * @param  array  $toolClasses  Array of tool class names
      */
     public function addIntent(string $intent, array $keywords, array $toolClasses): void
     {

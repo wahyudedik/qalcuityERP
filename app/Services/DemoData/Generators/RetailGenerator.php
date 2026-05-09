@@ -16,11 +16,11 @@ class RetailGenerator extends BaseIndustryGenerator
 
     public function generate(CoreDataContext $ctx): array
     {
-        $tenantId      = $ctx->tenantId;
-        $warehouseId   = $ctx->warehouseId;
-        $supplierIds   = $ctx->supplierIds;
+        $tenantId = $ctx->tenantId;
+        $warehouseId = $ctx->warehouseId;
+        $supplierIds = $ctx->supplierIds;
         $recordsCreated = 0;
-        $generatedData  = [];
+        $generatedData = [];
 
         // ── 1. Products (20 fashion / consumer goods) ──────────────────────
         try {
@@ -30,7 +30,7 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed products', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $productIds = $ctx->productIds; // fall back to core products
             $generatedData['products'] = 0;
@@ -44,7 +44,7 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed customers', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $customerIds = $ctx->customerIds;
             $generatedData['customers'] = 0;
@@ -58,7 +58,7 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed sales orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['sales_orders'] = 0;
         }
@@ -71,7 +71,7 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed loyalty program', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['loyalty_programs'] = 0;
         }
@@ -84,7 +84,7 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed price list', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['price_lists'] = 0;
         }
@@ -97,14 +97,14 @@ class RetailGenerator extends BaseIndustryGenerator
         } catch (\Throwable $e) {
             $this->logWarning('RetailGenerator: failed to seed purchase orders', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $generatedData['purchase_orders'] = 0;
         }
 
         return [
             'records_created' => $recordsCreated,
-            'generated_data'  => $generatedData,
+            'generated_data' => $generatedData,
         ];
     }
 
@@ -140,7 +140,7 @@ class RetailGenerator extends BaseIndustryGenerator
         ];
 
         $productIds = [];
-        $stockRows  = [];
+        $stockRows = [];
 
         foreach ($products as $p) {
             $existing = DB::table('products')
@@ -150,19 +150,20 @@ class RetailGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $productIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('products')->insertGetId([
-                'tenant_id'  => $tenantId,
-                'name'       => $p['name'],
-                'sku'        => $p['sku'],
-                'category'   => $p['category'],
-                'unit'       => $p['unit'],
-                'price_buy'  => $p['price_buy'],
+                'tenant_id' => $tenantId,
+                'name' => $p['name'],
+                'sku' => $p['sku'],
+                'category' => $p['category'],
+                'unit' => $p['unit'],
+                'price_buy' => $p['price_buy'],
                 'price_sell' => $p['price_sell'],
-                'stock_min'  => $p['stock_min'],
-                'is_active'  => true,
+                'stock_min' => $p['stock_min'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -170,15 +171,15 @@ class RetailGenerator extends BaseIndustryGenerator
             $productIds[] = (int) $id;
 
             $stockRows[] = [
-                'product_id'   => $id,
+                'product_id' => $id,
                 'warehouse_id' => $warehouseId,
-                'quantity'     => $p['qty'],
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'quantity' => $p['qty'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($stockRows)) {
+        if (! empty($stockRows)) {
             DB::table('product_stocks')->insertOrIgnore($stockRows);
         }
 
@@ -201,7 +202,7 @@ class RetailGenerator extends BaseIndustryGenerator
             ['name' => 'CV Moda Fashion',      'email' => 'purchase@demo-modafashion.com',     'phone' => '022-7777007',  'company' => 'CV Moda Fashion',          'address' => 'Jl. Braga No. 22, Bandung',       'credit_limit' => 30000000],
             ['name' => 'Toko Serba Ada Jaya',  'email' => 'admin@demo-serbajaya.com',          'phone' => '031-8888008',  'company' => 'Toko Serba Ada Jaya',      'address' => 'Jl. Pemuda No. 7, Surabaya',      'credit_limit' => 15000000],
             ['name' => 'Yuni Pratiwi',         'email' => 'yuni.pratiwi@demo-retail.com',      'phone' => '0817-9999009', 'company' => null,                       'address' => 'Jl. Diponegoro No. 11, Semarang', 'credit_limit' => 1500000],
-            ['name' => 'PT Retail Nusantara',  'email' => 'procurement@demo-retailnus.co.id',  'phone' => '021-1010010',  'company' => 'PT Retail Nusantara',      'address' => 'Jl. HR Rasuna Said No. 1, Jakarta','credit_limit' => 50000000],
+            ['name' => 'PT Retail Nusantara',  'email' => 'procurement@demo-retailnus.co.id',  'phone' => '021-1010010',  'company' => 'PT Retail Nusantara',      'address' => 'Jl. HR Rasuna Said No. 1, Jakarta', 'credit_limit' => 50000000],
         ];
 
         $customerIds = [];
@@ -215,20 +216,21 @@ class RetailGenerator extends BaseIndustryGenerator
 
             if ($existing) {
                 $customerIds[] = (int) $existing->id;
+
                 continue;
             }
 
             $id = DB::table('customers')->insertGetId([
-                'tenant_id'    => $tenantId,
-                'name'         => $c['name'],
-                'email'        => $c['email'],
-                'phone'        => $c['phone'],
-                'company'      => $c['company'],
-                'address'      => $c['address'],
+                'tenant_id' => $tenantId,
+                'name' => $c['name'],
+                'email' => $c['email'],
+                'phone' => $c['phone'],
+                'company' => $c['company'],
+                'address' => $c['address'],
                 'credit_limit' => $c['credit_limit'],
-                'is_active'    => true,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $customerIds[] = (int) $id;
@@ -245,17 +247,18 @@ class RetailGenerator extends BaseIndustryGenerator
     {
         // sales_orders requires user_id
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId) {
+        if (! $userId) {
             $this->logWarning('RetailGenerator: no user found for tenant, skipping sales orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $count = 0;
 
         for ($i = 1; $i <= 10; $i++) {
-            $soNumber = 'RTL-SO-' . $tenantId . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+            $soNumber = 'RTL-SO-'.$tenantId.'-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT);
 
             $exists = DB::table('sales_orders')
                 ->where('tenant_id', $tenantId)
@@ -268,7 +271,7 @@ class RetailGenerator extends BaseIndustryGenerator
             }
 
             $customerId = $customerIds[($i - 1) % count($customerIds)];
-            $orderDate  = Carbon::now()->subDays(rand(5, 90))->format('Y-m-d');
+            $orderDate = Carbon::now()->subDays(rand(5, 90))->format('Y-m-d');
 
             // Pick 2–3 products for this order
             $orderProducts = array_slice($productIds, ($i - 1) % max(1, count($productIds) - 2), 2);
@@ -277,24 +280,24 @@ class RetailGenerator extends BaseIndustryGenerator
             }
 
             $subtotal = 0;
-            $items    = [];
+            $items = [];
 
             foreach ($orderProducts as $productId) {
                 $product = DB::table('products')->where('id', $productId)->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
-                $qty      = rand(1, 5);
-                $price    = (float) $product->price_sell;
-                $total    = $qty * $price;
+                $qty = rand(1, 5);
+                $price = (float) $product->price_sell;
+                $total = $qty * $price;
                 $subtotal += $total;
 
                 $items[] = [
                     'product_id' => $productId,
-                    'quantity'   => $qty,
-                    'price'      => $price,
-                    'discount'   => 0,
-                    'total'      => $total,
+                    'quantity' => $qty,
+                    'price' => $price,
+                    'discount' => 0,
+                    'total' => $total,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -305,18 +308,18 @@ class RetailGenerator extends BaseIndustryGenerator
             }
 
             $soId = DB::table('sales_orders')->insertGetId([
-                'tenant_id'   => $tenantId,
+                'tenant_id' => $tenantId,
                 'customer_id' => $customerId,
-                'user_id'     => $userId,
-                'number'      => $soNumber,
-                'status'      => 'delivered',
-                'date'        => $orderDate,
-                'subtotal'    => $subtotal,
-                'discount'    => 0,
-                'tax'         => 0,
-                'total'       => $subtotal,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'user_id' => $userId,
+                'number' => $soNumber,
+                'status' => 'delivered',
+                'date' => $orderDate,
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $subtotal,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($items as &$item) {
@@ -347,15 +350,15 @@ class RetailGenerator extends BaseIndustryGenerator
         }
 
         DB::table('loyalty_programs')->insert([
-            'tenant_id'         => $tenantId,
-            'name'              => 'Program Loyalitas Retail',
-            'points_per_idr'    => 0.001,   // 1 point per Rp 1.000
-            'idr_per_point'     => 10,       // 1 point = Rp 10
+            'tenant_id' => $tenantId,
+            'name' => 'Program Loyalitas Retail',
+            'points_per_idr' => 0.001,   // 1 point per Rp 1.000
+            'idr_per_point' => 10,       // 1 point = Rp 10
             'min_redeem_points' => 500,
-            'expiry_days'       => 365,
-            'is_active'         => true,
-            'created_at'        => now(),
-            'updated_at'        => now(),
+            'expiry_days' => 365,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return 1;
@@ -377,40 +380,40 @@ class RetailGenerator extends BaseIndustryGenerator
         }
 
         $priceListId = DB::table('price_lists')->insertGetId([
-            'tenant_id'   => $tenantId,
-            'name'        => 'Harga Retail Reguler',
-            'code'        => 'RTL-PL-001',
-            'type'        => 'tier',
+            'tenant_id' => $tenantId,
+            'name' => 'Harga Retail Reguler',
+            'code' => 'RTL-PL-001',
+            'type' => 'tier',
             'description' => 'Daftar harga standar untuk pelanggan retail reguler',
-            'valid_from'  => Carbon::now()->startOfYear()->format('Y-m-d'),
+            'valid_from' => Carbon::now()->startOfYear()->format('Y-m-d'),
             'valid_until' => Carbon::now()->endOfYear()->format('Y-m-d'),
-            'is_active'   => true,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // Add at least 3 items (use first 5 products or all if fewer)
         $itemProducts = array_slice($productIds, 0, min(5, count($productIds)));
-        $itemRows     = [];
+        $itemRows = [];
 
         foreach ($itemProducts as $productId) {
             $product = DB::table('products')->where('id', $productId)->first();
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 
             $itemRows[] = [
-                'price_list_id'    => $priceListId,
-                'product_id'       => $productId,
-                'price'            => (float) $product->price_sell,
+                'price_list_id' => $priceListId,
+                'product_id' => $productId,
+                'price' => (float) $product->price_sell,
                 'discount_percent' => 5.00,
-                'min_qty'          => 1,
-                'created_at'       => now(),
-                'updated_at'       => now(),
+                'min_qty' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        if (!empty($itemRows)) {
+        if (! empty($itemRows)) {
             $this->bulkInsert('price_list_items', $itemRows);
         }
 
@@ -428,19 +431,20 @@ class RetailGenerator extends BaseIndustryGenerator
         int $warehouseId
     ): int {
         $userId = DB::table('users')->where('tenant_id', $tenantId)->value('id');
-        if (!$userId || empty($supplierIds) || empty($productIds)) {
+        if (! $userId || empty($supplierIds) || empty($productIds)) {
             $this->logWarning('RetailGenerator: missing user, suppliers or products for purchase orders', [
                 'tenant_id' => $tenantId,
             ]);
+
             return 0;
         }
 
         $count = 0;
 
         $poDefinitions = [
-            ['number' => 'RTL-PO-' . $tenantId . '-001', 'products' => array_slice($productIds, 0, 4)],
-            ['number' => 'RTL-PO-' . $tenantId . '-002', 'products' => array_slice($productIds, 4, 4)],
-            ['number' => 'RTL-PO-' . $tenantId . '-003', 'products' => array_slice($productIds, 8, 4)],
+            ['number' => 'RTL-PO-'.$tenantId.'-001', 'products' => array_slice($productIds, 0, 4)],
+            ['number' => 'RTL-PO-'.$tenantId.'-002', 'products' => array_slice($productIds, 4, 4)],
+            ['number' => 'RTL-PO-'.$tenantId.'-003', 'products' => array_slice($productIds, 8, 4)],
         ];
 
         foreach ($poDefinitions as $idx => $def) {
@@ -455,28 +459,28 @@ class RetailGenerator extends BaseIndustryGenerator
             }
 
             $supplierId = $supplierIds[$idx % count($supplierIds)];
-            $poDate     = Carbon::now()->subDays(rand(10, 60))->format('Y-m-d');
-            $subtotal   = 0;
-            $items      = [];
+            $poDate = Carbon::now()->subDays(rand(10, 60))->format('Y-m-d');
+            $subtotal = 0;
+            $items = [];
 
             foreach ($def['products'] as $productId) {
                 $product = DB::table('products')->where('id', $productId)->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
-                $qty      = rand(20, 100);
-                $price    = (float) $product->price_buy;
-                $total    = $qty * $price;
+                $qty = rand(20, 100);
+                $price = (float) $product->price_buy;
+                $total = $qty * $price;
                 $subtotal += $total;
 
                 $items[] = [
-                    'product_id'        => $productId,
-                    'quantity_ordered'  => $qty,
+                    'product_id' => $productId,
+                    'quantity_ordered' => $qty,
                     'quantity_received' => 0,
-                    'price'             => $price,
-                    'total'             => $total,
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
+                    'price' => $price,
+                    'total' => $total,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -485,20 +489,20 @@ class RetailGenerator extends BaseIndustryGenerator
             }
 
             $poId = DB::table('purchase_orders')->insertGetId([
-                'tenant_id'     => $tenantId,
-                'supplier_id'   => $supplierId,
-                'user_id'       => $userId,
-                'warehouse_id'  => $warehouseId,
-                'number'        => $def['number'],
-                'status'        => 'received',
-                'date'          => $poDate,
+                'tenant_id' => $tenantId,
+                'supplier_id' => $supplierId,
+                'user_id' => $userId,
+                'warehouse_id' => $warehouseId,
+                'number' => $def['number'],
+                'status' => 'received',
+                'date' => $poDate,
                 'expected_date' => Carbon::parse($poDate)->addDays(14)->format('Y-m-d'),
-                'subtotal'      => $subtotal,
-                'discount'      => 0,
-                'tax'           => 0,
-                'total'         => $subtotal,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => $subtotal,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($items as &$item) {

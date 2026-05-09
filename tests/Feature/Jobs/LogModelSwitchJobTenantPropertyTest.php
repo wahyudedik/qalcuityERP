@@ -56,7 +56,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
      * **Validates: Requirements 9.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testTenantIdStoredCorrectlyForTenantRequests(): void
+    public function test_tenant_id_stored_correctly_for_tenant_requests(): void
     {
         $this
             ->forAll(
@@ -67,7 +67,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 Generators::choose(1, 999999)
             )
             ->when(
-                fn(string $from, string $to) => $from !== $to
+                fn (string $from, string $to) => $from !== $to
             )
             ->then(function (
                 string $fromModel,
@@ -94,7 +94,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 $this->assertSame(
                     $countBefore + 1,
                     $countAfter,
-                    "LogModelSwitchJob must insert exactly one record. " .
+                    'LogModelSwitchJob must insert exactly one record. '.
                     "from={$fromModel}, to={$toModel}, tenantId={$tenantId}"
                 );
 
@@ -104,14 +104,14 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 $this->assertSame(
                     $tenantId,
                     $log->triggered_by_tenant_id,
-                    "triggered_by_tenant_id in DB must match the dispatched tenant ID. " .
+                    'triggered_by_tenant_id in DB must match the dispatched tenant ID. '.
                     "Expected {$tenantId}, got {$log->triggered_by_tenant_id}."
                 );
 
                 $this->assertDatabaseHas('ai_model_switch_logs', [
-                    'from_model'             => $fromModel,
-                    'to_model'               => $toModel,
-                    'reason'                 => $reason,
+                    'from_model' => $fromModel,
+                    'to_model' => $toModel,
+                    'reason' => $reason,
                     'triggered_by_tenant_id' => $tenantId,
                 ]);
             });
@@ -123,7 +123,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
      * **Validates: Requirements 9.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testNullTenantIdStoredCorrectlyForSystemRequests(): void
+    public function test_null_tenant_id_stored_correctly_for_system_requests(): void
     {
         $this
             ->forAll(
@@ -132,7 +132,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 Generators::elements($this->validReasons)
             )
             ->when(
-                fn(string $from, string $to) => $from !== $to
+                fn (string $from, string $to) => $from !== $to
             )
             ->then(function (
                 string $fromModel,
@@ -156,7 +156,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 $this->assertSame(
                     $countBefore + 1,
                     $countAfter,
-                    "LogModelSwitchJob must insert exactly one record for system-level calls."
+                    'LogModelSwitchJob must insert exactly one record for system-level calls.'
                 );
 
                 // ── triggered_by_tenant_id is null ──
@@ -164,7 +164,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
 
                 $this->assertNull(
                     $log->triggered_by_tenant_id,
-                    "triggered_by_tenant_id must be null for system-level calls (no tenant context)."
+                    'triggered_by_tenant_id must be null for system-level calls (no tenant context).'
                 );
             });
     }
@@ -178,7 +178,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
      * **Validates: Requirements 9.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testMixedTenantIdStoredCorrectly(): void
+    public function test_mixed_tenant_id_stored_correctly(): void
     {
         $this
             ->forAll(
@@ -192,7 +192,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 )
             )
             ->when(
-                fn(string $from, string $to) => $from !== $to
+                fn (string $from, string $to) => $from !== $to
             )
             ->then(function (
                 string $fromModel,
@@ -217,7 +217,7 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 $this->assertSame(
                     $countBefore + 1,
                     $countAfter,
-                    "LogModelSwitchJob must insert exactly one record. tenantId=" . var_export($tenantId, true)
+                    'LogModelSwitchJob must insert exactly one record. tenantId='.var_export($tenantId, true)
                 );
 
                 // ── triggered_by_tenant_id stored exactly as dispatched ──
@@ -226,8 +226,8 @@ class LogModelSwitchJobTenantPropertyTest extends TestCase
                 $this->assertSame(
                     $tenantId,
                     $log->triggered_by_tenant_id,
-                    "triggered_by_tenant_id must be stored exactly as dispatched. " .
-                    "Expected " . var_export($tenantId, true) . ", got " . var_export($log->triggered_by_tenant_id, true) . "."
+                    'triggered_by_tenant_id must be stored exactly as dispatched. '.
+                    'Expected '.var_export($tenantId, true).', got '.var_export($log->triggered_by_tenant_id, true).'.'
                 );
             });
     }

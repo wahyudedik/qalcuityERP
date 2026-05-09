@@ -30,7 +30,7 @@ class ProviderSwitcherTest extends TestCase
      */
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
 
         return new ProviderSwitcher($cache);
     }
@@ -40,7 +40,8 @@ class ProviderSwitcherTest extends TestCase
      */
     private function makeProvider(string $name): AiProvider
     {
-        return new class($name) implements AiProvider {
+        return new class($name) implements AiProvider
+        {
             public function __construct(private string $name) {}
 
             public function getProviderName(): string
@@ -55,22 +56,22 @@ class ProviderSwitcherTest extends TestCase
 
             public function chat(string $prompt, array $history = [], array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function generate(string $prompt, array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function chatWithMedia(string $message, array $files, array $history = [], array $options = []): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function generateWithImage(string $prompt, string $imageData, string $mimeType): array
             {
-                return ['text' => 'response', 'model' => $this->name . '-model'];
+                return ['text' => 'response', 'model' => $this->name.'-model'];
             }
 
             public function withTenantContext(string $context): static
@@ -105,7 +106,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -128,7 +129,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -161,7 +162,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -186,7 +187,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -224,7 +225,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -282,7 +283,7 @@ class ProviderSwitcherTest extends TestCase
 
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 
@@ -311,7 +312,7 @@ class ProviderSwitcherTest extends TestCase
         // Tidak ada provider dalam cooldown
         $fallbackOrder = ['gemini', 'anthropic'];
         $providerInstances = [
-            'gemini'    => $gemini,
+            'gemini' => $gemini,
             'anthropic' => $anthropic,
         ];
 

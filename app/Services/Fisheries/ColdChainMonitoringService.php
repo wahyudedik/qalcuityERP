@@ -2,17 +2,16 @@
 
 namespace App\Services\Fisheries;
 
+use App\Models\ColdChainAlert;
 use App\Models\ColdStorageUnit;
 use App\Models\TemperatureLog;
-use App\Models\ColdChainAlert;
-use App\Models\RefrigeratedTransport;
 
 class ColdChainMonitoringService
 {
     /**
      * Monitor temperature and check thresholds
      */
-    public function monitorTemperature(int $storageUnitId, float $temperature, ?float $humidity = null, string $sensorId = null): array
+    public function monitorTemperature(int $storageUnitId, float $temperature, ?float $humidity = null, ?string $sensorId = null): array
     {
         try {
             $unit = ColdStorageUnit::findOrFail($storageUnitId);

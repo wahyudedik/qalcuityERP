@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 /**
  * Task 1.7: Multiple Users Offline Sync Test
- * 
+ *
  * Tests concurrent offline scenarios with multiple users
  */
 class MultipleUsersOfflineSyncTest extends TestCase
@@ -19,8 +19,11 @@ class MultipleUsersOfflineSyncTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $manager;
+
     protected User $staff1;
+
     protected User $staff2;
 
     protected function setUp(): void
@@ -366,7 +369,7 @@ class MultipleUsersOfflineSyncTest extends TestCase
             $transactions[] = [
                 'module' => 'pos',
                 'body' => [
-                    'local_transaction_id' => "local-pos-cashier{$i}-" . uniqid(),
+                    'local_transaction_id' => "local-pos-cashier{$i}-".uniqid(),
                     'items' => [
                         ['product_id' => $i, 'quantity' => 1, 'price' => 10000],
                     ],

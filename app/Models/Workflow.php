@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Workflow extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -60,7 +60,7 @@ class Workflow extends Model
      */
     public function execute(array $context = []): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -82,8 +82,8 @@ class Workflow extends Model
             foreach ($this->actions()->where('is_active', true)->orderBy('order')->get() as $action) {
                 $result = $action->execute($context);
 
-                if (!$result['success']) {
-                    throw new \Exception("Action failed: " . ($result['error'] ?? 'Unknown error'));
+                if (! $result['success']) {
+                    throw new \Exception('Action failed: '.($result['error'] ?? 'Unknown error'));
                 }
             }
 

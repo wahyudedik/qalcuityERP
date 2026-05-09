@@ -63,7 +63,7 @@ class ProductVariant extends Model
 
     public function getFullSkuAttribute(): string
     {
-        return $this->sku . ' (' . $this->variant_name . ')';
+        return $this->sku.' ('.$this->variant_name.')';
     }
 
     public function scopeActive($query)

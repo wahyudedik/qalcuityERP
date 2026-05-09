@@ -3,14 +3,11 @@
 namespace App\Services\ERP;
 
 use App\Models\Attendance;
-use App\Models\Employee;
-use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 class NotificationTools
@@ -21,20 +18,20 @@ class NotificationTools
     {
         return [
             [
-                'name'        => 'send_email_summary',
+                'name' => 'send_email_summary',
                 'description' => 'Kirim ringkasan bisnis ke email pengguna. Gunakan untuk: '
-                    . '"kirim ringkasan ke email saya", "email laporan hari ini", '
-                    . '"kirim rekap bisnis ke email", "email summary penjualan", '
-                    . '"kirim laporan mingguan ke email", "email kondisi bisnis".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'"kirim ringkasan ke email saya", "email laporan hari ini", '
+                    .'"kirim rekap bisnis ke email", "email summary penjualan", '
+                    .'"kirim laporan mingguan ke email", "email kondisi bisnis".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [
                         'period' => [
-                            'type'        => 'string',
+                            'type' => 'string',
                             'description' => 'Periode ringkasan: today, this_week, this_month (default: today)',
                         ],
                         'include' => [
-                            'type'        => 'string',
+                            'type' => 'string',
                             'description' => 'Bagian yang disertakan: all, sales, finance, inventory, hrm (default: all)',
                         ],
                     ],
@@ -45,20 +42,20 @@ class NotificationTools
 
     public function sendEmailSummary(array $args): array
     {
-        $period  = $args['period'] ?? 'today';
+        $period = $args['period'] ?? 'today';
         $include = $args['include'] ?? 'all';
 
         $user = User::find($this->userId);
-        if (!$user || !$user->email) {
+        if (! $user || ! $user->email) {
             return ['status' => 'error', 'message' => 'Email pengguna tidak ditemukan.'];
         }
 
         $data = $this->buildSummaryData($period, $include);
         $periodLabel = match ($period) {
-            'today'      => 'Hari Ini (' . now()->format('d M Y') . ')',
-            'this_week'  => 'Minggu Ini (' . now()->startOfWeek()->format('d M') . ' — ' . now()->endOfWeek()->format('d M Y') . ')',
-            'this_month' => 'Bulan Ini (' . now()->format('M Y') . ')',
-            default      => now()->format('d M Y'),
+            'today' => 'Hari Ini ('.now()->format('d M Y').')',
+            'this_week' => 'Minggu Ini ('.now()->startOfWeek()->format('d M').' — '.now()->endOfWeek()->format('d M Y').')',
+            'this_month' => 'Bulan Ini ('.now()->format('M Y').')',
+            default => now()->format('d M Y'),
         };
 
         try {
@@ -69,16 +66,16 @@ class NotificationTools
             });
 
             return [
-                'status'       => 'success',
-                'message'      => "Ringkasan bisnis periode {$periodLabel} berhasil dikirim ke {$user->email}.",
-                'email'        => $user->email,
+                'status' => 'success',
+                'message' => "Ringkasan bisnis periode {$periodLabel} berhasil dikirim ke {$user->email}.",
+                'email' => $user->email,
                 'period_label' => $periodLabel,
-                'data'         => $data,
+                'data' => $data,
             ];
         } catch (\Throwable $e) {
             return [
-                'status'  => 'error',
-                'message' => 'Gagal mengirim email: ' . $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Gagal mengirim email: '.$e->getMessage(),
             ];
         }
     }
@@ -91,39 +88,39 @@ class NotificationTools
         $data = ['periode' => $period, 'start' => $start, 'end' => $end];
 
         if (in_array($include, ['all', 'sales'])) {
-            $orders  = SalesOrder::where('tenant_id', $this->tenantId)
+            $orders = SalesOrder::where('tenant_id', $this->tenantId)
                 ->whereNotIn('status', ['cancelled'])
                 ->whereBetween('date', [$start, $end])
                 ->get();
             $data['sales'] = [
-                'total_orders'  => $orders->count(),
+                'total_orders' => $orders->count(),
                 'total_revenue' => $orders->sum('total'),
-                'pending'       => SalesOrder::where('tenant_id', $this->tenantId)
+                'pending' => SalesOrder::where('tenant_id', $this->tenantId)
                     ->whereIn('status', ['pending', 'confirmed'])->count(),
             ];
         }
 
         if (in_array($include, ['all', 'finance'])) {
-            $income  = Transaction::where('tenant_id', $this->tenantId)->where('type', 'income')
+            $income = Transaction::where('tenant_id', $this->tenantId)->where('type', 'income')
                 ->whereBetween('date', [$start, $end])->sum('amount');
             $expense = Transaction::where('tenant_id', $this->tenantId)->where('type', 'expense')
                 ->whereBetween('date', [$start, $end])->sum('amount');
             $data['finance'] = [
-                'income'  => $income,
+                'income' => $income,
                 'expense' => $expense,
-                'profit'  => $income - $expense,
+                'profit' => $income - $expense,
             ];
         }
 
         if (in_array($include, ['all', 'inventory'])) {
-            $lowStock = ProductStock::whereHas('product', fn($q) => $q->where('tenant_id', $this->tenantId))
+            $lowStock = ProductStock::whereHas('product', fn ($q) => $q->where('tenant_id', $this->tenantId))
                 ->whereColumn('quantity', '<=', 'products.price_buy') // fallback
                 ->join('products', 'product_stocks.product_id', '=', 'products.id')
                 ->whereColumn('product_stocks.quantity', '<=', 'products.stock_min')
                 ->count();
             $data['inventory'] = [
                 'total_products' => Product::where('tenant_id', $this->tenantId)->where('is_active', true)->count(),
-                'low_stock'      => $lowStock,
+                'low_stock' => $lowStock,
             ];
         }
 
@@ -135,8 +132,8 @@ class NotificationTools
                 ->pluck('count', 'status');
             $data['hrm'] = [
                 'present' => $att->get('present', 0),
-                'absent'  => $att->get('absent', 0),
-                'late'    => $att->get('late', 0),
+                'absent' => $att->get('absent', 0),
+                'late' => $att->get('late', 0),
             ];
         }
 
@@ -147,7 +144,7 @@ class NotificationTools
 
     private function buildEmailHtml(array $data, string $periodLabel, string $userName): string
     {
-        $fmt = fn($n) => 'Rp ' . number_format((float)$n, 0, ',', '.');
+        $fmt = fn ($n) => 'Rp '.number_format((float) $n, 0, ',', '.');
 
         $salesHtml = '';
         if (isset($data['sales'])) {
@@ -251,10 +248,10 @@ HTML;
     private function resolveDateRange(string $period): array
     {
         return match ($period) {
-            'today'      => [today(), today()],
-            'this_week'  => [now()->startOfWeek(), now()->endOfWeek()],
+            'today' => [today(), today()],
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
             'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
-            default      => [today(), today()],
+            default => [today(), today()],
         };
     }
 }

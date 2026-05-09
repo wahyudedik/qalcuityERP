@@ -7,8 +7,10 @@ use App\Models\Customer;
 use App\Models\ExportJob;
 use App\Models\Scopes\TenantScope;
 use App\Services\ExportService;
-use Illuminate\Support\Facades\Auth;
+use App\Services\GeminiService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -24,16 +26,19 @@ use Tests\TestCase;
 class MultiTenantSecurityTest extends TestCase
 {
     private $tenantA;
+
     private $tenantB;
+
     private $userA;
+
     private $userB;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tenantA = $this->createTenant(['name' => 'Tenant A', 'slug' => 'tenant-a-' . uniqid()]);
-        $this->tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-' . uniqid()]);
+        $this->tenantA = $this->createTenant(['name' => 'Tenant A', 'slug' => 'tenant-a-'.uniqid()]);
+        $this->tenantB = $this->createTenant(['name' => 'Tenant B', 'slug' => 'tenant-b-'.uniqid()]);
 
         $this->userA = $this->createAdminUser($this->tenantA);
         $this->userB = $this->createAdminUser($this->tenantB);
@@ -52,13 +57,13 @@ class MultiTenantSecurityTest extends TestCase
         // Buat customer untuk masing-masing tenant
         $customerA = Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantA->id,
-            'name'      => 'Customer Tenant A',
+            'name' => 'Customer Tenant A',
             'is_active' => true,
         ]);
 
         $customerB = Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantB->id,
-            'name'      => 'Customer Tenant B',
+            'name' => 'Customer Tenant B',
             'is_active' => true,
         ]);
 
@@ -86,13 +91,13 @@ class MultiTenantSecurityTest extends TestCase
     {
         $customerA = Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantA->id,
-            'name'      => 'Customer Tenant A',
+            'name' => 'Customer Tenant A',
             'is_active' => true,
         ]);
 
         $customerB = Customer::withoutGlobalScope('tenant')->create([
             'tenant_id' => $this->tenantB->id,
-            'name'      => 'Customer Tenant B',
+            'name' => 'Customer Tenant B',
             'is_active' => true,
         ]);
 
@@ -120,7 +125,7 @@ class MultiTenantSecurityTest extends TestCase
         foreach (range(1, 3) as $i) {
             Customer::withoutGlobalScope('tenant')->create([
                 'tenant_id' => $this->tenantA->id,
-                'name'      => "Customer A-{$i}",
+                'name' => "Customer A-{$i}",
                 'is_active' => true,
             ]);
         }
@@ -128,7 +133,7 @@ class MultiTenantSecurityTest extends TestCase
         foreach (range(1, 2) as $i) {
             Customer::withoutGlobalScope('tenant')->create([
                 'tenant_id' => $this->tenantB->id,
-                'name'      => "Customer B-{$i}",
+                'name' => "Customer B-{$i}",
                 'is_active' => true,
             ]);
         }
@@ -159,23 +164,23 @@ class MultiTenantSecurityTest extends TestCase
         Storage::fake('public');
 
         // Buat export job milik tenant A
-        $jobId = (string) \Illuminate\Support\Str::uuid();
+        $jobId = (string) Str::uuid();
         $filePath = "exports/{$this->tenantA->id}/{$jobId}.xlsx";
 
         // Simpan file palsu di storage
         Storage::disk('public')->put($filePath, 'fake-excel-content');
 
         // Buat record ExportJob untuk tenant A (bypass global scope dan fillable)
-        $exportJob = (new ExportJob())->forceFill([
-            'job_id'      => $jobId,
-            'user_id'     => $this->userA->id,
-            'tenant_id'   => $this->tenantA->id,
+        $exportJob = (new ExportJob)->forceFill([
+            'job_id' => $jobId,
+            'user_id' => $this->userA->id,
+            'tenant_id' => $this->tenantA->id,
             'export_type' => 'SalesReportExport',
-            'filename'    => 'laporan-penjualan.xlsx',
-            'file_path'   => $filePath,
-            'disk'        => 'public',
-            'status'      => 'completed',
-            'total_rows'  => 100,
+            'filename' => 'laporan-penjualan.xlsx',
+            'file_path' => $filePath,
+            'disk' => 'public',
+            'status' => 'completed',
+            'total_rows' => 100,
         ]);
         $exportJob->saveQuietly();
 
@@ -185,11 +190,11 @@ class MultiTenantSecurityTest extends TestCase
         // Coba download export milik tenant A — harus 404
         $exportService = app(ExportService::class);
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
 
         try {
             $exportService->downloadExport($jobId);
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             $this->assertEquals(404, $e->getStatusCode(),
                 'Download export milik tenant lain harus mengembalikan HTTP 404.');
             throw $e;
@@ -206,21 +211,21 @@ class MultiTenantSecurityTest extends TestCase
     {
         Storage::fake('public');
 
-        $jobId = (string) \Illuminate\Support\Str::uuid();
+        $jobId = (string) Str::uuid();
         $filePath = "exports/{$this->tenantA->id}/{$jobId}.xlsx";
 
         Storage::disk('public')->put($filePath, 'fake-excel-content');
 
-        $exportJob2 = (new ExportJob())->forceFill([
-            'job_id'      => $jobId,
-            'user_id'     => $this->userA->id,
-            'tenant_id'   => $this->tenantA->id,
+        $exportJob2 = (new ExportJob)->forceFill([
+            'job_id' => $jobId,
+            'user_id' => $this->userA->id,
+            'tenant_id' => $this->tenantA->id,
             'export_type' => 'SalesReportExport',
-            'filename'    => 'laporan-penjualan.xlsx',
-            'file_path'   => $filePath,
-            'disk'        => 'public',
-            'status'      => 'completed',
-            'total_rows'  => 100,
+            'filename' => 'laporan-penjualan.xlsx',
+            'file_path' => $filePath,
+            'disk' => 'public',
+            'status' => 'completed',
+            'total_rows' => 100,
         ]);
         $exportJob2->saveQuietly();
 
@@ -247,11 +252,11 @@ class MultiTenantSecurityTest extends TestCase
 
         $exportService = app(ExportService::class);
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
 
         try {
             $exportService->downloadExport('non-existent-job-id');
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             $this->assertEquals(404, $e->getStatusCode(),
                 'Export yang tidak ada harus mengembalikan HTTP 404.');
             throw $e;
@@ -267,12 +272,13 @@ class MultiTenantSecurityTest extends TestCase
     private function getSanitizeMethod(): array
     {
         // Mock GeminiService agar tidak perlu koneksi ke Gemini API
-        $this->mock(\App\Services\GeminiService::class);
+        $this->mock(GeminiService::class);
 
         $controller = app(ChatController::class);
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('sanitizeUserInput');
         $method->setAccessible(true);
+
         return [$controller, $method];
     }
 
@@ -385,7 +391,7 @@ class MultiTenantSecurityTest extends TestCase
             $this->assertStringNotContainsString('[FILTERED]', $result,
                 "Input normal '{$input}' tidak boleh difilter.");
             $this->assertNotEmpty($result,
-                "Input normal tidak boleh menghasilkan string kosong.");
+                'Input normal tidak boleh menghasilkan string kosong.');
         }
     }
 

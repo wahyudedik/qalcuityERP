@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
                 input: [
                     'resources/css/app.css',
                     'resources/js/app.js',
+                    'resources/js/pos-app.js',
                     'resources/js/chat.js',
                     'resources/js/offline-manager.js',
                     'resources/js/conflict-resolution.js',

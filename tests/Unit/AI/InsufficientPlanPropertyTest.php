@@ -30,7 +30,7 @@ class InsufficientPlanPropertyTest extends TestCase
      *
      * Requirements: 11.2
      */
-    public function testHttp403ForAllInsufficientPlanScenarios(): void
+    public function test_http403_for_all_insufficient_plan_scenarios(): void
     {
         $this->forAll(
             Generator\elements('trial', 'starter', 'business', 'professional', 'enterprise'),
@@ -125,7 +125,7 @@ class InsufficientPlanPropertyTest extends TestCase
      *
      * Requirements: 11.2
      */
-    public function testRedirectForNonJsonRequests(): void
+    public function test_redirect_for_non_json_requests(): void
     {
         $this->forAll(
             Generator\elements('trial', 'starter', 'business', 'professional'),
@@ -147,7 +147,7 @@ class InsufficientPlanPropertyTest extends TestCase
             $this->assertSame(
                 302,
                 $response->getStatusCode(),
-                "Expected HTTP 302 redirect for non-JSON request with InsufficientPlanException"
+                'Expected HTTP 302 redirect for non-JSON request with InsufficientPlanException'
             );
 
             // Assert redirect target

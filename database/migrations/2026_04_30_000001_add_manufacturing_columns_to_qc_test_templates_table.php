@@ -19,22 +19,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('qc_test_templates', function (Blueprint $table) {
-            if (!Schema::hasColumn('qc_test_templates', 'name')) {
+            if (! Schema::hasColumn('qc_test_templates', 'name')) {
                 $table->string('name')->nullable()->after('tenant_id');
             }
-            if (!Schema::hasColumn('qc_test_templates', 'product_type')) {
+            if (! Schema::hasColumn('qc_test_templates', 'product_type')) {
                 $table->string('product_type')->nullable()->after('name');
             }
-            if (!Schema::hasColumn('qc_test_templates', 'stage')) {
+            if (! Schema::hasColumn('qc_test_templates', 'stage')) {
                 $table->string('stage')->nullable()->after('product_type');
             }
-            if (!Schema::hasColumn('qc_test_templates', 'sample_size_formula')) {
+            if (! Schema::hasColumn('qc_test_templates', 'sample_size_formula')) {
                 $table->integer('sample_size_formula')->default(1)->after('test_parameters');
             }
-            if (!Schema::hasColumn('qc_test_templates', 'acceptance_quality_limit')) {
+            if (! Schema::hasColumn('qc_test_templates', 'acceptance_quality_limit')) {
                 $table->decimal('acceptance_quality_limit', 5, 2)->default(2.5)->after('sample_size_formula');
             }
-            if (!Schema::hasColumn('qc_test_templates', 'instructions')) {
+            if (! Schema::hasColumn('qc_test_templates', 'instructions')) {
                 $table->text('instructions')->nullable()->after('is_active');
             }
         });

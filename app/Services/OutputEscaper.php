@@ -4,14 +4,14 @@ namespace App\Services;
 
 /**
  * OutputEscaper - Helper service for safely displaying user-generated content.
- * 
+ *
  * Provides methods to escape and sanitize output to prevent XSS attacks.
  */
 class OutputEscaper
 {
     /**
      * Escape HTML entities in a string.
-     * 
+     *
      * Use this for any user-generated content displayed in HTML context.
      */
     public static function html(?string $value): string
@@ -25,7 +25,7 @@ class OutputEscaper
 
     /**
      * Escape for use in JavaScript strings.
-     * 
+     *
      * Use when inserting PHP variables into JavaScript.
      */
     public static function js(?string $value): string
@@ -83,7 +83,7 @@ class OutputEscaper
 
     /**
      * Sanitize HTML allowing only safe tags.
-     * 
+     *
      * Use when you need to preserve some HTML formatting.
      */
     public static function sanitizeHtml(?string $value, array $allowedTags = []): string
@@ -94,14 +94,14 @@ class OutputEscaper
 
         // PHP 8.x: strip_tags harus menggunakan array, bukan string
         $defaultAllowed = ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'img'];
-        $allowed = !empty($allowedTags) ? $allowedTags : $defaultAllowed;
+        $allowed = ! empty($allowedTags) ? $allowedTags : $defaultAllowed;
 
         return strip_tags($value, $allowed);
     }
 
     /**
      * Clean user-generated text content.
-     * 
+     *
      * Removes potentially dangerous content while preserving legitimate text.
      */
     public static function cleanText(?string $value): string
@@ -168,6 +168,7 @@ class OutputEscaper
                 ? self::array($value)
                 : self::html((string) $value);
         }
+
         return $escaped;
     }
 }

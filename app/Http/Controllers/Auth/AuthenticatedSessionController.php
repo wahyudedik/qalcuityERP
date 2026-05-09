@@ -36,18 +36,19 @@ class AuthenticatedSessionController extends Controller
             Auth::logout();
             $request->session()->put('2fa_user_id', $user->id);
             $request->session()->put('2fa_remember', $remember);
+
             return redirect()->route('two-factor.challenge');
         }
 
         $request->session()->regenerate();
 
         // Record login activity
-        ActivityLog::record('login', 'User ' . $user->name . ' login');
+        ActivityLog::record('login', 'User '.$user->name.' login');
         GamificationService::onLogin($user);
 
         // Admin wajib 2FA — paksa setup sebelum bisa akses apapun
         // session()->regenerate() sudah dipanggil di atas agar auth state tersimpan
-        if ($user->isAdmin() && !$user->two_factor_enabled) {
+        if ($user->isAdmin() && ! $user->two_factor_enabled) {
             return redirect()->route('two-factor.setup')
                 ->with('warning', 'Sebagai Admin, Anda wajib mengaktifkan Two-Factor Authentication sebelum melanjutkan.');
         }
@@ -67,7 +68,7 @@ class AuthenticatedSessionController extends Controller
     {
         // Record logout before session is destroyed
         if ($logoutUser = auth()->user()) {
-            ActivityLog::record('logout', 'User ' . $logoutUser->name . ' logout');
+            ActivityLog::record('logout', 'User '.$logoutUser->name.' logout');
         }
 
         Auth::guard('web')->logout();

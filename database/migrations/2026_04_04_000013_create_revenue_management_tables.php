@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Rate Plans - Different pricing strategies
-        if (!Schema::hasTable('rate_plans')) {
+        if (! Schema::hasTable('rate_plans')) {
             Schema::create('rate_plans', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -36,7 +37,7 @@ return new class extends Migration {
         }
 
         // Dynamic Pricing Rules
-        if (!Schema::hasTable('dynamic_pricing_rules')) {
+        if (! Schema::hasTable('dynamic_pricing_rules')) {
             Schema::create('dynamic_pricing_rules', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -50,7 +51,7 @@ return new class extends Migration {
                     'length_of_stay',
                     'advance_booking',
                     'competitor_based',
-                    'event_based'
+                    'event_based',
                 ]);
                 $table->json('conditions'); // Rule conditions
                 $table->enum('adjustment_type', ['percentage', 'fixed_amount']);
@@ -67,7 +68,7 @@ return new class extends Migration {
         }
 
         // Occupancy Forecasts
-        if (!Schema::hasTable('occupancy_forecasts')) {
+        if (! Schema::hasTable('occupancy_forecasts')) {
             Schema::create('occupancy_forecasts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -89,7 +90,7 @@ return new class extends Migration {
         }
 
         // Competitor Rates Tracking
-        if (!Schema::hasTable('competitor_rates')) {
+        if (! Schema::hasTable('competitor_rates')) {
             Schema::create('competitor_rates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -108,7 +109,7 @@ return new class extends Migration {
         }
 
         // Special Events affecting demand
-        if (!Schema::hasTable('special_events')) {
+        if (! Schema::hasTable('special_events')) {
             Schema::create('special_events', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -127,7 +128,7 @@ return new class extends Migration {
         }
 
         // Revenue Analytics Snapshots (daily aggregation)
-        if (!Schema::hasTable('revenue_snapshots')) {
+        if (! Schema::hasTable('revenue_snapshots')) {
             Schema::create('revenue_snapshots', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -151,7 +152,7 @@ return new class extends Migration {
         }
 
         // Pricing Recommendations (AI-generated)
-        if (!Schema::hasTable('pricing_recommendations')) {
+        if (! Schema::hasTable('pricing_recommendations')) {
             Schema::create('pricing_recommendations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

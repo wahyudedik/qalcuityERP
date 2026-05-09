@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Tenant;
-use App\Models\Product;
+use App\Jobs\SyncEcommerceOrders;
+use App\Jobs\SyncMarketplacePrices;
+use App\Jobs\SyncMarketplaceStock;
 use App\Models\MarketplaceIntegration;
+use App\Models\MarketplaceSyncLog;
+use App\Models\Product;
+use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -13,7 +17,7 @@ use Tests\TestCase;
 
 /**
  * Test Marketplace Integration and Sync Functionality
- * 
+ *
  * @group marketplace
  * @group feature
  */
@@ -22,7 +26,9 @@ class MarketplaceSyncTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
+
     protected MarketplaceIntegration $marketplace;
 
     protected function setUp(): void
@@ -98,7 +104,7 @@ class MarketplaceSyncTest extends TestCase
         $response->assertStatus(200);
 
         // Verify sync job was queued
-        Queue::assertPushed(\App\Jobs\SyncMarketplaceStock::class);
+        Queue::assertPushed(SyncMarketplaceStock::class);
     }
 
     /**
@@ -151,7 +157,7 @@ class MarketplaceSyncTest extends TestCase
             ]);
 
         $response->assertStatus(200);
-        Queue::assertPushed(\App\Jobs\SyncMarketplacePrices::class);
+        Queue::assertPushed(SyncMarketplacePrices::class);
     }
 
     /**
@@ -170,7 +176,7 @@ class MarketplaceSyncTest extends TestCase
                         'sku' => 'SHOPEE-EXT-001',
                         'quantity' => 2,
                         'price' => 100000,
-                    ]
+                    ],
                 ],
                 'buyer' => [
                     'name' => 'Test Buyer',
@@ -184,7 +190,7 @@ class MarketplaceSyncTest extends TestCase
         $response->assertStatus(200);
 
         // Verify order import job was queued
-        Queue::assertPushed(\App\Jobs\SyncEcommerceOrders::class);
+        Queue::assertPushed(SyncEcommerceOrders::class);
     }
 
     /**
@@ -195,7 +201,7 @@ class MarketplaceSyncTest extends TestCase
         $product = Product::factory()->create(['tenant_id' => $this->tenant->id]);
 
         // Simulate a sync
-        \App\Models\MarketplaceSyncLog::create([
+        MarketplaceSyncLog::create([
             'tenant_id' => $this->tenant->id,
             'marketplace_id' => $this->marketplace->id,
             'product_id' => $product->id,
@@ -227,7 +233,7 @@ class MarketplaceSyncTest extends TestCase
         Queue::fake();
 
         // Simulate failed sync
-        $failedSync = \App\Models\MarketplaceSyncLog::create([
+        $failedSync = MarketplaceSyncLog::create([
             'tenant_id' => $this->tenant->id,
             'marketplace_id' => $this->marketplace->id,
             'product_id' => 1,

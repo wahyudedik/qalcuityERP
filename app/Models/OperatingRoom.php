@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OperatingRoom extends Model
 {
@@ -68,11 +69,19 @@ class OperatingRoom extends Model
     }
 
     /**
+     * Relation: Surgery Schedules
+     */
+    public function surgerySchedules(): HasMany
+    {
+        return $this->hasMany(SurgerySchedule::class, 'operating_room_id');
+    }
+
+    /**
      * Check if room is available at given time
      */
     public function isAvailableAt($date, $startTime, $endTime)
     {
-        if ($this->status !== 'available' || !$this->is_active) {
+        if ($this->status !== 'available' || ! $this->is_active) {
             return false;
         }
 
@@ -90,7 +99,7 @@ class OperatingRoom extends Model
             })
             ->exists();
 
-        return !$conflict;
+        return ! $conflict;
     }
 
     /**

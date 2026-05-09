@@ -17,7 +17,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('ai_usage_cost_logs')) {
+        if (! Schema::hasTable('ai_usage_cost_logs')) {
             Schema::create('ai_usage_cost_logs', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('tenant_id');              // Wajib — setiap log harus terikat ke tenant
@@ -30,22 +30,22 @@ return new class extends Migration
                 $table->decimal('estimated_cost_idr', 10, 4)->default(0); // Estimasi biaya dalam IDR
                 $table->unsignedInteger('response_time_ms')->nullable();   // Durasi eksekusi dalam milidetik
                 $table->boolean('fallback_degraded')->default(false);      // true jika fallback dari heavyweight ke lightweight
-    
+
                 // Immutable log — hanya created_at, tidak ada updated_at
                 $table->timestamp('created_at')->nullable();
-    
+
                 // Index untuk query laporan dan monitoring
                 $table->index('tenant_id');
                 $table->index('use_case');
                 $table->index('provider');
                 $table->index('created_at');
-    
+
                 // Foreign key ke tenants dengan CASCADE delete
                 $table->foreign('tenant_id')
                     ->references('id')
                     ->on('tenants')
                     ->onDelete('cascade');
-    
+
                 // Foreign key ke users dengan SET NULL (user bisa dihapus, log tetap ada)
                 $table->foreign('user_id')
                     ->references('id')

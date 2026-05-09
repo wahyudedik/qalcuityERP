@@ -21,15 +21,15 @@ class TransactionChainController extends Controller
      * Mapping type string → model class.
      */
     private array $typeMap = [
-        'quotation'      => Quotation::class,
-        'sales_order'    => SalesOrder::class,
+        'quotation' => Quotation::class,
+        'sales_order' => SalesOrder::class,
         'delivery_order' => DeliveryOrder::class,
-        'invoice'        => Invoice::class,
-        'payment'        => Payment::class,
-        'journal_entry'  => JournalEntry::class,
+        'invoice' => Invoice::class,
+        'payment' => Payment::class,
+        'journal_entry' => JournalEntry::class,
         'purchase_order' => PurchaseOrder::class,
-        'goods_receipt'  => GoodsReceipt::class,
-        'payable'        => Payable::class,
+        'goods_receipt' => GoodsReceipt::class,
+        'payable' => Payable::class,
     ];
 
     /**
@@ -72,10 +72,10 @@ class TransactionChainController extends Controller
         $chain = app(TransactionChainService::class)->buildChain($modelClass, $id);
 
         return response()->json([
-            'model'    => [
-                'type'   => $type,
-                'id'     => $model->id,
-                'number' => $model->number ?? ('#' . $model->id),
+            'model' => [
+                'type' => $type,
+                'id' => $model->id,
+                'number' => $model->number ?? ('#'.$model->id),
             ],
             'timeline' => $chain->all,
         ]);

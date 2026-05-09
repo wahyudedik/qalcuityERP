@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LabelVersion extends Model
 {
@@ -70,7 +69,8 @@ class LabelVersion extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'LBL-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'LBL-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     // Check if label is currently active
@@ -107,7 +107,7 @@ class LabelVersion extends Model
     public function activate(): void
     {
         $this->status = 'active';
-        if (!$this->effective_date) {
+        if (! $this->effective_date) {
             $this->effective_date = now();
         }
         $this->save();
@@ -132,7 +132,7 @@ class LabelVersion extends Model
             'pending' => $checks->whereNull('is_compliant')->count(),
             'percentage' => $checks->count() > 0
                 ? round(($checks->where('is_compliant', true)->count() / $checks->count()) * 100, 2)
-                : 0
+                : 0,
         ];
     }
 
@@ -140,6 +140,7 @@ class LabelVersion extends Model
     public function isFullyCompliant(): bool
     {
         $status = $this->compliance_status;
+
         return $status['non_compliant'] === 0 && $status['pending'] === 0 && $status['total'] > 0;
     }
 

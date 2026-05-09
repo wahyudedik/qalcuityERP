@@ -4,7 +4,6 @@ namespace Tests\Unit\AI;
 
 use App\Exceptions\AllProvidersUnavailableException;
 use App\Exceptions\RateLimitException;
-use App\Models\AiProviderSwitchLog;
 use App\Models\AiUsageLog;
 use App\Models\Tenant;
 use App\Models\User;
@@ -36,9 +35,9 @@ use Tests\TestCase;
 class AiProviderRouterTest extends TestCase
 {
     use DatabaseTransactions;
-    // 
+    //
     // Helpers
-    // 
+    //
 
     private function makeGeminiMock(): GeminiProvider
     {
@@ -47,6 +46,7 @@ class AiProviderRouterTest extends TestCase
         $mock->shouldReceive('withLanguage')->andReturnSelf()->byDefault();
         $mock->shouldReceive('isAvailable')->andReturn(true)->byDefault();
         $mock->shouldReceive('getProviderName')->andReturn('gemini')->byDefault();
+
         return $mock;
     }
 
@@ -57,12 +57,14 @@ class AiProviderRouterTest extends TestCase
         $mock->shouldReceive('withLanguage')->andReturnSelf()->byDefault();
         $mock->shouldReceive('isAvailable')->andReturn(true)->byDefault();
         $mock->shouldReceive('getProviderName')->andReturn('anthropic')->byDefault();
+
         return $mock;
     }
 
     private function makeSwitcher(): ProviderSwitcher
     {
-        $cache = new Repository(new ArrayStore());
+        $cache = new Repository(new ArrayStore);
+
         return new ProviderSwitcher($cache);
     }
 
@@ -101,9 +103,9 @@ class AiProviderRouterTest extends TestCase
         Cache::put($cacheKey, $existing, 1800);
     }
 
-    // 
+    //
     // Setup
-    // 
+    //
 
     protected function setUp(): void
     {
@@ -129,9 +131,9 @@ class AiProviderRouterTest extends TestCase
         parent::tearDown();
     }
 
-    // 
+    //
     // 3.1  Routing ke provider yang benar berdasarkan konfigurasi
-    // 
+    //
 
     #[Test]
     public function routes_to_gemini_by_default(): void
@@ -263,9 +265,9 @@ class AiProviderRouterTest extends TestCase
         $this->assertSame('gemini response', $result['text']);
     }
 
-    // 
+    //
     // Fallback  beralih ke provider berikutnya saat rate limit / server error
-    // 
+    //
 
     #[Test]
     public function falls_back_to_next_provider_on_rate_limit(): void
@@ -341,9 +343,9 @@ class AiProviderRouterTest extends TestCase
         $router->generate('Test prompt');
     }
 
-    // 
+    //
     // 7.1  Log dibuat di ai_usage_logs dengan kolom provider terisi
-    // 
+    //
 
     #[Test]
     public function logs_usage_to_ai_usage_logs_with_provider_column(): void
@@ -365,8 +367,8 @@ class AiProviderRouterTest extends TestCase
 
         $this->assertDatabaseHas('ai_usage_logs', [
             'tenant_id' => $tenant->id,
-            'user_id'   => $user->id,
-            'provider'  => 'gemini',
+            'user_id' => $user->id,
+            'provider' => 'gemini',
         ]);
     }
 
@@ -395,8 +397,8 @@ class AiProviderRouterTest extends TestCase
 
         $this->assertDatabaseHas('ai_usage_logs', [
             'tenant_id' => $tenant->id,
-            'user_id'   => $user->id,
-            'provider'  => 'anthropic',
+            'user_id' => $user->id,
+            'provider' => 'anthropic',
         ]);
     }
 
@@ -445,9 +447,9 @@ class AiProviderRouterTest extends TestCase
         $this->assertDatabaseCount('ai_usage_logs', 0);
     }
 
-    // 
+    //
     // 7.2  Log dibuat di ai_provider_switch_logs saat terjadi switch provider
-    // 
+    //
 
     #[Test]
     public function logs_provider_switch_when_fallback_occurs(): void
@@ -476,10 +478,10 @@ class AiProviderRouterTest extends TestCase
         $router->generate('Test prompt');
 
         $this->assertDatabaseHas('ai_provider_switch_logs', [
-            'tenant_id'     => $tenant->id,
+            'tenant_id' => $tenant->id,
             'from_provider' => 'gemini',
-            'to_provider'   => 'anthropic',
-            'reason'        => 'rate_limit',
+            'to_provider' => 'anthropic',
+            'reason' => 'rate_limit',
         ]);
     }
 
@@ -510,10 +512,10 @@ class AiProviderRouterTest extends TestCase
         $router->generate('Test prompt');
 
         $this->assertDatabaseHas('ai_provider_switch_logs', [
-            'tenant_id'     => $tenant->id,
+            'tenant_id' => $tenant->id,
             'from_provider' => 'gemini',
-            'to_provider'   => 'anthropic',
-            'reason'        => 'server_error',
+            'to_provider' => 'anthropic',
+            'reason' => 'server_error',
         ]);
     }
 
@@ -549,10 +551,10 @@ class AiProviderRouterTest extends TestCase
         }
 
         $this->assertDatabaseHas('ai_provider_switch_logs', [
-            'tenant_id'     => $tenant->id,
+            'tenant_id' => $tenant->id,
             'from_provider' => 'anthropic',
-            'to_provider'   => 'none',
-            'reason'        => 'rate_limit',
+            'to_provider' => 'none',
+            'reason' => 'rate_limit',
         ]);
     }
 
@@ -571,9 +573,9 @@ class AiProviderRouterTest extends TestCase
         $this->assertDatabaseCount('ai_provider_switch_logs', 0);
     }
 
-    // 
+    //
     // resolveProvider()  verifikasi logika pemilihan provider
-    // 
+    //
 
     #[Test]
     public function resolve_provider_returns_gemini_by_default(): void
@@ -624,9 +626,9 @@ class AiProviderRouterTest extends TestCase
         $this->assertSame('anthropic', $provider->getProviderName());
     }
 
-    // 
+    //
     // getProviderName() dan isAvailable()
-    // 
+    //
 
     #[Test]
     public function get_provider_name_returns_router(): void
@@ -667,9 +669,9 @@ class AiProviderRouterTest extends TestCase
         $this->assertFalse($router->isAvailable());
     }
 
-    // 
+    //
     // Fluent interface  withTenantContext() dan withLanguage()
-    // 
+    //
 
     #[Test]
     public function with_tenant_context_returns_same_instance(): void

@@ -16,6 +16,7 @@ use Tests\TestCase;
 class GeminiServiceClassifyErrorTest extends TestCase
 {
     private GeminiService $service;
+
     private \ReflectionMethod $classifyError;
 
     protected function setUp(): void

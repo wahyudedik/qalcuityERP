@@ -32,8 +32,6 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Redis health service instance
-     *
-     * @var RedisHealthService
      */
     private RedisHealthService $redisHealth;
 
@@ -60,13 +58,12 @@ class RedisHealthCheckCommand extends Command
         }
 
         $connection = $this->option('connection') ?? 'default';
+
         return $this->checkSingleConnection($connection);
     }
 
     /**
      * Check all Redis connections
-     *
-     * @return int
      */
     private function checkAllConnections(): int
     {
@@ -75,6 +72,7 @@ class RedisHealthCheckCommand extends Command
 
         if ($this->option('json')) {
             $this->line(json_encode($results, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -87,9 +85,6 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Check a single Redis connection
-     *
-     * @param string $connection
-     * @return int
      */
     private function checkSingleConnection(string $connection): int
     {
@@ -98,6 +93,7 @@ class RedisHealthCheckCommand extends Command
 
         if ($this->option('json')) {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -108,9 +104,6 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Display overall health status
-     *
-     * @param array $results
-     * @return void
      */
     private function displayOverallStatus(array $results): void
     {
@@ -125,9 +118,6 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Display connection results in a table
-     *
-     * @param array $connections
-     * @return void
      */
     private function displayConnectionResults(array $connections): void
     {
@@ -139,7 +129,7 @@ class RedisHealthCheckCommand extends Command
                 $name,
                 $result['status'],
                 $result['healthy'] ? '✓ Healthy' : '✗ Unhealthy',
-                $result['response_time'] . 'ms',
+                $result['response_time'].'ms',
                 $this->truncateMessage($result['message'], 50),
             ];
         }
@@ -149,9 +139,6 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Display a single connection result
-     *
-     * @param array $result
-     * @return void
      */
     private function displaySingleResult(array $result): void
     {
@@ -164,20 +151,17 @@ class RedisHealthCheckCommand extends Command
         $this->line("Response Time: {$result['response_time']}ms");
         $this->line("Message: {$result['message']}");
 
-        if (isset($result['details']) && !empty($result['details'])) {
+        if (isset($result['details']) && ! empty($result['details'])) {
             $this->line('');
             $this->line('Details:');
             foreach ($result['details'] as $key => $value) {
-                $this->line("  {$key}: " . (is_bool($value) ? ($value ? 'true' : 'false') : $value));
+                $this->line("  {$key}: ".(is_bool($value) ? ($value ? 'true' : 'false') : $value));
             }
         }
     }
 
     /**
      * Display recommendations
-     *
-     * @param array $recommendations
-     * @return void
      */
     private function displayRecommendations(array $recommendations): void
     {
@@ -194,13 +178,9 @@ class RedisHealthCheckCommand extends Command
 
     /**
      * Truncate message for table display
-     *
-     * @param string $message
-     * @param int $length
-     * @return string
      */
     private function truncateMessage(string $message, int $length): string
     {
-        return strlen($message) > $length ? substr($message, 0, $length) . '...' : $message;
+        return strlen($message) > $length ? substr($message, 0, $length).'...' : $message;
     }
 }

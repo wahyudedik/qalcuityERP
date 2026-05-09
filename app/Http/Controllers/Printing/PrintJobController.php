@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Printing;
 
 use App\Http\Controllers\Controller;
-use App\Models\PrintJob;
-use App\Models\PrintEstimate;
-use App\Models\WebToPrintOrder;
 use App\Models\PressRun;
-use App\Services\PrintJobService;
+use App\Models\PrintEstimate;
+use App\Models\PrintJob;
+use App\Models\WebToPrintOrder;
+use App\Services\JournalService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PrintJobController extends Controller
 {
@@ -76,10 +77,10 @@ class PrintJobController extends Controller
         ]);
 
         try {
-            $job = new PrintJob();
+            $job = new PrintJob;
             $job->tenant_id = auth()->user()->tenant_id;
-            $job->job_number = 'PJ' . now()->format('Ymd') . str_pad(
-                PrintJob::where('job_number', 'like', 'PJ' . now()->format('Ymd') . '%')->count() + 1,
+            $job->job_number = 'PJ'.now()->format('Ymd').str_pad(
+                PrintJob::where('job_number', 'like', 'PJ'.now()->format('Ymd').'%')->count() + 1,
                 4,
                 '0',
                 STR_PAD_LEFT
@@ -91,7 +92,7 @@ class PrintJobController extends Controller
             return redirect()->route('printing.show', $job)
                 ->with('success', 'Print job berhasil dibuat!');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal membuat print job: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal membuat print job: '.$e->getMessage());
         }
     }
 
@@ -107,7 +108,7 @@ class PrintJobController extends Controller
             'pressRuns.operator',
             'finishingOperations.operator',
             'assignedOperator',
-            'estimates'
+            'estimates',
         ])->findOrFail($id);
 
         return view('printing.job-detail', compact('job'));
@@ -129,7 +130,7 @@ class PrintJobController extends Controller
             $job->completed_at = now();
         }
 
-        if ($validated['status'] === 'on_press' && !$job->started_at) {
+        if ($validated['status'] === 'on_press' && ! $job->started_at) {
             $job->started_at = now();
         }
 
@@ -254,6 +255,7 @@ class PrintJobController extends Controller
     public function finishingView($id)
     {
         $job = PrintJob::with(['finishingOperations.operator'])->findOrFail($id);
+
         return view('printing.finishing-operations', compact('job'));
     }
 
@@ -304,8 +306,8 @@ class PrintJobController extends Controller
 
         $estimate = PrintEstimate::create([
             'tenant_id' => auth()->user()->tenant_id,
-            'estimate_number' => 'EST' . now()->format('Ymd') . str_pad(
-                PrintEstimate::where('estimate_number', 'like', 'EST' . now()->format('Ymd') . '%')->count() + 1,
+            'estimate_number' => 'EST'.now()->format('Ymd').str_pad(
+                PrintEstimate::where('estimate_number', 'like', 'EST'.now()->format('Ymd').'%')->count() + 1,
                 4,
                 '0',
                 STR_PAD_LEFT
@@ -357,11 +359,11 @@ class PrintJobController extends Controller
     protected function createCompletionJournalEntry(PrintJob $job): void
     {
         try {
-            if (!class_exists(\App\Services\JournalService::class)) {
+            if (! class_exists(JournalService::class)) {
                 return;
             }
 
-            $journalService = app(\App\Services\JournalService::class);
+            $journalService = app(JournalService::class);
 
             $journalService->createJournalEntry([
                 'tenant_id' => $job->tenant_id,
@@ -386,7 +388,7 @@ class PrintJobController extends Controller
             ]);
         } catch (\Exception $e) {
             // Log but don't fail the status update
-            \Illuminate\Support\Facades\Log::warning('Gagal membuat jurnal untuk print job: ' . $e->getMessage(), [
+            Log::warning('Gagal membuat jurnal untuk print job: '.$e->getMessage(), [
                 'print_job_id' => $job->id,
             ]);
         }

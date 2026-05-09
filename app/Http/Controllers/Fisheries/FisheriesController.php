@@ -3,28 +3,35 @@
 namespace App\Http\Controllers\Fisheries;
 
 use App\Http\Controllers\Controller;
-use App\Services\Fisheries\ColdChainMonitoringService;
-use App\Services\Fisheries\CatchTrackingService;
-use App\Services\Fisheries\SpeciesCatalogService;
+use App\Models\AquaculturePond;
+use App\Models\ColdStorageUnit;
+use App\Models\FishingVessel;
 use App\Services\Fisheries\AquacultureManagementService;
+use App\Services\Fisheries\CatchTrackingService;
+use App\Services\Fisheries\ColdChainMonitoringService;
 use App\Services\Fisheries\ExportDocumentationService;
+use App\Services\Fisheries\SpeciesCatalogService;
 use Illuminate\Http\Request;
 
 class FisheriesController extends Controller
 {
     protected $coldChainService;
+
     protected $catchService;
+
     protected $speciesService;
+
     protected $aquacultureService;
+
     protected $exportService;
 
     public function __construct()
     {
-        $this->coldChainService = new ColdChainMonitoringService();
-        $this->catchService = new CatchTrackingService();
-        $this->speciesService = new SpeciesCatalogService();
-        $this->aquacultureService = new AquacultureManagementService();
-        $this->exportService = new ExportDocumentationService();
+        $this->coldChainService = new ColdChainMonitoringService;
+        $this->catchService = new CatchTrackingService;
+        $this->speciesService = new SpeciesCatalogService;
+        $this->aquacultureService = new AquacultureManagementService;
+        $this->exportService = new ExportDocumentationService;
     }
 
     // ==========================================
@@ -36,7 +43,7 @@ class FisheriesController extends Controller
      */
     public function listColdStorageUnits()
     {
-        $units = \App\Models\ColdStorageUnit::where('tenant_id', auth()->user()->tenant_id)
+        $units = ColdStorageUnit::where('tenant_id', auth()->user()->tenant_id)
             ->orderBy('name')
             ->get();
 
@@ -59,7 +66,7 @@ class FisheriesController extends Controller
             'sensor_id' => 'nullable|string',
         ]);
 
-        $unit = \App\Models\ColdStorageUnit::create([
+        $unit = ColdStorageUnit::create([
             'tenant_id' => auth()->user()->tenant_id,
             ...$validated,
         ]);
@@ -170,7 +177,7 @@ class FisheriesController extends Controller
      */
     public function listVessels()
     {
-        $vessels = \App\Models\FishingVessel::where('tenant_id', auth()->user()->tenant_id)
+        $vessels = FishingVessel::where('tenant_id', auth()->user()->tenant_id)
             ->orderBy('vessel_name')
             ->get();
 
@@ -194,7 +201,7 @@ class FisheriesController extends Controller
             'license_expiry_date' => 'nullable|date',
         ]);
 
-        $vessel = \App\Models\FishingVessel::create([
+        $vessel = FishingVessel::create([
             'tenant_id' => auth()->user()->tenant_id,
             ...$validated,
         ]);
@@ -374,6 +381,30 @@ class FisheriesController extends Controller
     }
 
     /**
+     * Add quality grade
+     */
+    public function addQualityGrade(Request $request)
+    {
+        $validated = $request->validate([
+            'grade_code' => 'required|string|max:10',
+            'grade_name' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'price_multiplier' => 'nullable|numeric|min:0',
+        ]);
+
+        $grade = \App\Models\QualityGrade::create([
+            'tenant_id' => auth()->user()->tenant_id,
+            ...$validated,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'data' => $grade], 201);
+        }
+
+        return back()->with('success', 'Grade berhasil ditambahkan.');
+    }
+
+    /**
      * Assess freshness
      */
     public function assessFreshness(Request $request, int $catchLogId)
@@ -424,7 +455,7 @@ class FisheriesController extends Controller
      */
     public function listPonds()
     {
-        $ponds = \App\Models\AquaculturePond::where('tenant_id', auth()->user()->tenant_id)
+        $ponds = AquaculturePond::where('tenant_id', auth()->user()->tenant_id)
             ->with('currentSpecies')
             ->orderBy('pond_name')
             ->get();

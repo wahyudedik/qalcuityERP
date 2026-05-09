@@ -11,6 +11,7 @@ use App\Models\Timesheet;
 use App\Services\GlPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProjectBillingController extends Controller
 {
@@ -43,7 +44,7 @@ class ProjectBillingController extends Controller
             ->with('user')->orderBy('date')->get();
 
         $unbilledHours = $unbilledTimesheets->sum('hours');
-        $unbilledAmount = $unbilledTimesheets->sum(fn($t) => $t->laborCost());
+        $unbilledAmount = $unbilledTimesheets->sum(fn ($t) => $t->laborCost());
 
         $totalBilled = $project->projectInvoices->sum('total_amount');
         $totalPaid = $project->projectInvoices->where('status', 'paid')->sum('total_amount');
@@ -114,8 +115,9 @@ class ProjectBillingController extends Controller
     public function completeMilestone(ProjectMilestone $projectMilestone)
     {
         abort_if($projectMilestone->tenant_id !== $this->tid(), 403);
-        if ($projectMilestone->status !== 'pending')
+        if ($projectMilestone->status !== 'pending') {
             return back()->with('error', 'Milestone sudah selesai/invoiced.');
+        }
 
         $projectMilestone->update([
             'status' => 'completed',
@@ -145,11 +147,12 @@ class ProjectBillingController extends Controller
             ->whereBetween('date', [$data['period_start'], $data['period_end']])
             ->get();
 
-        if ($timesheets->isEmpty())
+        if ($timesheets->isEmpty()) {
             return back()->with('error', 'Tidak ada timesheet unbilled di periode ini.');
+        }
 
         $totalHours = $timesheets->sum('hours');
-        $laborAmount = $timesheets->sum(fn($t) => (float) $t->hours * ($t->hourly_rate > 0 ? (float) $t->hourly_rate : $rate));
+        $laborAmount = $timesheets->sum(fn ($t) => (float) $t->hours * ($t->hourly_rate > 0 ? (float) $t->hourly_rate : $rate));
 
         // Unbilled expenses in period
         $expenseAmount = $project->expenses()
@@ -160,7 +163,7 @@ class ProjectBillingController extends Controller
 
         DB::transaction(function () use ($project, $data, $timesheets, $totalHours, $rate, $laborAmount, $expenseAmount, $totalAmount, $glService) {
             // Create Invoice
-            $invNumber = 'INV-PRJ-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+            $invNumber = 'INV-PRJ-'.date('Ymd').'-'.strtoupper(Str::random(4));
             $invoice = Invoice::create([
                 'tenant_id' => $this->tid(),
                 'customer_id' => $project->customer_id,
@@ -206,24 +209,26 @@ class ProjectBillingController extends Controller
                 0,
                 $totalAmount
             );
-            if ($glResult->isFailed())
+            if ($glResult->isFailed()) {
                 session()->flash('gl_warning', $glResult->warningMessage());
+            }
         });
 
-        return back()->with('success', "Invoice T&M berhasil dibuat. {$totalHours}h × Rp " . number_format($rate, 0, ',', '.'));
+        return back()->with('success', "Invoice T&M berhasil dibuat. {$totalHours}h × Rp ".number_format($rate, 0, ',', '.'));
     }
 
     public function generateMilestone(ProjectMilestone $projectMilestone, GlPostingService $glService)
     {
         abort_if($projectMilestone->tenant_id !== $this->tid(), 403);
-        if ($projectMilestone->status !== 'completed')
+        if ($projectMilestone->status !== 'completed') {
             return back()->with('error', 'Milestone harus completed dulu.');
+        }
 
         $project = $projectMilestone->project;
         $amount = (float) $projectMilestone->amount;
 
         DB::transaction(function () use ($project, $projectMilestone, $amount, $glService) {
-            $invNumber = 'INV-MS-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+            $invNumber = 'INV-MS-'.date('Ymd').'-'.strtoupper(Str::random(4));
             $invoice = Invoice::create([
                 'tenant_id' => $this->tid(),
                 'customer_id' => $project->customer_id,
@@ -260,8 +265,9 @@ class ProjectBillingController extends Controller
                 0,
                 $amount
             );
-            if ($glResult->isFailed())
+            if ($glResult->isFailed()) {
                 session()->flash('gl_warning', $glResult->warningMessage());
+            }
         });
 
         return back()->with('success', 'Invoice milestone berhasil dibuat.');
@@ -271,15 +277,17 @@ class ProjectBillingController extends Controller
     {
         abort_if($project->tenant_id !== $this->tid(), 403);
         $config = $project->billingConfig;
-        if (!$config || $config->billing_type !== 'retainer')
+        if (! $config || $config->billing_type !== 'retainer') {
             return back()->with('error', 'Project bukan tipe retainer.');
+        }
 
         $amount = (float) $config->retainer_amount;
-        if ($amount <= 0)
+        if ($amount <= 0) {
             return back()->with('error', 'Retainer amount = 0.');
+        }
 
         DB::transaction(function () use ($project, $config, $amount, $glService) {
-            $invNumber = 'INV-RTN-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+            $invNumber = 'INV-RTN-'.date('Ymd').'-'.strtoupper(Str::random(4));
             $periodStart = $config->next_billing_date ?? now();
             $periodEnd = $config->retainer_cycle === 'quarterly'
                 ? $periodStart->copy()->addMonths(3)->subDay()
@@ -326,8 +334,9 @@ class ProjectBillingController extends Controller
                 0,
                 $amount
             );
-            if ($glResult->isFailed())
+            if ($glResult->isFailed()) {
                 session()->flash('gl_warning', $glResult->warningMessage());
+            }
         });
 
         return back()->with('success', 'Invoice retainer berhasil dibuat.');
@@ -340,8 +349,9 @@ class ProjectBillingController extends Controller
         abort_if($project->tenant_id !== $this->tid(), 403);
 
         $config = $project->billingConfig;
-        if (!$config)
+        if (! $config) {
             return back()->with('error', 'Konfigurasi billing belum diset.');
+        }
 
         $data = $request->validate([
             'progress_pct' => 'required|numeric|min:0.01|max:100',
@@ -349,8 +359,9 @@ class ProjectBillingController extends Controller
         ]);
 
         $contractValue = (float) $config->contract_value ?: (float) $project->budget;
-        if ($contractValue <= 0)
+        if ($contractValue <= 0) {
             return back()->with('error', 'Nilai kontrak / budget proyek belum diset.');
+        }
 
         $retentionPct = (float) $config->retention_pct;
         $progressPct = (float) $data['progress_pct'];
@@ -365,7 +376,7 @@ class ProjectBillingController extends Controller
         $thisGross = max(0, $cumulativeGross - $previousGross);
 
         if ($thisGross <= 0) {
-            return back()->with('error', "Progress {$progressPct}% sudah di-billing sebelumnya. Total billed: Rp " . number_format($previousGross, 0, ',', '.'));
+            return back()->with('error', "Progress {$progressPct}% sudah di-billing sebelumnya. Total billed: Rp ".number_format($previousGross, 0, ',', '.'));
         }
 
         // Retention = % of this termin's gross
@@ -378,7 +389,7 @@ class ProjectBillingController extends Controller
             ->count() + 1;
 
         DB::transaction(function () use ($project, $data, $thisGross, $netAmount, $retentionAmount, $retentionPct, $progressPct, $terminNumber, $glService) {
-            $invNumber = 'INV-TRM-' . $terminNumber . '-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
+            $invNumber = 'INV-TRM-'.$terminNumber.'-'.date('Ymd').'-'.strtoupper(Str::random(3));
 
             $invoice = Invoice::create([
                 'tenant_id' => $this->tid(),
@@ -392,8 +403,8 @@ class ProjectBillingController extends Controller
                 'status' => 'unpaid',
                 'due_date' => now()->addDays(30),
                 'notes' => "Termin #{$terminNumber} — {$project->name} (Progress: {$progressPct}%)"
-                    . ($retentionPct > 0 ? "\nRetensi {$retentionPct}%: Rp " . number_format($retentionAmount, 0, ',', '.') : '')
-                    . ($data['description'] ? "\n{$data['description']}" : ''),
+                    .($retentionPct > 0 ? "\nRetensi {$retentionPct}%: Rp ".number_format($retentionAmount, 0, ',', '.') : '')
+                    .($data['description'] ? "\n{$data['description']}" : ''),
             ]);
 
             ProjectInvoice::create([
@@ -420,14 +431,15 @@ class ProjectBillingController extends Controller
                 0,
                 $netAmount
             );
-            if ($glResult->isFailed())
+            if ($glResult->isFailed()) {
                 session()->flash('gl_warning', $glResult->warningMessage());
+            }
         });
 
         $msg = "Termin #{$terminNumber} berhasil dibuat."
-            . " Gross: Rp " . number_format($thisGross, 0, ',', '.')
-            . ($retentionAmount > 0 ? " | Retensi: Rp " . number_format($retentionAmount, 0, ',', '.') : '')
-            . " | Tagihan: Rp " . number_format($netAmount, 0, ',', '.');
+            .' Gross: Rp '.number_format($thisGross, 0, ',', '.')
+            .($retentionAmount > 0 ? ' | Retensi: Rp '.number_format($retentionAmount, 0, ',', '.') : '')
+            .' | Tagihan: Rp '.number_format($netAmount, 0, ',', '.');
 
         return back()->with('success', $msg);
     }
@@ -439,17 +451,18 @@ class ProjectBillingController extends Controller
         abort_if($projectInvoice->tenant_id !== $this->tid(), 403);
 
         $outstanding = $projectInvoice->retentionOutstanding();
-        if ($outstanding <= 0)
+        if ($outstanding <= 0) {
             return back()->with('error', 'Retensi sudah dirilis sepenuhnya.');
+        }
 
         $data = $request->validate([
-            'amount' => 'nullable|numeric|min:0.01|max:' . $outstanding,
+            'amount' => 'nullable|numeric|min:0.01|max:'.$outstanding,
         ]);
 
         $releaseAmount = (float) ($data['amount'] ?? $outstanding);
         $project = $projectInvoice->project;
 
-        DB::transaction(function () use ($projectInvoice, $project, $releaseAmount, $outstanding, $glService) {
+        DB::transaction(function () use ($projectInvoice, $project, $releaseAmount, $glService) {
             $newReleased = (float) $projectInvoice->retention_released + $releaseAmount;
             $fullyReleased = $newReleased >= (float) $projectInvoice->retention_amount;
 
@@ -460,7 +473,7 @@ class ProjectBillingController extends Controller
             ]);
 
             // Create a separate invoice for the released retention
-            $invNumber = 'INV-RET-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
+            $invNumber = 'INV-RET-'.date('Ymd').'-'.strtoupper(Str::random(3));
             $invoice = Invoice::create([
                 'tenant_id' => $this->tid(),
                 'customer_id' => $project->customer_id,
@@ -473,7 +486,7 @@ class ProjectBillingController extends Controller
                 'status' => 'unpaid',
                 'due_date' => now()->addDays(14),
                 'notes' => "Rilis retensi — {$project->name}"
-                    . ($projectInvoice->termin_number ? " (Termin #{$projectInvoice->termin_number})" : ''),
+                    .($projectInvoice->termin_number ? " (Termin #{$projectInvoice->termin_number})" : ''),
             ]);
 
             ProjectInvoice::create([
@@ -497,10 +510,11 @@ class ProjectBillingController extends Controller
                 0,
                 $releaseAmount
             );
-            if ($glResult->isFailed())
+            if ($glResult->isFailed()) {
                 session()->flash('gl_warning', $glResult->warningMessage());
+            }
         });
 
-        return back()->with('success', "Retensi Rp " . number_format($releaseAmount, 0, ',', '.') . " berhasil dirilis.");
+        return back()->with('success', 'Retensi Rp '.number_format($releaseAmount, 0, ',', '.').' berhasil dirilis.');
     }
 }

@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Tenant;
 
 class Customer extends Model
 {
-    use BelongsToTenant, SoftDeletes, AuditsChanges, \App\Traits\CacheableModel;
+    use \App\Traits\CacheableModel, AuditsChanges, BelongsToTenant, SoftDeletes;
 
     protected $cacheModule = 'customers';
 
@@ -38,28 +39,33 @@ class Customer extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function quotations(): HasMany
     {
         return $this->hasMany(Quotation::class);
     }
+
     public function salesOrders(): HasMany
     {
         return $this->hasMany(SalesOrder::class);
     }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }
-    public function customerBalance(): \Illuminate\Database\Eloquent\Relations\HasOne
+
+    public function customerBalance(): HasOne
     {
         return $this->hasOne(CustomerBalance::class);
     }
-    public function balanceTransactions(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+
+    public function balanceTransactions(): HasManyThrough
     {
         return $this->hasManyThrough(CustomerBalanceTransaction::class, CustomerBalance::class);
     }
 
-    public function priceLists(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function priceLists(): BelongsToMany
     {
         return $this->belongsToMany(PriceList::class, 'customer_price_lists')
             ->withPivot('priority')
@@ -78,16 +84,20 @@ class Customer extends Model
     /** Cek apakah order baru akan melampaui credit limit */
     public function wouldExceedCreditLimit(float $orderAmount): bool
     {
-        if (!$this->credit_limit || $this->credit_limit <= 0)
+        if (! $this->credit_limit || $this->credit_limit <= 0) {
             return false;
+        }
+
         return ($this->outstandingBalance() + $orderAmount) > (float) $this->credit_limit;
     }
 
     /** Sisa kredit yang tersedia */
     public function availableCredit(): float
     {
-        if (!$this->credit_limit || $this->credit_limit <= 0)
+        if (! $this->credit_limit || $this->credit_limit <= 0) {
             return PHP_FLOAT_MAX;
+        }
+
         return max(0, (float) $this->credit_limit - $this->outstandingBalance());
     }
 }

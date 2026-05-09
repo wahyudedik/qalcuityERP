@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class ApiToken extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -33,10 +34,10 @@ class ApiToken extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public static function generate(int $tenantId, string $name, array $abilities = ['read'], ?\Carbon\Carbon $expiresAt = null): self
+    public static function generate(int $tenantId, string $name, array $abilities = ['read'], ?Carbon $expiresAt = null): self
     {
         // SEC-002: Default 90 days expiry jika tidak diset
-        if (!$expiresAt) {
+        if (! $expiresAt) {
             $expiresAt = now()->addDays(90);
         }
 
@@ -52,10 +53,13 @@ class ApiToken extends Model
 
     public function isValid(): bool
     {
-        if (!$this->is_active)
+        if (! $this->is_active) {
             return false;
-        if ($this->expires_at && $this->expires_at->isPast())
+        }
+        if ($this->expires_at && $this->expires_at->isPast()) {
             return false;
+        }
+
         return true;
     }
 

@@ -21,10 +21,15 @@ use App\DTOs\Audit\Severity;
 class TenantIsolationAnalyzer implements AnalyzerInterface
 {
     private string $modelPath;
+
     private string $controllerPath;
+
     private string $servicePath;
+
     private string $middlewarePath;
+
     private string $jobPath;
+
     private string $basePath;
 
     /**
@@ -78,17 +83,17 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->modelPath = $modelPath ?? ($this->basePath . '/app/Models');
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
-        $this->middlewarePath = $middlewarePath ?? ($this->basePath . '/app/Http/Middleware');
-        $this->jobPath = $jobPath ?? ($this->basePath . '/app/Jobs');
+        $this->modelPath = $modelPath ?? ($this->basePath.'/app/Models');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
+        $this->middlewarePath = $middlewarePath ?? ($this->basePath.'/app/Http/Middleware');
+        $this->jobPath = $jobPath ?? ($this->basePath.'/app/Jobs');
 
         $this->cacheServiceFiles = $cacheServiceFiles ?? [
-            $this->basePath . '/app/Services/CacheService.php',
-            $this->basePath . '/app/Services/DashboardCacheService.php',
-            $this->basePath . '/app/Services/SettingsCacheService.php',
-            $this->basePath . '/app/Services/QueryCacheService.php',
+            $this->basePath.'/app/Services/CacheService.php',
+            $this->basePath.'/app/Services/DashboardCacheService.php',
+            $this->basePath.'/app/Services/SettingsCacheService.php',
+            $this->basePath.'/app/Services/QueryCacheService.php',
         ];
     }
 
@@ -147,7 +152,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            if (!$this->modelReferencesTenantId($sourceCode)) {
+            if (! $this->modelReferencesTenantId($sourceCode)) {
                 continue;
             }
 
@@ -163,8 +168,8 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 severity: Severity::Critical,
                 title: "Missing BelongsToTenant trait on {$shortClass}",
                 description: "Model {$shortClass} references tenant_id but does not use the BelongsToTenant trait. "
-                    . "Queries on this model are NOT automatically scoped by tenant, "
-                    . "creating a potential data leakage vulnerability.",
+                    .'Queries on this model are NOT automatically scoped by tenant, '
+                    .'creating a potential data leakage vulnerability.',
                 file: $this->relativePath($filePath),
                 line: $line,
                 recommendation: "Add `use BelongsToTenant;` to the {$shortClass} model class.",
@@ -193,18 +198,19 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     {
         $findings = [];
 
-        $middlewareFile = $this->middlewarePath . '/EnforceTenantIsolation.php';
-        if (!file_exists($middlewareFile)) {
+        $middlewareFile = $this->middlewarePath.'/EnforceTenantIsolation.php';
+        if (! file_exists($middlewareFile)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Critical,
-                title: "Missing EnforceTenantIsolation middleware",
-                description: "The EnforceTenantIsolation middleware file was not found at the expected path.",
+                title: 'Missing EnforceTenantIsolation middleware',
+                description: 'The EnforceTenantIsolation middleware file was not found at the expected path.',
                 file: null,
                 line: null,
-                recommendation: "Create the EnforceTenantIsolation middleware to enforce tenant isolation on route model bindings.",
+                recommendation: 'Create the EnforceTenantIsolation middleware to enforce tenant isolation on route model bindings.',
                 metadata: ['check' => 'middleware_whitelist'],
             );
+
             return $findings;
         }
 
@@ -233,12 +239,12 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 continue;
             }
 
-            if (!$this->modelReferencesTenantId($sourceCode)) {
+            if (! $this->modelReferencesTenantId($sourceCode)) {
                 continue;
             }
 
             $shortClass = $this->shortClassName($className);
-            $fullClass = 'App\\Models\\' . $shortClass;
+            $fullClass = 'App\\Models\\'.$shortClass;
 
             // Check if this model is in the whitelist
             if (in_array($shortClass, $whitelistedModels, true) || in_array($fullClass, $whitelistedModels, true)) {
@@ -250,8 +256,8 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 severity: Severity::High,
                 title: "Model {$shortClass} missing from EnforceTenantIsolation whitelist",
                 description: "Model {$shortClass} has a tenant_id column but is not listed in the "
-                    . "EnforceTenantIsolation middleware's \$tenantModels array. If this model is used "
-                    . "in route model binding, users could access other tenants' data via URL manipulation.",
+                    ."EnforceTenantIsolation middleware's \$tenantModels array. If this model is used "
+                    ."in route model binding, users could access other tenants' data via URL manipulation.",
                 file: $this->relativePath($filePath),
                 line: null,
                 recommendation: "Add \\App\\Models\\{$shortClass}::class to the \$tenantModels array in EnforceTenantIsolation middleware.",
@@ -323,7 +329,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
         $findings = [];
 
         foreach ($this->cacheServiceFiles as $filePath) {
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 continue;
             }
 
@@ -374,12 +380,12 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
             }
 
             // Only check classes that implement ShouldQueue
-            if (!$this->implementsShouldQueue($sourceCode)) {
+            if (! $this->implementsShouldQueue($sourceCode)) {
                 continue;
             }
 
             // Check if the job accesses tenant-scoped models
-            if (!$this->accessesTenantScopedData($sourceCode)) {
+            if (! $this->accessesTenantScopedData($sourceCode)) {
                 continue;
             }
 
@@ -395,13 +401,13 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 severity: Severity::High,
                 title: "Queue job {$shortClass} missing tenant_id context",
                 description: "Queue job {$shortClass} accesses tenant-scoped data but does not accept "
-                    . "tenant_id in its constructor. Queue jobs run outside the HTTP request context, "
-                    . "so the BelongsToTenant global scope may not be active. Without explicit tenant_id, "
-                    . "the job could process data from the wrong tenant or fail silently.",
+                    .'tenant_id in its constructor. Queue jobs run outside the HTTP request context, '
+                    .'so the BelongsToTenant global scope may not be active. Without explicit tenant_id, '
+                    .'the job could process data from the wrong tenant or fail silently.',
                 file: $this->relativePath($filePath),
                 line: null,
                 recommendation: "Add a \$tenantId parameter to the {$shortClass} constructor and use it "
-                    . "to scope all queries within the job.",
+                    .'to scope all queries within the job.',
                 metadata: [
                     'job' => $className,
                     'check' => 'queue_job_tenant',
@@ -417,9 +423,9 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     /**
      * Detect raw queries missing tenant_id filtering in a source file.
      *
-     * @param string $sourceCode Full file source code
-     * @param string $className Fully-qualified class name
-     * @param string $filePath Absolute file path
+     * @param  string  $sourceCode  Full file source code
+     * @param  string  $className  Fully-qualified class name
+     * @param  string  $filePath  Absolute file path
      * @return AuditFinding[]
      */
     private function detectRawQueriesWithoutTenantId(string $sourceCode, string $className, string $filePath): array
@@ -431,7 +437,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
             $line = $lines[$i];
 
             foreach (self::RAW_QUERY_PATTERNS as $pattern) {
-                if (!preg_match($pattern, $line)) {
+                if (! preg_match($pattern, $line)) {
                     continue;
                 }
 
@@ -451,14 +457,14 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
-                    title: "Raw query without tenant_id in {$shortClass}" . ($methodName ? "::{$methodName}()" : ''),
+                    title: "Raw query without tenant_id in {$shortClass}".($methodName ? "::{$methodName}()" : ''),
                     description: "A {$queryType} call in {$shortClass} does not appear to filter by tenant_id. "
-                        . "Raw queries bypass Eloquent's BelongsToTenant global scope, so tenant_id "
-                        . "must be explicitly included to prevent cross-tenant data leakage.",
+                        ."Raw queries bypass Eloquent's BelongsToTenant global scope, so tenant_id "
+                        .'must be explicitly included to prevent cross-tenant data leakage.',
                     file: $this->relativePath($filePath),
                     line: $i + 1,
-                    recommendation: "Add a WHERE tenant_id = ? clause to the raw query, or refactor to use "
-                        . "Eloquent models with the BelongsToTenant trait.",
+                    recommendation: 'Add a WHERE tenant_id = ? clause to the raw query, or refactor to use '
+                        .'Eloquent models with the BelongsToTenant trait.',
                     metadata: [
                         'class' => $className,
                         'method' => $methodName,
@@ -483,9 +489,9 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
      * Scans for Cache::remember, Cache::put, Cache::get patterns and checks
      * if the key argument or surrounding context includes tenant_id.
      *
-     * @param string $sourceCode Full file source code
-     * @param string $className Fully-qualified class name
-     * @param string $filePath Absolute file path
+     * @param  string  $sourceCode  Full file source code
+     * @param  string  $className  Fully-qualified class name
+     * @param  string  $filePath  Absolute file path
      * @return AuditFinding[]
      */
     private function detectCacheKeysWithoutTenantId(string $sourceCode, string $className, string $filePath): array
@@ -504,7 +510,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 }
             }
 
-            if (!$matchedCacheOp) {
+            if (! $matchedCacheOp) {
                 continue;
             }
 
@@ -524,14 +530,14 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
-                title: "Cache key without tenant_id in {$shortClass}" . ($methodName ? "::{$methodName}()" : ''),
+                title: "Cache key without tenant_id in {$shortClass}".($methodName ? "::{$methodName}()" : ''),
                 description: "A cache operation in {$shortClass} does not appear to include tenant_id in the "
-                    . "cache key. Without tenant_id scoping, cached data from one tenant could be served "
-                    . "to another tenant, causing data leakage.",
+                    .'cache key. Without tenant_id scoping, cached data from one tenant could be served '
+                    .'to another tenant, causing data leakage.',
                 file: $this->relativePath($filePath),
                 line: $i + 1,
-                recommendation: "Include tenant_id in the cache key to ensure tenant isolation, "
-                    . "e.g., \"cache_key:{tenant_id}:rest_of_key\".",
+                recommendation: 'Include tenant_id in the cache key to ensure tenant isolation, '
+                    .'e.g., "cache_key:{tenant_id}:rest_of_key".',
                 metadata: [
                     'class' => $className,
                     'method' => $methodName,
@@ -554,7 +560,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -633,7 +639,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     private function usesTrait(string $sourceCode, string $traitName): bool
     {
         // Find the class declaration
-        if (!preg_match('/^\s*(?:final\s+)?class\s+\w+/m', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
+        if (! preg_match('/^\s*(?:final\s+)?class\s+\w+/m', $sourceCode, $matches, PREG_OFFSET_CAPTURE)) {
             return false;
         }
 
@@ -641,7 +647,8 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
         $afterClass = substr($sourceCode, $classStart);
 
         // Look for the trait use after the class declaration
-        $pattern = '/\buse\s+[^;]*\b' . preg_quote($traitName, '/') . '\b[^;]*;/';
+        $pattern = '/\buse\s+[^;]*\b'.preg_quote($traitName, '/').'\b[^;]*;/';
+
         return (bool) preg_match($pattern, $afterClass);
     }
 
@@ -772,7 +779,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
 
         foreach ($commonTenantModels as $model) {
             // Check if the model is used in the class body (not just imported)
-            if (preg_match('/\b' . preg_quote($model, '/') . '\s*::/', $sourceCode)) {
+            if (preg_match('/\b'.preg_quote($model, '/').'\s*::/', $sourceCode)) {
                 return true;
             }
         }
@@ -786,7 +793,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     private function constructorAcceptsTenantId(string $sourceCode): bool
     {
         // Find the constructor
-        if (!preg_match('/function\s+__construct\s*\(([^)]*)\)/s', $sourceCode, $matches)) {
+        if (! preg_match('/function\s+__construct\s*\(([^)]*)\)/s', $sourceCode, $matches)) {
             return false;
         }
 
@@ -806,6 +813,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 return $matches[1];
             }
         }
+
         return null;
     }
 
@@ -820,6 +828,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
                 return $i + 1;
             }
         }
+
         return null;
     }
 
@@ -829,6 +838,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -837,7 +847,7 @@ class TenantIsolationAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

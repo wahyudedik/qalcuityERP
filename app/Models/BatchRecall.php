@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BatchRecall extends Model
 {
@@ -65,7 +64,8 @@ class BatchRecall extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'RCL-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'RCL-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     // Calculate return percentage
@@ -74,6 +74,7 @@ class BatchRecall extends Model
         if ($this->total_units <= 0) {
             return 0;
         }
+
         return round(($this->units_returned / $this->total_units) * 100, 2);
     }
 

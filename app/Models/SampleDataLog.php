@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 
 class SampleDataLog extends Model
 {
     use BelongsToTenant;
-protected $fillable = [
+
+    protected $fillable = [
         'tenant_id',
         'user_id',
         'template_id',
@@ -23,8 +23,8 @@ protected $fillable = [
 
     protected $casts = [
         'generated_data' => 'array',
-        'started_at'     => 'datetime',
-        'completed_at'   => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function tenant()

@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('suppliers')) {
+        if (! Schema::hasTable('suppliers')) {
             Schema::create('suppliers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -25,7 +26,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('purchase_orders')) {
+        if (! Schema::hasTable('purchase_orders')) {
             Schema::create('purchase_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -46,7 +47,7 @@ return new class extends Migration {
             });
         }
 
-        if (!Schema::hasTable('purchase_order_items')) {
+        if (! Schema::hasTable('purchase_order_items')) {
             Schema::create('purchase_order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('purchase_order_id')->constrained()->cascadeOnDelete();

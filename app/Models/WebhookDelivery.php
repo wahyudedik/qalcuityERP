@@ -152,6 +152,7 @@ class WebhookDelivery extends Model
     public function getRetryDelay(): int
     {
         $delays = [60, 300, 900, 3600, 14400];
+
         return $delays[min($this->attempt_count, count($delays) - 1)];
     }
 

@@ -5,9 +5,10 @@ namespace Tests\Unit\Services\Agent;
 use App\DTOs\Agent\AgentStep;
 use App\DTOs\Agent\ExecutionContext;
 use App\DTOs\Agent\StepResult;
+use App\Models\AgentAuditLog;
+use App\Models\User;
 use App\Services\Agent\AgentExecutor;
 use App\Services\ERP\ToolRegistry;
-use Carbon\Carbon;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
 use Eris\TestTrait;
@@ -36,7 +37,7 @@ class AgentExecutorPropertyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->executor = new AgentExecutor();
+        $this->executor = new AgentExecutor;
     }
 
     // =========================================================================
@@ -50,13 +51,13 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testStepOutputPropagation(): void
+    public function test_step_output_propagation(): void
     {
         $this->forAll(
             // Jumlah langkah: 2 hingga 5
             Generators::choose(2, 5),
         )->then(function (int $stepCount) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry($stepCount);
 
             $executedOutputs = [];
@@ -97,13 +98,13 @@ class AgentExecutorPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 20)]
-    public function testStepOutputAvailableForPlaceholderResolution(): void
+    public function test_step_output_available_for_placeholder_resolution(): void
     {
         $this->forAll(
             // Nilai output dari langkah 1
             Generators::choose(100, 9999),
         )->then(function (int $productId) {
-            $context = new ExecutionContext();
+            $context = new ExecutionContext;
 
             // Simulasikan output langkah 1 sudah ada di context
             $context->set(1, ['status' => 'success', 'product_id' => $productId, 'data' => ['id' => $productId]]);
@@ -140,7 +141,7 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testFailFastExecution(): void
+    public function test_fail_fast_execution(): void
     {
         $this->forAll(
             // Total langkah: 3 hingga 6
@@ -151,13 +152,13 @@ class AgentExecutorPropertyTest extends TestCase
             // Pastikan failAtStep < totalSteps
             $failAtStep = min($failAtStep, $totalSteps - 1);
 
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildRegistryWithFailAt($failAtStep);
 
             $executedSteps = [];
 
             for ($i = 1; $i <= $totalSteps; $i++) {
-                $step   = $this->buildReadStep($i);
+                $step = $this->buildReadStep($i);
                 $result = $this->executor->executeStep($step, $context, $registry);
 
                 $executedSteps[] = $i;
@@ -174,7 +175,7 @@ class AgentExecutorPropertyTest extends TestCase
                 $failAtStep,
                 $lastExecuted,
                 "Eksekusi harus berhenti pada langkah ke-{$failAtStep} yang gagal, "
-                . "bukan melanjutkan ke langkah berikutnya"
+                .'bukan melanjutkan ke langkah berikutnya'
             );
 
             // Langkah setelah kegagalan tidak boleh ada di context
@@ -188,22 +189,22 @@ class AgentExecutorPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 10)]
-    public function testFailedStepDoesNotPopulateContext(): void
+    public function test_failed_step_does_not_populate_context(): void
     {
         $this->forAll(
             Generators::choose(1, 5),
         )->then(function (int $stepOrder) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildFailRegistry();
 
-            $step   = $this->buildReadStep($stepOrder);
+            $step = $this->buildReadStep($stepOrder);
             $result = $this->executor->executeStep($step, $context, $registry);
 
             // Langkah gagal tidak boleh menyimpan output ke context
             $this->assertSame('failed', $result->status);
             $this->assertFalse(
                 $context->has($stepOrder),
-                "Langkah yang gagal tidak boleh menyimpan output ke ExecutionContext"
+                'Langkah yang gagal tidak boleh menyimpan output ke ExecutionContext'
             );
             $this->assertNull($result->output);
             $this->assertNotNull($result->errorMessage);
@@ -226,12 +227,12 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testWriteOpStepProducesAuditableResult(): void
+    public function test_write_op_step_produces_auditable_result(): void
     {
         $this->forAll(
             Generators::choose(1, 10),
         )->then(function (int $stepOrder) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             $writeStep = new AgentStep(
@@ -258,12 +259,12 @@ class AgentExecutorPropertyTest extends TestCase
     }
 
     #[ErisRepeat(repeat: 20)]
-    public function testReadOpStepDoesNotRequireApproval(): void
+    public function test_read_op_step_does_not_require_approval(): void
     {
         $this->forAll(
             Generators::choose(1, 10),
         )->then(function (int $stepOrder) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             $readStep = new AgentStep(
@@ -278,9 +279,9 @@ class AgentExecutorPropertyTest extends TestCase
             $result = $this->executor->executeStep($readStep, $context, $registry);
 
             $this->assertSame('success', $result->status,
-                "Read op harus berhasil dieksekusi tanpa approval gate");
+                'Read op harus berhasil dieksekusi tanpa approval gate');
             $this->assertTrue($context->has($stepOrder),
-                "Output read op harus tersimpan di context");
+                'Output read op harus tersimpan di context');
         });
     }
 
@@ -296,13 +297,13 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testAuditLogCompletenessForSuccessfulWriteOps(): void
+    public function test_audit_log_completeness_for_successful_write_ops(): void
     {
         $this->forAll(
             Generators::choose(1, 10),
             Generators::elements('create_invoice', 'create_journal', 'adjust_stock', 'create_purchase_order'),
         )->then(function (int $stepOrder, string $toolName) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             // Set user context untuk audit log
@@ -321,12 +322,12 @@ class AgentExecutorPropertyTest extends TestCase
 
             if ($result->status === 'success') {
                 // Verifikasi audit log dibuat dengan semua field non-null
-                $log = \App\Models\AgentAuditLog::where('user_id', $user->id)
+                $log = AgentAuditLog::where('user_id', $user->id)
                     ->where('action_name', $toolName)
                     ->latest()
                     ->first();
 
-                $this->assertNotNull($log, "AgentAuditLog harus dibuat untuk write op yang berhasil");
+                $this->assertNotNull($log, 'AgentAuditLog harus dibuat untuk write op yang berhasil');
 
                 // Semua field wajib harus non-null
                 $this->assertNotNull($log->user_id, 'user_id tidak boleh null');
@@ -358,7 +359,7 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testPermissionEnforcementForUnauthorizedUser(): void
+    public function test_permission_enforcement_for_unauthorized_user(): void
     {
         $this->forAll(
             Generators::elements(
@@ -368,7 +369,7 @@ class AgentExecutorPropertyTest extends TestCase
                 'create_invoice',
             ),
         )->then(function (string $toolName) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             // Buat user tanpa permission (role = 'staff' — tidak punya akses ke accounting/payroll/purchasing)
@@ -377,7 +378,7 @@ class AgentExecutorPropertyTest extends TestCase
 
             $step = new AgentStep(
                 order: 1,
-                name: "Restricted action",
+                name: 'Restricted action',
                 toolName: $toolName,
                 args: [],
                 isWriteOp: true,
@@ -387,11 +388,11 @@ class AgentExecutorPropertyTest extends TestCase
 
             // Harus ditolak
             $this->assertSame('failed', $result->status,
-                "Eksekusi harus ditolak untuk user tanpa permission");
+                'Eksekusi harus ditolak untuk user tanpa permission');
 
             // Pesan error harus menyebutkan permission yang diperlukan
             $this->assertNotNull($result->errorMessage,
-                "Pesan error tidak boleh null");
+                'Pesan error tidak boleh null');
             $this->assertStringContainsString(
                 'permission',
                 strtolower($result->errorMessage),
@@ -400,7 +401,7 @@ class AgentExecutorPropertyTest extends TestCase
 
             // Tool tidak boleh dieksekusi (context tidak boleh terisi)
             $this->assertFalse($context->has(1),
-                "Context tidak boleh terisi jika permission ditolak");
+                'Context tidak boleh terisi jika permission ditolak');
         });
     }
 
@@ -415,7 +416,7 @@ class AgentExecutorPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 20)]
-    public function testDestructiveActionRejection(): void
+    public function test_destructive_action_rejection(): void
     {
         $this->forAll(
             Generators::elements(
@@ -427,12 +428,12 @@ class AgentExecutorPropertyTest extends TestCase
                 'mass_delete',
             ),
         )->then(function (string $destructiveTool) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             $step = new AgentStep(
                 order: 1,
-                name: "Destructive operation",
+                name: 'Destructive operation',
                 toolName: $destructiveTool,
                 args: [],
                 isWriteOp: true,
@@ -446,22 +447,22 @@ class AgentExecutorPropertyTest extends TestCase
 
             // Pesan error harus ada dan menjelaskan alasan
             $this->assertNotNull($result->errorMessage,
-                "Pesan error tidak boleh null untuk operasi destruktif");
+                'Pesan error tidak boleh null untuk operasi destruktif');
             $this->assertNotEmpty($result->errorMessage,
-                "Pesan error tidak boleh kosong untuk operasi destruktif");
+                'Pesan error tidak boleh kosong untuk operasi destruktif');
 
             // Tool tidak boleh dieksekusi sama sekali
             $this->assertFalse($context->has(1),
-                "Context tidak boleh terisi untuk operasi destruktif");
+                'Context tidak boleh terisi untuk operasi destruktif');
 
             // Output harus null (tidak ada hasil eksekusi)
             $this->assertNull($result->output,
-                "Output harus null untuk operasi destruktif yang ditolak");
+                'Output harus null untuk operasi destruktif yang ditolak');
         });
     }
 
     #[ErisRepeat(repeat: 10)]
-    public function testDestructiveActionRejectionExplanationMentionsReason(): void
+    public function test_destructive_action_rejection_explanation_mentions_reason(): void
     {
         $this->forAll(
             Generators::elements(
@@ -470,12 +471,12 @@ class AgentExecutorPropertyTest extends TestCase
                 'purge_old_data',
             ),
         )->then(function (string $destructiveTool) {
-            $context  = new ExecutionContext();
+            $context = new ExecutionContext;
             $registry = $this->buildSuccessRegistry(10);
 
             $step = new AgentStep(
                 order: 1,
-                name: "Destructive operation",
+                name: 'Destructive operation',
                 toolName: $destructiveTool,
                 args: [],
                 isWriteOp: true,
@@ -492,8 +493,8 @@ class AgentExecutorPropertyTest extends TestCase
 
             $this->assertTrue(
                 $hasExplanation,
-                "Pesan error harus menjelaskan alasan penolakan operasi destruktif. "
-                . "Pesan aktual: '{$result->errorMessage}'"
+                'Pesan error harus menjelaskan alasan penolakan operasi destruktif. '
+                ."Pesan aktual: '{$result->errorMessage}'"
             );
         });
     }
@@ -523,13 +524,13 @@ class AgentExecutorPropertyTest extends TestCase
         $mock->method('execute')
             ->willReturnCallback(function (string $toolName, array $args) {
                 return [
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => "Tool {$toolName} berhasil dieksekusi",
-                    'data'    => array_merge($args, ['executed_at' => now()->toIso8601String()]),
+                    'data' => array_merge($args, ['executed_at' => now()->toIso8601String()]),
                 ];
             });
         $mock->method('isWriteOperation')
-            ->willReturnCallback(fn(string $name) => str_starts_with($name, 'create_')
+            ->willReturnCallback(fn (string $name) => str_starts_with($name, 'create_')
                 || str_starts_with($name, 'update_')
                 || str_starts_with($name, 'adjust_'));
 
@@ -544,7 +545,7 @@ class AgentExecutorPropertyTest extends TestCase
         $mock = $this->createMock(ToolRegistry::class);
         $mock->method('execute')
             ->willReturn([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Tool gagal dieksekusi',
             ]);
         $mock->method('isWriteOperation')->willReturn(false);
@@ -558,13 +559,14 @@ class AgentExecutorPropertyTest extends TestCase
     private function buildRegistryWithFailAt(int $failAtStep): ToolRegistry
     {
         $callCount = 0;
-        $mock      = $this->createMock(ToolRegistry::class);
+        $mock = $this->createMock(ToolRegistry::class);
         $mock->method('execute')
             ->willReturnCallback(function () use (&$callCount, $failAtStep) {
                 $callCount++;
                 if ($callCount === $failAtStep) {
                     return ['status' => 'error', 'message' => "Langkah ke-{$failAtStep} gagal"];
                 }
+
                 return ['status' => 'success', 'message' => 'Berhasil', 'data' => []];
             });
         $mock->method('isWriteOperation')->willReturn(false);
@@ -575,27 +577,29 @@ class AgentExecutorPropertyTest extends TestCase
     /**
      * Buat user dummy untuk testing.
      */
-    private function createUser(): \App\Models\User
+    private function createUser(): User
     {
         $tenant = $this->createTenant();
+
         return $this->createAdminUser($tenant);
     }
 
     /**
      * Buat user dengan role tertentu.
      */
-    private function createUserWithRole(string $role): \App\Models\User
+    private function createUserWithRole(string $role): User
     {
         $tenant = $this->createTenant();
         // Gunakan role 'staff' sebagai pengganti 'viewer' yang mungkin tidak valid
         $validRole = in_array($role, ['admin', 'staff', 'owner']) ? $role : 'staff';
-        return \App\Models\User::create([
-            'tenant_id'         => $tenant->id,
-            'name'              => "User {$role} " . uniqid(),
-            'email'             => "user-{$role}-" . uniqid() . '@example.com',
-            'password'          => bcrypt('password'),
-            'role'              => $validRole,
-            'is_active'         => true,
+
+        return User::create([
+            'tenant_id' => $tenant->id,
+            'name' => "User {$role} ".uniqid(),
+            'email' => "user-{$role}-".uniqid().'@example.com',
+            'password' => bcrypt('password'),
+            'role' => $validRole,
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
     }

@@ -24,14 +24,15 @@ class RouteAnalyzerPropertyTest extends TestCase
     use TestTrait;
 
     private string $tempDir;
+
     private string $basePath;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/route_analyzer_test_' . uniqid();
-        mkdir($this->tempDir . '/routes', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/route_analyzer_test_'.uniqid();
+        mkdir($this->tempDir.'/routes', 0777, true);
         $this->basePath = $this->tempDir;
     }
 
@@ -101,7 +102,7 @@ class RouteAnalyzerPropertyTest extends TestCase
                 : $regularUri;
 
             $routeFileContent = $this->generateRouteFile($httpMethod, $uri, $middlewareConfig);
-            $routeFilePath = $this->tempDir . '/routes/web.php';
+            $routeFilePath = $this->tempDir.'/routes/web.php';
             file_put_contents($routeFilePath, $routeFileContent);
 
             $analyzer = new RouteAnalyzer([$routeFilePath], $this->basePath);
@@ -111,33 +112,33 @@ class RouteAnalyzerPropertyTest extends TestCase
             $isExempt = $useExemptUri;
             $hasPermissionMiddleware = in_array($middlewareConfig, ['permission', 'role', 'can'], true);
 
-            if (!$isDataModifying) {
+            if (! $isDataModifying) {
                 // GET routes should never produce unprotected route findings
                 $this->assertEmpty(
                     $findings,
-                    "GET route should NEVER produce unprotected route findings. "
-                        . "method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
+                    'GET route should NEVER produce unprotected route findings. '
+                        ."method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
                 );
             } elseif ($isExempt) {
                 // Exempt routes should never produce findings regardless of middleware
                 $this->assertEmpty(
                     $findings,
-                    "Exempt route should NEVER produce findings. "
-                        . "method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
+                    'Exempt route should NEVER produce findings. '
+                        ."method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
                 );
             } elseif ($hasPermissionMiddleware) {
                 // Data-modifying route WITH permission/role/can middleware → no finding
                 $this->assertEmpty(
                     $findings,
                     "Route with {$middlewareConfig} middleware should NOT be flagged. "
-                        . "method={$httpMethod}, uri={$uri}"
+                        ."method={$httpMethod}, uri={$uri}"
                 );
             } else {
                 // Data-modifying route WITHOUT permission middleware → MUST produce a finding
                 $this->assertNotEmpty(
                     $findings,
-                    "Data-modifying route WITHOUT permission middleware MUST be flagged. "
-                        . "method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
+                    'Data-modifying route WITHOUT permission middleware MUST be flagged. '
+                        ."method={$httpMethod}, uri={$uri}, middleware={$middlewareConfig}"
                 );
 
                 $finding = $findings[0];
@@ -149,15 +150,15 @@ class RouteAnalyzerPropertyTest extends TestCase
                     $this->assertSame(
                         Severity::Critical,
                         $finding->severity,
-                        "Route with NO middleware should be Critical severity. "
-                            . "method={$httpMethod}, uri={$uri}"
+                        'Route with NO middleware should be Critical severity. '
+                            ."method={$httpMethod}, uri={$uri}"
                     );
                 } elseif ($middlewareConfig === 'auth_only') {
                     $this->assertSame(
                         Severity::Medium,
                         $finding->severity,
-                        "Route with auth-only middleware should be Medium severity. "
-                            . "method={$httpMethod}, uri={$uri}"
+                        'Route with auth-only middleware should be Medium severity. '
+                            ."method={$httpMethod}, uri={$uri}"
                     );
                 }
 
@@ -219,7 +220,7 @@ PHP;
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

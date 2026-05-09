@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ModuleRecommendationService;
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Tenant extends Model
 {
     use AuditsChanges, HasFactory;
+
     protected $fillable = [
         'name',
         'slug',
@@ -64,15 +66,17 @@ class Tenant extends Model
      */
     public function isModuleEnabled(string $key): bool
     {
-        if ($this->enabled_modules === null)
+        if ($this->enabled_modules === null) {
             return true;
+        }
+
         return in_array($key, $this->enabled_modules, true);
     }
 
     /** Return list of enabled module keys, or all keys if null. */
     public function enabledModules(): array
     {
-        return $this->enabled_modules ?? \App\Services\ModuleRecommendationService::ALL_MODULES;
+        return $this->enabled_modules ?? ModuleRecommendationService::ALL_MODULES;
     }
 
     public function users(): HasMany
@@ -109,12 +113,16 @@ class Tenant extends Model
     /** Apakah tenant masih boleh akses (aktif + belum expired) */
     public function canAccess(): bool
     {
-        if (!$this->is_active)
+        if (! $this->is_active) {
             return false;
-        if ($this->isTrialExpired())
+        }
+        if ($this->isTrialExpired()) {
             return false;
-        if ($this->isPlanExpired())
+        }
+        if ($this->isPlanExpired()) {
             return false;
+        }
+
         return true;
     }
 
@@ -124,6 +132,7 @@ class Tenant extends Model
         if ($this->subscriptionPlan) {
             return $this->subscriptionPlan->max_users;
         }
+
         return match ($this->plan) {
             'starter' => 2,
             'basic' => 5,   // legacy
@@ -141,6 +150,7 @@ class Tenant extends Model
         if ($this->subscriptionPlan) {
             return $this->subscriptionPlan->max_ai_messages;
         }
+
         return match ($this->plan) {
             'starter' => 50,
             'basic' => 100,  // legacy
@@ -155,14 +165,19 @@ class Tenant extends Model
     /** Label status langganan */
     public function subscriptionStatus(): string
     {
-        if (!$this->is_active)
+        if (! $this->is_active) {
             return 'nonaktif';
-        if ($this->isTrialExpired())
+        }
+        if ($this->isTrialExpired()) {
             return 'trial_expired';
-        if ($this->isPlanExpired())
+        }
+        if ($this->isPlanExpired()) {
             return 'expired';
-        if ($this->plan === 'trial')
+        }
+        if ($this->plan === 'trial') {
             return 'trial';
+        }
+
         return 'active';
     }
 
@@ -199,18 +214,12 @@ class Tenant extends Model
 
         // Tambahkan tips kontekstual per jenis bisnis
         $tips = match ($this->business_type) {
-            'warung_makan', 'kafe' =>
-            "Fokus pada: pencatatan penjualan cepat (POS), stok bahan baku, dan rekap omzet harian.",
-            'toko_retail' =>
-            "Fokus pada: manajemen stok produk, harga jual, dan laporan penjualan per periode.",
-            'konveksi' =>
-            "Fokus pada: order produksi, bahan baku kain/benang, dan pengiriman ke pelanggan.",
-            'distributor' =>
-            "Fokus pada: purchase order ke supplier, stok gudang, dan distribusi ke pelanggan.",
-            'jasa' =>
-            "Fokus pada: pencatatan pendapatan jasa, pengeluaran operasional, dan laporan keuangan.",
-            'hotel' =>
-            "Fokus pada: manajemen reservasi kamar, check-in/check-out tamu, housekeeping, tarif & channel distribution.",
+            'warung_makan', 'kafe' => 'Fokus pada: pencatatan penjualan cepat (POS), stok bahan baku, dan rekap omzet harian.',
+            'toko_retail' => 'Fokus pada: manajemen stok produk, harga jual, dan laporan penjualan per periode.',
+            'konveksi' => 'Fokus pada: order produksi, bahan baku kain/benang, dan pengiriman ke pelanggan.',
+            'distributor' => 'Fokus pada: purchase order ke supplier, stok gudang, dan distribusi ke pelanggan.',
+            'jasa' => 'Fokus pada: pencatatan pendapatan jasa, pengeluaran operasional, dan laporan keuangan.',
+            'hotel' => 'Fokus pada: manajemen reservasi kamar, check-in/check-out tamu, housekeeping, tarif & channel distribution.',
             default => null,
         };
 

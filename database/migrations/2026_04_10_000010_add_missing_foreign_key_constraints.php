@@ -5,10 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * Add missing foreign key constraints identified during audit.
      * Only adds FKs where they are genuinely missing.
      */
@@ -23,32 +24,32 @@ return new class extends Migration {
         if (Schema::hasTable('surgery_schedules')) {
             Schema::table('surgery_schedules', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('surgery_schedules'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 // surgeon_id -> doctors.id
-                if (Schema::hasColumn('surgery_schedules', 'surgeon_id') && !$existingFks->contains('surgeon_id')) {
+                if (Schema::hasColumn('surgery_schedules', 'surgeon_id') && ! $existingFks->contains('surgeon_id')) {
                     try {
                         $table->foreign('surgeon_id')->references('id')->on('doctors')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_schedules.surgeon_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_schedules.surgeon_id: '.$e->getMessage());
                     }
                 }
 
                 // operating_room_id -> operating_rooms.id
-                if (Schema::hasColumn('surgery_schedules', 'operating_room_id') && !$existingFks->contains('operating_room_id')) {
+                if (Schema::hasColumn('surgery_schedules', 'operating_room_id') && ! $existingFks->contains('operating_room_id')) {
                     try {
                         $table->foreign('operating_room_id')->references('id')->on('operating_rooms')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_schedules.operating_room_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_schedules.operating_room_id: '.$e->getMessage());
                     }
                 }
 
                 // anesthesiologist_id -> doctors.id
-                if (Schema::hasColumn('surgery_schedules', 'anesthesiologist_id') && !$existingFks->contains('anesthesiologist_id')) {
+                if (Schema::hasColumn('surgery_schedules', 'anesthesiologist_id') && ! $existingFks->contains('anesthesiologist_id')) {
                     try {
                         $table->foreign('anesthesiologist_id')->references('id')->on('doctors')->onDelete('set null');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_schedules.anesthesiologist_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_schedules.anesthesiologist_id: '.$e->getMessage());
                     }
                 }
             });
@@ -57,30 +58,30 @@ return new class extends Migration {
         if (Schema::hasTable('surgery_teams')) {
             Schema::table('surgery_teams', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('surgery_teams'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 // Handle different versions of surgery_teams table
-                if (Schema::hasColumn('surgery_teams', 'staff_id') && !$existingFks->contains('staff_id')) {
+                if (Schema::hasColumn('surgery_teams', 'staff_id') && ! $existingFks->contains('staff_id')) {
                     try {
                         $table->foreign('staff_id')->references('id')->on('users')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_teams.staff_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_teams.staff_id: '.$e->getMessage());
                     }
                 }
 
-                if (Schema::hasColumn('surgery_teams', 'surgery_schedule_id') && !$existingFks->contains('surgery_schedule_id')) {
+                if (Schema::hasColumn('surgery_teams', 'surgery_schedule_id') && ! $existingFks->contains('surgery_schedule_id')) {
                     try {
                         $table->foreign('surgery_schedule_id')->references('id')->on('surgery_schedules')->onDelete('cascade');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_teams.surgery_schedule_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_teams.surgery_schedule_id: '.$e->getMessage());
                     }
                 }
 
-                if (Schema::hasColumn('surgery_teams', 'doctor_id') && !$existingFks->contains('doctor_id')) {
+                if (Schema::hasColumn('surgery_teams', 'doctor_id') && ! $existingFks->contains('doctor_id')) {
                     try {
                         $table->foreign('doctor_id')->references('id')->on('doctors')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for surgery_teams.doctor_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for surgery_teams.doctor_id: '.$e->getMessage());
                     }
                 }
             });
@@ -93,14 +94,14 @@ return new class extends Migration {
         if (Schema::hasTable('lab_samples')) {
             Schema::table('lab_samples', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('lab_samples'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 // lab_order_id -> lab_orders.id
-                if (Schema::hasColumn('lab_samples', 'lab_order_id') && !$existingFks->contains('lab_order_id')) {
+                if (Schema::hasColumn('lab_samples', 'lab_order_id') && ! $existingFks->contains('lab_order_id')) {
                     try {
                         $table->foreign('lab_order_id')->references('id')->on('lab_orders')->onDelete('cascade');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for lab_samples.lab_order_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for lab_samples.lab_order_id: '.$e->getMessage());
                     }
                 }
             });
@@ -109,7 +110,7 @@ return new class extends Migration {
         if (Schema::hasTable('lab_results')) {
             Schema::table('lab_results', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('lab_results'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 // Only add FK for columns that exist and don't have FK yet
                 $fkMappings = [
@@ -120,11 +121,11 @@ return new class extends Migration {
                 ];
 
                 foreach ($fkMappings as $column => $ref) {
-                    if (Schema::hasColumn('lab_results', $column) && !$existingFks->contains($column)) {
+                    if (Schema::hasColumn('lab_results', $column) && ! $existingFks->contains($column)) {
                         try {
                             $table->foreign($column)->references('id')->on($ref['table'])->onDelete($ref['onDelete']);
-                        } catch (\Exception $e) {
-                            Log::warning("Failed to add FK for lab_results.{$column}: " . $e->getMessage());
+                        } catch (Exception $e) {
+                            Log::warning("Failed to add FK for lab_results.{$column}: ".$e->getMessage());
                         }
                     }
                 }
@@ -134,13 +135,13 @@ return new class extends Migration {
         if (Schema::hasTable('lab_result_details')) {
             Schema::table('lab_result_details', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('lab_result_details'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
-                if (Schema::hasColumn('lab_result_details', 'lab_result_id') && !$existingFks->contains('lab_result_id')) {
+                if (Schema::hasColumn('lab_result_details', 'lab_result_id') && ! $existingFks->contains('lab_result_id')) {
                     try {
                         $table->foreign('lab_result_id')->references('id')->on('lab_results')->onDelete('cascade');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for lab_result_details.lab_result_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for lab_result_details.lab_result_id: '.$e->getMessage());
                     }
                 }
             });
@@ -153,7 +154,7 @@ return new class extends Migration {
         if (Schema::hasTable('radiology_orders')) {
             Schema::table('radiology_orders', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('radiology_orders'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 $fkMappings = [
                     'ordered_by' => ['table' => 'doctors', 'onDelete' => 'restrict'],
@@ -162,11 +163,11 @@ return new class extends Migration {
                 ];
 
                 foreach ($fkMappings as $column => $ref) {
-                    if (Schema::hasColumn('radiology_orders', $column) && !$existingFks->contains($column)) {
+                    if (Schema::hasColumn('radiology_orders', $column) && ! $existingFks->contains($column)) {
                         try {
                             $table->foreign($column)->references('id')->on($ref['table'])->onDelete($ref['onDelete']);
-                        } catch (\Exception $e) {
-                            Log::warning("Failed to add FK for radiology_orders.{$column}: " . $e->getMessage());
+                        } catch (Exception $e) {
+                            Log::warning("Failed to add FK for radiology_orders.{$column}: ".$e->getMessage());
                         }
                     }
                 }
@@ -176,7 +177,7 @@ return new class extends Migration {
         if (Schema::hasTable('radiology_results')) {
             Schema::table('radiology_results', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('radiology_results'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 $fkMappings = [
                     'reported_by' => ['table' => 'doctors', 'onDelete' => 'restrict'],
@@ -184,11 +185,11 @@ return new class extends Migration {
                 ];
 
                 foreach ($fkMappings as $column => $ref) {
-                    if (Schema::hasColumn('radiology_results', $column) && !$existingFks->contains($column)) {
+                    if (Schema::hasColumn('radiology_results', $column) && ! $existingFks->contains($column)) {
                         try {
                             $table->foreign($column)->references('id')->on($ref['table'])->onDelete($ref['onDelete']);
-                        } catch (\Exception $e) {
-                            Log::warning("Failed to add FK for radiology_results.{$column}: " . $e->getMessage());
+                        } catch (Exception $e) {
+                            Log::warning("Failed to add FK for radiology_results.{$column}: ".$e->getMessage());
                         }
                     }
                 }
@@ -198,13 +199,13 @@ return new class extends Migration {
         if (Schema::hasTable('radiology_images')) {
             Schema::table('radiology_images', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('radiology_images'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
-                if (Schema::hasColumn('radiology_images', 'radiology_exam_id') && !$existingFks->contains('radiology_exam_id')) {
+                if (Schema::hasColumn('radiology_images', 'radiology_exam_id') && ! $existingFks->contains('radiology_exam_id')) {
                     try {
                         $table->foreign('radiology_exam_id')->references('id')->on('radiology_exams')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for radiology_images.radiology_exam_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for radiology_images.radiology_exam_id: '.$e->getMessage());
                     }
                 }
             });
@@ -213,7 +214,7 @@ return new class extends Migration {
         if (Schema::hasTable('pacs_studies')) {
             Schema::table('pacs_studies', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('pacs_studies'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
                 $fkMappings = [
                     'radiology_exam_id' => ['table' => 'radiology_exams', 'onDelete' => 'restrict'],
@@ -223,11 +224,11 @@ return new class extends Migration {
                 ];
 
                 foreach ($fkMappings as $column => $ref) {
-                    if (Schema::hasColumn('pacs_studies', $column) && !$existingFks->contains($column)) {
+                    if (Schema::hasColumn('pacs_studies', $column) && ! $existingFks->contains($column)) {
                         try {
                             $table->foreign($column)->references('id')->on($ref['table'])->onDelete($ref['onDelete']);
-                        } catch (\Exception $e) {
-                            Log::warning("Failed to add FK for pacs_studies.{$column}: " . $e->getMessage());
+                        } catch (Exception $e) {
+                            Log::warning("Failed to add FK for pacs_studies.{$column}: ".$e->getMessage());
                         }
                     }
                 }
@@ -241,21 +242,21 @@ return new class extends Migration {
         if (Schema::hasTable('teleconsultations')) {
             Schema::table('teleconsultations', function (Blueprint $table) {
                 $existingFks = collect(Schema::getForeignKeys('teleconsultations'))
-                    ->flatMap(fn($fk) => $fk['columns'] ?? []);
+                    ->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
-                if (Schema::hasColumn('teleconsultations', 'doctor_id') && !$existingFks->contains('doctor_id')) {
+                if (Schema::hasColumn('teleconsultations', 'doctor_id') && ! $existingFks->contains('doctor_id')) {
                     try {
                         $table->foreign('doctor_id')->references('id')->on('doctors')->onDelete('restrict');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for teleconsultations.doctor_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for teleconsultations.doctor_id: '.$e->getMessage());
                     }
                 }
 
-                if (Schema::hasColumn('teleconsultations', 'visit_id') && !$existingFks->contains('visit_id')) {
+                if (Schema::hasColumn('teleconsultations', 'visit_id') && ! $existingFks->contains('visit_id')) {
                     try {
                         $table->foreign('visit_id')->references('id')->on('patient_visits')->onDelete('set null');
-                    } catch (\Exception $e) {
-                        Log::warning("Failed to add FK for teleconsultations.visit_id: " . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::warning('Failed to add FK for teleconsultations.visit_id: '.$e->getMessage());
                     }
                 }
             });
@@ -263,19 +264,19 @@ return new class extends Migration {
 
         // Helper function to add FK if missing
         $addFkIfMissing = function ($table, $column, $refTable, $onDelete = 'restrict') {
-            if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column)) {
+            if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $column)) {
                 return;
             }
 
-            $existingFks = collect(Schema::getForeignKeys($table))->flatMap(fn($fk) => $fk['columns'] ?? []);
+            $existingFks = collect(Schema::getForeignKeys($table))->flatMap(fn ($fk) => $fk['columns'] ?? []);
 
-            if (!$existingFks->contains($column)) {
+            if (! $existingFks->contains($column)) {
                 try {
                     Schema::table($table, function (Blueprint $table) use ($column, $refTable, $onDelete) {
                         $table->foreign($column)->references('id')->on($refTable)->onDelete($onDelete);
                     });
-                } catch (\Exception $e) {
-                    Log::warning("Failed to add FK for {$table}.{$column}: " . $e->getMessage());
+                } catch (Exception $e) {
+                    Log::warning("Failed to add FK for {$table}.{$column}: ".$e->getMessage());
                 }
             }
         };
@@ -317,14 +318,15 @@ return new class extends Migration {
         Schema::disableForeignKeyConstraints();
 
         $dropFk = function ($table, $columns) {
-            if (!Schema::hasTable($table))
+            if (! Schema::hasTable($table)) {
                 return;
+            }
 
             Schema::table($table, function (Blueprint $table) use ($columns) {
                 foreach ($columns as $column) {
                     try {
                         $table->dropForeign([$column]);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // Ignore if FK doesn't exist
                     }
                 }

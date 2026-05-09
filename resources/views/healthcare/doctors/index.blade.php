@@ -39,7 +39,7 @@
                     class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Spesialisasi</option>
                     @php
-                        $specializations = \App\Models\Doctor::where('tenant_id', $tid)
+                        $specializations = \App\Models\Doctor::where('tenant_id', auth()->user()->tenant_id)
                             ->whereNotNull('specialization')
                             ->distinct()
                             ->pluck('specialization');
@@ -91,8 +91,8 @@
                                     @else
                                         <div
                                             class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                                            <svg class="w-4 h-4 text-purple-600" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
                                                 </path>
@@ -144,8 +144,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.doctors.show', $doctor) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                        title="Detail">
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -155,8 +154,7 @@
                                         </svg>
                                     </a>
                                     <button onclick="editDoctor({{ $doctor->id }})"
-                                        class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"
-                                        title="Edit">
+                                        class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
@@ -195,8 +193,8 @@
                             @else
                                 <div
                                     class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                                    <svg class="w-6 h-6 text-purple-600" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
                                         </path>
@@ -276,8 +274,8 @@
                 </div>
             @empty
                 <div class="p-12 text-center">
-                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                         </path>
@@ -311,7 +309,7 @@
                     </svg>
                 </button>
             </div>
-            <form action="{{ route('healthcare.doctors.store') }}" method="POST" class="p-6 space-y-4">
+            <form action="{{ route('healthcare.doctors.index') }}" method="POST" class="p-6 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">

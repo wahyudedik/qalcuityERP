@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -13,12 +12,17 @@ class Payable extends Model
     use BelongsToTenant;
 
     // Konstanta status untuk type safety
-    const STATUS_UNPAID       = 'unpaid';
-    const STATUS_PARTIAL      = 'partial';
+    const STATUS_UNPAID = 'unpaid';
+
+    const STATUS_PARTIAL = 'partial';
+
     const STATUS_PARTIAL_PAID = 'partial_paid';
-    const STATUS_PAID         = 'paid';
-    const STATUS_CANCELLED    = 'cancelled';
-    const STATUS_VOIDED       = 'voided';
+
+    const STATUS_PAID = 'paid';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_VOIDED = 'voided';
 
     const STATUSES = [
         self::STATUS_UNPAID,
@@ -37,17 +41,32 @@ class Payable extends Model
     protected function casts(): array
     {
         return [
-            'due_date'         => 'date',
-            'total_amount'     => 'decimal:2',
-            'paid_amount'      => 'decimal:2',
+            'due_date' => 'date',
+            'total_amount' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
             'remaining_amount' => 'decimal:2',
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function purchaseOrder(): BelongsTo { return $this->belongsTo(PurchaseOrder::class); }
-    public function supplier(): BelongsTo { return $this->belongsTo(Supplier::class); }
-    public function payments(): MorphMany { return $this->morphMany(Payment::class, 'payable'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'payable');
+    }
 
     /**
      * Recalculate paid_amount, remaining_amount, dan status dari total payments.
@@ -57,12 +76,12 @@ class Payable extends Model
         $paid = $this->payments()->sum('amount');
         $paid = min($paid, $this->total_amount);
 
-        $this->paid_amount      = $paid;
+        $this->paid_amount = $paid;
         $this->remaining_amount = $this->total_amount - $paid;
-        $this->status           = match (true) {
-            $paid <= 0                   => 'unpaid',
+        $this->status = match (true) {
+            $paid <= 0 => 'unpaid',
             $paid >= $this->total_amount => 'paid',
-            default                      => 'partial',
+            default => 'partial',
         };
         $this->save();
     }

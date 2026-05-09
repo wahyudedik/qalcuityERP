@@ -29,15 +29,15 @@ class SalesAiController extends Controller
     {
         $request->validate([
             'customer_id' => 'required|integer',
-            'product_id'  => 'required|integer',
-            'qty'         => 'nullable|numeric|min:0.001',
+            'product_id' => 'required|integer',
+            'qty' => 'nullable|numeric|min:0.001',
         ]);
 
         $result = $this->service->suggestPrice(
-            tenantId:   $this->tid(),
+            tenantId: $this->tid(),
             customerId: (int) $request->customer_id,
-            productId:  (int) $request->product_id,
-            qty:        (float) ($request->qty ?? 1),
+            productId: (int) $request->product_id,
+            qty: (float) ($request->qty ?? 1),
         );
 
         return response()->json($result);
@@ -54,7 +54,7 @@ class SalesAiController extends Controller
         ]);
 
         $result = $this->service->predictLatePayment(
-            tenantId:   $this->tid(),
+            tenantId: $this->tid(),
             customerId: (int) $request->customer_id,
         );
 
@@ -72,7 +72,7 @@ class SalesAiController extends Controller
         ]);
 
         $result = $this->service->draftItemDescription(
-            tenantId:  $this->tid(),
+            tenantId: $this->tid(),
             productId: (int) $request->product_id,
         );
 

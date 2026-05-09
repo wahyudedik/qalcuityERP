@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use App\Models\TaxRate;
 use Illuminate\Http\Request;
 
@@ -21,14 +22,14 @@ class TaxController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'code'          => 'required|string|max:20',
-            'type'          => 'required|in:percentage,fixed',
-            'tax_type'      => 'required|in:ppn,pph21,pph23,pph4ayat2,custom',
-            'rate'          => 'required|numeric|min:0|max:100',
-            'is_withholding'=> 'boolean',
-            'account_code'  => 'nullable|string|max:20',
-            'is_active'     => 'boolean',
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:20',
+            'type' => 'required|in:percentage,fixed',
+            'tax_type' => 'required|in:ppn,pph21,pph23,pph4ayat2,custom',
+            'rate' => 'required|numeric|min:0|max:100',
+            'is_withholding' => 'boolean',
+            'account_code' => 'nullable|string|max:20',
+            'is_active' => 'boolean',
         ]);
 
         $tid = $this->tenantId();
@@ -48,18 +49,18 @@ class TaxController extends Controller
         abort_unless($tax->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'code'          => 'required|string|max:20',
-            'type'          => 'required|in:percentage,fixed',
-            'tax_type'      => 'required|in:ppn,pph21,pph23,pph4ayat2,custom',
-            'rate'          => 'required|numeric|min:0|max:100',
-            'is_withholding'=> 'boolean',
-            'account_code'  => 'nullable|string|max:20',
-            'is_active'     => 'boolean',
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:20',
+            'type' => 'required|in:percentage,fixed',
+            'tax_type' => 'required|in:ppn,pph21,pph23,pph4ayat2,custom',
+            'rate' => 'required|numeric|min:0|max:100',
+            'is_withholding' => 'boolean',
+            'account_code' => 'nullable|string|max:20',
+            'is_active' => 'boolean',
         ]);
 
-        $data['is_active']     = $request->boolean('is_active');
-        $data['is_withholding']= $request->boolean('is_withholding');
+        $data['is_active'] = $request->boolean('is_active');
+        $data['is_withholding'] = $request->boolean('is_withholding');
         $tax->update($data);
 
         return back()->with('success', "Tarif pajak {$tax->name} berhasil diperbarui.");
@@ -69,6 +70,7 @@ class TaxController extends Controller
     {
         abort_unless($tax->tenant_id === $this->tenantId(), 403);
         $tax->delete();
+
         return back()->with('success', 'Tarif pajak berhasil dihapus.');
     }
 
@@ -80,20 +82,20 @@ class TaxController extends Controller
      */
     public function exportEfaktur(Request $request)
     {
-        $tid  = $this->tenantId();
+        $tid = $this->tenantId();
         $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
+        $to = $request->get('to', now()->toDateString());
 
-        $invoices = \App\Models\Invoice::with(['customer', 'taxRate'])
+        $invoices = Invoice::with(['customer', 'taxRate'])
             ->where('tenant_id', $tid)
-            ->whereHas('taxRate', fn($q) => $q->where('tax_type', 'ppn'))
-            ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+            ->whereHas('taxRate', fn ($q) => $q->where('tax_type', 'ppn'))
+            ->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->get();
 
-        $filename = 'efaktur_' . str_replace('-', '', $from) . '_' . str_replace('-', '', $to) . '.csv';
+        $filename = 'efaktur_'.str_replace('-', '', $from).'_'.str_replace('-', '', $to).'.csv';
 
         $headers = [
-            'Content-Type'        => 'text/csv',
+            'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 

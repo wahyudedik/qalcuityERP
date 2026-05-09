@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Exceptions\TransactionException;
+use App\Models\ActivityLog;
+use App\Models\ErpNotification;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\ErpNotification;
-use App\Models\ActivityLog;
-use App\Exceptions\TransactionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -18,20 +18,21 @@ class InvoicePaymentService
 {
     /**
      * Process an invoice payment atomically.
-     * 
+     *
      * All operations happen in a single database transaction:
      * 1. Create payment record
      * 2. Update invoice payment status
      * 3. Post to General Ledger
      * 4. Record activity log
      * 5. Create notifications
-     * 
+     *
      * If ANY step fails, ALL changes are rolled back automatically.
      *
-     * @param Invoice $invoice The invoice being paid
-     * @param array $data Payment data [amount, method, notes]
-     * @param int $userId User making the payment
+     * @param  Invoice  $invoice  The invoice being paid
+     * @param  array  $data  Payment data [amount, method, notes]
+     * @param  int  $userId  User making the payment
      * @return array Result containing payment, invoice, and GL posting result
+     *
      * @throws TransactionException
      */
     public function processPayment(
@@ -44,12 +45,12 @@ class InvoicePaymentService
         $method = $data['method'];
         $notes = $data['notes'] ?? null;
 
-        Log::info("Starting atomic invoice payment", [
+        Log::info('Starting atomic invoice payment', [
             'invoice_id' => $invoice->id,
             'invoice_number' => $invoice->number,
             'amount' => $amount,
             'method' => $method,
-            'user_id' => $userId
+            'user_id' => $userId,
         ]);
 
         try {
@@ -57,9 +58,9 @@ class InvoicePaymentService
                 // Step 1: Lock the invoice row for update (prevents race conditions)
                 $lockedInvoice = Invoice::where('id', $invoice->id)->lockForUpdate()->first();
 
-                if (!$lockedInvoice) {
+                if (! $lockedInvoice) {
                     throw TransactionException::rollbackRequired(
-                        message: "Invoice not found or locked by another transaction",
+                        message: 'Invoice not found or locked by another transaction',
                         type: 'invoice_payment',
                         data: ['invoice_id' => $invoice->id]
                     );
@@ -72,7 +73,7 @@ class InvoicePaymentService
                         type: 'invoice_payment',
                         data: [
                             'payment_amount' => $amount,
-                            'remaining_amount' => $lockedInvoice->remaining_amount
+                            'remaining_amount' => $lockedInvoice->remaining_amount,
                         ]
                     );
                 }
@@ -89,21 +90,21 @@ class InvoicePaymentService
                     'user_id' => $userId,
                 ]);
 
-                Log::info("Payment record created", ['payment_id' => $payment->id]);
+                Log::info('Payment record created', ['payment_id' => $payment->id]);
 
                 // Step 3: Update invoice payment status
                 $lockedInvoice->updatePaymentStatus();
 
-                Log::info("Invoice payment status updated", [
+                Log::info('Invoice payment status updated', [
                     'paid_amount' => $lockedInvoice->paid_amount,
                     'remaining_amount' => $lockedInvoice->remaining_amount,
-                    'status' => $lockedInvoice->status
+                    'status' => $lockedInvoice->status,
                 ]);
 
                 // Step 4: Record activity log (inside transaction)
                 ActivityLog::record(
                     'payment_recorded',
-                    "Pembayaran dicatat: Invoice {$lockedInvoice->number} Rp " . number_format($amount, 0, ',', '.') . " via {$method}",
+                    "Pembayaran dicatat: Invoice {$lockedInvoice->number} Rp ".number_format($amount, 0, ',', '.')." via {$method}",
                     $lockedInvoice
                 );
 
@@ -113,7 +114,7 @@ class InvoicePaymentService
                 $glResult = $glPostingService->postInvoicePayment(
                     tenantId: $tenantId,
                     userId: $userId,
-                    invoiceNumber: $lockedInvoice->number . '-PAY-' . now()->format('His'),
+                    invoiceNumber: $lockedInvoice->number.'-PAY-'.now()->format('His'),
                     invoiceId: $lockedInvoice->id,
                     amount: $amount,
                     method: $method,
@@ -124,8 +125,8 @@ class InvoicePaymentService
                 // The payment itself is valid even without GL posting
                 $glSuccess = true;
                 if ($glResult->isFailed()) {
-                    Log::warning("GL posting failed but payment will proceed", [
-                        'reason' => $glResult->reason
+                    Log::warning('GL posting failed but payment will proceed', [
+                        'reason' => $glResult->reason,
                     ]);
                     $glSuccess = false;
                 }
@@ -146,39 +147,38 @@ class InvoicePaymentService
                     'payment' => $payment,
                     'invoice' => $lockedInvoice->fresh(),
                     'gl_result' => $glResult,
-                    'gl_success' => $glSuccess
+                    'gl_success' => $glSuccess,
                 ];
             });
 
-            Log::info("Invoice payment completed successfully", [
+            Log::info('Invoice payment completed successfully', [
                 'payment_id' => $result['payment']->id,
                 'invoice_status' => $result['invoice']->status,
-                'gl_success' => $result['gl_success']
+                'gl_success' => $result['gl_success'],
             ]);
 
             return $result;
 
         } catch (TransactionException $e) {
             // Re-throw transaction exceptions as-is
-            Log::critical("Invoice payment transaction failed - ROLLED BACK", [
+            Log::critical('Invoice payment transaction failed - ROLLED BACK', [
                 'error' => $e->getMessage(),
                 'type' => $e->getTransactionType(),
-                'context' => $e->getContext()
+                'context' => $e->getContext(),
             ]);
             throw $e;
-
         } catch (\Throwable $e) {
-            Log::critical("Invoice payment unexpected error - ROLLED BACK", [
+            Log::critical('Invoice payment unexpected error - ROLLED BACK', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw TransactionException::rollbackRequired(
-                message: "Failed to process payment: " . $e->getMessage(),
+                message: 'Failed to process payment: '.$e->getMessage(),
                 type: 'invoice_payment',
                 data: [
                     'invoice_id' => $invoice->id,
-                    'original_error' => get_class($e)
+                    'original_error' => get_class($e),
                 ]
             );
         }
@@ -188,10 +188,11 @@ class InvoicePaymentService
      * Process bulk invoice payments (multiple invoices in one transaction).
      * Uses saga pattern for complex multi-step operations.
      *
-     * @param array $invoices Array of ['invoice' => Invoice, 'amount' => float]
-     * @param string $method Payment method
-     * @param int $userId User ID
+     * @param  array  $invoices  Array of ['invoice' => Invoice, 'amount' => float]
+     * @param  string  $method  Payment method
+     * @param  int  $userId  User ID
      * @return array Result with all payments and their statuses
+     *
      * @throws TransactionException
      */
     public function processBulkPayments(
@@ -211,6 +212,7 @@ class InvoicePaymentService
                         );
                     }
                 }
+
                 return ['validated' => true];
             },
 
@@ -234,6 +236,7 @@ class InvoicePaymentService
                     $payments[] = $payment;
                     $invoice->updatePaymentStatus();
                 }
+
                 return ['payments' => $payments];
             },
 
@@ -246,7 +249,7 @@ class InvoicePaymentService
                     $glResult = $glService->postInvoicePayment(
                         tenantId: $invoice->tenant_id,
                         userId: $userId,
-                        invoiceNumber: $invoice->number . '-BULK-' . now()->format('His'),
+                        invoiceNumber: $invoice->number.'-BULK-'.now()->format('His'),
                         invoiceId: $invoice->id,
                         amount: $payment->amount,
                         method: $method,
@@ -256,7 +259,7 @@ class InvoicePaymentService
                 }
 
                 return ['gl_results' => $glResults];
-            }
+            },
         ];
 
         try {
@@ -271,13 +274,13 @@ class InvoicePaymentService
                 'success' => true,
                 'payments' => $result['data']['payments'] ?? [],
                 'gl_results' => $result['data']['gl_results'] ?? [],
-                'total_processed' => count($result['data']['payments'] ?? [])
+                'total_processed' => count($result['data']['payments'] ?? []),
             ];
 
         } catch (TransactionException $e) {
-            Log::critical("Bulk payment saga failed", [
+            Log::critical('Bulk payment saga failed', [
                 'error' => $e->getMessage(),
-                'compensated' => !$e->getContext()['requires_compensation'] ?? false
+                'compensated' => ! $e->getContext()['requires_compensation'] ?? false,
             ]);
             throw $e;
         }

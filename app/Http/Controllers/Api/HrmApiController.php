@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\Department;
+use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Payroll;
-use App\Models\Department;
 use Illuminate\Http\Request;
 
 class HrmApiController extends ApiBaseController
@@ -83,9 +82,9 @@ class HrmApiController extends ApiBaseController
         $employee = Employee::where('tenant_id', $this->getTenantId())->findOrFail($id);
 
         $validated = $request->validate([
-            'employee_code' => 'sometimes|string|unique:employees,employee_code,' . $id,
+            'employee_code' => 'sometimes|string|unique:employees,employee_code,'.$id,
             'full_name' => 'sometimes|string',
-            'email' => 'sometimes|email|unique:employees,email,' . $id,
+            'email' => 'sometimes|email|unique:employees,email,'.$id,
             'phone' => 'nullable|string',
             'department_id' => 'sometimes|exists:departments,id',
             'position_id' => 'nullable|exists:positions,id',
@@ -265,7 +264,7 @@ class HrmApiController extends ApiBaseController
         $query = Employee::where('tenant_id', $this->getTenantId())
             ->where('status', 'active');
 
-        if (!empty($validated['employee_ids'])) {
+        if (! empty($validated['employee_ids'])) {
             $query->whereIn('id', $validated['employee_ids']);
         }
 
@@ -287,7 +286,7 @@ class HrmApiController extends ApiBaseController
             $processed[] = $payroll;
         }
 
-        return $this->success($processed, 'Payroll processed for ' . count($processed) . ' employees', 201);
+        return $this->success($processed, 'Payroll processed for '.count($processed).' employees', 201);
     }
 
     /**

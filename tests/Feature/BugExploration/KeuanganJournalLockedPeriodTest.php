@@ -25,6 +25,7 @@ class KeuanganJournalLockedPeriodTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -79,8 +80,8 @@ class KeuanganJournalLockedPeriodTest extends TestCase
         // Test ini AKAN GAGAL karena GlPostingService berhasil membuat jurnal
         $this->assertTrue(
             $result->isFailed(),
-            "Bug 1.14: GlPostingService berhasil membuat jurnal ke periode locked " .
-            "tanpa melempar exception. Jurnal seharusnya ditolak."
+            'Bug 1.14: GlPostingService berhasil membuat jurnal ke periode locked '.
+            'tanpa melempar exception. Jurnal seharusnya ditolak.'
         );
     }
 
@@ -105,7 +106,7 @@ class KeuanganJournalLockedPeriodTest extends TestCase
 
         // Verifikasi bahwa periode memang terkunci
         $isLocked = $periodLockService->isLocked($this->tenant->id, '2025-02-15');
-        $this->assertTrue($isLocked, "Periode seharusnya terkunci");
+        $this->assertTrue($isLocked, 'Periode seharusnya terkunci');
 
         // Hitung jumlah jurnal sebelum
         $journalCountBefore = JournalEntry::where('tenant_id', $this->tenant->id)->count();
@@ -130,8 +131,9 @@ class KeuanganJournalLockedPeriodTest extends TestCase
             $this->assertEquals(
                 $journalCountBefore,
                 $journalCountAfter,
-                "Bug 1.14: Jurnal dibuat meskipun exception dilempar"
+                'Bug 1.14: Jurnal dibuat meskipun exception dilempar'
             );
+
             return;
         }
 
@@ -142,9 +144,9 @@ class KeuanganJournalLockedPeriodTest extends TestCase
         $this->assertEquals(
             $journalCountBefore,
             $journalCountAfter,
-            "Bug 1.14: Jurnal berhasil dibuat ke periode locked tanpa exception. " .
-            "Jumlah jurnal sebelum: {$journalCountBefore}, setelah: {$journalCountAfter}. " .
-            "GlPostingService tidak memvalidasi status periode sebelum membuat jurnal."
+            'Bug 1.14: Jurnal berhasil dibuat ke periode locked tanpa exception. '.
+            "Jumlah jurnal sebelum: {$journalCountBefore}, setelah: {$journalCountAfter}. ".
+            'GlPostingService tidak memvalidasi status periode sebelum membuat jurnal.'
         );
     }
 }

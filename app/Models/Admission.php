@@ -10,15 +10,20 @@ use Illuminate\Support\Facades\DB;
 
 class Admission extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     // Status constants
-    const STATUS_PENDING     = 'pending';
-    const STATUS_ACTIVE      = 'active';
-    const STATUS_DISCHARGED  = 'discharged';
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_ACTIVE = 'active';
+
+    const STATUS_DISCHARGED = 'discharged';
+
     const STATUS_TRANSFERRED = 'transferred';
-    const STATUS_AMA         = 'ama';
-    const STATUS_DECEASED    = 'deceased';
+
+    const STATUS_AMA = 'ama';
+
+    const STATUS_DECEASED = 'deceased';
 
     const STATUSES = [
         self::STATUS_PENDING,
@@ -91,9 +96,9 @@ class Admission extends Model
     public static function generateAdmissionNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'ADM-' . $date;
+        $prefix = 'ADM-'.$date;
 
-        $lastAdmission = static::where('admission_number', 'like', $prefix . '%')
+        $lastAdmission = static::where('admission_number', 'like', $prefix.'%')
             ->orderBy('admission_number', 'desc')
             ->first();
 
@@ -104,7 +109,7 @@ class Admission extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -113,6 +118,7 @@ class Admission extends Model
     public function getLengthOfStayAttribute()
     {
         $endDate = $this->actual_discharge_date ?? now();
+
         return $this->admission_date->diffInDays($endDate);
     }
 
@@ -311,7 +317,7 @@ class Admission extends Model
             'ward' => $this->ward?->ward_name,
             'bed' => $this->bed?->bed_number,
             'admission_date' => $this->admission_date,
-            'length_of_stay' => $this->length_of_stay . ' days',
+            'length_of_stay' => $this->length_of_stay.' days',
         ];
     }
 }

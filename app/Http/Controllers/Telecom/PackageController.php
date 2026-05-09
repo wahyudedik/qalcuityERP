@@ -118,7 +118,7 @@ class PackageController extends Controller
 
         } catch (\Exception $e) {
             return back()->withInput()
-                ->withErrors(['error' => 'Gagal menambahkan package: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal menambahkan package: '.$e->getMessage()]);
         }
     }
 
@@ -189,7 +189,7 @@ class PackageController extends Controller
 
         } catch (\Exception $e) {
             return back()->withInput()
-                ->withErrors(['error' => 'Gagal mengupdate package: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal mengupdate package: '.$e->getMessage()]);
         }
     }
 
@@ -215,7 +215,7 @@ class PackageController extends Controller
                 ->with('success', "Package '{$packageName}' berhasil dihapus.");
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus package: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus package: '.$e->getMessage()]);
         }
     }
 
@@ -228,7 +228,7 @@ class PackageController extends Controller
             abort(403);
         }
 
-        $package->update(['is_active' => !$package->is_active]);
+        $package->update(['is_active' => ! $package->is_active]);
 
         $message = $package->is_active
             ? 'Package diaktifkan.'

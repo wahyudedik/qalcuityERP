@@ -28,8 +28,10 @@ use App\Jobs\SyncEcommerceOrders;
 use App\Jobs\SyncMarketplacePrices;
 use App\Jobs\SyncMarketplaceStock;
 use App\Jobs\UpdateCurrencyRates;
+use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -37,7 +39,7 @@ class BackgroundJobsAuditTest extends TestCase
 {
     /**
      * Task 54.1: Verify all Jobs in app/Jobs/ are registered and executable
-     * 
+     *
      * This test verifies that:
      * - All job classes can be instantiated
      * - All jobs implement ShouldQueue interface
@@ -104,7 +106,7 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.2: Verify CheckTrialExpiry job sends notifications on time
-     * 
+     *
      * This test verifies that:
      * - Trial expiry notifications are sent 3 days before expiry
      * - Paid plan expiry notifications are sent 7 days before expiry
@@ -113,10 +115,10 @@ class BackgroundJobsAuditTest extends TestCase
      */
     public function test_check_trial_expiry_job_is_properly_configured(): void
     {
-        $job = new CheckTrialExpiry();
-        
+        $job = new CheckTrialExpiry;
+
         // Verify it's a queueable job
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
         $this->assertEquals(2, $job->tries);
     }
 
@@ -137,7 +139,7 @@ class BackgroundJobsAuditTest extends TestCase
         ]);
 
         // Create notification for today
-        \App\Models\ErpNotification::create([
+        ErpNotification::create([
             'tenant_id' => $tenant->id,
             'user_id' => $admin->id,
             'type' => 'trial_expiring',
@@ -146,10 +148,10 @@ class BackgroundJobsAuditTest extends TestCase
         ]);
 
         // Execute job again
-        (new CheckTrialExpiry())->handle();
+        (new CheckTrialExpiry)->handle();
 
         // Verify only one notification exists for today
-        $count = \App\Models\ErpNotification::where('tenant_id', $tenant->id)
+        $count = ErpNotification::where('tenant_id', $tenant->id)
             ->where('user_id', $admin->id)
             ->where('type', 'trial_expiring')
             ->whereDate('created_at', today())
@@ -160,7 +162,7 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.3: Verify ExpireLoyaltyPoints job processes correctly
-     * 
+     *
      * This test verifies that:
      * - Expired loyalty points are marked as expired
      * - Total points are reduced correctly
@@ -169,8 +171,8 @@ class BackgroundJobsAuditTest extends TestCase
      */
     public function test_expire_loyalty_points_job_has_correct_configuration(): void
     {
-        $job = new ExpireLoyaltyPoints();
-        
+        $job = new ExpireLoyaltyPoints;
+
         // Verify retry configuration
         $this->assertEquals(2, $job->tries, 'ExpireLoyaltyPoints should have tries=2');
         $this->assertEquals(120, $job->timeout, 'ExpireLoyaltyPoints should have timeout=120');
@@ -178,15 +180,15 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.4: Verify UpdateCurrencyRates job updates currency rates periodically
-     * 
+     *
      * This test verifies that:
      * - Currency rates job has proper retry configuration
      * - Job has proper timeout
      */
     public function test_update_currency_rates_job_has_correct_configuration(): void
     {
-        $job = new UpdateCurrencyRates();
-        
+        $job = new UpdateCurrencyRates;
+
         // Verify retry configuration
         $this->assertEquals(3, $job->tries, 'UpdateCurrencyRates should have tries=3');
         $this->assertEquals(60, $job->timeout, 'UpdateCurrencyRates should have timeout=60');
@@ -194,22 +196,22 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.5: Verify ProcessRecurringJournals job creates recurring journals on schedule
-     * 
+     *
      * This test verifies that:
      * - Job is properly configured
      * - Job implements ShouldQueue
      */
     public function test_process_recurring_journals_job_is_properly_configured(): void
     {
-        $job = new ProcessRecurringJournals();
-        
+        $job = new ProcessRecurringJournals;
+
         // Verify it's a queueable job
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
     }
 
     /**
      * Task 54.6: Verify GenerateTelecomInvoicesJob generates invoices automatically
-     * 
+     *
      * This test verifies that:
      * - Telecom invoices job can be dispatched
      * - Job is properly configured
@@ -218,7 +220,7 @@ class BackgroundJobsAuditTest extends TestCase
     {
         Queue::fake();
 
-        $job = new GenerateTelecomInvoicesJob();
+        $job = new GenerateTelecomInvoicesJob;
         $this->assertNotNull($job);
 
         // Verify job can be dispatched
@@ -228,7 +230,7 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.7: Verify all jobs use correct tenant_id and don't mix data between tenants
-     * 
+     *
      * This test verifies that:
      * - Jobs filter data by tenant_id
      * - Jobs don't access data from other tenants
@@ -239,7 +241,7 @@ class BackgroundJobsAuditTest extends TestCase
         // Verify that jobs use tenant_id filtering in their code
         $reflection = new \ReflectionClass(CheckTrialExpiry::class);
         $source = file_get_contents($reflection->getFileName());
-        
+
         // Verify the job references tenant_id
         $this->assertStringContainsString('tenant_id', $source, 'Job should filter by tenant_id');
         $this->assertStringContainsString('Tenant::', $source, 'Job should query Tenant model');
@@ -247,7 +249,7 @@ class BackgroundJobsAuditTest extends TestCase
 
     /**
      * Task 54.8: Verify failed job handling with retry backoff and admin notification
-     * 
+     *
      * This test verifies that:
      * - Failed jobs are retried with backoff
      * - Admin is notified after max retries
@@ -256,13 +258,13 @@ class BackgroundJobsAuditTest extends TestCase
     public function test_failed_job_handling_with_retry_backoff(): void
     {
         // Verify job has retry configuration
-        $job = new CheckTrialExpiry();
+        $job = new CheckTrialExpiry;
         $this->assertEquals(2, $job->tries, 'CheckTrialExpiry should have tries=2');
 
-        $job = new ExpireLoyaltyPoints();
+        $job = new ExpireLoyaltyPoints;
         $this->assertEquals(2, $job->tries, 'ExpireLoyaltyPoints should have tries=2');
 
-        $job = new UpdateCurrencyRates();
+        $job = new UpdateCurrencyRates;
         $this->assertEquals(3, $job->tries, 'UpdateCurrencyRates should have tries=3');
     }
 
@@ -271,10 +273,10 @@ class BackgroundJobsAuditTest extends TestCase
      */
     public function test_job_timeout_configuration(): void
     {
-        $job = new ExpireLoyaltyPoints();
+        $job = new ExpireLoyaltyPoints;
         $this->assertEquals(120, $job->timeout, 'ExpireLoyaltyPoints should have timeout=120');
 
-        $job = new UpdateCurrencyRates();
+        $job = new UpdateCurrencyRates;
         $this->assertEquals(60, $job->timeout, 'UpdateCurrencyRates should have timeout=60');
     }
 
@@ -288,14 +290,14 @@ class BackgroundJobsAuditTest extends TestCase
 
         $jobCount = 0;
         foreach ($files as $file) {
-            if ($file->getExtension() === 'php' && !is_dir($file->getPathname())) {
+            if ($file->getExtension() === 'php' && ! is_dir($file->getPathname())) {
                 $jobCount++;
-                $className = 'App\\Jobs\\' . str_replace(['/', '.php'], ['\\', ''], 
-                    str_replace(app_path('Jobs') . '/', '', $file->getPathname()));
-                
+                $className = 'App\\Jobs\\'.str_replace(['/', '.php'], ['\\', ''],
+                    str_replace(app_path('Jobs').'/', '', $file->getPathname()));
+
                 if (class_exists($className)) {
                     $reflection = new \ReflectionClass($className);
-                    
+
                     // Verify it's not abstract
                     $this->assertFalse(
                         $reflection->isAbstract(),
@@ -395,7 +397,7 @@ class BackgroundJobsAuditTest extends TestCase
     public function test_generate_telecom_invoices_job_exists(): void
     {
         $this->assertTrue(class_exists(GenerateTelecomInvoicesJob::class));
-        
+
         $reflection = new \ReflectionClass(GenerateTelecomInvoicesJob::class);
         $this->assertTrue($reflection->hasMethod('handle'));
     }
@@ -409,7 +411,7 @@ class BackgroundJobsAuditTest extends TestCase
         $reflection = new \ReflectionClass(CheckTrialExpiry::class);
         $method = $reflection->getMethod('handle');
         $source = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('tenant', strtolower($source), 'Job should reference tenant');
     }
 
@@ -421,7 +423,7 @@ class BackgroundJobsAuditTest extends TestCase
         // Verify UpdateCurrencyRates has error handling
         $reflection = new \ReflectionClass(UpdateCurrencyRates::class);
         $source = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('catch', $source, 'Job should have error handling');
         $this->assertStringContainsString('Log', $source, 'Job should log errors');
     }

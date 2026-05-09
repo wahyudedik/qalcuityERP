@@ -6,10 +6,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * TASK-009: Add Database Indexes - SAFE VERSION
      * Only adds indexes to tables/columns that are confirmed to exist
      */
@@ -19,7 +20,7 @@ return new class extends Migration {
 
         // Helper function to safely add index
         $addIndex = function ($table, $columns, $name) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 return false;
             }
 
@@ -28,8 +29,9 @@ return new class extends Migration {
 
             // Check if all columns exist
             foreach ($columns as $col) {
-                if (!Schema::hasColumn($table, $col)) {
+                if (! Schema::hasColumn($table, $col)) {
                     Log::warning("TASK-009: Column {$col} not found in {$table}, skipping index {$name}");
+
                     return false;
                 }
             }
@@ -39,6 +41,7 @@ return new class extends Migration {
             foreach ($existingIndexes as $index) {
                 if ($index->Key_name === $name) {
                     Log::info("TASK-009: Index {$name} already exists in {$table}");
+
                     return false;
                 }
             }
@@ -52,10 +55,12 @@ return new class extends Migration {
                         $table->index($columns, $name);
                     }
                 });
-                Log::info("TASK-009: Added index {$name} to {$table}(" . implode(',', $columns) . ")");
+                Log::info("TASK-009: Added index {$name} to {$table}(".implode(',', $columns).')');
+
                 return true;
-            } catch (\Exception $e) {
-                Log::error("TASK-009: Failed to add index {$name} to {$table}: " . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error("TASK-009: Failed to add index {$name} to {$table}: ".$e->getMessage());
+
                 return false;
             }
         };

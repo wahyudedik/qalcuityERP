@@ -6,6 +6,7 @@ use App\Models\OnboardingProfile;
 use App\Services\SampleDataGeneratorService;
 use Database\Seeders\SampleDataTemplateSeeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -24,7 +25,7 @@ class GeneratorBugConditionExplorationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        (new SampleDataTemplateSeeder())->run();
+        (new SampleDataTemplateSeeder)->run();
     }
 
     /**
@@ -38,27 +39,27 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_healthcare_generator_seeds_doctors_successfully(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'healthcare',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'healthcare',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(healthcare) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(healthcare) should succeed. Error: '.($result['error'] ?? 'none'));
 
         $industryData = $result['generated_data']['industry'] ?? [];
-        $doctorCount  = $industryData['doctors'] ?? 0;
+        $doctorCount = $industryData['doctors'] ?? 0;
 
         $this->assertGreaterThan(0, $doctorCount,
-            "HealthcareGenerator::seedDoctors() should create >0 doctors. " .
+            'HealthcareGenerator::seedDoctors() should create >0 doctors. '.
             "Got $doctorCount. This indicates the tenant_id column is still missing from doctors table.");
     }
 
@@ -73,27 +74,27 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_healthcare_generator_seeds_patients_successfully(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'healthcare',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'healthcare',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(healthcare) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(healthcare) should succeed. Error: '.($result['error'] ?? 'none'));
 
-        $industryData  = $result['generated_data']['industry'] ?? [];
-        $patientCount  = $industryData['patients'] ?? 0;
+        $industryData = $result['generated_data']['industry'] ?? [];
+        $patientCount = $industryData['patients'] ?? 0;
 
         $this->assertGreaterThan(0, $patientCount,
-            "HealthcareGenerator::seedPatients() should create >0 patients. " .
+            'HealthcareGenerator::seedPatients() should create >0 patients. '.
             "Got $patientCount. This indicates the tenant_id column is still missing from patients table.");
     }
 
@@ -109,27 +110,27 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_hotel_generator_seeds_housekeeping_tasks_successfully(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'hotel',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'hotel',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('hotel', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('hotel', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(hotel) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(hotel) should succeed. Error: '.($result['error'] ?? 'none'));
 
-        $industryData         = $result['generated_data']['industry'] ?? [];
-        $housekeepingCount    = $industryData['housekeeping_tasks'] ?? 0;
+        $industryData = $result['generated_data']['industry'] ?? [];
+        $housekeepingCount = $industryData['housekeeping_tasks'] ?? 0;
 
         $this->assertGreaterThan(0, $housekeepingCount,
-            "HotelGenerator::seedHousekeepingTasks() should create >0 tasks. " .
+            'HotelGenerator::seedHousekeepingTasks() should create >0 tasks. '.
             "Got $housekeepingCount. This indicates enum mismatch or missing actual_duration column.");
     }
 
@@ -145,27 +146,27 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_manufacturing_generator_seeds_quality_checks_successfully(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'manufacturing',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'manufacturing',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('manufacturing', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('manufacturing', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(manufacturing) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(manufacturing) should succeed. Error: '.($result['error'] ?? 'none'));
 
-        $industryData       = $result['generated_data']['industry'] ?? [];
-        $qualityCheckCount  = $industryData['quality_checks'] ?? 0;
+        $industryData = $result['generated_data']['industry'] ?? [];
+        $qualityCheckCount = $industryData['quality_checks'] ?? 0;
 
         $this->assertGreaterThan(0, $qualityCheckCount,
-            "ManufacturingGenerator::seedQualityChecks() should create >0 quality checks. " .
+            'ManufacturingGenerator::seedQualityChecks() should create >0 quality checks. '.
             "Got $qualityCheckCount. This indicates inspector_id is still NOT NULL without default.");
     }
 
@@ -181,27 +182,27 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_agriculture_generator_seeds_crop_cycles_successfully(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'agriculture',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'agriculture',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('agriculture', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('agriculture', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
-            'generateForIndustry(agriculture) should succeed. Error: ' . ($result['error'] ?? 'none'));
+            'generateForIndustry(agriculture) should succeed. Error: '.($result['error'] ?? 'none'));
 
-        $industryData    = $result['generated_data']['industry'] ?? [];
-        $cropCycleCount  = $industryData['crop_cycles'] ?? 0;
+        $industryData = $result['generated_data']['industry'] ?? [];
+        $cropCycleCount = $industryData['crop_cycles'] ?? 0;
 
         $this->assertGreaterThan(0, $cropCycleCount,
-            "AgricultureGenerator::seedCropCycles() should create >0 crop cycles. " .
+            'AgricultureGenerator::seedCropCycles() should create >0 crop cycles. '.
             "Got $cropCycleCount. This indicates missing columns (area_hectares, growth_stage, etc.) in crop_cycles table.");
     }
 
@@ -216,25 +217,25 @@ class GeneratorBugConditionExplorationTest extends TestCase
     public function test_property_11_healthcare_runs_without_skip(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         OnboardingProfile::create([
-            'tenant_id'             => $tenant->id,
-            'user_id'               => $user->id,
-            'industry'              => 'healthcare',
-            'business_size'         => 'small',
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'industry' => 'healthcare',
+            'business_size' => 'small',
             'sample_data_generated' => false,
         ]);
 
         $service = app(SampleDataGeneratorService::class);
-        $result  = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
+        $result = $service->generateForIndustry('healthcare', $tenant->id, $user->id);
 
         $this->assertTrue($result['success'],
             'generateForIndustry(healthcare) should succeed.');
 
         // Verify doctors table has tenant_id column (no longer causes markTestSkipped)
         $this->assertTrue(
-            \Illuminate\Support\Facades\Schema::hasColumn('doctors', 'tenant_id'),
+            Schema::hasColumn('doctors', 'tenant_id'),
             'doctors table should have tenant_id column after fix migration.'
         );
 

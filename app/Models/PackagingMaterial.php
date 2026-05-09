@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PackagingMaterial extends Model
 {
@@ -68,7 +67,8 @@ class PackagingMaterial extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'PKG-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'PKG-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     // Scopes

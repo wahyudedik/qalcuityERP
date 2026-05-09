@@ -2,12 +2,12 @@
 
 namespace App\Policies;
 
-use App\Models\User;
-use App\Models\Patient;
+use App\Models\Appointment;
 use App\Models\Emr;
-use App\Models\Diagnosis;
-use App\Models\Prescription;
 use App\Models\LabResult;
+use App\Models\Patient;
+use App\Models\Prescription;
+use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
 class MedicalRecordPolicy
@@ -71,7 +71,7 @@ class MedicalRecordPolicy
         }
 
         // Only doctors and nurses can create medical records
-        if (!$user->hasRole('doctor') && !$user->hasRole('nurse')) {
+        if (! $user->hasRole('doctor') && ! $user->hasRole('nurse')) {
             return Response::deny('Only medical staff can create medical records.');
         }
 
@@ -146,7 +146,7 @@ class MedicalRecordPolicy
     public function createDiagnosis(User $user, Patient $patient): Response
     {
         // Only doctors can create diagnoses
-        if (!$user->hasRole('doctor')) {
+        if (! $user->hasRole('doctor')) {
             return Response::deny('Only doctors can create diagnoses.');
         }
 
@@ -167,7 +167,7 @@ class MedicalRecordPolicy
     public function createPrescription(User $user, Patient $patient): Response
     {
         // Only doctors can prescribe medication
-        if (!$user->hasRole('doctor')) {
+        if (! $user->hasRole('doctor')) {
             return Response::deny('Only doctors can create prescriptions.');
         }
 
@@ -225,9 +225,9 @@ class MedicalRecordPolicy
     {
         // Only doctors and admins can export
         if (
-            !$user->hasRole('doctor') &&
-            !$user->hasRole('admin') &&
-            !$user->isSuperAdmin()
+            ! $user->hasRole('doctor') &&
+            ! $user->hasRole('admin') &&
+            ! $user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to export medical records.');
         }
@@ -259,7 +259,7 @@ class MedicalRecordPolicy
         }
 
         // Check recent appointments
-        $recentAppointment = \App\Models\Appointment::where('patient_id', $patient->id)
+        $recentAppointment = Appointment::where('patient_id', $patient->id)
             ->where('doctor_id', $user->id)
             ->where('appointment_date', '>=', now()->subDays(30))
             ->exists();

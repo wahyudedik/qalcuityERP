@@ -3,11 +3,7 @@
 namespace Tests\Feature\BugExploration;
 
 use App\Jobs\SyncMarketplaceStock;
-use App\Models\EcommerceChannel;
-use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -35,7 +31,7 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
      */
     public function test_sync_marketplace_stock_job_has_retry_configuration(): void
     {
-        $job = new SyncMarketplaceStock();
+        $job = new SyncMarketplaceStock;
 
         // Assert: Job harus memiliki $tries property
         $hasTries = property_exists($job, 'tries');
@@ -43,16 +39,16 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
         // Test ini AKAN GAGAL karena SyncMarketplaceStock tidak memiliki $tries
         $this->assertTrue(
             $hasTries,
-            "Bug 1.23: SyncMarketplaceStock tidak memiliki property 'tries'. " .
-            "Job akan menggunakan default tries (1) dan fail permanen saat HTTP 429."
+            "Bug 1.23: SyncMarketplaceStock tidak memiliki property 'tries'. ".
+            'Job akan menggunakan default tries (1) dan fail permanen saat HTTP 429.'
         );
 
         if ($hasTries) {
             $this->assertGreaterThanOrEqual(
                 3,
                 $job->tries,
-                "Bug 1.23: SyncMarketplaceStock memiliki tries = {$job->tries}, " .
-                "seharusnya >= 3 untuk retry saat rate limit."
+                "Bug 1.23: SyncMarketplaceStock memiliki tries = {$job->tries}, ".
+                'seharusnya >= 3 untuk retry saat rate limit.'
             );
         }
     }
@@ -67,8 +63,8 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
     {
         $jobFile = 'app/Jobs/SyncMarketplaceStock.php';
 
-        if (!file_exists($jobFile)) {
-            $this->markTestSkipped("SyncMarketplaceStock tidak ditemukan");
+        if (! file_exists($jobFile)) {
+            $this->markTestSkipped('SyncMarketplaceStock tidak ditemukan');
         }
 
         $content = file_get_contents($jobFile);
@@ -87,9 +83,9 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
         // Test ini AKAN GAGAL karena job tidak menangani RateLimitException
         $this->assertTrue(
             $hasRateLimitHandling,
-            "Bug 1.23: SyncMarketplaceStock tidak menangani RateLimitException (HTTP 429) " .
-            "dengan \$this->release(backoff). Job akan fail permanen saat marketplace " .
-            "mengembalikan HTTP 429 (rate limit exceeded)."
+            'Bug 1.23: SyncMarketplaceStock tidak menangani RateLimitException (HTTP 429) '.
+            'dengan $this->release(backoff). Job akan fail permanen saat marketplace '.
+            'mengembalikan HTTP 429 (rate limit exceeded).'
         );
     }
 
@@ -101,7 +97,7 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
      */
     public function test_sync_marketplace_stock_has_exponential_backoff(): void
     {
-        $job = new SyncMarketplaceStock();
+        $job = new SyncMarketplaceStock;
 
         // Assert: Job harus memiliki backoff property atau method
         $hasBackoff = property_exists($job, 'backoff') ||
@@ -110,9 +106,9 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
         // Test ini AKAN GAGAL karena SyncMarketplaceStock tidak memiliki backoff
         $this->assertTrue(
             $hasBackoff,
-            "Bug 1.23: SyncMarketplaceStock tidak memiliki property atau method 'backoff'. " .
-            "Job akan retry dengan interval yang sama, bukan exponential backoff. " .
-            "Seharusnya ada: public array \$backoff = [10, 20, 40, 80, 160, 320, 600]"
+            "Bug 1.23: SyncMarketplaceStock tidak memiliki property atau method 'backoff'. ".
+            'Job akan retry dengan interval yang sama, bukan exponential backoff. '.
+            'Seharusnya ada: public array $backoff = [10, 20, 40, 80, 160, 320, 600]'
         );
     }
 
@@ -126,8 +122,8 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
     {
         $serviceFile = 'app/Services/MarketplaceSyncService.php';
 
-        if (!file_exists($serviceFile)) {
-            $this->markTestSkipped("MarketplaceSyncService tidak ditemukan");
+        if (! file_exists($serviceFile)) {
+            $this->markTestSkipped('MarketplaceSyncService tidak ditemukan');
         }
 
         $content = file_get_contents($serviceFile);
@@ -143,9 +139,9 @@ class EcommerceMarketplaceRateLimitTest extends TestCase
         // Test ini AKAN GAGAL karena MarketplaceSyncService tidak menangani HTTP 429
         $this->assertTrue(
             $handles429,
-            "Bug 1.23: MarketplaceSyncService tidak menangani HTTP 429 (Rate Limit). " .
-            "Saat marketplace mengembalikan 429, service melempar RuntimeException biasa " .
-            "tanpa membedakan dari error lain, sehingga job tidak bisa retry dengan backoff."
+            'Bug 1.23: MarketplaceSyncService tidak menangani HTTP 429 (Rate Limit). '.
+            'Saat marketplace mengembalikan 429, service melempar RuntimeException biasa '.
+            'tanpa membedakan dari error lain, sehingga job tidak bisa retry dengan backoff.'
         );
     }
 }

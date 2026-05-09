@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class BudgetAiController extends Controller
 {
-    public function __construct(private BudgetAiService $ai)
-    {
-    }
+    public function __construct(private BudgetAiService $ai) {}
 
     private function tid(): int
     {
@@ -33,9 +31,11 @@ class BudgetAiController extends Controller
 
         try {
             $predictions = $this->ai->predictOverrun($this->tid(), $period, $budgets);
+
             return response()->json(['predictions' => $predictions]);
         } catch (\Throwable $e) {
-            Log::error("Budget AI error: " . $e->getMessage());
+            Log::error('Budget AI error: '.$e->getMessage());
+
             return response()->json(['error' => 'AI analysis temporarily unavailable. Please try again later.'], 500);
         }
     }
@@ -50,9 +50,11 @@ class BudgetAiController extends Controller
 
         try {
             $suggestions = $this->ai->suggestAllocation($this->tid(), $period);
+
             return response()->json(['suggestions' => $suggestions]);
         } catch (\Throwable $e) {
-            Log::error("Budget AI error: " . $e->getMessage());
+            Log::error('Budget AI error: '.$e->getMessage());
+
             return response()->json(['error' => 'AI analysis temporarily unavailable. Please try again later.'], 500);
         }
     }

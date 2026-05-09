@@ -27,7 +27,7 @@ class PermissionAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/permission_analyzer_test_' . uniqid();
+        $this->fixtureDir = sys_get_temp_dir().'/permission_analyzer_test_'.uniqid();
         mkdir($this->fixtureDir, 0777, true);
     }
 
@@ -71,7 +71,7 @@ PHP);
 
         $inventoryFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'inventory')
+            fn (AuditFinding $f) => str_contains($f->title, 'inventory')
         );
 
         $this->assertNotEmpty($inventoryFindings);
@@ -104,7 +104,7 @@ PHP);
 
         $undefinedFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'nonexistent')
+            fn (AuditFinding $f) => str_contains($f->title, 'nonexistent')
         );
 
         $this->assertNotEmpty($undefinedFindings);
@@ -173,7 +173,7 @@ PHP);
         $this->assertNotEmpty($findings);
 
         $modelNames = array_map(
-            fn(AuditFinding $f) => $f->metadata['model'],
+            fn (AuditFinding $f) => $f->metadata['model'],
             $findings
         );
 
@@ -205,7 +205,7 @@ PHP);
 
         $invoiceFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => $f->metadata['model'] === 'Invoice'
+            fn (AuditFinding $f) => $f->metadata['model'] === 'Invoice'
         );
 
         $this->assertEmpty($invoiceFindings);
@@ -258,7 +258,7 @@ PHP);
 
         $escalationFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'role escalation')
+            fn (AuditFinding $f) => str_contains($f->title, 'role escalation')
         );
 
         $this->assertNotEmpty($escalationFindings);
@@ -294,7 +294,7 @@ PHP);
 
         $escalationFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'role escalation')
+            fn (AuditFinding $f) => str_contains($f->title, 'role escalation')
         );
 
         $this->assertEmpty($escalationFindings);
@@ -329,7 +329,7 @@ PHP);
 
         $directFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'Direct role comparison')
+            fn (AuditFinding $f) => str_contains($f->title, 'Direct role comparison')
         );
 
         $this->assertNotEmpty($directFindings);
@@ -420,21 +420,21 @@ PHP);
         $this->assertNotEmpty($matrix);
 
         // Find the GET /sales entry
-        $salesGet = array_filter($matrix, fn($e) => $e['uri'] === 'sales' && $e['method'] === 'GET');
+        $salesGet = array_filter($matrix, fn ($e) => $e['uri'] === 'sales' && $e['method'] === 'GET');
         $this->assertNotEmpty($salesGet);
         $entry = reset($salesGet);
         $this->assertSame('sales', $entry['module']);
         $this->assertSame('view', $entry['action']);
 
         // Find the POST /sales entry
-        $salesPost = array_filter($matrix, fn($e) => $e['uri'] === 'sales' && $e['method'] === 'POST');
+        $salesPost = array_filter($matrix, fn ($e) => $e['uri'] === 'sales' && $e['method'] === 'POST');
         $this->assertNotEmpty($salesPost);
         $postEntry = reset($salesPost);
         $this->assertSame('sales', $postEntry['module']);
         $this->assertSame('create', $postEntry['action']);
 
         // Public route should have no module
-        $publicRoute = array_filter($matrix, fn($e) => $e['uri'] === 'public');
+        $publicRoute = array_filter($matrix, fn ($e) => $e['uri'] === 'public');
         $this->assertNotEmpty($publicRoute);
         $publicEntry = reset($publicRoute);
         $this->assertNull($publicEntry['module']);
@@ -484,7 +484,7 @@ PHP);
 
         $conflictFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'conflicts')
+            fn (AuditFinding $f) => str_contains($f->title, 'conflicts')
         );
 
         $this->assertNotEmpty($conflictFindings);
@@ -525,7 +525,7 @@ PHP);
 
         $integrationFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => str_contains($f->title, 'not integrated')
+            fn (AuditFinding $f) => str_contains($f->title, 'not integrated')
         );
 
         $this->assertNotEmpty($integrationFindings);
@@ -604,7 +604,7 @@ PHP);
         $findings = $analyzer->analyze();
 
         // Should have findings from multiple checks
-        $checks = array_unique(array_map(fn($f) => $f->metadata['check'], $findings));
+        $checks = array_unique(array_map(fn ($f) => $f->metadata['check'], $findings));
 
         // At minimum: module_route_coverage (inventory has no routes), policy_gaps, role_consistency
         $this->assertContains('module_route_coverage', $checks);
@@ -663,11 +663,11 @@ PHP);
     private function makeAnalyzer(): PermissionAnalyzer
     {
         return new PermissionAnalyzer(
-            permissionServiceFile: $this->fixtureDir . '/services/PermissionService.php',
-            policyPath: $this->fixtureDir . '/policies',
-            controllerPath: $this->fixtureDir . '/controllers',
-            rbacMiddlewareFile: $this->fixtureDir . '/middleware/RBACMiddleware.php',
-            routeFiles: [$this->fixtureDir . '/routes/web.php'],
+            permissionServiceFile: $this->fixtureDir.'/services/PermissionService.php',
+            policyPath: $this->fixtureDir.'/policies',
+            controllerPath: $this->fixtureDir.'/controllers',
+            rbacMiddlewareFile: $this->fixtureDir.'/middleware/RBACMiddleware.php',
+            routeFiles: [$this->fixtureDir.'/routes/web.php'],
             basePath: $this->fixtureDir,
         );
     }
@@ -675,7 +675,7 @@ PHP);
     /**
      * Write a minimal PermissionService fixture with given modules.
      *
-     * @param array<string, string[]> $modules
+     * @param  array<string, string[]>  $modules
      */
     private function writePermissionService(array $modules): void
     {
@@ -709,9 +709,9 @@ PHP;
 
     private function writeFixture(string $relativePath, string $content): void
     {
-        $fullPath = $this->fixtureDir . '/' . $relativePath;
+        $fullPath = $this->fixtureDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -719,7 +719,7 @@ PHP;
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

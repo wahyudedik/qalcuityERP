@@ -32,12 +32,16 @@ class ModuleListTest extends TestCase
      *
      *   @if ($user?->isSuperAdmin())
      *       home, superadmin
+     *
      *   @elseif ($user?->isAffiliate())
      *       home
+     *
      *   @else
      *       home, ai, transactions, inventory
+     *
      *       @if (!$user?->isKasir() && !$user?->isGudang())
      *           operations, finance, settings
+     *
      *       @endif
      *   @endif
      *
@@ -56,7 +60,7 @@ class ModuleListTest extends TestCase
         // Tenant user (else branch)
         $modules = ['home', 'ai', 'transactions', 'inventory'];
 
-        if (!$user?->isKasir() && !$user?->isGudang()) {
+        if (! $user?->isKasir() && ! $user?->isGudang()) {
             $modules[] = 'operations';
             $modules[] = 'finance';
             $modules[] = 'settings';
@@ -71,8 +75,9 @@ class ModuleListTest extends TestCase
      */
     private function makeUser(string $role): User
     {
-        $user = new User();
+        $user = new User;
         $user->role = $role;
+
         return $user;
     }
 
@@ -85,7 +90,7 @@ class ModuleListTest extends TestCase
     public function test_is_super_admin_method(): void
     {
         $superAdmin = $this->makeUser('super_admin');
-        $this->assertTrue($superAdmin->isSuperAdmin(), "super_admin role should return true for isSuperAdmin()");
+        $this->assertTrue($superAdmin->isSuperAdmin(), 'super_admin role should return true for isSuperAdmin()');
 
         foreach (['admin', 'manager', 'staff', 'kasir', 'gudang', 'affiliate'] as $role) {
             $user = $this->makeUser($role);
@@ -100,7 +105,7 @@ class ModuleListTest extends TestCase
     public function test_is_affiliate_method(): void
     {
         $affiliate = $this->makeUser('affiliate');
-        $this->assertTrue($affiliate->isAffiliate(), "affiliate role should return true for isAffiliate()");
+        $this->assertTrue($affiliate->isAffiliate(), 'affiliate role should return true for isAffiliate()');
 
         foreach (['admin', 'manager', 'staff', 'kasir', 'gudang', 'super_admin'] as $role) {
             $user = $this->makeUser($role);
@@ -115,7 +120,7 @@ class ModuleListTest extends TestCase
     public function test_is_kasir_method(): void
     {
         $kasir = $this->makeUser('kasir');
-        $this->assertTrue($kasir->isKasir(), "kasir role should return true for isKasir()");
+        $this->assertTrue($kasir->isKasir(), 'kasir role should return true for isKasir()');
 
         foreach (['admin', 'manager', 'staff', 'gudang', 'super_admin', 'affiliate'] as $role) {
             $user = $this->makeUser($role);
@@ -130,7 +135,7 @@ class ModuleListTest extends TestCase
     public function test_is_gudang_method(): void
     {
         $gudang = $this->makeUser('gudang');
-        $this->assertTrue($gudang->isGudang(), "gudang role should return true for isGudang()");
+        $this->assertTrue($gudang->isGudang(), 'gudang role should return true for isGudang()');
 
         foreach (['admin', 'manager', 'staff', 'kasir', 'super_admin', 'affiliate'] as $role) {
             $user = $this->makeUser($role);
@@ -149,7 +154,7 @@ class ModuleListTest extends TestCase
         $user = $this->makeUser('super_admin');
         $modules = $this->resolveModuleList($user);
 
-        $this->assertCount(2, $modules, "SuperAdmin should have exactly 2 modules");
+        $this->assertCount(2, $modules, 'SuperAdmin should have exactly 2 modules');
         $this->assertContains('home', $modules, "SuperAdmin must have 'home' module");
         $this->assertContains('superadmin', $modules, "SuperAdmin must have 'superadmin' module");
 
@@ -168,7 +173,7 @@ class ModuleListTest extends TestCase
         $user = $this->makeUser('affiliate');
         $modules = $this->resolveModuleList($user);
 
-        $this->assertCount(1, $modules, "Affiliate should have exactly 1 module");
+        $this->assertCount(1, $modules, 'Affiliate should have exactly 1 module');
         $this->assertContains('home', $modules, "Affiliate must have 'home' module");
 
         // Must NOT have any other modules
@@ -189,7 +194,7 @@ class ModuleListTest extends TestCase
 
         $expected = ['home', 'ai', 'transactions', 'inventory', 'operations', 'finance', 'settings'];
 
-        $this->assertCount(7, $modules, "Tenant admin should have exactly 7 modules");
+        $this->assertCount(7, $modules, 'Tenant admin should have exactly 7 modules');
 
         foreach ($expected as $mod) {
             $this->assertContains($mod, $modules, "Tenant admin must have '{$mod}' module");
@@ -209,7 +214,7 @@ class ModuleListTest extends TestCase
 
         $expected = ['home', 'ai', 'transactions', 'inventory', 'operations', 'finance', 'settings'];
 
-        $this->assertCount(7, $modules, "Tenant manager should have exactly 7 modules");
+        $this->assertCount(7, $modules, 'Tenant manager should have exactly 7 modules');
 
         foreach ($expected as $mod) {
             $this->assertContains($mod, $modules, "Tenant manager must have '{$mod}' module");
@@ -227,7 +232,7 @@ class ModuleListTest extends TestCase
 
         $expected = ['home', 'ai', 'transactions', 'inventory', 'operations', 'finance', 'settings'];
 
-        $this->assertCount(7, $modules, "Tenant staff should have exactly 7 modules");
+        $this->assertCount(7, $modules, 'Tenant staff should have exactly 7 modules');
 
         foreach ($expected as $mod) {
             $this->assertContains($mod, $modules, "Tenant staff must have '{$mod}' module");
@@ -243,7 +248,7 @@ class ModuleListTest extends TestCase
         $user = $this->makeUser('kasir');
         $modules = $this->resolveModuleList($user);
 
-        $this->assertCount(4, $modules, "Kasir should have exactly 4 modules");
+        $this->assertCount(4, $modules, 'Kasir should have exactly 4 modules');
 
         $expected = ['home', 'ai', 'transactions', 'inventory'];
         foreach ($expected as $mod) {
@@ -265,7 +270,7 @@ class ModuleListTest extends TestCase
         $user = $this->makeUser('gudang');
         $modules = $this->resolveModuleList($user);
 
-        $this->assertCount(4, $modules, "Gudang should have exactly 4 modules");
+        $this->assertCount(4, $modules, 'Gudang should have exactly 4 modules');
 
         $expected = ['home', 'ai', 'transactions', 'inventory'];
         foreach ($expected as $mod) {
@@ -291,7 +296,7 @@ class ModuleListTest extends TestCase
     {
         $modules = $this->resolveModuleList(null);
 
-        $this->assertCount(7, $modules, "Null user (null-safe operators) should produce 7 modules");
+        $this->assertCount(7, $modules, 'Null user (null-safe operators) should produce 7 modules');
         $this->assertContains('operations', $modules);
         $this->assertContains('finance', $modules);
         $this->assertContains('settings', $modules);
@@ -307,7 +312,7 @@ class ModuleListTest extends TestCase
     public function test_app_blade_contains_module_list_with_correct_conditionals(): void
     {
         $projectRoot = $this->resolveProjectRoot();
-        $appBladePath = $projectRoot . '/resources/views/layouts/app.blade.php';
+        $appBladePath = $projectRoot.'/resources/views/layouts/app.blade.php';
 
         $this->assertFileExists($appBladePath, 'app.blade.php must exist');
 
@@ -322,26 +327,26 @@ class ModuleListTest extends TestCase
 
         // Verify SuperAdmin conditional
         $this->assertStringContainsString(
-            "@if (\$user?->isSuperAdmin())",
+            '@if ($user?->isSuperAdmin())',
             $content,
             'MODULE_LIST must check isSuperAdmin()'
         );
 
         // Verify Affiliate conditional
         $this->assertStringContainsString(
-            "@elseif (\$user?->isAffiliate())",
+            '@elseif ($user?->isAffiliate())',
             $content,
             'MODULE_LIST must check isAffiliate()'
         );
 
         // Verify Kasir/Gudang restriction
         $this->assertStringContainsString(
-            "isKasir()",
+            'isKasir()',
             $content,
             'MODULE_LIST must check isKasir()'
         );
         $this->assertStringContainsString(
-            "isGudang()",
+            'isGudang()',
             $content,
             'MODULE_LIST must check isGudang()'
         );
@@ -363,7 +368,7 @@ class ModuleListTest extends TestCase
      */
     public function test_user_model_has_all_required_role_methods(): void
     {
-        $user = new User();
+        $user = new User;
 
         $this->assertTrue(method_exists($user, 'isSuperAdmin'), 'User must have isSuperAdmin() method');
         $this->assertTrue(method_exists($user, 'isAffiliate'), 'User must have isAffiliate() method');
@@ -391,14 +396,14 @@ class ModuleListTest extends TestCase
     private function resolveProjectRoot(): string
     {
         $cwd = getcwd();
-        if (is_dir($cwd . '/resources/views')) {
+        if (is_dir($cwd.'/resources/views')) {
             return $cwd;
         }
 
         $dir = __DIR__;
         for ($i = 0; $i < 5; $i++) {
             $dir = dirname($dir);
-            if (is_dir($dir . '/resources/views')) {
+            if (is_dir($dir.'/resources/views')) {
                 return $dir;
             }
         }

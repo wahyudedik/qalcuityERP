@@ -63,6 +63,7 @@ class MedicalEquipmentController extends Controller
     public function show(MedicalEquipment $equipment)
     {
         $equipment->load(['maintenanceLogs', 'calibrationRecords']);
+
         return view('healthcare.medical-equipment.show', compact('equipment'));
     }
 
@@ -111,6 +112,7 @@ class MedicalEquipmentController extends Controller
     public function destroy(MedicalEquipment $equipment)
     {
         $equipment->delete();
+
         return response()->json(['success' => true, 'message' => 'Equipment deleted']);
     }
 }

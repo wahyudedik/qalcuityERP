@@ -31,7 +31,7 @@ class AuditPurgeCommand extends Command
         // Compliance hold: by default, preserve rolled-back entries and AI action entries
         // because they may be required for SOX/compliance audits.
         // Pass --include-compliance to override.
-        if (!$includeCompliance) {
+        if (! $includeCompliance) {
             $query->whereNull('rolled_back_at')
                 ->where('is_ai_action', false);
         }
@@ -41,6 +41,7 @@ class AuditPurgeCommand extends Command
         if ($count === 0) {
             $label = $includeCompliance ? '' : ' (non-compliance-hold)';
             $this->info("No audit logs{$label} older than {$days} days found.");
+
             return self::SUCCESS;
         }
 
@@ -49,11 +50,13 @@ class AuditPurgeCommand extends Command
                 ? ''
                 : ' (compliance-hold entries skipped — use --include-compliance to include them)';
             $this->info("[Dry run] Would purge {$count} audit log entries older than {$days} days (before {$cutoff->toDateString()}){$hold}.");
+
             return self::SUCCESS;
         }
 
-        if (!$this->option('no-interaction') && !$this->confirm("Delete {$count} audit log entries older than {$days} days?")) {
+        if (! $this->option('no-interaction') && ! $this->confirm("Delete {$count} audit log entries older than {$days} days?")) {
             $this->info('Cancelled.');
+
             return self::SUCCESS;
         }
 
@@ -65,7 +68,7 @@ class AuditPurgeCommand extends Command
             if ($tenantId) {
                 $chunkQuery->where('tenant_id', $tenantId);
             }
-            if (!$includeCompliance) {
+            if (! $includeCompliance) {
                 $chunkQuery->whereNull('rolled_back_at')
                     ->where('is_ai_action', false);
             }
@@ -79,10 +82,10 @@ class AuditPurgeCommand extends Command
         $this->newLine();
         $this->info("Purged {$deleted} audit log entries older than {$days} days.");
 
-        if (!$includeCompliance) {
+        if (! $includeCompliance) {
             $holdCount = ActivityLog::where('created_at', '<', $cutoff)
-                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
-                ->where(fn($q) => $q->whereNotNull('rolled_back_at')->orWhere('is_ai_action', true))
+                ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                ->where(fn ($q) => $q->whereNotNull('rolled_back_at')->orWhere('is_ai_action', true))
                 ->count();
             if ($holdCount > 0) {
                 $this->line("<comment>Note: {$holdCount} compliance-hold entries (rolled-back / AI) were preserved. Use --include-compliance to purge them.</comment>");

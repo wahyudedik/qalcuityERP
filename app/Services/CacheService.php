@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Intelligent Cache Service with Automatic Invalidation
- * 
+ *
  * Provides centralized cache management with smart invalidation strategies
  * for different data types across the ERP system.
  */
@@ -50,10 +50,9 @@ class CacheService
     /**
      * Get item from cache or store if not exists
      *
-     * @param string $key Cache key
-     * @param callable $callback Function to generate value if not cached
-     * @param int|null $ttl Time to live in seconds
-     * @return mixed
+     * @param  string  $key  Cache key
+     * @param  callable  $callback  Function to generate value if not cached
+     * @param  int|null  $ttl  Time to live in seconds
      */
     public function remember(string $key, callable $callback, ?int $ttl = null): mixed
     {
@@ -70,7 +69,7 @@ class CacheService
         $tenantId = $tenantId ?? (auth()->check() ? auth()->user()->tenant_id : null);
         $key = $this->makeKey('inventory', "product:{$productId}:warehouse:{$warehouseId}:tenant:{$tenantId}");
 
-        return $this->remember($key, fn() => $this->calculateInventory($productId, $warehouseId, $tenantId), self::TTL['inventory']);
+        return $this->remember($key, fn () => $this->calculateInventory($productId, $warehouseId, $tenantId), self::TTL['inventory']);
     }
 
     /**

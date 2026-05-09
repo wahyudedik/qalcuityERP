@@ -24,8 +24,8 @@ class IotTelemetryLog extends Model
     protected function casts(): array
     {
         return [
-            'payload'     => 'array',
-            'value'       => 'decimal:4',
+            'payload' => 'array',
+            'value' => 'decimal:4',
             'recorded_at' => 'datetime',
         ];
     }

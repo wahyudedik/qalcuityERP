@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,24 +10,36 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CostCenter extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'parent_id', 'code', 'name', 'type', 'description', 'is_active',
     ];
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function tenant(): BelongsTo   { return $this->belongsTo(Tenant::class); }
-    public function parent(): BelongsTo   { return $this->belongsTo(CostCenter::class, 'parent_id'); }
-    public function children(): HasMany   { return $this->hasMany(CostCenter::class, 'parent_id'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(CostCenter::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(CostCenter::class, 'parent_id');
+    }
 
     public function typeLabel(): string
     {
         return match ($this->type) {
-            'department'   => 'Departemen',
-            'branch'       => 'Cabang',
-            'project'      => 'Proyek',
+            'department' => 'Departemen',
+            'branch' => 'Cabang',
+            'project' => 'Proyek',
             'product_line' => 'Lini Produk',
-            default        => ucfirst($this->type),
+            default => ucfirst($this->type),
         };
     }
 
@@ -38,8 +49,8 @@ class CostCenter extends Model
      */
     public function plReport(string $from, string $to): array
     {
-        $lines = \App\Models\JournalEntryLine::where('cost_center_id', $this->id)
-            ->whereHas('journalEntry', fn($q) => $q
+        $lines = JournalEntryLine::where('cost_center_id', $this->id)
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('status', 'posted')
                 ->whereBetween('date', [$from, $to])
             )
@@ -50,7 +61,9 @@ class CostCenter extends Model
         $expense = 0;
 
         foreach ($lines as $line) {
-            if (!$line->account) continue;
+            if (! $line->account) {
+                continue;
+            }
             if ($line->account->type === 'revenue') {
                 $revenue += $line->account->normal_balance === 'credit'
                     ? ($line->credit - $line->debit)
@@ -64,9 +77,9 @@ class CostCenter extends Model
 
         return [
             'cost_center' => $this->name,
-            'revenue'     => $revenue,
-            'expense'     => $expense,
-            'profit'      => $revenue - $expense,
+            'revenue' => $revenue,
+            'expense' => $expense,
+            'profit' => $revenue - $expense,
         ];
     }
 }

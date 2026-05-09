@@ -2,15 +2,15 @@
 
 /**
  * Dashboard Templates Configuration
- * 
+ *
  * TASK-017: Role-Based Dashboard Templates
- * 
+ *
  * Pre-built dashboard templates for different roles and use cases.
  * Each template defines:
  * - widgets: Which widgets to show
  * - layout: Grid layout pattern (e.g., '2x2', '1x3', '3x2')
  * - cols_overrides: Custom column spans for specific widgets
- * 
+ *
  * Usage:
  * - Admins can switch between templates
  * - Users can customize and save their own layouts

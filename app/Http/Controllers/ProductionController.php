@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bom;
+use App\Models\MrpAccuracy;
 use App\Models\Product;
 use App\Models\ProductionOutput;
 use App\Models\ProductStock;
@@ -11,7 +12,6 @@ use App\Models\RecipeIngredient;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WorkOrder;
-use App\Models\MrpAccuracy;
 use App\Services\GlPostingService;
 use App\Services\ProductionCostingService; // BUG-MFG-003 FIX
 use Illuminate\Http\Request;
@@ -39,8 +39,8 @@ class ProductionController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('number', 'like', "%$s%")
-                ->orWhereHas('product', fn($p) => $p->where('name', 'like', "%$s%")));
+            $query->where(fn ($q) => $q->where('number', 'like', "%$s%")
+                ->orWhereHas('product', fn ($p) => $p->where('name', 'like', "%$s%")));
         }
 
         $workOrders = $query->latest()->paginate(20)->withQueryString();
@@ -81,7 +81,7 @@ class ProductionController extends Controller
             'recipe_id' => $data['recipe_id'] ?? null,
             'bom_id' => $data['bom_id'] ?? null,
             'user_id' => Auth::id(),
-            'number' => 'WO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+            'number' => 'WO-'.date('Ymd').'-'.strtoupper(Str::random(4)),
             'target_quantity' => $data['target_quantity'],
             'unit' => $product->unit,
             'status' => 'pending',
@@ -105,13 +105,13 @@ class ProductionController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        if (!$workOrder->canTransitionTo($data['status'])) {
+        if (! $workOrder->canTransitionTo($data['status'])) {
             return back()->with('error', "Tidak bisa mengubah status dari {$workOrder->status} ke {$data['status']}.");
         }
 
         $updates = ['status' => $data['status']];
 
-        if ($data['status'] === 'in_progress' && !$workOrder->started_at) {
+        if ($data['status'] === 'in_progress' && ! $workOrder->started_at) {
             $updates['started_at'] = now();
         }
         if ($data['status'] === 'completed') {
@@ -142,6 +142,7 @@ class ProductionController extends Controller
     {
         abort_if($workOrder->tenant_id !== $this->tid(), 403);
         $workOrder->load(['product', 'recipe.ingredients.product', 'bom.lines.product', 'outputs', 'user', 'operations.workCenter', 'journalEntry']);
+
         return view('production.show', compact('workOrder'));
     }
 
@@ -172,7 +173,7 @@ class ProductionController extends Controller
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            if (!empty($data['auto_complete'])) {
+            if (! empty($data['auto_complete'])) {
                 // BUG-MFG-003 FIX: Auto-calculate costs with overhead
                 $costingService = app(ProductionCostingService::class);
                 $costData = $costingService->autoCalculateCosts($workOrder);
@@ -303,16 +304,18 @@ class ProductionController extends Controller
     {
         try {
             $bom = Bom::with('lines.product')->find($workOrder->bom_id);
-            if (!$bom)
+            if (! $bom) {
                 return;
+            }
 
             // Get planned materials from BOM
             $plannedMaterials = $bom->explode((float) $workOrder->target_quantity);
 
             foreach ($plannedMaterials as $material) {
                 $product = Product::find($material['product_id']);
-                if (!$product)
+                if (! $product) {
                     continue;
+                }
 
                 // Calculate planned cost
                 $plannedCost = $material['quantity'] * ($product->price_buy ?? 0);
@@ -364,11 +367,11 @@ class ProductionController extends Controller
             'progress_stage' => 'nullable|in:setup,processing,finishing,qc',
         ]);
 
-        if (!empty($data['progress_percent'])) {
+        if (! empty($data['progress_percent'])) {
             $workOrder->progress_percent = $data['progress_percent'];
         }
 
-        if (!empty($data['progress_stage'])) {
+        if (! empty($data['progress_stage'])) {
             $workOrder->progress_stage = $data['progress_stage'];
         }
 

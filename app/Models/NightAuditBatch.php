@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class NightAuditBatch extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -90,9 +90,9 @@ class NightAuditBatch extends Model
     /**
      * Generate unique batch number
      */
-    public static function generateBatchNumber(\Carbon\Carbon $auditDate): string
+    public static function generateBatchNumber(Carbon $auditDate): string
     {
-        return "NA-" . $auditDate->format('Ymd');
+        return 'NA-'.$auditDate->format('Ymd');
     }
 
     /**
@@ -120,15 +120,15 @@ class NightAuditBatch extends Model
     {
         $pending = [];
 
-        if (!$this->room_charges_posted) {
+        if (! $this->room_charges_posted) {
             $pending[] = 'Room charges posting';
         }
 
-        if (!$this->fb_revenue_posted) {
+        if (! $this->fb_revenue_posted) {
             $pending[] = 'F&B revenue posting';
         }
 
-        if (!$this->minibar_charges_posted) {
+        if (! $this->minibar_charges_posted) {
             $pending[] = 'Minibar charges posting';
         }
 
@@ -143,12 +143,15 @@ class NightAuditBatch extends Model
         $totalSteps = 3;
         $completedSteps = 0;
 
-        if ($this->room_charges_posted)
+        if ($this->room_charges_posted) {
             $completedSteps++;
-        if ($this->fb_revenue_posted)
+        }
+        if ($this->fb_revenue_posted) {
             $completedSteps++;
-        if ($this->minibar_charges_posted)
+        }
+        if ($this->minibar_charges_posted) {
             $completedSteps++;
+        }
 
         return [
             'total_steps' => $totalSteps,
@@ -194,6 +197,7 @@ class NightAuditBatch extends Model
         if ($this->total_rooms > 0) {
             return ($this->occupied_rooms / $this->total_rooms) * 100;
         }
+
         return 0;
     }
 

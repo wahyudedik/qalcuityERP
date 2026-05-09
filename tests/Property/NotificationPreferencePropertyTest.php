@@ -14,7 +14,7 @@ use Tests\TestCase;
  * Property-Based Tests for Notification Preference Round-Trip.
  *
  * Feature: erp-comprehensive-audit-fix
- * 
+ *
  * **Validates: Requirements 7.3**
  */
 class NotificationPreferencePropertyTest extends TestCase
@@ -30,7 +30,7 @@ class NotificationPreferencePropertyTest extends TestCase
      * **Validates: Requirements 7.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testNotificationPreferenceRoundTrip(): void
+    public function test_notification_preference_round_trip(): void
     {
         $this
             ->forAll(
@@ -50,7 +50,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 Generators::bool(), // email enabled
                 Generators::bool()  // push enabled
             )
-            ->then(function($notificationType, $inAppEnabled, $emailEnabled, $pushEnabled) {
+            ->then(function ($notificationType, $inAppEnabled, $emailEnabled, $pushEnabled) {
                 // Create tenant and user
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -65,7 +65,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 ]);
 
                 // Verify preference was saved
-                $this->assertNotNull($preference->id, "Preference should be saved to database");
+                $this->assertNotNull($preference->id, 'Preference should be saved to database');
 
                 // Read preference back from database
                 $retrieved = NotificationPreference::where('user_id', $user->id)
@@ -73,42 +73,42 @@ class NotificationPreferencePropertyTest extends TestCase
                     ->first();
 
                 // Verify round-trip: retrieved values match saved values
-                $this->assertNotNull($retrieved, "Preference should be retrievable from database");
-                
+                $this->assertNotNull($retrieved, 'Preference should be retrievable from database');
+
                 $this->assertEquals(
                     $inAppEnabled,
                     $retrieved->in_app,
-                    "in_app preference must match after round-trip. " .
-                    "Saved: " . ($inAppEnabled ? 'true' : 'false') . ", " .
-                    "Retrieved: " . ($retrieved->in_app ? 'true' : 'false')
+                    'in_app preference must match after round-trip. '.
+                    'Saved: '.($inAppEnabled ? 'true' : 'false').', '.
+                    'Retrieved: '.($retrieved->in_app ? 'true' : 'false')
                 );
 
                 $this->assertEquals(
                     $emailEnabled,
                     $retrieved->email,
-                    "email preference must match after round-trip. " .
-                    "Saved: " . ($emailEnabled ? 'true' : 'false') . ", " .
-                    "Retrieved: " . ($retrieved->email ? 'true' : 'false')
+                    'email preference must match after round-trip. '.
+                    'Saved: '.($emailEnabled ? 'true' : 'false').', '.
+                    'Retrieved: '.($retrieved->email ? 'true' : 'false')
                 );
 
                 $this->assertEquals(
                     $pushEnabled,
                     $retrieved->push,
-                    "push preference must match after round-trip. " .
-                    "Saved: " . ($pushEnabled ? 'true' : 'false') . ", " .
-                    "Retrieved: " . ($retrieved->push ? 'true' : 'false')
+                    'push preference must match after round-trip. '.
+                    'Saved: '.($pushEnabled ? 'true' : 'false').', '.
+                    'Retrieved: '.($retrieved->push ? 'true' : 'false')
                 );
 
                 $this->assertEquals(
                     $notificationType,
                     $retrieved->notification_type,
-                    "notification_type must match after round-trip"
+                    'notification_type must match after round-trip'
                 );
 
                 $this->assertEquals(
                     $user->id,
                     $retrieved->user_id,
-                    "user_id must match after round-trip"
+                    'user_id must match after round-trip'
                 );
             });
     }
@@ -122,7 +122,7 @@ class NotificationPreferencePropertyTest extends TestCase
      * **Validates: Requirements 7.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testPreferenceUpdateConsistency(): void
+    public function test_preference_update_consistency(): void
     {
         $this
             ->forAll(
@@ -136,7 +136,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 Generators::bool(), // updated in_app
                 Generators::bool()  // updated email
             )
-            ->then(function($notificationType, $initialInApp, $initialEmail, $updatedInApp, $updatedEmail) {
+            ->then(function ($notificationType, $initialInApp, $initialEmail, $updatedInApp, $updatedEmail) {
                 // Create tenant and user
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -163,19 +163,19 @@ class NotificationPreferencePropertyTest extends TestCase
                 $this->assertEquals(
                     $updatedInApp,
                     $retrieved->in_app,
-                    "Updated in_app preference must match. " .
-                    "Initial: " . ($initialInApp ? 'true' : 'false') . ", " .
-                    "Updated: " . ($updatedInApp ? 'true' : 'false') . ", " .
-                    "Retrieved: " . ($retrieved->in_app ? 'true' : 'false')
+                    'Updated in_app preference must match. '.
+                    'Initial: '.($initialInApp ? 'true' : 'false').', '.
+                    'Updated: '.($updatedInApp ? 'true' : 'false').', '.
+                    'Retrieved: '.($retrieved->in_app ? 'true' : 'false')
                 );
 
                 $this->assertEquals(
                     $updatedEmail,
                     $retrieved->email,
-                    "Updated email preference must match. " .
-                    "Initial: " . ($initialEmail ? 'true' : 'false') . ", " .
-                    "Updated: " . ($updatedEmail ? 'true' : 'false') . ", " .
-                    "Retrieved: " . ($retrieved->email ? 'true' : 'false')
+                    'Updated email preference must match. '.
+                    'Initial: '.($initialEmail ? 'true' : 'false').', '.
+                    'Updated: '.($updatedEmail ? 'true' : 'false').', '.
+                    'Retrieved: '.($retrieved->email ? 'true' : 'false')
                 );
             });
     }
@@ -189,7 +189,7 @@ class NotificationPreferencePropertyTest extends TestCase
      * **Validates: Requirements 7.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testIsEnabledMethodConsistency(): void
+    public function test_is_enabled_method_consistency(): void
     {
         $this
             ->forAll(
@@ -201,7 +201,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 Generators::elements(['in_app', 'email', 'push']),
                 Generators::bool() // enabled value
             )
-            ->then(function($notificationType, $channel, $enabled) {
+            ->then(function ($notificationType, $channel, $enabled) {
                 // Create tenant and user
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -229,10 +229,10 @@ class NotificationPreferencePropertyTest extends TestCase
                 $this->assertEquals(
                     $enabled,
                     $isEnabled,
-                    "isEnabled() must return the same value as stored preference. " .
-                    "Type: {$notificationType}, Channel: {$channel}, " .
-                    "Stored: " . ($enabled ? 'true' : 'false') . ", " .
-                    "isEnabled(): " . ($isEnabled ? 'true' : 'false')
+                    'isEnabled() must return the same value as stored preference. '.
+                    "Type: {$notificationType}, Channel: {$channel}, ".
+                    'Stored: '.($enabled ? 'true' : 'false').', '.
+                    'isEnabled(): '.($isEnabled ? 'true' : 'false')
                 );
 
                 // Also verify by reading the preference directly
@@ -243,7 +243,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 $this->assertEquals(
                     $enabled,
                     $retrieved->{$channel},
-                    "Direct database read must match stored value"
+                    'Direct database read must match stored value'
                 );
             });
     }
@@ -257,7 +257,7 @@ class NotificationPreferencePropertyTest extends TestCase
      * **Validates: Requirements 7.3**
      */
     #[ErisRepeat(repeat: 100)]
-    public function testDefaultPreferenceBehavior(): void
+    public function test_default_preference_behavior(): void
     {
         $this
             ->forAll(
@@ -268,7 +268,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 ]),
                 Generators::elements(['in_app', 'email', 'push'])
             )
-            ->then(function($notificationType, $channel) {
+            ->then(function ($notificationType, $channel) {
                 // Create tenant and user
                 $tenant = $this->createTenant();
                 $user = $this->createAdminUser($tenant);
@@ -285,7 +285,7 @@ class NotificationPreferencePropertyTest extends TestCase
                 // Verify default is enabled (true)
                 $this->assertTrue(
                     $isEnabled,
-                    "isEnabled() must return true (default enabled) when no preference exists. " .
+                    'isEnabled() must return true (default enabled) when no preference exists. '.
                     "Type: {$notificationType}, Channel: {$channel}"
                 );
 
@@ -296,7 +296,7 @@ class NotificationPreferencePropertyTest extends TestCase
 
                 $this->assertNull(
                     $preference,
-                    "No preference record should exist for this test case"
+                    'No preference record should exist for this test case'
                 );
             });
     }

@@ -14,8 +14,6 @@ abstract class Controller extends BaseController
 
     /**
      * Get authenticated user with proper type hint for IDE
-     * 
-     * @return User
      */
     protected function authenticatedUser(): User
     {
@@ -24,8 +22,6 @@ abstract class Controller extends BaseController
 
     /**
      * Get authenticated user ID
-     * 
-     * @return int
      */
     protected function authenticatedUserId(): int
     {
@@ -34,8 +30,6 @@ abstract class Controller extends BaseController
 
     /**
      * Get authenticated user tenant ID
-     * 
-     * @return int
      */
     protected function tenantId(): int
     {

@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Exceptions\RateLimitException;
 use App\Http\Controllers\Controller;
 use App\Models\AiProviderSwitchLog;
 use App\Models\SystemSetting;
 use App\Services\AI\ModelSwitcher;
-use App\Services\AI\ProviderSwitcher;
 use App\Services\AI\Providers\AnthropicProvider;
 use App\Services\AI\Providers\GeminiProvider;
+use App\Services\AI\ProviderSwitcher;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Gemini\Client as GeminiClient;
 
 class SystemSettingsController extends Controller
 {
@@ -89,10 +90,10 @@ class SystemSettingsController extends Controller
                 'group' => $group,
                 'encrypt' => $encrypt,
                 'config_path' => $configPath,
-                'has_value' => $record && !empty($record->value),
-                'value' => ($record && !$encrypt && !empty($record->value)) ? $record->value : null,
+                'has_value' => $record && ! empty($record->value),
+                'value' => ($record && ! $encrypt && ! empty($record->value)) ? $record->value : null,
                 // For encrypted fields — show placeholder if set
-                'is_set' => $record && !empty($record->value),
+                'is_set' => $record && ! empty($record->value),
             ];
         }
 
@@ -145,7 +146,7 @@ class SystemSettingsController extends Controller
 
         foreach (self::SETTINGS_MAP as $key => [$configPath, $encrypt, $group, $label]) {
             // Skip if not submitted
-            if (!$request->has($key)) {
+            if (! $request->has($key)) {
                 continue;
             }
 
@@ -159,7 +160,7 @@ class SystemSettingsController extends Controller
             }
 
             // Special handling: gemini_fallback_models — accept JSON string or comma-separated, store as JSON array
-            if ($key === 'gemini_fallback_models' && !empty($value)) {
+            if ($key === 'gemini_fallback_models' && ! empty($value)) {
                 $decoded = json_decode($value, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                     // Already valid JSON array — re-encode to normalise
@@ -172,7 +173,7 @@ class SystemSettingsController extends Controller
             }
 
             // Special handling: ai_provider_fallback_order — accept JSON string or comma-separated, store as JSON array
-            if ($key === 'ai_provider_fallback_order' && !empty($value)) {
+            if ($key === 'ai_provider_fallback_order' && ! empty($value)) {
                 $decoded = json_decode($value, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                     $value = json_encode(array_values(array_filter(array_map('trim', $decoded))));
@@ -219,7 +220,7 @@ class SystemSettingsController extends Controller
 
             return back()->with('success', "Test email berhasil dikirim ke {$request->test_email}.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal kirim email: ' . $e->getMessage());
+            return back()->with('error', 'Gagal kirim email: '.$e->getMessage());
         }
     }
 
@@ -262,10 +263,10 @@ class SystemSettingsController extends Controller
                 'details' => [
                     'model' => $model,
                     'response' => substr($text, 0, 100),
-                    'api_key_prefix' => substr($apiKey, 0, 10) . '...',
+                    'api_key_prefix' => substr($apiKey, 0, 10).'...',
                 ],
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             // HTTP error (401, 403, 429, etc.)
             $statusCode = $e->getResponse()->getStatusCode();
             $errorBody = $e->getResponse()->getBody()->getContents();
@@ -274,7 +275,7 @@ class SystemSettingsController extends Controller
                 401 => 'Konfigurasi tidak valid (Unauthorized). Periksa kembali pengaturan AI Service Anda.',
                 403 => 'Konfigurasi tidak memiliki akses (Forbidden). Pastikan layanan AI sudah diaktifkan.',
                 429 => 'Layanan AI sedang mengalami keterbatasan (Rate Limited). Silakan coba beberapa saat lagi.',
-                default => 'Error HTTP ' . $statusCode . ': ' . $errorBody,
+                default => 'Error HTTP '.$statusCode.': '.$errorBody,
             };
 
             Log::error('AI Service Configuration Test Failed', [
@@ -298,7 +299,7 @@ class SystemSettingsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal test API key: ' . $e->getMessage(),
+                'message' => 'Gagal test API key: '.$e->getMessage(),
                 'details' => null,
             ], 500);
         }
@@ -331,7 +332,7 @@ class SystemSettingsController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal test koneksi: ' . $e->getMessage(),
+                'message' => 'Gagal test koneksi: '.$e->getMessage(),
                 'details' => null,
             ], 500);
         }
@@ -357,14 +358,14 @@ class SystemSettingsController extends Controller
         }
 
         try {
-            $provider = new GeminiProvider();
-            $result   = $provider->generate('Test connection - respond with: OK');
+            $provider = new GeminiProvider;
+            $result = $provider->generate('Test connection - respond with: OK');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Koneksi Gemini berhasil! Provider aktif dan siap digunakan.',
                 'details' => [
-                    'model'    => $result['model'] ?? config('gemini.model', 'gemini-2.5-flash'),
+                    'model' => $result['model'] ?? config('gemini.model', 'gemini-2.5-flash'),
                     'response' => substr($result['text'] ?? '', 0, 100),
                 ],
             ]);
@@ -398,18 +399,18 @@ class SystemSettingsController extends Controller
         }
 
         try {
-            $provider = new AnthropicProvider();
-            $result   = $provider->generate('Test connection - respond with: OK');
+            $provider = new AnthropicProvider;
+            $result = $provider->generate('Test connection - respond with: OK');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Koneksi Anthropic berhasil! Provider aktif dan siap digunakan.',
                 'details' => [
-                    'model'    => $result['model'] ?? config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022'),
+                    'model' => $result['model'] ?? config('ai.providers.anthropic.model', 'claude-3-5-sonnet-20241022'),
                     'response' => substr($result['text'] ?? '', 0, 100),
                 ],
             ]);
-        } catch (\App\Exceptions\RateLimitException $e) {
+        } catch (RateLimitException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anthropic API rate limit tercapai. Silakan coba beberapa saat lagi.',
@@ -430,7 +431,7 @@ class SystemSettingsController extends Controller
     {
         try {
             $environment = strtolower($environment);
-            if (!in_array($environment, ['development', 'production'], true)) {
+            if (! in_array($environment, ['development', 'production'], true)) {
                 return back()->with('error', 'Environment VAPID tidak valid.');
             }
 
@@ -439,7 +440,7 @@ class SystemSettingsController extends Controller
             $output = Artisan::output();
 
             if ($exitCode !== 0) {
-                return back()->with('error', 'Gagal generate VAPID: ' . trim($output));
+                return back()->with('error', 'Gagal generate VAPID: '.trim($output));
             }
 
             // Parse output for keys
@@ -472,9 +473,9 @@ class SystemSettingsController extends Controller
                 return back()->with('success', "VAPID keys {$labelSuffix} berhasil di-generate ulang dan disimpan.");
             }
 
-            return back()->with('error', 'Gagal parse VAPID keys dari output artisan. Output: ' . trim($output));
+            return back()->with('error', 'Gagal parse VAPID keys dari output artisan. Output: '.trim($output));
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal generate VAPID: ' . $e->getMessage());
+            return back()->with('error', 'Gagal generate VAPID: '.$e->getMessage());
         }
     }
 
@@ -505,7 +506,7 @@ class SystemSettingsController extends Controller
         // Fallback order — normalise to JSON array
         if ($request->has('ai_provider_fallback_order')) {
             $raw = $request->input('ai_provider_fallback_order');
-            if (!empty($raw)) {
+            if (! empty($raw)) {
                 $decoded = json_decode($raw, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                     $value = json_encode(array_values(array_filter(array_map('trim', $decoded))));
@@ -541,9 +542,11 @@ class SystemSettingsController extends Controller
     {
         try {
             $status = $this->getAiProviderAvailabilityStatus();
+
             return response()->json(['success' => true, 'providers' => $status]);
         } catch (\Throwable $e) {
             Log::warning('SystemSettingsController: failed to get AI provider status.', ['error' => $e->getMessage()]);
+
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -566,7 +569,7 @@ class SystemSettingsController extends Controller
                 $providerName = $item['provider'];
                 $isConfigured = $this->isProviderConfigured($providerName);
 
-                if (!$isConfigured) {
+                if (! $isConfigured) {
                     $statusLabel = 'Tidak Dikonfigurasi';
                     $statusColor = 'gray';
                 } elseif ($item['available']) {
@@ -578,14 +581,14 @@ class SystemSettingsController extends Controller
                 }
 
                 $status[$providerName] = [
-                    'provider'      => $providerName,
-                    'label'         => ucfirst($providerName),
-                    'configured'    => $isConfigured,
-                    'available'     => $item['available'],
-                    'status_label'  => $statusLabel,
-                    'status_color'  => $statusColor,
-                    'reason'        => $item['reason'],
-                    'recovers_at'   => $item['recovers_at'] ? $item['recovers_at']->toDateTimeString() : null,
+                    'provider' => $providerName,
+                    'label' => ucfirst($providerName),
+                    'configured' => $isConfigured,
+                    'available' => $item['available'],
+                    'status_label' => $statusLabel,
+                    'status_color' => $statusColor,
+                    'reason' => $item['reason'],
+                    'recovers_at' => $item['recovers_at'] ? $item['recovers_at']->toDateTimeString() : null,
                 ];
             }
         } catch (\Throwable $e) {
@@ -594,14 +597,14 @@ class SystemSettingsController extends Controller
             foreach ($providers as $providerName) {
                 $isConfigured = $this->isProviderConfigured($providerName);
                 $status[$providerName] = [
-                    'provider'      => $providerName,
-                    'label'         => ucfirst($providerName),
-                    'configured'    => $isConfigured,
-                    'available'     => $isConfigured,
-                    'status_label'  => $isConfigured ? 'Aktif' : 'Tidak Dikonfigurasi',
-                    'status_color'  => $isConfigured ? 'green' : 'gray',
-                    'reason'        => null,
-                    'recovers_at'   => null,
+                    'provider' => $providerName,
+                    'label' => ucfirst($providerName),
+                    'configured' => $isConfigured,
+                    'available' => $isConfigured,
+                    'status_label' => $isConfigured ? 'Aktif' : 'Tidak Dikonfigurasi',
+                    'status_color' => $isConfigured ? 'green' : 'gray',
+                    'reason' => null,
+                    'recovers_at' => null,
                 ];
             }
         }
@@ -615,9 +618,9 @@ class SystemSettingsController extends Controller
     private function isProviderConfigured(string $provider): bool
     {
         return match ($provider) {
-            'gemini'    => SystemSetting::has('gemini_api_key') || !empty(config('gemini.api_key')),
-            'anthropic' => SystemSetting::has('anthropic_api_key') || !empty(config('ai.providers.anthropic.api_key')),
-            default     => false,
+            'gemini' => SystemSetting::has('gemini_api_key') || ! empty(config('gemini.api_key')),
+            'anthropic' => SystemSetting::has('anthropic_api_key') || ! empty(config('ai.providers.anthropic.api_key')),
+            default => false,
         };
     }
 
@@ -635,6 +638,7 @@ class SystemSettingsController extends Controller
                 ->toArray();
         } catch (\Throwable $e) {
             Log::debug('SystemSettingsController: could not load provider switch logs.', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -662,13 +666,13 @@ class SystemSettingsController extends Controller
     private function getEnvFallbacks(): array
     {
         return [
-            'gemini_api_key' => !empty(config('gemini.api_key')),
+            'gemini_api_key' => ! empty(config('gemini.api_key')),
             'mail_host' => config('mail.mailers.smtp.host', ''),
             'mail_from_address' => config('mail.from.address', ''),
-            'google_client_id' => !empty(config('services.google.client_id')),
-            'vapid_public_key' => !empty(config('services.vapid.public_key')),
-            'vapid_public_key_dev' => !empty(config('services.vapid.development.public_key')),
-            'vapid_public_key_prod' => !empty(config('services.vapid.production.public_key')),
+            'google_client_id' => ! empty(config('services.google.client_id')),
+            'vapid_public_key' => ! empty(config('services.vapid.public_key')),
+            'vapid_public_key_dev' => ! empty(config('services.vapid.development.public_key')),
+            'vapid_public_key_prod' => ! empty(config('services.vapid.production.public_key')),
             'app_name' => config('app.name', 'Qalcuity ERP'),
             'app_url' => config('app.url', ''),
             'app_timezone' => config('app.timezone', 'Asia/Jakarta'),

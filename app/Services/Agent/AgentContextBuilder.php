@@ -6,8 +6,6 @@ use App\DTOs\Agent\ErpContext;
 use App\Models\AccountingPeriod;
 use App\Models\Employee;
 use App\Models\Invoice;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\SalesOrder;
 use App\Models\Tenant;
 use Carbon\Carbon;
@@ -36,17 +34,15 @@ class AgentContextBuilder
      * Harus selesai dalam < 3 detik.
      * Menggunakan parallel queries untuk efisiensi.
      *
-     * @param  int    $tenantId
      * @param  array  $activeModules  Daftar modul aktif tenant
-     * @return ErpContext
      */
     public function build(int $tenantId, array $activeModules): ErpContext
     {
         $startTime = microtime(true);
 
-        $kpiSummary       = $this->buildKpiSummary($tenantId, $activeModules, $startTime);
+        $kpiSummary = $this->buildKpiSummary($tenantId, $activeModules, $startTime);
         $accountingPeriod = $this->resolveAccountingPeriod($tenantId, $startTime);
-        $industrySkills   = $this->resolveIndustrySkills($tenantId, $activeModules);
+        $industrySkills = $this->resolveIndustrySkills($tenantId, $activeModules);
 
         return new ErpContext(
             tenantId: $tenantId,
@@ -62,22 +58,22 @@ class AgentContextBuilder
      * Refresh bagian tertentu dari ERP_Context tanpa rebuild penuh.
      * Digunakan untuk update incremental saat data berubah signifikan.
      *
-     * @param  ErpContext $context  Context yang akan di-refresh
-     * @param  string     $module   Nama modul yang datanya berubah
-     * @return ErpContext           Context baru dengan data modul yang diperbarui
+     * @param  ErpContext  $context  Context yang akan di-refresh
+     * @param  string  $module  Nama modul yang datanya berubah
+     * @return ErpContext Context baru dengan data modul yang diperbarui
      */
     public function refresh(ErpContext $context, string $module): ErpContext
     {
-        $tenantId     = $context->tenantId;
-        $startTime    = microtime(true);
-        $kpiSummary   = $context->kpiSummary;
+        $tenantId = $context->tenantId;
+        $startTime = microtime(true);
+        $kpiSummary = $context->kpiSummary;
 
         // Update hanya bagian KPI yang relevan dengan modul yang berubah
         $moduleKpiMap = [
-            'inventory'  => fn() => ['critical_stock' => $this->queryCriticalStock($tenantId)],
-            'accounting' => fn() => ['revenue' => $this->queryRevenue($tenantId), 'overdue_ar' => $this->queryOverdueAr($tenantId)],
-            'hrm'        => fn() => ['active_employees' => $this->queryActiveEmployees($tenantId)],
-            'sales'      => fn() => ['revenue' => $this->queryRevenue($tenantId)],
+            'inventory' => fn () => ['critical_stock' => $this->queryCriticalStock($tenantId)],
+            'accounting' => fn () => ['revenue' => $this->queryRevenue($tenantId), 'overdue_ar' => $this->queryOverdueAr($tenantId)],
+            'hrm' => fn () => ['active_employees' => $this->queryActiveEmployees($tenantId)],
+            'sales' => fn () => ['revenue' => $this->queryRevenue($tenantId)],
         ];
 
         $normalizedModule = strtolower($module);
@@ -91,7 +87,7 @@ class AgentContextBuilder
                 } catch (\Throwable $e) {
                     Log::warning("AgentContextBuilder: refresh gagal untuk modul {$module}", [
                         'tenant_id' => $tenantId,
-                        'error'     => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]);
                 }
             }
@@ -121,16 +117,16 @@ class AgentContextBuilder
     private function buildKpiSummary(int $tenantId, array $activeModules, float $startTime): array
     {
         $kpi = [
-            'revenue'          => null,
-            'critical_stock'   => null,
-            'overdue_ar'       => null,
+            'revenue' => null,
+            'critical_stock' => null,
+            'overdue_ar' => null,
             'active_employees' => null,
-            'unavailable'      => [],
+            'unavailable' => [],
         ];
 
         // Revenue bulan ini (modul sales/accounting)
         $kpi = $this->runWithTimeout(
-            fn() => array_merge($kpi, ['revenue' => $this->queryRevenue($tenantId)]),
+            fn () => array_merge($kpi, ['revenue' => $this->queryRevenue($tenantId)]),
             $kpi,
             'revenue',
             $startTime
@@ -138,7 +134,7 @@ class AgentContextBuilder
 
         // Stok kritis (modul inventory)
         $kpi = $this->runWithTimeout(
-            fn() => array_merge($kpi, ['critical_stock' => $this->queryCriticalStock($tenantId)]),
+            fn () => array_merge($kpi, ['critical_stock' => $this->queryCriticalStock($tenantId)]),
             $kpi,
             'critical_stock',
             $startTime
@@ -146,7 +142,7 @@ class AgentContextBuilder
 
         // Piutang jatuh tempo (modul accounting/sales)
         $kpi = $this->runWithTimeout(
-            fn() => array_merge($kpi, ['overdue_ar' => $this->queryOverdueAr($tenantId)]),
+            fn () => array_merge($kpi, ['overdue_ar' => $this->queryOverdueAr($tenantId)]),
             $kpi,
             'overdue_ar',
             $startTime
@@ -154,7 +150,7 @@ class AgentContextBuilder
 
         // Jumlah karyawan aktif (modul hrm)
         $kpi = $this->runWithTimeout(
-            fn() => array_merge($kpi, ['active_employees' => $this->queryActiveEmployees($tenantId)]),
+            fn () => array_merge($kpi, ['active_employees' => $this->queryActiveEmployees($tenantId)]),
             $kpi,
             'active_employees',
             $startTime
@@ -177,6 +173,7 @@ class AgentContextBuilder
             Log::warning("AgentContextBuilder: skip query '{$field}' karena mendekati timeout", [
                 'elapsed_ms' => round($elapsed * 1000),
             ]);
+
             return $current;
         }
 
@@ -187,6 +184,7 @@ class AgentContextBuilder
             Log::warning("AgentContextBuilder: query '{$field}' gagal", [
                 'error' => $e->getMessage(),
             ]);
+
             return $current;
         }
     }
@@ -271,17 +269,18 @@ class AgentContextBuilder
                 ->where('end_date', '>=', now()->toDateString())
                 ->first(['name', 'start_date', 'end_date']);
 
-            if (!$period) {
+            if (! $period) {
                 return null;
             }
 
             return $period->name
-                ?? ($period->start_date->format('M Y') . ' - ' . $period->end_date->format('M Y'));
+                ?? ($period->start_date->format('M Y').' - '.$period->end_date->format('M Y'));
         } catch (\Throwable $e) {
             Log::warning('AgentContextBuilder: gagal resolve accounting period', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -295,21 +294,21 @@ class AgentContextBuilder
 
         // Core skills berdasarkan modul aktif
         $moduleSkillMap = [
-            'accounting'  => 'Akuntansi & Keuangan',
-            'inventory'   => 'Inventory & Gudang',
-            'hrm'         => 'HRM & Payroll',
-            'sales'       => 'Penjualan & CRM',
-            'project'     => 'Project Management',
-            'crm'         => 'Penjualan & CRM',
-            'payroll'     => 'HRM & Payroll',
-            'purchase'    => 'Pembelian & Pengadaan',
+            'accounting' => 'Akuntansi & Keuangan',
+            'inventory' => 'Inventory & Gudang',
+            'hrm' => 'HRM & Payroll',
+            'sales' => 'Penjualan & CRM',
+            'project' => 'Project Management',
+            'crm' => 'Penjualan & CRM',
+            'payroll' => 'HRM & Payroll',
+            'purchase' => 'Pembelian & Pengadaan',
         ];
 
         foreach ($activeModules as $module) {
             $normalizedModule = strtolower($module);
             if (isset($moduleSkillMap[$normalizedModule])) {
                 $skill = $moduleSkillMap[$normalizedModule];
-                if (!in_array($skill, $skills, true)) {
+                if (! in_array($skill, $skills, true)) {
                     $skills[] = $skill;
                 }
             }
@@ -320,17 +319,17 @@ class AgentContextBuilder
             $tenant = Tenant::withoutGlobalScopes()->find($tenantId, ['business_type', 'enabled_modules']);
             if ($tenant) {
                 $industrySkillMap = [
-                    'healthcare'   => 'Healthcare',
-                    'manufacture'  => 'Manufaktur',
-                    'hotel'        => 'Hospitality',
+                    'healthcare' => 'Healthcare',
+                    'manufacture' => 'Manufaktur',
+                    'hotel' => 'Hospitality',
                     'construction' => 'Konstruksi',
-                    'agriculture'  => 'Pertanian',
-                    'livestock'    => 'Peternakan',
+                    'agriculture' => 'Pertanian',
+                    'livestock' => 'Peternakan',
                 ];
 
                 if ($tenant->business_type && isset($industrySkillMap[$tenant->business_type])) {
                     $industrySkill = $industrySkillMap[$tenant->business_type];
-                    if (!in_array($industrySkill, $skills, true)) {
+                    if (! in_array($industrySkill, $skills, true)) {
                         $skills[] = $industrySkill;
                     }
                 }
@@ -341,7 +340,7 @@ class AgentContextBuilder
                 foreach ($industryModules as $industryModule) {
                     if (in_array($industryModule, $enabledModules, true)) {
                         $label = ucfirst($industryModule);
-                        if (!in_array($label, $skills, true)) {
+                        if (! in_array($label, $skills, true)) {
                             $skills[] = $label;
                         }
                     }
@@ -350,7 +349,7 @@ class AgentContextBuilder
         } catch (\Throwable $e) {
             Log::warning('AgentContextBuilder: gagal resolve industry skills', [
                 'tenant_id' => $tenantId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
 

@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\IotDevice;
 use App\Models\IotTelemetryLog;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class IotDeviceController extends Controller
 {
@@ -24,31 +24,31 @@ class IotDeviceController extends Controller
     public function create(): View
     {
         return view('iot.devices.create', [
-            'deviceTypes'   => IotDevice::deviceTypes(),
+            'deviceTypes' => IotDevice::deviceTypes(),
             'targetModules' => IotDevice::targetModules(),
-            'sensorTypes'   => IotDevice::sensorTypes(),
+            'sensorTypes' => IotDevice::sensorTypes(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'             => 'required|string|max:255',
-            'device_type'      => 'required|in:esp32,arduino,raspberry_pi,generic',
-            'location'         => 'nullable|string|max:255',
-            'target_module'    => 'required|in:inventory,manufacturing,livestock,fisheries,agriculture,hrm,healthcare,general',
-            'sensor_types'     => 'nullable|array',
-            'sensor_types.*'   => 'string',
+            'name' => 'required|string|max:255',
+            'device_type' => 'required|in:esp32,arduino,raspberry_pi,generic',
+            'location' => 'nullable|string|max:255',
+            'target_module' => 'required|in:inventory,manufacturing,livestock,fisheries,agriculture,hrm,healthcare,general',
+            'sensor_types' => 'nullable|array',
+            'sensor_types.*' => 'string',
             'firmware_version' => 'nullable|string|max:50',
-            'is_active'        => 'boolean',
-            'config'           => 'nullable|array',
-            'notes'            => 'nullable|string',
+            'is_active' => 'boolean',
+            'config' => 'nullable|array',
+            'notes' => 'nullable|string',
         ]);
 
-        $validated['tenant_id']    = $this->tenantId();
-        $validated['device_id']    = 'DEV-' . strtoupper(substr(md5(uniqid()), 0, 8));
+        $validated['tenant_id'] = $this->tenantId();
+        $validated['device_id'] = 'DEV-'.strtoupper(substr(md5(uniqid()), 0, 8));
         $validated['device_token'] = IotDevice::generateToken();
-        $validated['is_active']    = $request->boolean('is_active', true);
+        $validated['is_active'] = $request->boolean('is_active', true);
 
         $device = IotDevice::create($validated);
 
@@ -79,10 +79,10 @@ class IotDeviceController extends Controller
         $this->authorizeTenant($device);
 
         return view('iot.devices.edit', [
-            'device'        => $device,
-            'deviceTypes'   => IotDevice::deviceTypes(),
+            'device' => $device,
+            'deviceTypes' => IotDevice::deviceTypes(),
             'targetModules' => IotDevice::targetModules(),
-            'sensorTypes'   => IotDevice::sensorTypes(),
+            'sensorTypes' => IotDevice::sensorTypes(),
         ]);
     }
 
@@ -91,16 +91,16 @@ class IotDeviceController extends Controller
         $this->authorizeTenant($device);
 
         $validated = $request->validate([
-            'name'             => 'required|string|max:255',
-            'device_type'      => 'required|in:esp32,arduino,raspberry_pi,generic',
-            'location'         => 'nullable|string|max:255',
-            'target_module'    => 'required|in:inventory,manufacturing,livestock,fisheries,agriculture,hrm,healthcare,general',
-            'sensor_types'     => 'nullable|array',
-            'sensor_types.*'   => 'string',
+            'name' => 'required|string|max:255',
+            'device_type' => 'required|in:esp32,arduino,raspberry_pi,generic',
+            'location' => 'nullable|string|max:255',
+            'target_module' => 'required|in:inventory,manufacturing,livestock,fisheries,agriculture,hrm,healthcare,general',
+            'sensor_types' => 'nullable|array',
+            'sensor_types.*' => 'string',
             'firmware_version' => 'nullable|string|max:50',
-            'is_active'        => 'boolean',
-            'config'           => 'nullable|array',
-            'notes'            => 'nullable|string',
+            'is_active' => 'boolean',
+            'config' => 'nullable|array',
+            'notes' => 'nullable|string',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active', true);
@@ -127,9 +127,9 @@ class IotDeviceController extends Controller
         $device->update(['device_token' => IotDevice::generateToken()]);
 
         return response()->json([
-            'success'      => true,
+            'success' => true,
             'device_token' => $device->device_token,
-            'message'      => 'Token berhasil diperbarui. Update firmware Anda.',
+            'message' => 'Token berhasil diperbarui. Update firmware Anda.',
         ]);
     }
 
@@ -139,7 +139,7 @@ class IotDeviceController extends Controller
         $this->authorizeTenant($device);
 
         $sensorType = $request->get('sensor_type', 'temperature');
-        $hours      = (int) $request->get('hours', 24);
+        $hours = (int) $request->get('hours', 24);
 
         $data = IotTelemetryLog::where('iot_device_id', $device->id)
             ->where('sensor_type', $sensorType)

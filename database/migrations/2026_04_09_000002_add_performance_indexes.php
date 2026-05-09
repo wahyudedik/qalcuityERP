@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run performance optimization indexes.
      * Task 025: Optimize database queries - Add missing indexes
@@ -14,179 +15,179 @@ return new class extends Migration {
         // Helper function to safely add indexes
         $addIndex = function ($table, $columns, $indexName = null) {
             try {
-                $columnsList = \Illuminate\Support\Facades\Schema::getColumnListing($table);
+                $columnsList = Schema::getColumnListing($table);
 
                 // Check if all columns exist
                 foreach ($columns as $col) {
-                    if (!in_array($col, $columnsList)) {
+                    if (! in_array($col, $columnsList)) {
                         return; // Skip if column doesn't exist
                     }
                 }
 
-                \Illuminate\Support\Facades\Schema::table($table, function (\Illuminate\Database\Schema\Blueprint $table) use ($columns, $indexName) {
+                Schema::table($table, function (Blueprint $table) use ($columns, $indexName) {
                     $table->index($columns, $indexName);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Silently skip if table doesn't exist or other errors
             }
         };
 
         // Healthcare Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('patients')) {
+        if (Schema::hasTable('patients')) {
             $addIndex('patients', ['tenant_id', 'status']);
             $addIndex('patients', ['tenant_id', 'mrn']);
             $addIndex('patients', ['tenant_id', 'full_name']);
             $addIndex('patients', ['tenant_id', 'created_at']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('appointments')) {
+        if (Schema::hasTable('appointments')) {
             $addIndex('appointments', ['tenant_id', 'status']);
             $addIndex('appointments', ['tenant_id', 'appointment_date']);
             $addIndex('appointments', ['tenant_id', 'doctor_id']);
             $addIndex('appointments', ['tenant_id', 'patient_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('lab_results')) {
+        if (Schema::hasTable('lab_results')) {
             $addIndex('lab_results', ['tenant_id', 'is_critical']);
             $addIndex('lab_results', ['tenant_id', 'result_date']);
         }
 
         // Hotel Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('rooms')) {
+        if (Schema::hasTable('rooms')) {
             $addIndex('rooms', ['tenant_id', 'status']);
             $addIndex('rooms', ['tenant_id', 'room_type_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('reservations')) {
+        if (Schema::hasTable('reservations')) {
             $addIndex('reservations', ['tenant_id', 'status']);
             $addIndex('reservations', ['tenant_id', 'check_in_date']);
             $addIndex('reservations', ['tenant_id', 'guest_id']);
         }
 
         // Inventory Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+        if (Schema::hasTable('products')) {
             $addIndex('products', ['tenant_id', 'is_active']);
             $addIndex('products', ['tenant_id', 'warehouse_id']);
             $addIndex('products', ['tenant_id', 'stock']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('stock_movements')) {
+        if (Schema::hasTable('stock_movements')) {
             $addIndex('stock_movements', ['tenant_id', 'product_id']);
             $addIndex('stock_movements', ['tenant_id', 'warehouse_id']);
             $addIndex('stock_movements', ['tenant_id', 'type']);
             $addIndex('stock_movements', ['tenant_id', 'created_at']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('stock_transfers')) {
+        if (Schema::hasTable('stock_transfers')) {
             $addIndex('stock_transfers', ['tenant_id', 'status']);
             $addIndex('stock_transfers', ['tenant_id', 'product_id']);
         }
 
         // HRM Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('employees')) {
+        if (Schema::hasTable('employees')) {
             $addIndex('employees', ['tenant_id', 'status']);
             $addIndex('employees', ['tenant_id', 'department_id']);
             $addIndex('employees', ['tenant_id', 'employee_code']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('attendances')) {
+        if (Schema::hasTable('attendances')) {
             $addIndex('attendances', ['tenant_id', 'employee_id']);
             $addIndex('attendances', ['tenant_id', 'check_in']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('leave_requests')) {
+        if (Schema::hasTable('leave_requests')) {
             $addIndex('leave_requests', ['tenant_id', 'employee_id']);
             $addIndex('leave_requests', ['tenant_id', 'status']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('payrolls')) {
+        if (Schema::hasTable('payrolls')) {
             $addIndex('payrolls', ['tenant_id', 'employee_id']);
             $addIndex('payrolls', ['tenant_id', 'period']);
             $addIndex('payrolls', ['tenant_id', 'status']);
         }
 
         // Manufacturing Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('work_orders')) {
+        if (Schema::hasTable('work_orders')) {
             $addIndex('work_orders', ['tenant_id', 'status']);
             $addIndex('work_orders', ['tenant_id', 'product_id']);
             $addIndex('work_orders', ['tenant_id', 'planned_start_date']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('quality_checks')) {
+        if (Schema::hasTable('quality_checks')) {
             $addIndex('quality_checks', ['tenant_id', 'status']);
             $addIndex('quality_checks', ['tenant_id', 'work_order_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('defect_records')) {
+        if (Schema::hasTable('defect_records')) {
             $addIndex('defect_records', ['tenant_id', 'severity']);
             $addIndex('defect_records', ['tenant_id', 'status']);
             $addIndex('defect_records', ['tenant_id', 'work_order_id']);
         }
 
         // Agriculture Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('crops')) {
+        if (Schema::hasTable('crops')) {
             $addIndex('crops', ['tenant_id', 'status']);
             $addIndex('crops', ['tenant_id', 'field_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('fields')) {
+        if (Schema::hasTable('fields')) {
             $addIndex('fields', ['tenant_id', 'status']);
         }
 
         // Fisheries Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('ponds')) {
+        if (Schema::hasTable('ponds')) {
             $addIndex('ponds', ['tenant_id', 'status']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('fish_stocks')) {
+        if (Schema::hasTable('fish_stocks')) {
             $addIndex('fish_stocks', ['tenant_id', 'pond_id']);
         }
 
         // Livestock Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('livestock')) {
+        if (Schema::hasTable('livestock')) {
             $addIndex('livestock', ['tenant_id', 'type']);
             $addIndex('livestock', ['tenant_id', 'status']);
         }
 
         // Cosmetics Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('cosmetic_formulations')) {
+        if (Schema::hasTable('cosmetic_formulations')) {
             $addIndex('cosmetic_formulations', ['tenant_id', 'category']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('cosmetic_batches')) {
+        if (Schema::hasTable('cosmetic_batches')) {
             $addIndex('cosmetic_batches', ['tenant_id', 'formulation_id']);
             $addIndex('cosmetic_batches', ['tenant_id', 'expiry_date']);
         }
 
         // Tour & Travel Module Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('tour_packages')) {
+        if (Schema::hasTable('tour_packages')) {
             $addIndex('tour_packages', ['tenant_id', 'destination']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('tour_bookings')) {
+        if (Schema::hasTable('tour_bookings')) {
             $addIndex('tour_bookings', ['tenant_id', 'status']);
             $addIndex('tour_bookings', ['tenant_id', 'package_id']);
             $addIndex('tour_bookings', ['tenant_id', 'departure_date']);
         }
 
         // General Performance Indexes
-        if (\Illuminate\Support\Facades\Schema::hasTable('journal_entries')) {
+        if (Schema::hasTable('journal_entries')) {
             $addIndex('journal_entries', ['tenant_id', 'date']);
             $addIndex('journal_entries', ['tenant_id', 'status']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('journal_entry_lines')) {
+        if (Schema::hasTable('journal_entry_lines')) {
             $addIndex('journal_entry_lines', ['tenant_id', 'account_id']);
             $addIndex('journal_entry_lines', ['tenant_id', 'journal_entry_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('invoices')) {
+        if (Schema::hasTable('invoices')) {
             $addIndex('invoices', ['tenant_id', 'status']);
             $addIndex('invoices', ['tenant_id', 'due_date']);
             $addIndex('invoices', ['tenant_id', 'customer_id']);
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('sales_orders')) {
+        if (Schema::hasTable('sales_orders')) {
             $addIndex('sales_orders', ['tenant_id', 'status']);
             $addIndex('sales_orders', ['tenant_id', 'order_date']);
         }

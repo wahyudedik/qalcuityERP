@@ -9,8 +9,6 @@ use App\Models\FarmPlotActivity;
 use App\Models\LivestockHerd;
 use App\Models\PickingList;
 use App\Models\PickingListItem;
-use App\Models\Product;
-use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\StockOpnameItem;
 use App\Models\StockOpnameSession;
@@ -57,7 +55,7 @@ class MobileController extends Controller
 
         $pickingLists = PickingList::with(['warehouse', 'assignee', 'items'])
             ->where('tenant_id', $this->tid())
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -285,7 +283,7 @@ class MobileController extends Controller
     public function pickingBatchConfirm(Request $request, int $id)
     {
         $pickingList = PickingList::where('tenant_id', $this->tid())->findOrFail($id);
-        abort_if(!in_array($pickingList->status, ['pending', 'in_progress']), 403, 'Picking list sudah selesai');
+        abort_if(! in_array($pickingList->status, ['pending', 'in_progress']), 403, 'Picking list sudah selesai');
 
         $user = $request->user();
         $itemsData = $request->validate([
@@ -345,7 +343,7 @@ class MobileController extends Controller
             ->get(['id', 'name', 'code']);
 
         $bins = WarehouseBin::with('warehouse')
-            ->whereHas('warehouse', fn($q) => $q->where('tenant_id', $tenantId))
+            ->whereHas('warehouse', fn ($q) => $q->where('tenant_id', $tenantId))
             ->orderBy('code')
             ->get(['id', 'code', 'warehouse_id']);
 
@@ -373,7 +371,7 @@ class MobileController extends Controller
         $sourceStock = BinStock::where('bin_id', $fromBin->id)
             ->where('product_id', $data['product_id'])
             ->first();
-        abort_if(!$sourceStock || $sourceStock->quantity < $data['quantity'], 422, 'Stok tidak mencukupi di bin asal');
+        abort_if(! $sourceStock || $sourceStock->quantity < $data['quantity'], 422, 'Stok tidak mencukupi di bin asal');
 
         DB::transaction(function () use ($data, $tenantId, $user, $fromBin, $toBin, $sourceStock) {
             // Decrement source bin
@@ -395,7 +393,7 @@ class MobileController extends Controller
                 'user_id' => $user->id,
                 'type' => 'transfer',
                 'quantity' => $data['quantity'],
-                'reference' => 'TRF-' . now()->format('YmdHis'),
+                'reference' => 'TRF-'.now()->format('YmdHis'),
                 'notes' => $data['notes'],
                 'quantity_before' => $sourceStock->quantity,
                 'quantity_after' => $sourceStock->quantity - $data['quantity'],

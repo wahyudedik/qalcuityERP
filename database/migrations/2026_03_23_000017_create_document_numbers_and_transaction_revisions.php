@@ -11,7 +11,7 @@ return new class extends Migration
         // ── Task 37: Document Number Registry ────────────────────────
         // Menyimpan counter per jenis dokumen per tenant.
         // Nomor tidak pernah di-reuse walau record dihapus.
-        if (!Schema::hasTable('document_number_sequences')) {
+        if (! Schema::hasTable('document_number_sequences')) {
             Schema::create('document_number_sequences', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->string('period_key', 10);  // YYYY atau YYYYMM tergantung format
                 $table->unsignedInteger('last_number')->default(0);
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'doc_type', 'period_key']);
                 $table->index(['tenant_id', 'doc_type']);
             });
@@ -28,7 +28,7 @@ return new class extends Migration
         // ── Task 36: Transaction Revisions ───────────────────────────
         // Setiap kali transaksi yang sudah posted perlu diubah,
         // buat amendment baru. Versi lama tetap immutable.
-        if (!Schema::hasTable('transaction_revisions')) {
+        if (! Schema::hasTable('transaction_revisions')) {
             Schema::create('transaction_revisions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -41,7 +41,7 @@ return new class extends Migration
                 $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
                 $table->timestamp('finalized_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['model_type', 'model_id']);
                 $table->index(['tenant_id', 'model_type']);
             });
@@ -51,29 +51,29 @@ return new class extends Migration
         Schema::table('invoices', function (Blueprint $table) {
             // Status baru: draft → posted → partial_paid → paid → cancelled → voided
             // Kolom status lama (unpaid/partial/paid) diganti dengan posting_status
-            if (!Schema::hasColumn('invoices', 'posting_status')) {
+            if (! Schema::hasColumn('invoices', 'posting_status')) {
                 $table->enum('posting_status', ['draft', 'posted', 'cancelled', 'voided'])
-                      ->default('draft')->after('status');
+                    ->default('draft')->after('status');
             }
-            if (!Schema::hasColumn('invoices', 'posted_by')) {
+            if (! Schema::hasColumn('invoices', 'posted_by')) {
                 $table->unsignedBigInteger('posted_by')->nullable()->after('posting_status');
             }
-            if (!Schema::hasColumn('invoices', 'posted_at')) {
+            if (! Schema::hasColumn('invoices', 'posted_at')) {
                 $table->timestamp('posted_at')->nullable()->after('posted_by');
             }
-            if (!Schema::hasColumn('invoices', 'cancelled_by')) {
+            if (! Schema::hasColumn('invoices', 'cancelled_by')) {
                 $table->unsignedBigInteger('cancelled_by')->nullable()->after('posted_at');
             }
-            if (!Schema::hasColumn('invoices', 'cancelled_at')) {
+            if (! Schema::hasColumn('invoices', 'cancelled_at')) {
                 $table->timestamp('cancelled_at')->nullable()->after('cancelled_by');
             }
-            if (!Schema::hasColumn('invoices', 'cancel_reason')) {
+            if (! Schema::hasColumn('invoices', 'cancel_reason')) {
                 $table->string('cancel_reason')->nullable()->after('cancelled_at');
             }
-            if (!Schema::hasColumn('invoices', 'revision_number')) {
+            if (! Schema::hasColumn('invoices', 'revision_number')) {
                 $table->unsignedInteger('revision_number')->default(0)->after('cancel_reason');
             }
-            if (!Schema::hasColumn('invoices', 'original_invoice_id')) {
+            if (! Schema::hasColumn('invoices', 'original_invoice_id')) {
                 $table->unsignedBigInteger('original_invoice_id')->nullable()->after('revision_number');
             }
 
@@ -84,20 +84,20 @@ return new class extends Migration
         Schema::table('purchase_orders', function (Blueprint $table) {
             // Status PO sudah ada: draft, sent, partial, received, cancelled
             // Tambah posting_status untuk immutability
-            if (!Schema::hasColumn('purchase_orders', 'posting_status')) {
+            if (! Schema::hasColumn('purchase_orders', 'posting_status')) {
                 $table->enum('posting_status', ['draft', 'posted', 'cancelled'])
-                      ->default('draft')->after('status');
+                    ->default('draft')->after('status');
             }
-            if (!Schema::hasColumn('purchase_orders', 'posted_by')) {
+            if (! Schema::hasColumn('purchase_orders', 'posted_by')) {
                 $table->unsignedBigInteger('posted_by')->nullable()->after('posting_status');
             }
-            if (!Schema::hasColumn('purchase_orders', 'posted_at')) {
+            if (! Schema::hasColumn('purchase_orders', 'posted_at')) {
                 $table->timestamp('posted_at')->nullable()->after('posted_by');
             }
-            if (!Schema::hasColumn('purchase_orders', 'cancel_reason')) {
+            if (! Schema::hasColumn('purchase_orders', 'cancel_reason')) {
                 $table->string('cancel_reason')->nullable()->after('posted_at');
             }
-            if (!Schema::hasColumn('purchase_orders', 'revision_number')) {
+            if (! Schema::hasColumn('purchase_orders', 'revision_number')) {
                 $table->unsignedInteger('revision_number')->default(0)->after('cancel_reason');
             }
 
@@ -106,20 +106,20 @@ return new class extends Migration
 
         // ── Task 35: Tambah kolom state machine ke sales_orders ──────
         Schema::table('sales_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('sales_orders', 'posting_status')) {
+            if (! Schema::hasColumn('sales_orders', 'posting_status')) {
                 $table->enum('posting_status', ['draft', 'posted', 'cancelled'])
-                      ->default('draft')->after('status');
+                    ->default('draft')->after('status');
             }
-            if (!Schema::hasColumn('sales_orders', 'posted_by')) {
+            if (! Schema::hasColumn('sales_orders', 'posted_by')) {
                 $table->unsignedBigInteger('posted_by')->nullable()->after('posting_status');
             }
-            if (!Schema::hasColumn('sales_orders', 'posted_at')) {
+            if (! Schema::hasColumn('sales_orders', 'posted_at')) {
                 $table->timestamp('posted_at')->nullable()->after('posted_by');
             }
-            if (!Schema::hasColumn('sales_orders', 'cancel_reason')) {
+            if (! Schema::hasColumn('sales_orders', 'cancel_reason')) {
                 $table->string('cancel_reason')->nullable()->after('posted_at');
             }
-            if (!Schema::hasColumn('sales_orders', 'revision_number')) {
+            if (! Schema::hasColumn('sales_orders', 'revision_number')) {
                 $table->unsignedInteger('revision_number')->default(0)->after('cancel_reason');
             }
         });
@@ -127,28 +127,28 @@ return new class extends Migration
         // ── Task 37: Tambah kolom doc_number_sequence ke semua tabel ─
         // Kolom untuk menyimpan sequence number (integer) agar bisa di-sort
         Schema::table('invoices', function (Blueprint $table) {
-            if (!Schema::hasColumn('invoices', 'doc_sequence')) {
+            if (! Schema::hasColumn('invoices', 'doc_sequence')) {
                 $table->unsignedInteger('doc_sequence')->nullable()->after('number');
             }
-            if (!Schema::hasColumn('invoices', 'doc_year')) {
+            if (! Schema::hasColumn('invoices', 'doc_year')) {
                 $table->string('doc_year', 4)->nullable()->after('doc_sequence');
             }
         });
 
         Schema::table('purchase_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('purchase_orders', 'doc_sequence')) {
+            if (! Schema::hasColumn('purchase_orders', 'doc_sequence')) {
                 $table->unsignedInteger('doc_sequence')->nullable()->after('number');
             }
-            if (!Schema::hasColumn('purchase_orders', 'doc_year')) {
+            if (! Schema::hasColumn('purchase_orders', 'doc_year')) {
                 $table->string('doc_year', 4)->nullable()->after('doc_sequence');
             }
         });
 
         Schema::table('sales_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('sales_orders', 'doc_sequence')) {
+            if (! Schema::hasColumn('sales_orders', 'doc_sequence')) {
                 $table->unsignedInteger('doc_sequence')->nullable()->after('number');
             }
-            if (!Schema::hasColumn('sales_orders', 'doc_year')) {
+            if (! Schema::hasColumn('sales_orders', 'doc_year')) {
                 $table->string('doc_year', 4)->nullable()->after('doc_sequence');
             }
         });

@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class TableReservation extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'table_id',
@@ -84,7 +85,8 @@ class TableReservation extends Model
      */
     public function getEndTime(): string
     {
-        $startTime = \Carbon\Carbon::parse($this->reservation_time);
+        $startTime = Carbon::parse($this->reservation_time);
+
         return $startTime->addMinutes($this->duration_minutes)->format('H:i');
     }
 }

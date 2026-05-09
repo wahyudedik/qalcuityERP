@@ -9,7 +9,7 @@ use App\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\WorkOrder>
+ * @extends Factory<WorkOrder>
  */
 class WorkOrderFactory extends Factory
 {
@@ -29,9 +29,9 @@ class WorkOrderFactory extends Factory
     {
         return [
             'tenant_id' => 1, // Default tenant for testing
-            'product_id' => 1, // Default product for testing  
+            'product_id' => 1, // Default product for testing
             'user_id' => 1, // Default user for testing
-            'number' => 'WO-' . $this->faker->unique()->numerify('########'),
+            'number' => 'WO-'.$this->faker->unique()->numerify('########'),
             'target_quantity' => $this->faker->randomFloat(3, 1, 1000),
             'unit' => $this->faker->randomElement(['pcs', 'kg', 'liter', 'm3', 'ton']),
             'status' => $this->faker->randomElement(WorkOrder::STATUSES),

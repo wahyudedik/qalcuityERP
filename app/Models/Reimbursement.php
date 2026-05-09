@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reimbursement extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'number', 'employee_id', 'requested_by',
         'category', 'description', 'expense_date', 'amount',
@@ -22,36 +22,60 @@ class Reimbursement extends Model
     {
         return [
             'expense_date' => 'date',
-            'amount'       => 'decimal:2',
-            'approved_at'  => 'datetime',
-            'paid_at'      => 'datetime',
+            'amount' => 'decimal:2',
+            'approved_at' => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
-    public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requested_by'); }
-    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }
-    public function payer(): BelongsTo { return $this->belongsTo(User::class, 'paid_by'); }
-    public function journalEntry(): BelongsTo { return $this->belongsTo(JournalEntry::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function payer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'paid_by');
+    }
+
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class);
+    }
 
     public static function generateNumber(int $tenantId): string
     {
         $count = self::where('tenant_id', $tenantId)->count() + 1;
-        return 'RMB-' . date('Ym') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'RMB-'.date('Ym').'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     public function categoryLabel(): string
     {
-        return match($this->category) {
+        return match ($this->category) {
             'transport' => 'Transportasi',
-            'meal'      => 'Makan & Minum',
-            'medical'   => 'Kesehatan',
-            'office'    => 'Perlengkapan Kantor',
-            'travel'    => 'Perjalanan Dinas',
-            'training'  => 'Pelatihan',
-            'other'     => 'Lainnya',
-            default     => ucfirst($this->category),
+            'meal' => 'Makan & Minum',
+            'medical' => 'Kesehatan',
+            'office' => 'Perlengkapan Kantor',
+            'travel' => 'Perjalanan Dinas',
+            'training' => 'Pelatihan',
+            'other' => 'Lainnya',
+            default => ucfirst($this->category),
         };
     }
 }

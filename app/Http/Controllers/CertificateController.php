@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductCertificate;
 use App\Services\CertificateService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CertificateController extends Controller
@@ -22,7 +23,7 @@ class CertificateController extends Controller
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
         $expiresAt = $request->input('expires_at')
-            ? \Carbon\Carbon::parse($request->input('expires_at'))
+            ? Carbon::parse($request->input('expires_at'))
             : null;
 
         $certificate = $this->certificateService->issue(
@@ -32,8 +33,8 @@ class CertificateController extends Controller
         );
 
         return response()->json([
-            'success'     => true,
-            'message'     => 'Sertifikat berhasil diterbitkan.',
+            'success' => true,
+            'message' => 'Sertifikat berhasil diterbitkan.',
             'certificate' => $certificate,
         ], 201);
     }
@@ -54,7 +55,7 @@ class CertificateController extends Controller
             ->get();
 
         return response()->json([
-            'success'      => true,
+            'success' => true,
             'certificates' => $certificates,
         ]);
     }
@@ -104,7 +105,7 @@ class CertificateController extends Controller
 
         $pdf = $this->certificateService->generatePdf($certificate);
 
-        $filename = 'certificate-' . $certificate->certificate_number . '.pdf';
+        $filename = 'certificate-'.$certificate->certificate_number.'.pdf';
 
         return $pdf->download($filename);
     }

@@ -3,12 +3,18 @@
 namespace Tests\Feature\Audit;
 
 use App\Events\SettingsUpdated;
+use App\Models\Currency;
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\NotificationPreference;
+use App\Models\OnboardingProfile;
 use App\Models\SystemSetting;
 use App\Models\Tenant;
 use App\Models\TenantApiSetting;
 use App\Models\User;
 use App\Services\SettingsCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +22,7 @@ use Tests\TestCase;
 
 /**
  * Task 19: Audit & Perbaikan Pengaturan Sistem
- * 
+ *
  * Validates all settings functionality:
  * - Company profile settings (logo, name, address, NPWP)
  * - Module activation/deactivation
@@ -32,7 +38,9 @@ class Task19_SettingsAuditTest extends TestCase
     use RefreshDatabase;
 
     private Tenant $tenant;
+
     private User $admin;
+
     private User $superAdmin;
 
     protected function setUp(): void
@@ -101,13 +109,13 @@ class Task19_SettingsAuditTest extends TestCase
         $this->assertEquals('Jl. Sudirman No. 100', $this->tenant->address);
 
         // Verify company info appears in invoice PDF view
-        $customer = \App\Models\Customer::create([
+        $customer = Customer::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Test Customer',
             'email' => 'customer@test.com',
         ]);
 
-        $invoice = \App\Models\Invoice::create([
+        $invoice = Invoice::create([
             'tenant_id' => $this->tenant->id,
             'customer_id' => $customer->id,
             'invoice_number' => 'INV-001',
@@ -182,7 +190,7 @@ class Task19_SettingsAuditTest extends TestCase
         $response->assertSessionHas('success');
 
         // Verify currency created
-        $currency = \App\Models\Currency::where('tenant_id', $this->tenant->id)
+        $currency = Currency::where('tenant_id', $this->tenant->id)
             ->where('code', 'USD')
             ->first();
 
@@ -222,7 +230,7 @@ class Task19_SettingsAuditTest extends TestCase
         $this->admin->refresh();
         $this->assertEquals('daily', $this->admin->digest_frequency);
 
-        $lowStockPref = \App\Models\NotificationPreference::where('user_id', $this->admin->id)
+        $lowStockPref = NotificationPreference::where('user_id', $this->admin->id)
             ->where('notification_type', 'low_stock')
             ->first();
 
@@ -250,7 +258,7 @@ class Task19_SettingsAuditTest extends TestCase
         );
 
         // Verify stored value is encrypted (not plain text)
-        $record = \App\Models\TenantApiSetting::where('tenant_id', $this->tenant->id)
+        $record = TenantApiSetting::where('tenant_id', $this->tenant->id)
             ->where('key', 'midtrans_server_key')
             ->first();
 
@@ -357,7 +365,7 @@ class Task19_SettingsAuditTest extends TestCase
         $industryResponse->assertJson(['success' => true]);
 
         // Verify onboarding profile created
-        $profile = \App\Models\OnboardingProfile::where('tenant_id', $newTenant->id)
+        $profile = OnboardingProfile::where('tenant_id', $newTenant->id)
             ->where('user_id', $newUser->id)
             ->first();
 
@@ -384,7 +392,7 @@ class Task19_SettingsAuditTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        $file = \Illuminate\Http\UploadedFile::fake()->image('logo.png', 200, 200);
+        $file = UploadedFile::fake()->image('logo.png', 200, 200);
 
         $response = $this->put(route('company-profile.update'), [
             'name' => $this->tenant->name,

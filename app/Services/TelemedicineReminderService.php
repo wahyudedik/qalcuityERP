@@ -16,8 +16,9 @@ class TelemedicineReminderService
     {
         $settings = TelemedicineSetting::getForTenant($consultation->patient?->tenant_id ?? 1);
 
-        if (!$settings->reminder_enabled) {
+        if (! $settings->reminder_enabled) {
             Log::info('Reminders disabled for tenant', ['tenant_id' => $consultation->patient?->tenant_id]);
+
             return false;
         }
 
@@ -50,8 +51,9 @@ class TelemedicineReminderService
     {
         try {
             $doctor = $consultation->doctor;
-            if (!$doctor || !$doctor->user) {
+            if (! $doctor || ! $doctor->user) {
                 Log::warning('Doctor or user not found', ['consultation_id' => $consultation->id]);
+
                 return false;
             }
 
@@ -68,6 +70,7 @@ class TelemedicineReminderService
                 'error' => $e->getMessage(),
                 'consultation_id' => $consultation->id,
             ]);
+
             return false;
         }
     }
@@ -79,8 +82,9 @@ class TelemedicineReminderService
     {
         try {
             $patient = $consultation->patient;
-            if (!$patient || !$patient->user) {
+            if (! $patient || ! $patient->user) {
                 Log::warning('Patient or user not found', ['consultation_id' => $consultation->id]);
+
                 return false;
             }
 
@@ -97,6 +101,7 @@ class TelemedicineReminderService
                 'error' => $e->getMessage(),
                 'consultation_id' => $consultation->id,
             ]);
+
             return false;
         }
     }
@@ -109,7 +114,7 @@ class TelemedicineReminderService
     {
         $settings = TelemedicineSetting::getForTenant($consultation->patient?->tenant_id ?? 1);
 
-        if (!$settings->reminder_enabled) {
+        if (! $settings->reminder_enabled) {
             return;
         }
 

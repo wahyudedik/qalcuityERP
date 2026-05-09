@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * SystemSettingObserver - Ensure cache is cleared on any setting change
- * 
+ *
  * BUG-SET-001 FIX: Guarantees cache invalidation regardless of how settings are updated
  */
 class SystemSettingObserver

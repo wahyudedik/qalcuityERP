@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * PERF-003: Add Composite Database Indexes
- * 
+ *
  * Composite indexes significantly improve query performance for common filter patterns.
- * 
+ *
  * Indexes added:
  * - sales_orders(tenant_id, status, created_at) - Order filtering
  * - invoices(tenant_id, due_date, status) - Invoice aging
@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Schema;
  * - customers(tenant_id, email) - UNIQUE - Customer dedup
  * - employees(tenant_id, employee_code) - UNIQUE - Employee lookup
  */
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -26,7 +27,7 @@ return new class extends Migration {
         if (Schema::hasTable('sales_orders')) {
             Schema::table('sales_orders', function (Blueprint $table) {
                 // Check if index already exists
-                $indexes = \DB::select("SHOW INDEX FROM sales_orders WHERE Key_name = 'idx_sales_orders_tenant_status_date'");
+                $indexes = DB::select("SHOW INDEX FROM sales_orders WHERE Key_name = 'idx_sales_orders_tenant_status_date'");
                 if (empty($indexes)) {
                     $table->index(['tenant_id', 'status', 'created_at'], 'idx_sales_orders_tenant_status_date');
                 }
@@ -36,7 +37,7 @@ return new class extends Migration {
         // Invoices: Filter by tenant, due date, and status (for aging reports)
         if (Schema::hasTable('invoices')) {
             Schema::table('invoices', function (Blueprint $table) {
-                $indexes = \DB::select("SHOW INDEX FROM invoices WHERE Key_name = 'idx_invoices_tenant_due_status'");
+                $indexes = DB::select("SHOW INDEX FROM invoices WHERE Key_name = 'idx_invoices_tenant_due_status'");
                 if (empty($indexes)) {
                     $table->index(['tenant_id', 'due_date', 'status'], 'idx_invoices_tenant_due_status');
                 }
@@ -47,7 +48,7 @@ return new class extends Migration {
         if (Schema::hasTable('products')) {
             Schema::table('products', function (Blueprint $table) {
                 if (Schema::hasColumn('products', 'sku')) {
-                    $indexes = \DB::select("SHOW INDEX FROM products WHERE Key_name = 'uq_products_tenant_sku'");
+                    $indexes = DB::select("SHOW INDEX FROM products WHERE Key_name = 'uq_products_tenant_sku'");
                     if (empty($indexes)) {
                         $table->unique(['tenant_id', 'sku'], 'uq_products_tenant_sku');
                     }
@@ -59,7 +60,7 @@ return new class extends Migration {
         if (Schema::hasTable('customers')) {
             Schema::table('customers', function (Blueprint $table) {
                 if (Schema::hasColumn('customers', 'email')) {
-                    $indexes = \DB::select("SHOW INDEX FROM customers WHERE Key_name = 'uq_customers_tenant_email'");
+                    $indexes = DB::select("SHOW INDEX FROM customers WHERE Key_name = 'uq_customers_tenant_email'");
                     if (empty($indexes)) {
                         $table->unique(['tenant_id', 'email'], 'uq_customers_tenant_email');
                     }

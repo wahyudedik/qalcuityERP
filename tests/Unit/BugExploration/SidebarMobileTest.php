@@ -49,9 +49,9 @@ class SidebarMobileTest extends TestCase
 
         $this->assertTrue(
             $hasMutualExclusion,
-            "Bug 1.5 FIX: Tidak ditemukan mutual exclusion logic untuk overlay dan panel sidebar. " .
-            "Setelah fix, toggleMobileSidebar() harus memanggil closePanel() sebelum membuka overlay, " .
-            "dan toggleGroup() harus menutup overlay sebelum membuka panel."
+            'Bug 1.5 FIX: Tidak ditemukan mutual exclusion logic untuk overlay dan panel sidebar. '.
+            'Setelah fix, toggleMobileSidebar() harus memanggil closePanel() sebelum membuka overlay, '.
+            'dan toggleGroup() harus menutup overlay sebelum membuka panel.'
         );
     }
 
@@ -70,7 +70,7 @@ class SidebarMobileTest extends TestCase
 
         // Cari fungsi toggleMobileSidebar
         $hasToggleMobileSidebar = str_contains($content, 'toggleMobileSidebar');
-        $this->assertTrue($hasToggleMobileSidebar, "Fungsi toggleMobileSidebar tidak ditemukan");
+        $this->assertTrue($hasToggleMobileSidebar, 'Fungsi toggleMobileSidebar tidak ditemukan');
 
         // FIX: toggleMobileSidebar() memanggil closePanel() sebelum membuka overlay
         // Verifikasi bahwa closePanel dipanggil dalam konteks toggleMobileSidebar
@@ -87,9 +87,9 @@ class SidebarMobileTest extends TestCase
 
         $this->assertTrue(
             $closesPanelBeforeOverlay,
-            "Bug 1.5 FIX: Fungsi toggleMobileSidebar() harus memanggil closePanel() " .
-            "sebelum membuka overlay sidebar. " .
-            "Ini memastikan panel dan overlay tidak terbuka bersamaan."
+            'Bug 1.5 FIX: Fungsi toggleMobileSidebar() harus memanggil closePanel() '.
+            'sebelum membuka overlay sidebar. '.
+            'Ini memastikan panel dan overlay tidak terbuka bersamaan.'
         );
     }
 
@@ -117,12 +117,12 @@ class SidebarMobileTest extends TestCase
 
         $this->assertTrue(
             $hasOverlayZIndex,
-            "Bug 1.5 FIX: sidebar-overlay harus menggunakan z-40 untuk z-index hierarchy yang benar."
+            'Bug 1.5 FIX: sidebar-overlay harus menggunakan z-40 untuk z-index hierarchy yang benar.'
         );
 
         $this->assertTrue(
             $hasPanelZIndex,
-            "Bug 1.5 FIX: sidebar-panel harus menggunakan z-50 untuk z-index hierarchy yang benar."
+            'Bug 1.5 FIX: sidebar-panel harus menggunakan z-50 untuk z-index hierarchy yang benar.'
         );
     }
 }

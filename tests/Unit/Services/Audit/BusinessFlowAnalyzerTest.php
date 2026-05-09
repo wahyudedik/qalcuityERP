@@ -22,10 +22,10 @@ class BusinessFlowAnalyzerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tempDir = sys_get_temp_dir() . '/bfa_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Models', 0777, true);
-        mkdir($this->tempDir . '/app/Services', 0777, true);
-        mkdir($this->tempDir . '/app/Http/Controllers', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/bfa_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Models', 0777, true);
+        mkdir($this->tempDir.'/app/Services', 0777, true);
+        mkdir($this->tempDir.'/app/Http/Controllers', 0777, true);
     }
 
     protected function tearDown(): void
@@ -53,7 +53,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
         $missingModelNames = array_map(
-            fn(AuditFinding $f) => $f->metadata['model'],
+            fn (AuditFinding $f) => $f->metadata['model'],
             $missingModelFindings
         );
 
@@ -98,7 +98,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $relFindings = $this->filterByCheck($findings, 'flow_relationship_missing');
         $pairs = array_map(
-            fn(AuditFinding $f) => $f->metadata['child_model'] . '->' . $f->metadata['expected_method'],
+            fn (AuditFinding $f) => $f->metadata['child_model'].'->'.$f->metadata['expected_method'],
             $relFindings
         );
 
@@ -136,7 +136,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $serviceFindings = $this->filterByCheck($findings, 'flow_service_missing');
         $serviceNames = array_map(
-            fn(AuditFinding $f) => $f->metadata['service'],
+            fn (AuditFinding $f) => $f->metadata['service'],
             $serviceFindings
         );
 
@@ -159,7 +159,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = $this->filterByCheck($findings, 'flow_service_method_missing');
         $methods = array_map(
-            fn(AuditFinding $f) => $f->metadata['service'] . '::' . $f->metadata['method'],
+            fn (AuditFinding $f) => $f->metadata['service'].'::'.$f->metadata['method'],
             $methodFindings
         );
 
@@ -188,7 +188,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validatePurchasingFlow();
 
         $missingModels = $this->filterByCheck($findings, 'flow_model_missing');
-        $names = array_map(fn(AuditFinding $f) => $f->metadata['model'], $missingModels);
+        $names = array_map(fn (AuditFinding $f) => $f->metadata['model'], $missingModels);
 
         $this->assertContains('PurchaseRequisition', $names);
         $this->assertContains('Rfq', $names);
@@ -211,7 +211,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $relFindings = $this->filterByCheck($findings, 'flow_relationship_missing');
         $pairs = array_map(
-            fn(AuditFinding $f) => $f->metadata['child_model'] . '->' . $f->metadata['expected_method'],
+            fn (AuditFinding $f) => $f->metadata['child_model'].'->'.$f->metadata['expected_method'],
             $relFindings
         );
 
@@ -230,7 +230,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = $this->filterByCheck($findings, 'flow_service_method_missing');
         $methods = array_map(
-            fn(AuditFinding $f) => $f->metadata['service'] . '::' . $f->metadata['method'],
+            fn (AuditFinding $f) => $f->metadata['service'].'::'.$f->metadata['method'],
             $methodFindings
         );
 
@@ -248,7 +248,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validatePayrollFlow();
 
         $missingModels = $this->filterByCheck($findings, 'flow_model_missing');
-        $names = array_map(fn(AuditFinding $f) => $f->metadata['model'], $missingModels);
+        $names = array_map(fn (AuditFinding $f) => $f->metadata['model'], $missingModels);
 
         $this->assertContains('Attendance', $names);
         $this->assertContains('Overtime', $names);
@@ -267,8 +267,8 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = $this->filterByCheck($findings, 'flow_service_method_missing');
         $methods = array_map(
-            fn(AuditFinding $f) => $f->metadata['method'],
-            array_filter($methodFindings, fn(AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService')
+            fn (AuditFinding $f) => $f->metadata['method'],
+            array_filter($methodFindings, fn (AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService')
         );
 
         $this->assertContains('calculateBpjsKesehatan', $methods);
@@ -298,7 +298,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $methodFindings = $this->filterByCheck($findings, 'flow_service_method_missing');
         $payrollMethodFindings = array_filter(
             $methodFindings,
-            fn(AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService'
+            fn (AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService'
         );
         $this->assertCount(0, $payrollMethodFindings);
     }
@@ -311,7 +311,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validateInventoryFlow();
 
         $missingModels = $this->filterByCheck($findings, 'flow_model_missing');
-        $names = array_map(fn(AuditFinding $f) => $f->metadata['model'], $missingModels);
+        $names = array_map(fn (AuditFinding $f) => $f->metadata['model'], $missingModels);
 
         $this->assertContains('Product', $names);
         $this->assertContains('StockMovement', $names);
@@ -328,8 +328,8 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = $this->filterByCheck($findings, 'flow_service_method_missing');
         $methods = array_map(
-            fn(AuditFinding $f) => $f->metadata['method'],
-            array_filter($methodFindings, fn(AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService')
+            fn (AuditFinding $f) => $f->metadata['method'],
+            array_filter($methodFindings, fn (AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService')
         );
 
         $this->assertContains('recordStockIn', $methods);
@@ -352,7 +352,7 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = array_filter(
             $this->filterByCheck($findings, 'flow_service_method_missing'),
-            fn(AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService'
+            fn (AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService'
         );
         $this->assertCount(0, $methodFindings);
     }
@@ -365,7 +365,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validatePosFlow();
 
         $missingModels = $this->filterByCheck($findings, 'flow_model_missing');
-        $names = array_map(fn(AuditFinding $f) => $f->metadata['model'], $missingModels);
+        $names = array_map(fn (AuditFinding $f) => $f->metadata['model'], $missingModels);
 
         $this->assertContains('CashierSession', $names);
         $this->assertContains('PosSale', $names);
@@ -415,9 +415,9 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = array_filter(
             $this->filterByCheck($findings, 'flow_service_method_missing'),
-            fn(AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
+            fn (AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
         );
-        $methods = array_map(fn(AuditFinding $f) => $f->metadata['method'], $methodFindings);
+        $methods = array_map(fn (AuditFinding $f) => $f->metadata['method'], $methodFindings);
 
         $this->assertContains('postPosSession', $methods);
     }
@@ -430,7 +430,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validateApprovalFlow();
 
         $missingModels = $this->filterByCheck($findings, 'flow_model_missing');
-        $names = array_map(fn(AuditFinding $f) => $f->metadata['model'], $missingModels);
+        $names = array_map(fn (AuditFinding $f) => $f->metadata['model'], $missingModels);
 
         $this->assertContains('ApprovalWorkflow', $names);
         $this->assertContains('ApprovalRequest', $names);
@@ -445,9 +445,9 @@ class BusinessFlowAnalyzerTest extends TestCase
 
         $methodFindings = array_filter(
             $this->filterByCheck($findings, 'flow_service_method_missing'),
-            fn(AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
+            fn (AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
         );
-        $methods = array_map(fn(AuditFinding $f) => $f->metadata['method'], $methodFindings);
+        $methods = array_map(fn (AuditFinding $f) => $f->metadata['method'], $methodFindings);
 
         $this->assertContains('fireEvent', $methods);
         $this->assertContains('executeScheduled', $methods);
@@ -460,7 +460,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $findings = $analyzer->validateApprovalFlow();
 
         $serviceFindings = $this->filterByCheck($findings, 'approval_service_missing');
-        $serviceNames = array_map(fn(AuditFinding $f) => $f->metadata['service'], $serviceFindings);
+        $serviceNames = array_map(fn (AuditFinding $f) => $f->metadata['service'], $serviceFindings);
 
         $this->assertContains('WorkflowEngine', $serviceNames);
         $this->assertContains('DocumentApprovalService', $serviceNames);
@@ -498,7 +498,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         $relFindings = $this->filterByCheck($findings, 'flow_relationship_missing');
         $this->assertGreaterThanOrEqual(1, count($relFindings));
 
-        $pair = $relFindings[0]->metadata['child_model'] . '->' . $relFindings[0]->metadata['expected_method'];
+        $pair = $relFindings[0]->metadata['child_model'].'->'.$relFindings[0]->metadata['expected_method'];
         $this->assertSame('ApprovalRequest->workflow', $pair);
     }
 
@@ -577,7 +577,7 @@ class BusinessFlowAnalyzerTest extends TestCase
         // Most findings should have a 'flow' key in metadata
         $flowFindings = array_filter(
             $findings,
-            fn(AuditFinding $f) => isset($f->metadata['flow'])
+            fn (AuditFinding $f) => isset($f->metadata['flow'])
         );
 
         $this->assertNotEmpty($flowFindings);
@@ -614,9 +614,9 @@ class BusinessFlowAnalyzerTest extends TestCase
     private function makeAnalyzer(): BusinessFlowAnalyzer
     {
         return new BusinessFlowAnalyzer(
-            modelPath: $this->tempDir . '/app/Models',
-            servicePath: $this->tempDir . '/app/Services',
-            controllerPath: $this->tempDir . '/app/Http/Controllers',
+            modelPath: $this->tempDir.'/app/Models',
+            servicePath: $this->tempDir.'/app/Services',
+            controllerPath: $this->tempDir.'/app/Http/Controllers',
             basePath: $this->tempDir,
         );
     }
@@ -624,7 +624,7 @@ class BusinessFlowAnalyzerTest extends TestCase
     private function createModelStub(string $name, string $extraContent = ''): void
     {
         $content = "<?php\nnamespace App\\Models;\nclass {$name} {\n    {$extraContent}\n}\n";
-        file_put_contents($this->tempDir . "/app/Models/{$name}.php", $content);
+        file_put_contents($this->tempDir."/app/Models/{$name}.php", $content);
     }
 
     private function createModelWithRelationship(string $name, string $relationshipMethod): void
@@ -639,7 +639,7 @@ class {$name} {
     }
 }
 PHP;
-        file_put_contents($this->tempDir . "/app/Models/{$name}.php", $content);
+        file_put_contents($this->tempDir."/app/Models/{$name}.php", $content);
     }
 
     private function createServiceStub(string $name, array $methods): void
@@ -649,26 +649,26 @@ PHP;
             $methodDefs .= "    public function {$method}() {}\n";
         }
         $content = "<?php\nnamespace App\\Services;\nclass {$name} {\n{$methodDefs}}\n";
-        file_put_contents($this->tempDir . "/app/Services/{$name}.php", $content);
+        file_put_contents($this->tempDir."/app/Services/{$name}.php", $content);
     }
 
     /**
      * Filter findings by the 'check' metadata key.
      *
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return AuditFinding[]
      */
     private function filterByCheck(array $findings, string $check): array
     {
         return array_values(array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
         ));
     }
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

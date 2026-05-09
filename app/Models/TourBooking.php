@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\JournalService;
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class TourBooking extends Model
 {
@@ -202,7 +203,7 @@ class TourBooking extends Model
     protected function createPaymentJournalEntry(float $amount): void
     {
         try {
-            $journalService = app(\App\Services\JournalService::class);
+            $journalService = app(JournalService::class);
 
             $journalService->createJournalEntry([
                 'tenant_id' => $this->tenant_id,
@@ -226,7 +227,7 @@ class TourBooking extends Model
             ]);
         } catch (\Exception $e) {
             // Log but don't fail the payment if journal creation fails
-            \Illuminate\Support\Facades\Log::warning('Tour booking journal entry creation failed', [
+            Log::warning('Tour booking journal entry creation failed', [
                 'booking_id' => $this->id,
                 'amount' => $amount,
                 'error' => $e->getMessage(),
@@ -239,6 +240,6 @@ class TourBooking extends Model
      */
     public function crmLead()
     {
-        return $this->hasOne(\App\Models\CrmLead::class, 'converted_to_customer_id', 'customer_id');
+        return $this->hasOne(CrmLead::class, 'converted_to_customer_id', 'customer_id');
     }
 }

@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * BUG-MFG-002 FIX: Create material_reservations table
      */
     public function up(): void
     {
-        if (!Schema::hasTable('material_reservations')) {
+        if (! Schema::hasTable('material_reservations')) {
             Schema::create('material_reservations', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');

@@ -5,10 +5,9 @@
  * When a migration fails with "already exists" or "Duplicate column",
  * mark it as ran and continue.
  */
-
 $host = '127.0.0.1';
 $port = '3306';
-$db   = 'qalcuity_erp_test';
+$db = 'qalcuity_erp_test';
 $user = 'root';
 $pass = '';
 
@@ -59,17 +58,19 @@ while ($attempt < $maxAttempts) {
         $stmt->execute([$failingMigration, $maxBatch + 1]);
 
         $totalSkipped++;
+
         continue;
     }
 
     if (strpos($result, 'DONE') !== false) {
         echo "Attempt $attempt: Migrations ran successfully\n";
+
         continue;
     }
 
     // Unknown error
     echo "Attempt $attempt: Unexpected result:\n";
-    echo substr($result, -300) . "\n";
+    echo substr($result, -300)."\n";
     break;
 }
 
@@ -78,7 +79,7 @@ if ($attempt >= $maxAttempts) {
 }
 
 // Final status
-$pending = $pdo->query("SELECT COUNT(*) FROM migrations WHERE migration NOT IN (SELECT migration FROM migrations WHERE batch > 0)")->fetchColumn();
+$pending = $pdo->query('SELECT COUNT(*) FROM migrations WHERE migration NOT IN (SELECT migration FROM migrations WHERE batch > 0)')->fetchColumn();
 echo "\nFinal check - checking pending migrations...\n";
 $result = shell_exec('php artisan migrate:status 2>&1 | findstr Pending');
 echo $result ?: "No pending migrations found!\n";

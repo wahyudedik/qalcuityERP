@@ -48,14 +48,14 @@ class RedisAuthBugConditionTest extends TestCase
      * **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
      */
     #[ErisRepeat(repeat: 3)]
-    public function testRedisAuthenticationSucceedsWithConfiguredCredentials(): void
+    public function test_redis_authentication_succeeds_with_configured_credentials(): void
     {
         // Verify the fix: configured password must NOT be the placeholder
         $configuredPassword = env('REDIS_PASSWORD');
         $this->assertNotEquals(
             'your_actual_redis_password_here',
             $configuredPassword,
-            'REDIS_PASSWORD must not be the placeholder value - this is the bug condition. ' .
+            'REDIS_PASSWORD must not be the placeholder value - this is the bug condition. '.
                 'The fix requires setting a real password or null for no-auth Redis.'
         );
 
@@ -63,11 +63,11 @@ class RedisAuthBugConditionTest extends TestCase
             ->forAll(
                 Generators::elements([
                     'redis',
-                    'database'
+                    'database',
                 ]), // session drivers to test
                 Generators::elements([
                     'redis',
-                    'database'
+                    'database',
                 ]) // cache drivers to test
             )
             ->then(function ($sessionDriver, $cacheDriver) {
@@ -100,7 +100,7 @@ class RedisAuthBugConditionTest extends TestCase
 
                     // Test 2: Cache operations (if using Redis cache)
                     if ($cacheDriver === 'redis') {
-                        $testKey = 'redis_auth_fix_test_' . uniqid();
+                        $testKey = 'redis_auth_fix_test_'.uniqid();
                         Cache::store('redis')->put($testKey, 'test_cache_value', 60);
                         $cachedValue = Cache::store('redis')->get($testKey);
 
@@ -140,10 +140,10 @@ class RedisAuthBugConditionTest extends TestCase
                 // Now that the bug is fixed, this PASSES
                 $this->assertFalse(
                     $authFailureDetected,
-                    "Redis authentication should succeed with configured credentials. " .
-                        "Auth failure detected with configured password. " .
-                        "Error: {$exceptionMessage}. " .
-                        "This indicates the fix may not be complete."
+                    'Redis authentication should succeed with configured credentials. '.
+                        'Auth failure detected with configured password. '.
+                        "Error: {$exceptionMessage}. ".
+                        'This indicates the fix may not be complete.'
                 );
             });
     }
@@ -158,7 +158,7 @@ class RedisAuthBugConditionTest extends TestCase
      *
      * **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
      */
-    public function testConfiguredPasswordIsNotPlaceholder(): void
+    public function test_configured_password_is_not_placeholder(): void
     {
         $configuredPassword = env('REDIS_PASSWORD');
 
@@ -166,8 +166,8 @@ class RedisAuthBugConditionTest extends TestCase
         $this->assertNotEquals(
             'your_actual_redis_password_here',
             $configuredPassword,
-            'REDIS_PASSWORD must not be the placeholder "your_actual_redis_password_here". ' .
-                'This is the root cause of the original bug. ' .
+            'REDIS_PASSWORD must not be the placeholder "your_actual_redis_password_here". '.
+                'This is the root cause of the original bug. '.
                 'Set REDIS_PASSWORD to the actual Redis server password, or null/empty for no-auth Redis.'
         );
 
@@ -176,7 +176,7 @@ class RedisAuthBugConditionTest extends TestCase
         $this->assertNotEquals(
             'your_actual_redis_password_here',
             $dbConfigPassword,
-            'database.redis.default.password config must not be the placeholder value. ' .
+            'database.redis.default.password config must not be the placeholder value. '.
                 'Ensure config/database.php reads REDIS_PASSWORD from environment.'
         );
     }
@@ -191,7 +191,7 @@ class RedisAuthBugConditionTest extends TestCase
      *
      * **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
      */
-    public function testRedisConnectionSucceedsWithConfiguredCredentials(): void
+    public function test_redis_connection_succeeds_with_configured_credentials(): void
     {
         $configuredPassword = env('REDIS_PASSWORD');
 
@@ -227,9 +227,9 @@ class RedisAuthBugConditionTest extends TestCase
 
         $this->assertTrue(
             $connectionSucceeded,
-            "Redis connection should succeed with configured credentials. " .
-                "Error: {$exceptionMessage}. " .
-                "Ensure Redis server is running and REDIS_PASSWORD matches server configuration."
+            'Redis connection should succeed with configured credentials. '.
+                "Error: {$exceptionMessage}. ".
+                'Ensure Redis server is running and REDIS_PASSWORD matches server configuration.'
         );
     }
 
@@ -243,7 +243,7 @@ class RedisAuthBugConditionTest extends TestCase
      *
      * **Validates: Requirements 2.2, 2.4**
      */
-    public function testCacheOperationsSucceedWithRedis(): void
+    public function test_cache_operations_succeed_with_redis(): void
     {
         $configuredPassword = env('REDIS_PASSWORD');
 
@@ -262,8 +262,8 @@ class RedisAuthBugConditionTest extends TestCase
         app('redis')->purge('default');
         app('redis')->purge('cache');
 
-        $testKey = 'redis_auth_fix_cache_test_' . uniqid();
-        $testValue = 'cache_test_value_' . time();
+        $testKey = 'redis_auth_fix_cache_test_'.uniqid();
+        $testValue = 'cache_test_value_'.time();
 
         try {
             // Store a value in Redis cache
@@ -275,7 +275,7 @@ class RedisAuthBugConditionTest extends TestCase
             $this->assertEquals(
                 $testValue,
                 $retrieved,
-                'Cache operations should succeed with proper Redis authentication. ' .
+                'Cache operations should succeed with proper Redis authentication. '.
                     'Requirement 2.2: Cache operations authenticate successfully.'
             );
 
@@ -289,9 +289,9 @@ class RedisAuthBugConditionTest extends TestCase
             Cache::store('redis')->forget($testKey);
         } catch (\Exception $e) {
             $this->fail(
-                "Cache operations failed with configured Redis credentials. " .
-                    "Error: {$e->getMessage()}. " .
-                    "This indicates the Redis authentication fix is not working correctly."
+                'Cache operations failed with configured Redis credentials. '.
+                    "Error: {$e->getMessage()}. ".
+                    'This indicates the Redis authentication fix is not working correctly.'
             );
         }
     }

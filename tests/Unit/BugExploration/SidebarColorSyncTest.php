@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 class SidebarColorSyncTest extends TestCase
 {
     private string $appBladeFile = 'resources/views/layouts/app.blade.php';
+
     private array $jsFiles = [
         'resources/js/app.js',
         'resources/js/sidebar.js',
@@ -46,7 +47,7 @@ class SidebarColorSyncTest extends TestCase
             }
         }
 
-        $allContent = $appBladeContent . $jsContent;
+        $allContent = $appBladeContent.$jsContent;
 
         // FIX: --group-color di-set di buildPanel() yang dipanggil saat rail button diklik
         $hasColorSyncOnClick = (
@@ -56,9 +57,9 @@ class SidebarColorSyncTest extends TestCase
 
         $this->assertTrue(
             $hasColorSyncOnClick,
-            "Bug 1.2 FIX: Tidak ditemukan setProperty('--group-color') di kode. " .
-            "Setelah fix, buildPanel() harus meng-update CSS custom property '--group-color' " .
-            "saat rail button diklik."
+            "Bug 1.2 FIX: Tidak ditemukan setProperty('--group-color') di kode. ".
+            "Setelah fix, buildPanel() harus meng-update CSS custom property '--group-color' ".
+            'saat rail button diklik.'
         );
     }
 
@@ -81,7 +82,7 @@ class SidebarColorSyncTest extends TestCase
         // FIX: buildPanel() meng-update --group-color (bukan toggleGroup())
         // Cari fungsi buildPanel yang mengupdate --group-color
         $hasBuildPanel = str_contains($appBladeContent, 'function buildPanel');
-        $this->assertTrue($hasBuildPanel, "Fungsi buildPanel tidak ditemukan di sidebar");
+        $this->assertTrue($hasBuildPanel, 'Fungsi buildPanel tidak ditemukan di sidebar');
 
         // Verifikasi buildPanel mengupdate --group-color
         $buildPanelPattern = '/function buildPanel\s*\([^)]*\)\s*\{.*?(?=\nfunction |\z)/s';
@@ -94,9 +95,9 @@ class SidebarColorSyncTest extends TestCase
 
         $this->assertTrue(
             $updatesGroupColor,
-            "Bug 1.2 FIX: Fungsi buildPanel() tidak mengupdate CSS custom property '--group-color'. " .
-            "Warna panel header tidak akan berubah saat rail button diklik. " .
-            "Kode buildPanel yang ditemukan: " . substr($buildPanelCode, 0, 300)
+            "Bug 1.2 FIX: Fungsi buildPanel() tidak mengupdate CSS custom property '--group-color'. ".
+            'Warna panel header tidak akan berubah saat rail button diklik. '.
+            'Kode buildPanel yang ditemukan: '.substr($buildPanelCode, 0, 300)
         );
     }
 
@@ -125,9 +126,9 @@ class SidebarColorSyncTest extends TestCase
 
         $this->assertTrue(
             $hasPanelAccentSync,
-            "Bug 1.2 FIX: Tidak ditemukan kode yang mensinkronisasi warna panel-accent " .
-            "dengan warna rail button yang aktif. " .
-            "buildPanel() harus mengupdate panel-accent saat rail button diklik."
+            'Bug 1.2 FIX: Tidak ditemukan kode yang mensinkronisasi warna panel-accent '.
+            'dengan warna rail button yang aktif. '.
+            'buildPanel() harus mengupdate panel-accent saat rail button diklik.'
         );
     }
 }

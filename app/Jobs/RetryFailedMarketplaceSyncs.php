@@ -2,10 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\MarketplaceSyncLog;
-use App\Models\EcommerceChannel;
-use App\Models\EcommerceProductMapping;
 use App\Models\ErpNotification;
+use App\Models\MarketplaceSyncLog;
 use App\Models\User;
 use App\Services\MarketplaceSyncService;
 use Illuminate\Bus\Queueable;
@@ -36,13 +34,15 @@ class RetryFailedMarketplaceSyncs implements ShouldQueue
 
         foreach ($failedLogs as $log) {
             try {
-                if (!$log->channel || !$log->channel->is_active) {
+                if (! $log->channel || ! $log->channel->is_active) {
                     $log->update(['status' => 'abandoned', 'error_message' => 'Channel inactive or deleted']);
+
                     continue;
                 }
 
-                if (!$log->mapping || !$log->mapping->is_active) {
+                if (! $log->mapping || ! $log->mapping->is_active) {
                     $log->update(['status' => 'abandoned', 'error_message' => 'Mapping inactive or deleted']);
+
                     continue;
                 }
 
@@ -79,7 +79,7 @@ class RetryFailedMarketplaceSyncs implements ShouldQueue
 
         if ($newAttempt >= 5) {
             $log->update([
-                'status'        => 'abandoned',
+                'status' => 'abandoned',
                 'attempt_count' => $newAttempt,
                 'error_message' => $errorMessage ?? $log->error_message,
                 'next_retry_at' => null,
@@ -87,24 +87,24 @@ class RetryFailedMarketplaceSyncs implements ShouldQueue
 
             // Notify admin
             $admin = User::where('tenant_id', $log->tenant_id)
-                ->whereHas('roles', fn($q) => $q->where('name', 'admin'))
+                ->whereHas('roles', fn ($q) => $q->where('name', 'admin'))
                 ->first();
 
             if ($admin) {
                 ErpNotification::create([
                     'tenant_id' => $log->tenant_id,
-                    'user_id'   => $admin->id,
-                    'type'      => 'marketplace_sync',
-                    'title'     => 'Sync Marketplace Gagal Permanen',
-                    'body'      => "Sync {$log->type} untuk mapping #{$log->mapping_id} gagal setelah {$newAttempt} percobaan.",
-                    'data'      => json_encode(['log_id' => $log->id, 'type' => $log->type]),
+                    'user_id' => $admin->id,
+                    'type' => 'marketplace_sync',
+                    'title' => 'Sync Marketplace Gagal Permanen',
+                    'body' => "Sync {$log->type} untuk mapping #{$log->mapping_id} gagal setelah {$newAttempt} percobaan.",
+                    'data' => json_encode(['log_id' => $log->id, 'type' => $log->type]),
                 ]);
             }
 
             Log::warning("Sync log #{$log->id} abandoned after {$newAttempt} attempts");
         } else {
             $log->update([
-                'status'        => 'failed',
+                'status' => 'failed',
                 'attempt_count' => $newAttempt,
                 'error_message' => $errorMessage ?? $log->error_message,
                 'next_retry_at' => now()->addSeconds($delaySeconds),

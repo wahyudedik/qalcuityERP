@@ -3,10 +3,11 @@
 namespace App\Services;
 
 use App\Models\TaxRate;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * TaxService - Perhitungan pajak untuk invoice dan transaksi
- * 
+ *
  * BUG-SALES-003 FIX: Menggunakan pembulatan yang tepat untuk accounting
  * - Round HALF_UP (bukan PHP default HALF_EVEN)
  * - Consistent rounding di semua perhitungan
@@ -19,7 +20,7 @@ class TaxService
      * Untuk PPh 23: rate 2% dari bruto
      * Untuk PPh 21: rate sesuai konfigurasi
      * Untuk PPh 4 ayat 2: rate sesuai konfigurasi
-     * 
+     *
      * BUG-SALES-003 FIX: Menggunakan pembulatan yang tepat
      */
     public function calculatePph(float $grossAmount, string $taxType, int $tenantId): array
@@ -30,7 +31,7 @@ class TaxService
             ->where('is_withholding', true)
             ->first();
 
-        if (!$taxRate) {
+        if (! $taxRate) {
             return ['amount' => 0, 'rate' => 0, 'tax_type' => $taxType];
         }
 
@@ -47,7 +48,7 @@ class TaxService
 
     /**
      * Hitung PPN dari subtotal.
-     * 
+     *
      * BUG-SALES-003 FIX: Menggunakan pembulatan yang tepat
      */
     public function calculatePpn(float $subtotal, int $tenantId): array
@@ -57,7 +58,7 @@ class TaxService
             ->where('is_active', true)
             ->first();
 
-        if (!$taxRate) {
+        if (! $taxRate) {
             return ['amount' => 0, 'rate' => 0];
         }
 
@@ -70,13 +71,13 @@ class TaxService
 
     /**
      * Hitung tax amount dari subtotal berdasarkan tax_rate_id.
-     * 
+     *
      * BUG-SALES-003 FIX: Menggunakan pembulatan yang tepat
      */
     public function calculate(float $subtotal, int $taxRateId): float
     {
         $taxRate = TaxRate::find($taxRateId);
-        if (!$taxRate || !$taxRate->is_active) {
+        if (! $taxRate || ! $taxRate->is_active) {
             return 0.0;
         }
 
@@ -86,7 +87,7 @@ class TaxService
 
     /**
      * Hitung tax dari subtotal + rate langsung (tanpa lookup DB).
-     * 
+     *
      * BUG-SALES-003 FIX: Menggunakan pembulatan yang tepat
      */
     public function calculateByRate(float $subtotal, float $rate): float
@@ -97,21 +98,21 @@ class TaxService
 
     /**
      * BUG-SALES-003 FIX: Accounting-compliant rounding
-     * 
+     *
      * Menggunakan ROUND_HALF_UP (bukan PHP default ROUND_HALF_EVEN)
      * untuk menghindari rounding errors di perhitungan accounting.
-     * 
+     *
      * Contoh masalah dengan round() biasa:
      * - 2.5 → 2 (HALF_EVEN - banker's rounding)
      * - 2.5 → 3 (HALF_UP - accounting standard)
-     * 
+     *
      * Untuk accounting, kita HARUS menggunakan HALF_UP agar:
      * - Consistent dengan perhitungan manual
      * - Tidak ada selisih 1-2 rupiah di laporan keuangan
      * - Match dengan invoice/receipt yang dicetak
-     * 
-     * @param float $value Nilai yang akan dibulatkan
-     * @param int $precision Jumlah desimal (default: 2)
+     *
+     * @param  float  $value  Nilai yang akan dibulatkan
+     * @param  int  $precision  Jumlah desimal (default: 2)
      * @return float Nilai yang sudah dibulatkan
      */
     public function roundAccounting(float $value, int $precision = 2): float
@@ -126,12 +127,9 @@ class TaxService
 
     /**
      * Hitung total invoice dengan presisi accounting
-     * 
+     *
      * BUG-SALES-003 FIX: Pastikan total = subtotal + tax (no rounding errors)
-     * 
-     * @param float $subtotal
-     * @param float $taxAmount
-     * @param float $discount
+     *
      * @return float Total yang sudah dibulatkan dengan benar
      */
     public function calculateTotal(float $subtotal, float $taxAmount = 0, float $discount = 0): float
@@ -157,7 +155,7 @@ class TaxService
     /**
      * Daftar semua tax rate aktif untuk tenant.
      */
-    public function activeRates(int $tenantId): \Illuminate\Database\Eloquent\Collection
+    public function activeRates(int $tenantId): Collection
     {
         return TaxRate::where('tenant_id', $tenantId)
             ->where('is_active', true)

@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
+use App\Models\CosmeticBatchRecord;
+use App\Models\CosmeticFormula;
 use App\Models\ProductRegistration;
 use App\Models\SafetyDataSheet;
-use App\Models\CosmeticFormula;
 use App\Services\BpomRegistrationService;
 use Illuminate\Http\Request;
 
@@ -117,7 +118,7 @@ class BpomController extends Controller
             'formula',
             'formula.ingredients',
             'documents',
-            'submitter'
+            'submitter',
         ])
             ->where('tenant_id', auth()->user()->tenant_id)
             ->findOrFail($id);
@@ -255,7 +256,7 @@ class BpomController extends Controller
     public function generateCoA($batchId)
     {
         try {
-            $batch = \App\Models\CosmeticBatchRecord::where('tenant_id', auth()->user()->tenant_id)
+            $batch = CosmeticBatchRecord::where('tenant_id', auth()->user()->tenant_id)
                 ->with(['formula', 'qualityChecks', 'qcInspector'])
                 ->findOrFail($batchId);
 
@@ -316,7 +317,7 @@ class BpomController extends Controller
         ]);
 
         try {
-            $sds = new SafetyDataSheet();
+            $sds = new SafetyDataSheet;
             $sds->tenant_id = auth()->user()->tenant_id;
             $sds->formula_id = $validated['formula_id'] ?? null;
             $sds->registration_id = $validated['registration_id'] ?? null;

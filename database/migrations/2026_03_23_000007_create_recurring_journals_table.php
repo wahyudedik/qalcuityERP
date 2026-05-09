@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('recurring_journals')) {
+        if (! Schema::hasTable('recurring_journals')) {
             Schema::create('recurring_journals', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -23,7 +23,7 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->json('lines'); // snapshot of journal lines [{account_id, debit, credit, description}]
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active', 'next_run_date']);
             });
         }

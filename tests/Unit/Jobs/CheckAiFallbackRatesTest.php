@@ -51,7 +51,7 @@ class CheckAiFallbackRatesTest extends TestCase
         }
 
         // Act
-        $job = new CheckAiFallbackRates();
+        $job = new CheckAiFallbackRates;
         $job->handle();
 
         // Assert
@@ -90,7 +90,7 @@ class CheckAiFallbackRatesTest extends TestCase
         }
 
         // Act
-        $job = new CheckAiFallbackRates();
+        $job = new CheckAiFallbackRates;
         $job->handle();
 
         // Assert
@@ -120,10 +120,10 @@ class CheckAiFallbackRatesTest extends TestCase
         }
 
         // Act - jalankan job dua kali
-        $job1 = new CheckAiFallbackRates();
+        $job1 = new CheckAiFallbackRates;
         $job1->handle();
 
-        $job2 = new CheckAiFallbackRates();
+        $job2 = new CheckAiFallbackRates;
         $job2->handle();
 
         // Assert - notifikasi hanya dikirim sekali
@@ -165,7 +165,7 @@ class CheckAiFallbackRatesTest extends TestCase
         }
 
         // Act
-        $job = new CheckAiFallbackRates();
+        $job = new CheckAiFallbackRates;
         $job->handle();
 
         // Assert - tidak ada notifikasi karena 1 jam terakhir di bawah threshold
@@ -181,7 +181,7 @@ class CheckAiFallbackRatesTest extends TestCase
         // Tidak ada request sama sekali
 
         // Act
-        $job = new CheckAiFallbackRates();
+        $job = new CheckAiFallbackRates;
         $job->handle();
 
         // Assert - tidak ada notifikasi
@@ -214,7 +214,7 @@ class CheckAiFallbackRatesTest extends TestCase
         }
 
         // Act
-        $job = new CheckAiFallbackRates();
+        $job = new CheckAiFallbackRates;
         $job->handle();
 
         // Assert - notifikasi dikirim untuk kedua use case

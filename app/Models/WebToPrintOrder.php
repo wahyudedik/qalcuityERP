@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WebToPrintOrder extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -31,7 +30,7 @@ use HasFactory, BelongsToTenant;
         'paid_at',
         'shipped_at',
         'delivered_at',
-        'special_instructions'
+        'special_instructions',
     ];
 
     protected $casts = [

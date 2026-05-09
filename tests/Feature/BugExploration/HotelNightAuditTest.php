@@ -28,6 +28,7 @@ class HotelNightAuditTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -54,7 +55,7 @@ class HotelNightAuditTest extends TestCase
         $roomType = RoomType::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Standard Room',
-            'code' => 'STD-' . uniqid(),
+            'code' => 'STD-'.uniqid(),
             'base_rate' => 0, // Tidak ada rate!
         ]);
 
@@ -114,9 +115,9 @@ class HotelNightAuditTest extends TestCase
         // Test ini AKAN GAGAL karena NightAuditService tidak melempar exception
         $this->assertTrue(
             $threwException,
-            "Bug 1.20: NightAuditService tidak melempar exception untuk reservasi " .
-            "tanpa room rate yang valid. Service seharusnya memvalidasi semua reservasi " .
-            "sebelum memulai posting dan melempar DomainException dengan daftar error."
+            'Bug 1.20: NightAuditService tidak melempar exception untuk reservasi '.
+            'tanpa room rate yang valid. Service seharusnya memvalidasi semua reservasi '.
+            'sebelum memulai posting dan melempar DomainException dengan daftar error.'
         );
 
         // Assert: Exception message harus menyebutkan reservasi bermasalah
@@ -124,7 +125,7 @@ class HotelNightAuditTest extends TestCase
             $this->assertStringContainsString(
                 $reservation->id,
                 $exceptionMessage,
-                "Bug 1.20: Exception message tidak menyebutkan reservasi bermasalah."
+                'Bug 1.20: Exception message tidak menyebutkan reservasi bermasalah.'
             );
         }
     }
@@ -139,8 +140,8 @@ class HotelNightAuditTest extends TestCase
     {
         $nightAuditFile = 'app/Services/NightAuditService.php';
 
-        if (!file_exists($nightAuditFile)) {
-            $this->markTestSkipped("NightAuditService tidak ditemukan");
+        if (! file_exists($nightAuditFile)) {
+            $this->markTestSkipped('NightAuditService tidak ditemukan');
         }
 
         $content = file_get_contents($nightAuditFile);
@@ -157,9 +158,9 @@ class HotelNightAuditTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada pre-validation yang melempar DomainException
         $this->assertTrue(
             $hasPreValidation,
-            "Bug 1.20: NightAuditService tidak memiliki pre-validation yang memvalidasi " .
-            "room rate sebelum posting dan melempar DomainException. " .
-            "Service saat ini hanya skip posting untuk rate = 0 tanpa memberikan error."
+            'Bug 1.20: NightAuditService tidak memiliki pre-validation yang memvalidasi '.
+            'room rate sebelum posting dan melempar DomainException. '.
+            'Service saat ini hanya skip posting untuk rate = 0 tanpa memberikan error.'
         );
     }
 }

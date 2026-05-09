@@ -19,7 +19,7 @@ class LogisticsTrackingService
             ->where('is_active', true)
             ->first();
 
-        if (!$provider) {
+        if (! $provider) {
             throw new \Exception('JNE not configured');
         }
 
@@ -28,12 +28,12 @@ class LogisticsTrackingService
             $response = Http::withHeaders([
                 'api-key' => $provider->api_key,
             ])->post('https://apiv2.jne.co.id/tracing/generateAWB', [
-                        'origin' => $shipmentData['origin_city'],
-                        'destination' => $shipmentData['destination_city'],
-                        'weight' => $shipmentData['weight_kg'],
-                        'service' => $shipmentData['service_type'] ?? 'REG',
-                        'pieces' => 1,
-                    ]);
+                'origin' => $shipmentData['origin_city'],
+                'destination' => $shipmentData['destination_city'],
+                'weight' => $shipmentData['weight_kg'],
+                'service' => $shipmentData['service_type'] ?? 'REG',
+                'pieces' => 1,
+            ]);
 
             $result = $response->json();
 
@@ -41,7 +41,7 @@ class LogisticsTrackingService
                 'tenant_id' => $tenantId,
                 'logistics_provider_id' => $provider->id,
                 'order_id' => $shipmentData['order_id'] ?? null,
-                'tracking_number' => $result['awb'] ?? 'JNE' . time(),
+                'tracking_number' => $result['awb'] ?? 'JNE'.time(),
                 'service_type' => $shipmentData['service_type'] ?? 'REG',
                 'status' => 'pending',
                 'origin_city' => $shipmentData['origin_city'],
@@ -53,7 +53,8 @@ class LogisticsTrackingService
             return ['success' => true, 'shipment' => $shipment, 'awb' => $shipment->tracking_number];
 
         } catch (\Throwable $e) {
-            Log::error('JNE shipment creation failed: ' . $e->getMessage());
+            Log::error('JNE shipment creation failed: '.$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -83,7 +84,8 @@ class LogisticsTrackingService
             return $result;
 
         } catch (\Throwable $e) {
-            Log::error("Tracking failed for {$trackingNumber}: " . $e->getMessage());
+            Log::error("Tracking failed for {$trackingNumber}: ".$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -162,7 +164,7 @@ class LogisticsTrackingService
                 ['type' => 'REG', 'cost' => 15000, 'etd' => '2-3 days'],
                 ['type' => 'YES', 'cost' => 25000, 'etd' => '1 day'],
                 ['type' => 'OKE', 'cost' => 12000, 'etd' => '3-5 days'],
-            ]
+            ],
         ];
     }
 
@@ -173,7 +175,7 @@ class LogisticsTrackingService
             'services' => [
                 ['type' => 'Regular', 'cost' => 14000, 'etd' => '2-3 days'],
                 ['type' => 'Express', 'cost' => 22000, 'etd' => '1 day'],
-            ]
+            ],
         ];
     }
 
@@ -184,7 +186,7 @@ class LogisticsTrackingService
             'services' => [
                 ['type' => 'REG', 'cost' => 13000, 'etd' => '2-3 days'],
                 ['type' => 'BEST', 'cost' => 20000, 'etd' => '1 day'],
-            ]
+            ],
         ];
     }
 }

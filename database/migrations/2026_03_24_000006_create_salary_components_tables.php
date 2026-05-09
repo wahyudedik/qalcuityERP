@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Master komponen gaji per tenant (template)
-        if (!Schema::hasTable('salary_components')) {
+        if (! Schema::hasTable('salary_components')) {
             Schema::create('salary_components', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -27,7 +28,7 @@ return new class extends Migration {
         }
 
         // Komponen yang di-assign ke karyawan tertentu (override amount)
-        if (!Schema::hasTable('employee_salary_components')) {
+        if (! Schema::hasTable('employee_salary_components')) {
             Schema::create('employee_salary_components', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -44,7 +45,7 @@ return new class extends Migration {
         }
 
         // Snapshot komponen per payroll item (audit trail)
-        if (!Schema::hasTable('payroll_item_components')) {
+        if (! Schema::hasTable('payroll_item_components')) {
             Schema::create('payroll_item_components', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('payroll_item_id');

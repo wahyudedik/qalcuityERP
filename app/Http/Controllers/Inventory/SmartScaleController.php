@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
-use App\Models\SmartScale;
 use App\Models\ScaleWeighLog;
+use App\Models\SmartScale;
 use App\Services\SmartScaleService;
 use Illuminate\Http\Request;
 

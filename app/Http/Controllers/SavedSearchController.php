@@ -32,7 +32,7 @@ class SavedSearchController extends Controller
                     $query->orderByDesc('updated_at');
             }
 
-            return $query->get()->map(fn($search) => [
+            return $query->get()->map(fn ($search) => [
                 'id' => $search->id,
                 'name' => $search->name,
                 'query' => $search->query,
@@ -101,7 +101,7 @@ class SavedSearchController extends Controller
     public function show(Request $request, SavedSearch $savedSearch)
     {
         // Check ownership or if public
-        if ($savedSearch->user_id !== $request->user()->id && !$savedSearch->is_public) {
+        if ($savedSearch->user_id !== $request->user()->id && ! $savedSearch->is_public) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
@@ -134,7 +134,7 @@ class SavedSearchController extends Controller
     public function execute(Request $request, SavedSearch $savedSearch)
     {
         // Check ownership or if public
-        if ($savedSearch->user_id !== $request->user()->id && !$savedSearch->is_public) {
+        if ($savedSearch->user_id !== $request->user()->id && ! $savedSearch->is_public) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
@@ -231,13 +231,13 @@ class SavedSearchController extends Controller
                 ->orderByDesc('use_count')
                 ->limit(5)
                 ->get()
-                ->map(fn($search) => [
+                ->map(fn ($search) => [
                     'type' => 'saved_search',
                     'id' => "saved:{$search->id}",
                     'title' => $search->name,
                     'subtitle' => "Saved: {$search->query}",
                     'icon' => 'fas fa-bookmark',
-                    'url' => "#",
+                    'url' => '#',
                     'badge' => 'Saved',
                     'action' => 'execute-saved',
                     'saved_search_id' => $search->id,
@@ -248,7 +248,7 @@ class SavedSearchController extends Controller
             // Get recent popular searches from history
             $recentSearches = json_decode($request->cookie('recent_searches') ?? '[]', true);
             if (is_array($recentSearches)) {
-                $matching = array_filter($recentSearches, fn($s) => stripos($s, $query) !== false);
+                $matching = array_filter($recentSearches, fn ($s) => stripos($s, $query) !== false);
                 foreach (array_slice($matching, 0, 3) as $search) {
                     $results[] = [
                         'type' => 'recent',
@@ -256,7 +256,7 @@ class SavedSearchController extends Controller
                         'title' => $search,
                         'subtitle' => 'Recent search',
                         'icon' => 'fas fa-history',
-                        'url' => "#",
+                        'url' => '#',
                         'badge' => 'Recent',
                         'action' => 'set-query',
                         'query' => $search,

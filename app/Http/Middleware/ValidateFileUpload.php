@@ -4,11 +4,12 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * SEC-004: File Upload Validation Middleware
- * 
+ *
  * Validates file uploads to prevent malicious file uploads (PHP files, etc.)
  * Ensures consistent MIME type validation across all upload endpoints.
  */
@@ -67,7 +68,7 @@ class ValidateFileUpload
     public function handle(Request $request, Closure $next, string $fileType = 'document'): Response
     {
         // Check if request has files
-        if (!$request->hasFile('file') && !$request->hasFile('files') && !$request->hasFile('image')) {
+        if (! $request->hasFile('file') && ! $request->hasFile('files') && ! $request->hasFile('image')) {
             return $next($request);
         }
 
@@ -77,7 +78,7 @@ class ValidateFileUpload
         // Validate file(s)
         try {
             $request->validate($rules);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'File validation failed',
@@ -120,8 +121,9 @@ class ValidateFileUpload
         );
 
         foreach ($files as $file) {
-            if (!$file)
+            if (! $file) {
                 continue;
+            }
 
             $extension = strtolower($file->getClientOriginalExtension());
 
@@ -133,7 +135,7 @@ class ValidateFileUpload
             $detectedMimeType = $file->getMimeType();
             $allowedMimeTypes = $this->getAllAllowedMimeTypes();
 
-            if (!in_array($detectedMimeType, $allowedMimeTypes)) {
+            if (! in_array($detectedMimeType, $allowedMimeTypes)) {
                 abort(403, "File MIME type '{$detectedMimeType}' is not allowed.");
             }
         }
@@ -148,6 +150,7 @@ class ValidateFileUpload
         foreach (self::ALLOWED_MIME_TYPES as $config) {
             $mimeTypes = array_merge($mimeTypes, explode(',', $config['mimetypes']));
         }
+
         return array_unique($mimeTypes);
     }
 }

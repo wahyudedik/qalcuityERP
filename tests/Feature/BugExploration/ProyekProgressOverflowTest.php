@@ -7,7 +7,6 @@ use App\Models\ProjectTask;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -23,6 +22,7 @@ class ProyekProgressOverflowTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -50,7 +50,7 @@ class ProyekProgressOverflowTest extends TestCase
             'tenant_id' => $this->tenant->id,
             'user_id' => $this->user->id,
             'name' => 'Proyek Test',
-            'number' => 'PRJ-' . uniqid(),
+            'number' => 'PRJ-'.uniqid(),
             'status' => 'active',
         ]);
 
@@ -86,10 +86,10 @@ class ProyekProgressOverflowTest extends TestCase
         $this->assertLessThanOrEqual(
             100,
             $task->progress,
-            "Bug 1.18: Progress task melebihi 100%! " .
-            "actualVolume: {$actualVolume}, plannedVolume: {$task->target_volume}, " .
-            "progress: {$task->progress}%. " .
-            "Seharusnya progress dibatasi maksimum 100% menggunakan min(100, ...)."
+            'Bug 1.18: Progress task melebihi 100%! '.
+            "actualVolume: {$actualVolume}, plannedVolume: {$task->target_volume}, ".
+            "progress: {$task->progress}%. ".
+            'Seharusnya progress dibatasi maksimum 100% menggunakan min(100, ...).'
         );
     }
 
@@ -129,9 +129,9 @@ class ProyekProgressOverflowTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada min(100, ...) cap
         $this->assertTrue(
             $hasProgressCap,
-            "Bug 1.18: Tidak ditemukan min(100, ...) cap di kalkulasi progress task. " .
-            "File yang dicari: " . implode(', ', $serviceFiles) . ". " .
-            "Progress bisa melebihi 100% saat actualVolume > plannedVolume."
+            'Bug 1.18: Tidak ditemukan min(100, ...) cap di kalkulasi progress task. '.
+            'File yang dicari: '.implode(', ', $serviceFiles).'. '.
+            'Progress bisa melebihi 100% saat actualVolume > plannedVolume.'
         );
     }
 
@@ -156,9 +156,9 @@ class ProyekProgressOverflowTest extends TestCase
             $this->assertLessThanOrEqual(
                 100,
                 $progressWithBug,
-                "Bug 1.18: Kalkulasi progress untuk actualVolume={$actual}, " .
-                "plannedVolume={$plannedVolume} menghasilkan {$progressWithBug}% " .
-                "(melebihi 100%). Seharusnya dibatasi dengan min(100, progress)."
+                "Bug 1.18: Kalkulasi progress untuk actualVolume={$actual}, ".
+                "plannedVolume={$plannedVolume} menghasilkan {$progressWithBug}% ".
+                '(melebihi 100%). Seharusnya dibatasi dengan min(100, progress).'
             );
         }
     }

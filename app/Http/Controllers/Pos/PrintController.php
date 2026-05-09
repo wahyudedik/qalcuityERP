@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
-use App\Models\PrintJob;
+use App\Jobs\ProcessPrintJob;
 use App\Models\PrinterSetting;
+use App\Models\PrintJob;
 use App\Models\SalesOrder;
 use App\Services\PosPrinterService;
-use App\Jobs\ProcessPrintJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +17,7 @@ class PrintController extends Controller
 
     public function __construct()
     {
-        $this->printerService = new PosPrinterService();
+        $this->printerService = new PosPrinterService;
     }
 
     /**
@@ -29,7 +29,7 @@ class PrintController extends Controller
             // Get printer settings
             $printerSetting = PrinterSetting::getDefaultPrinter($this->tenantId(), 'receipt_printer');
 
-            if (!$printerSetting) {
+            if (! $printerSetting) {
                 return response()->json([
                     'success' => false,
                     'error' => 'No receipt printer configured',
@@ -68,7 +68,7 @@ class PrintController extends Controller
                     $printerSetting->printer_destination
                 );
 
-                if (!$connected) {
+                if (! $connected) {
                     return response()->json([
                         'success' => false,
                         'error' => 'Failed to connect to printer',
@@ -102,7 +102,7 @@ class PrintController extends Controller
             // Get kitchen printer settings
             $printerSetting = PrinterSetting::getDefaultPrinter($this->tenantId(), 'kitchen_printer');
 
-            if (!$printerSetting || !$printerSetting->is_active) {
+            if (! $printerSetting || ! $printerSetting->is_active) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Kitchen printer not configured or inactive',
@@ -168,7 +168,7 @@ class PrintController extends Controller
             // Get barcode printer settings
             $printerSetting = PrinterSetting::getDefaultPrinter($this->tenantId(), 'barcode_printer');
 
-            if (!$printerSetting || !$printerSetting->is_active) {
+            if (! $printerSetting || ! $printerSetting->is_active) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Barcode printer not configured or inactive',
@@ -223,7 +223,7 @@ class PrintController extends Controller
                 $validated['printer_destination']
             );
 
-            if (!$connected) {
+            if (! $connected) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Failed to connect to printer',
@@ -280,7 +280,7 @@ class PrintController extends Controller
             ], 403);
         }
 
-        if (!$job->canRetry()) {
+        if (! $job->canRetry()) {
             return response()->json([
                 'success' => false,
                 'error' => 'Job cannot be retried (max retries reached)',
@@ -309,7 +309,7 @@ class PrintController extends Controller
             ], 403);
         }
 
-        if (!in_array($job->status, ['pending', 'processing'])) {
+        if (! in_array($job->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
                 'error' => 'Cannot cancel job in current status',

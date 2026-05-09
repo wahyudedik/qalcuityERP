@@ -2,26 +2,29 @@
 
 namespace App\Imports;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Illuminate\Support\Str;
 use Throwable;
 
-class ProductImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnError, SkipsOnFailure
+class ProductImport implements SkipsOnError, SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
     use SkipsErrors, SkipsFailures;
 
     protected $tenantId;
+
     protected $imported = 0;
+
     protected $updated = 0;
+
     protected $errors = [];
 
     public function __construct(int $tenantId)
@@ -29,9 +32,6 @@ class ProductImport implements ToCollection, WithHeadingRow, WithValidation, Ski
         $this->tenantId = $tenantId;
     }
 
-    /**
-     * @param Collection $rows
-     */
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
@@ -111,7 +111,7 @@ class ProductImport implements ToCollection, WithHeadingRow, WithValidation, Ski
      */
     protected function resolveCategoryId(?string $categoryName): ?int
     {
-        if (!$categoryName) {
+        if (! $categoryName) {
             return null;
         }
 
@@ -152,6 +152,7 @@ class ProductImport implements ToCollection, WithHeadingRow, WithValidation, Ski
         }
 
         $stringValue = strtolower((string) $value);
+
         return in_array($stringValue, ['true', 'yes', 'y', '1', 'aktif', 'active']);
     }
 

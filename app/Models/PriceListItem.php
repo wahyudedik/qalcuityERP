@@ -12,13 +12,20 @@ class PriceListItem extends Model
     ];
 
     protected $casts = [
-        'price'            => 'decimal:2',
+        'price' => 'decimal:2',
         'discount_percent' => 'decimal:2',
-        'min_qty'          => 'decimal:2',
+        'min_qty' => 'decimal:2',
     ];
 
-    public function priceList(): BelongsTo { return $this->belongsTo(PriceList::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function priceList(): BelongsTo
+    {
+        return $this->belongsTo(PriceList::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     /** Harga efektif setelah diskon */
     public function effectivePrice(): float
@@ -27,6 +34,7 @@ class PriceListItem extends Model
         if ($this->discount_percent > 0) {
             $price = $price * (1 - ($this->discount_percent / 100));
         }
+
         return round($price, 2);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Services\Integrations;
 
-use App\Models\EcommercePlatform;
 use App\Models\EcommerceOrder;
+use App\Models\EcommercePlatform;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -20,12 +20,12 @@ class EcommerceIntegrationService
             $response = Http::withHeaders([
                 'X-Shopify-Access-Token' => $platform->access_token,
             ])->get("{$platform->store_url}/admin/api/2024-01/orders.json", [
-                        'status' => 'any',
-                        'limit' => 250,
-                    ]);
+                'status' => 'any',
+                'limit' => 250,
+            ]);
 
-            if (!$response->ok()) {
-                throw new \Exception('Shopify API error: ' . $response->status());
+            if (! $response->ok()) {
+                throw new \Exception('Shopify API error: '.$response->status());
             }
 
             $orders = $response->json()['orders'] ?? [];
@@ -44,7 +44,8 @@ class EcommerceIntegrationService
             return ['success' => true, 'synced' => $synced];
 
         } catch (\Throwable $e) {
-            Log::error('Shopify order sync failed: ' . $e->getMessage());
+            Log::error('Shopify order sync failed: '.$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -66,7 +67,7 @@ class EcommerceIntegrationService
                 'per_page' => 100,
             ]);
 
-            if (!$response->ok()) {
+            if (! $response->ok()) {
                 throw new \Exception('WooCommerce API error');
             }
 
@@ -83,7 +84,8 @@ class EcommerceIntegrationService
             return ['success' => true, 'synced' => $synced];
 
         } catch (\Throwable $e) {
-            Log::error('WooCommerce order sync failed: ' . $e->getMessage());
+            Log::error('WooCommerce order sync failed: '.$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -97,14 +99,14 @@ class EcommerceIntegrationService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $platform->access_token,
+                'Authorization' => 'Bearer '.$platform->access_token,
                 'Content-Type' => 'application/json',
             ])->get('https://openapi.tokopedia.com/v1.1/fs/orders', [
-                        'shop_id' => $platform->configuration['shop_id'] ?? null,
-                        'per_page' => 50,
-                    ]);
+                'shop_id' => $platform->configuration['shop_id'] ?? null,
+                'per_page' => 50,
+            ]);
 
-            if (!$response->ok()) {
+            if (! $response->ok()) {
                 throw new \Exception('Tokopedia API error');
             }
 
@@ -121,7 +123,8 @@ class EcommerceIntegrationService
             return ['success' => true, 'synced' => $synced];
 
         } catch (\Throwable $e) {
-            Log::error('Tokopedia order sync failed: ' . $e->getMessage());
+            Log::error('Tokopedia order sync failed: '.$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -180,7 +183,8 @@ class EcommerceIntegrationService
             return ['success' => true, 'synced' => $synced];
 
         } catch (\Throwable $e) {
-            Log::error('Inventory sync failed: ' . $e->getMessage());
+            Log::error('Inventory sync failed: '.$e->getMessage());
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -193,16 +197,16 @@ class EcommerceIntegrationService
         Http::withHeaders([
             'X-Shopify-Access-Token' => $platform->access_token,
         ])->put("{$platform->store_url}/admin/api/2024-01/products/{$product['shopify_product_id']}.json", [
-                    'product' => [
-                        'id' => $product['shopify_product_id'],
-                        'variants' => [
-                            [
-                                'id' => $product['shopify_variant_id'],
-                                'inventory_quantity' => $product['quantity'],
-                            ]
-                        ]
-                    ]
-                ]);
+            'product' => [
+                'id' => $product['shopify_product_id'],
+                'variants' => [
+                    [
+                        'id' => $product['shopify_variant_id'],
+                        'inventory_quantity' => $product['quantity'],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**

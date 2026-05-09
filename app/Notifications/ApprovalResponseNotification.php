@@ -21,19 +21,19 @@ class ApprovalResponseNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $workflow  = $this->approval->workflow?->name ?? 'Permintaan';
-        $approver  = $this->approval->approver?->name ?? 'Admin';
+        $workflow = $this->approval->workflow?->name ?? 'Permintaan';
+        $approver = $this->approval->approver?->name ?? 'Admin';
         $isApproved = $this->approval->status === 'approved';
 
         $statusText = $isApproved ? '✅ Disetujui' : '❌ Ditolak';
-        $color      = $isApproved ? 'success' : 'error';
+        $color = $isApproved ? 'success' : 'error';
 
         return (new MailMessage)
             ->subject("{$statusText}: {$workflow}")
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Permintaan Anda **{$workflow}** telah **{$statusText}** oleh {$approver}.")
-            ->when(!$isApproved && $this->approval->rejection_reason,
-                fn($m) => $m->line("Alasan penolakan: {$this->approval->rejection_reason}")
+            ->when(! $isApproved && $this->approval->rejection_reason,
+                fn ($m) => $m->line("Alasan penolakan: {$this->approval->rejection_reason}")
             )
             ->action('Lihat Detail', url('/approvals'))
             ->salutation('Salam, Qalcuity ERP');

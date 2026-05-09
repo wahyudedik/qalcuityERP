@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('tenant_api_settings')) {
+        if (! Schema::hasTable('tenant_api_settings')) {
             Schema::create('tenant_api_settings', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -17,7 +18,7 @@ return new class extends Migration {
                 $table->string('group')->default('general'); // communication, agriculture, security, ai
                 $table->string('label')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'key']);
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->index('tenant_id');

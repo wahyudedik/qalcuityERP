@@ -6,7 +6,9 @@ use App\DTOs\Agent\AgentStep;
 use App\DTOs\Agent\ExecutionContext;
 use App\DTOs\Agent\UndoResult;
 use App\Models\AgentAuditLog;
+use App\Models\User;
 use App\Services\Agent\AgentExecutor;
+use App\Services\Agent\TimeoutException;
 use App\Services\ERP\ToolRegistry;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -24,59 +26,59 @@ class AgentExecutorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->executor = new AgentExecutor();
+        $this->executor = new AgentExecutor;
     }
 
     // =========================================================================
     // resolveArgs — placeholder valid
     // =========================================================================
 
-    public function testResolveArgsReplacesSimplePlaceholder(): void
+    public function test_resolve_args_replaces_simple_placeholder(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         $context->set(1, ['status' => 'success', 'product_id' => 42]);
 
-        $args     = ['id' => '{{step_1.product_id}}'];
+        $args = ['id' => '{{step_1.product_id}}'];
         $resolved = $this->executor->resolveArgs($args, $context);
 
         $this->assertSame(42, $resolved['id']);
     }
 
-    public function testResolveArgsReplacesNestedDotNotationPlaceholder(): void
+    public function test_resolve_args_replaces_nested_dot_notation_placeholder(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         $context->set(2, [
             'status' => 'success',
-            'data'   => ['invoice' => ['id' => 99, 'number' => 'INV-001']],
+            'data' => ['invoice' => ['id' => 99, 'number' => 'INV-001']],
         ]);
 
-        $args     = ['invoice_id' => '{{step_2.data.invoice.id}}'];
+        $args = ['invoice_id' => '{{step_2.data.invoice.id}}'];
         $resolved = $this->executor->resolveArgs($args, $context);
 
         $this->assertSame(99, $resolved['invoice_id']);
     }
 
-    public function testResolveArgsReplacesMultiplePlaceholdersInSameArg(): void
+    public function test_resolve_args_replaces_multiple_placeholders_in_same_arg(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         $context->set(1, ['status' => 'success', 'name' => 'Produk A']);
         $context->set(2, ['status' => 'success', 'code' => 'P001']);
 
-        $args     = ['label' => '{{step_1.name}} ({{step_2.code}})'];
+        $args = ['label' => '{{step_1.name}} ({{step_2.code}})'];
         $resolved = $this->executor->resolveArgs($args, $context);
 
         $this->assertSame('Produk A (P001)', $resolved['label']);
     }
 
-    public function testResolveArgsReplacesPlaceholdersInNestedArray(): void
+    public function test_resolve_args_replaces_placeholders_in_nested_array(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         $context->set(1, ['status' => 'success', 'customer_id' => 7]);
 
         $args = [
             'order' => [
                 'customer_id' => '{{step_1.customer_id}}',
-                'amount'      => 100000,
+                'amount' => 100000,
             ],
         ];
 
@@ -86,15 +88,15 @@ class AgentExecutorTest extends TestCase
         $this->assertSame(100000, $resolved['order']['amount']);
     }
 
-    public function testResolveArgsLeavesNonPlaceholderValuesUnchanged(): void
+    public function test_resolve_args_leaves_non_placeholder_values_unchanged(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
 
         $args = [
-            'name'   => 'Produk Biasa',
+            'name' => 'Produk Biasa',
             'amount' => 50000,
             'active' => true,
-            'tags'   => ['a', 'b'],
+            'tags' => ['a', 'b'],
         ];
 
         $resolved = $this->executor->resolveArgs($args, $context);
@@ -109,46 +111,46 @@ class AgentExecutorTest extends TestCase
     // resolveArgs — placeholder tidak valid / tidak tersedia
     // =========================================================================
 
-    public function testResolveArgsReturnsNullForMissingStepOutput(): void
+    public function test_resolve_args_returns_null_for_missing_step_output(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         // Langkah 3 belum dieksekusi
 
-        $args     = ['product_id' => '{{step_3.product_id}}'];
+        $args = ['product_id' => '{{step_3.product_id}}'];
         $resolved = $this->executor->resolveArgs($args, $context);
 
         $this->assertNull($resolved['product_id']);
     }
 
-    public function testResolveArgsReturnsNullForMissingField(): void
+    public function test_resolve_args_returns_null_for_missing_field(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
         $context->set(1, ['status' => 'success', 'name' => 'Produk A']);
 
         // Field 'nonexistent_field' tidak ada di output langkah 1
-        $args     = ['x' => '{{step_1.nonexistent_field}}'];
+        $args = ['x' => '{{step_1.nonexistent_field}}'];
         $resolved = $this->executor->resolveArgs($args, $context);
 
         $this->assertNull($resolved['x']);
     }
 
-    public function testResolveArgsHandlesEmptyArgs(): void
+    public function test_resolve_args_handles_empty_args(): void
     {
-        $context  = new ExecutionContext();
+        $context = new ExecutionContext;
         $resolved = $this->executor->resolveArgs([], $context);
 
         $this->assertSame([], $resolved);
     }
 
-    public function testResolveArgsHandlesNonStringValues(): void
+    public function test_resolve_args_handles_non_string_values(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
 
         $args = [
-            'count'  => 5,
-            'ratio'  => 1.5,
+            'count' => 5,
+            'ratio' => 1.5,
             'active' => false,
-            'null'   => null,
+            'null' => null,
         ];
 
         $resolved = $this->executor->resolveArgs($args, $context);
@@ -163,20 +165,20 @@ class AgentExecutorTest extends TestCase
     // canUndo — dalam window 5 menit
     // =========================================================================
 
-    public function testCanUndoReturnsTrueWhenWithinWindow(): void
+    public function test_can_undo_returns_true_when_within_window(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(3),
         ]);
 
         $this->assertTrue($this->executor->canUndo($log));
     }
 
-    public function testCanUndoReturnsTrueAtExactWindowBoundary(): void
+    public function test_can_undo_returns_true_at_exact_window_boundary(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addSeconds(1),
         ]);
 
@@ -187,40 +189,40 @@ class AgentExecutorTest extends TestCase
     // canUndo — di luar window 5 menit
     // =========================================================================
 
-    public function testCanUndoReturnsFalseWhenWindowExpired(): void
+    public function test_can_undo_returns_false_when_window_expired(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->subMinutes(1),
         ]);
 
         $this->assertFalse($this->executor->canUndo($log));
     }
 
-    public function testCanUndoReturnsFalseWhenIsUndoableFalse(): void
+    public function test_can_undo_returns_false_when_is_undoable_false(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => false,
+            'is_undoable' => false,
             'undoable_until' => Carbon::now()->addMinutes(3),
         ]);
 
         $this->assertFalse($this->executor->canUndo($log));
     }
 
-    public function testCanUndoReturnsFalseWhenUndoableUntilIsNull(): void
+    public function test_can_undo_returns_false_when_undoable_until_is_null(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => null,
         ]);
 
         $this->assertFalse($this->executor->canUndo($log));
     }
 
-    public function testCanUndoReturnsFalseWhenBothFalseAndExpired(): void
+    public function test_can_undo_returns_false_when_both_false_and_expired(): void
     {
         $log = $this->makeAuditLog([
-            'is_undoable'    => false,
+            'is_undoable' => false,
             'undoable_until' => Carbon::now()->subHours(1),
         ]);
 
@@ -231,18 +233,18 @@ class AgentExecutorTest extends TestCase
     // undo — dalam window 5 menit
     // =========================================================================
 
-    public function testUndoSucceedsWhenWithinWindow(): void
+    public function test_undo_succeeds_when_within_window(): void
     {
         $log = $this->createAuditLogInDb([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(4),
-            'status'         => 'success',
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
+            'status' => 'success',
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
         ]);
 
         $registry = $this->buildSuccessRegistry();
-        $result   = $this->executor->undo($log, $registry);
+        $result = $this->executor->undo($log, $registry);
 
         $this->assertInstanceOf(UndoResult::class, $result);
         $this->assertTrue($result->success);
@@ -257,36 +259,36 @@ class AgentExecutorTest extends TestCase
     // undo — di luar window 5 menit
     // =========================================================================
 
-    public function testUndoFailsWhenWindowExpired(): void
+    public function test_undo_fails_when_window_expired(): void
     {
         $log = $this->createAuditLogInDb([
-            'is_undoable'    => true,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->subMinutes(6),
-            'status'         => 'success',
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
+            'status' => 'success',
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
         ]);
 
         $registry = $this->buildSuccessRegistry();
-        $result   = $this->executor->undo($log, $registry);
+        $result = $this->executor->undo($log, $registry);
 
         $this->assertInstanceOf(UndoResult::class, $result);
         $this->assertFalse($result->success);
         $this->assertStringContainsString('window', strtolower($result->message));
     }
 
-    public function testUndoFailsWhenNotUndoable(): void
+    public function test_undo_fails_when_not_undoable(): void
     {
         $log = $this->createAuditLogInDb([
-            'is_undoable'    => false,
+            'is_undoable' => false,
             'undoable_until' => Carbon::now()->addMinutes(3),
-            'status'         => 'success',
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
+            'status' => 'success',
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
         ]);
 
         $registry = $this->buildSuccessRegistry();
-        $result   = $this->executor->undo($log, $registry);
+        $result = $this->executor->undo($log, $registry);
 
         $this->assertFalse($result->success);
         $this->assertNotEmpty($result->message);
@@ -296,9 +298,9 @@ class AgentExecutorTest extends TestCase
     // Timeout handling > 10 detik
     // =========================================================================
 
-    public function testTimeoutHandlingMarksStepAsFailed(): void
+    public function test_timeout_handling_marks_step_as_failed(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
 
         // Mock registry yang membutuhkan waktu lama (simulasi timeout)
         $registry = $this->createMock(ToolRegistry::class);
@@ -307,7 +309,7 @@ class AgentExecutorTest extends TestCase
                 // Simulasikan eksekusi yang sangat lambat
                 // Kita tidak bisa benar-benar sleep 10+ detik di unit test,
                 // jadi kita test dengan mock yang melempar exception timeout
-                throw new \App\Services\Agent\TimeoutException('Melebihi batas waktu 10 detik.');
+                throw new TimeoutException('Melebihi batas waktu 10 detik.');
             });
         $registry->method('isWriteOperation')->willReturn(false);
 
@@ -333,17 +335,17 @@ class AgentExecutorTest extends TestCase
         $this->assertFalse($context->has(1));
     }
 
-    public function testTimeoutHandlingDoesNotWriteAuditLog(): void
+    public function test_timeout_handling_does_not_write_audit_log(): void
     {
-        $context = new ExecutionContext();
+        $context = new ExecutionContext;
 
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
         $this->executor->setUser($user, $tenant->id, null);
 
         $registry = $this->createMock(ToolRegistry::class);
         $registry->method('execute')
-            ->willThrowException(new \App\Services\Agent\TimeoutException('Timeout'));
+            ->willThrowException(new TimeoutException('Timeout'));
         $registry->method('isWriteOperation')->willReturn(true);
 
         $step = new AgentStep(
@@ -371,9 +373,9 @@ class AgentExecutorTest extends TestCase
     // executeStep — happy path
     // =========================================================================
 
-    public function testExecuteStepSuccessPopulatesContext(): void
+    public function test_execute_step_success_populates_context(): void
     {
-        $context  = new ExecutionContext();
+        $context = new ExecutionContext;
         $registry = $this->buildSuccessRegistry();
 
         $step = new AgentStep(
@@ -392,9 +394,9 @@ class AgentExecutorTest extends TestCase
         $this->assertTrue($context->has(1));
     }
 
-    public function testExecuteStepFailureDoesNotPopulateContext(): void
+    public function test_execute_step_failure_does_not_populate_context(): void
     {
-        $context  = new ExecutionContext();
+        $context = new ExecutionContext;
         $registry = $this->buildFailRegistry();
 
         $step = new AgentStep(
@@ -413,9 +415,9 @@ class AgentExecutorTest extends TestCase
         $this->assertNotNull($result->errorMessage);
     }
 
-    public function testExecuteStepDestructiveToolIsRejected(): void
+    public function test_execute_step_destructive_tool_is_rejected(): void
     {
-        $context  = new ExecutionContext();
+        $context = new ExecutionContext;
         $registry = $this->buildSuccessRegistry();
 
         $step = new AgentStep(
@@ -432,9 +434,9 @@ class AgentExecutorTest extends TestCase
         $this->assertStringContainsString('destruktif', strtolower($result->errorMessage ?? ''));
     }
 
-    public function testExecuteStepLockedPeriodModificationIsRejected(): void
+    public function test_execute_step_locked_period_modification_is_rejected(): void
     {
-        $context  = new ExecutionContext();
+        $context = new ExecutionContext;
         $registry = $this->buildSuccessRegistry();
 
         $step = new AgentStep(
@@ -466,16 +468,16 @@ class AgentExecutorTest extends TestCase
      */
     private function makeAuditLog(array $attributes): AgentAuditLog
     {
-        $log = new AgentAuditLog();
+        $log = new AgentAuditLog;
         $log->forceFill(array_merge([
-            'tenant_id'      => 1,
-            'user_id'        => 1,
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
-            'parameters'     => [],
-            'result'         => [],
-            'status'         => 'success',
-            'is_undoable'    => true,
+            'tenant_id' => 1,
+            'user_id' => 1,
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
+            'parameters' => [],
+            'result' => [],
+            'status' => 'success',
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(5),
         ], $attributes));
 
@@ -488,19 +490,19 @@ class AgentExecutorTest extends TestCase
     private function createAuditLogInDb(array $attributes): AgentAuditLog
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         return AgentAuditLog::create(array_merge([
-            'tenant_id'      => $tenant->id,
-            'user_id'        => $user->id,
-            'session_id'     => null,
-            'action_name'    => 'create_invoice',
-            'action_type'    => 'write',
-            'parameters'     => ['amount' => 100000],
-            'result'         => ['invoice_id' => 1],
-            'status'         => 'success',
-            'error_message'  => null,
-            'is_undoable'    => true,
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'session_id' => null,
+            'action_name' => 'create_invoice',
+            'action_type' => 'write',
+            'parameters' => ['amount' => 100000],
+            'result' => ['invoice_id' => 1],
+            'status' => 'success',
+            'error_message' => null,
+            'is_undoable' => true,
             'undoable_until' => Carbon::now()->addMinutes(5),
         ], $attributes));
     }
@@ -514,13 +516,13 @@ class AgentExecutorTest extends TestCase
         $mock->method('execute')
             ->willReturnCallback(function (string $toolName, array $args) {
                 return [
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => "Tool {$toolName} berhasil",
-                    'data'    => $args,
+                    'data' => $args,
                 ];
             });
         $mock->method('isWriteOperation')
-            ->willReturnCallback(fn(string $name) => str_starts_with($name, 'create_')
+            ->willReturnCallback(fn (string $name) => str_starts_with($name, 'create_')
                 || str_starts_with($name, 'update_'));
 
         return $mock;
@@ -542,9 +544,10 @@ class AgentExecutorTest extends TestCase
     /**
      * Buat user dummy.
      */
-    private function createUser(): \App\Models\User
+    private function createUser(): User
     {
         $tenant = $this->createTenant();
+
         return $this->createAdminUser($tenant);
     }
 }

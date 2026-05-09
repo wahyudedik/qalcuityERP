@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PatientMedicalRecord extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'patient_id',
@@ -54,7 +54,7 @@ class PatientMedicalRecord extends Model
      */
     public function getBmiAttribute()
     {
-        if (!$this->vital_signs || !isset($this->vital_signs['weight']) || !isset($this->vital_signs['height'])) {
+        if (! $this->vital_signs || ! isset($this->vital_signs['weight']) || ! isset($this->vital_signs['height'])) {
             return null;
         }
 
@@ -75,7 +75,7 @@ class PatientMedicalRecord extends Model
     {
         $bmi = $this->bmi;
 
-        if (!$bmi) {
+        if (! $bmi) {
             return null;
         }
 
@@ -95,7 +95,7 @@ class PatientMedicalRecord extends Model
      */
     public function hasAbnormalVitalSigns()
     {
-        if (!$this->vital_signs) {
+        if (! $this->vital_signs) {
             return false;
         }
 
@@ -143,26 +143,26 @@ class PatientMedicalRecord extends Model
      */
     public function getAbnormalVitalSignsAttribute()
     {
-        if (!$this->vital_signs) {
+        if (! $this->vital_signs) {
             return [];
         }
 
         $abnormal = [];
 
         if (isset($this->vital_signs['bp_systolic']) && ($this->vital_signs['bp_systolic'] < 90 || $this->vital_signs['bp_systolic'] > 140)) {
-            $abnormal[] = 'Blood Pressure (Systolic): ' . $this->vital_signs['bp_systolic'];
+            $abnormal[] = 'Blood Pressure (Systolic): '.$this->vital_signs['bp_systolic'];
         }
 
         if (isset($this->vital_signs['heart_rate']) && ($this->vital_signs['heart_rate'] < 60 || $this->vital_signs['heart_rate'] > 100)) {
-            $abnormal[] = 'Heart Rate: ' . $this->vital_signs['heart_rate'];
+            $abnormal[] = 'Heart Rate: '.$this->vital_signs['heart_rate'];
         }
 
         if (isset($this->vital_signs['temperature']) && ($this->vital_signs['temperature'] < 36.5 || $this->vital_signs['temperature'] > 37.5)) {
-            $abnormal[] = 'Temperature: ' . $this->vital_signs['temperature'] . '°C';
+            $abnormal[] = 'Temperature: '.$this->vital_signs['temperature'].'°C';
         }
 
         if (isset($this->vital_signs['spo2']) && $this->vital_signs['spo2'] < 95) {
-            $abnormal[] = 'SpO2: ' . $this->vital_signs['spo2'] . '%';
+            $abnormal[] = 'SpO2: '.$this->vital_signs['spo2'].'%';
         }
 
         return $abnormal;
@@ -252,7 +252,7 @@ class PatientMedicalRecord extends Model
      */
     public function isSigned()
     {
-        return !empty($this->doctor_signature) && !empty($this->signed_at);
+        return ! empty($this->doctor_signature) && ! empty($this->signed_at);
     }
 
     /**

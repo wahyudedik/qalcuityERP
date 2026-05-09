@@ -25,14 +25,15 @@ class NotifyAllModelsUnavailable
 
         if (empty($slackWebhookUrl) && empty($emailRecipients)) {
             Log::warning('AllModelsUnavailable: no alert channels configured (SLACK_ERROR_WEBHOOK_URL and ERROR_ALERT_EMAIL_RECIPIENTS are both empty).');
+
             return;
         }
 
-        if (!empty($slackWebhookUrl)) {
+        if (! empty($slackWebhookUrl)) {
             $this->sendSlackAlert($slackWebhookUrl, $event);
         }
 
-        if (!empty($emailRecipients)) {
+        if (! empty($emailRecipients)) {
             $this->sendEmailAlert($emailRecipients, $event);
         }
     }
@@ -77,7 +78,7 @@ class NotifyAllModelsUnavailable
 
             $response = Http::timeout(5)->post($webhookUrl, $payload);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('NotifyAllModelsUnavailable: Slack webhook returned non-success status.', [
                     'status' => $response->status(),
                 ]);
@@ -110,10 +111,10 @@ class NotifyAllModelsUnavailable
 
             Mail::raw(
                 "ALERT: All AI service models are currently unavailable{$tenantInfo}.\n\n"
-                . "Unavailable models: {$modelList}\n"
-                . "Time: {$time}\n"
-                . "Environment: {$environment}\n\n"
-                . "Please check the AI model monitoring dashboard and take action if necessary.",
+                ."Unavailable models: {$modelList}\n"
+                ."Time: {$time}\n"
+                ."Environment: {$environment}\n\n"
+                .'Please check the AI model monitoring dashboard and take action if necessary.',
                 function ($message) use ($addresses, $environment) {
                     $message
                         ->to($addresses)

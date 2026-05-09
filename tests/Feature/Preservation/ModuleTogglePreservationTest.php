@@ -24,6 +24,7 @@ use Tests\TestCase;
 class ModuleTogglePreservationTest extends TestCase
 {
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -31,7 +32,7 @@ class ModuleTogglePreservationTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -67,8 +68,8 @@ class ModuleTogglePreservationTest extends TestCase
         $this->assertEquals(
             $modulesToEnable,
             $this->tenant->enabled_modules,
-            "Requirement 3.1: Settings toggle should save ['pos', 'inventory', 'hrm'] to " .
-            "enabled_modules, but got: " . json_encode($this->tenant->enabled_modules)
+            "Requirement 3.1: Settings toggle should save ['pos', 'inventory', 'hrm'] to ".
+            'enabled_modules, but got: '.json_encode($this->tenant->enabled_modules)
         );
     }
 
@@ -91,7 +92,7 @@ class ModuleTogglePreservationTest extends TestCase
         $this->assertEquals(
             ['hrm', 'payroll', 'accounting'],
             $this->tenant->enabled_modules,
-            "Requirement 3.1: Second settings toggle should update enabled_modules to " .
+            'Requirement 3.1: Second settings toggle should update enabled_modules to '.
             "['hrm', 'payroll', 'accounting']"
         );
     }
@@ -120,8 +121,8 @@ class ModuleTogglePreservationTest extends TestCase
         foreach (ModuleRecommendationService::ALL_MODULES as $module) {
             $this->assertTrue(
                 $tenant->isModuleEnabled($module),
-                "Requirement 3.2: isModuleEnabled('{$module}') should return true when " .
-                "enabled_modules is null (backward compat), but returned false."
+                "Requirement 3.2: isModuleEnabled('{$module}') should return true when ".
+                'enabled_modules is null (backward compat), but returned false.'
             );
         }
     }
@@ -188,8 +189,8 @@ class ModuleTogglePreservationTest extends TestCase
         // skip() must NOT touch enabled_modules — it must remain null
         $this->assertNull(
             $this->tenant->enabled_modules,
-            "Requirement 3.4: skip() should NOT change enabled_modules. " .
-            "It must remain null (all modules active), but got: " .
+            'Requirement 3.4: skip() should NOT change enabled_modules. '.
+            'It must remain null (all modules active), but got: '.
             json_encode($this->tenant->enabled_modules)
         );
     }
@@ -222,8 +223,8 @@ class ModuleTogglePreservationTest extends TestCase
         $this->assertEquals(
             ['pos', 'hrm'],
             $this->tenant->enabled_modules,
-            "Requirement 3.4: skip() should NOT change enabled_modules. " .
-            "It must remain ['pos', 'hrm'], but got: " .
+            'Requirement 3.4: skip() should NOT change enabled_modules. '.
+            "It must remain ['pos', 'hrm'], but got: ".
             json_encode($this->tenant->enabled_modules)
         );
     }

@@ -14,12 +14,26 @@ class DeferredItemSchedule extends Model
 
     protected $casts = [
         'recognition_date' => 'date',
-        'amount'           => 'decimal:2',
+        'amount' => 'decimal:2',
     ];
 
-    public function deferredItem(): BelongsTo { return $this->belongsTo(DeferredItem::class); }
-    public function journalEntry(): BelongsTo { return $this->belongsTo(JournalEntry::class); }
+    public function deferredItem(): BelongsTo
+    {
+        return $this->belongsTo(DeferredItem::class);
+    }
 
-    public function isPending(): bool { return $this->status === 'pending'; }
-    public function isPosted(): bool  { return $this->status === 'posted'; }
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isPosted(): bool
+    {
+        return $this->status === 'posted';
+    }
 }

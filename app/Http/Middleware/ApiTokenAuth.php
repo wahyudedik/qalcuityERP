@@ -15,7 +15,7 @@ class ApiTokenAuth
             ?? $request->header('X-API-Token');
         // NOTE: query string fallback dihapus — token di URL tercatat di server logs (security risk)
 
-        if (!$token) {
+        if (! $token) {
             return response()->json(['error' => 'API token diperlukan.'], 401);
         }
 
@@ -29,22 +29,22 @@ class ApiTokenAuth
             })
             ->first();
 
-        if (!$apiToken) {
+        if (! $apiToken) {
             // Log failed authentication attempts for security audit
             Log::warning('API token authentication failed', [
                 'reason' => 'token_not_found_or_expired',
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'token_prefix' => substr($token, 0, 8) . '...',
+                'token_prefix' => substr($token, 0, 8).'...',
             ]);
 
             return response()->json([
                 'error' => 'Token tidak valid atau sudah kadaluarsa.',
-                'error_code' => 'TOKEN_EXPIRED_OR_INVALID'
+                'error_code' => 'TOKEN_EXPIRED_OR_INVALID',
             ], 401);
         }
 
-        if (!$apiToken->can($ability)) {
+        if (! $apiToken->can($ability)) {
             Log::warning('API token permission denied', [
                 'token_id' => $apiToken->id,
                 'tenant_id' => $apiToken->tenant_id,
@@ -54,7 +54,7 @@ class ApiTokenAuth
 
             return response()->json([
                 'error' => "Token tidak memiliki izin '{$ability}'.",
-                'error_code' => 'INSUFFICIENT_PERMISSIONS'
+                'error_code' => 'INSUFFICIENT_PERMISSIONS',
             ], 403);
         }
 

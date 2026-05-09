@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\LeaveRequest;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class LeaveRejectedNotification extends Notification implements ShouldQueue
@@ -21,28 +22,28 @@ class LeaveRejectedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'leave_rejected', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
-            ->subject("Pengajuan Cuti Anda Ditolak")
+            ->subject('Pengajuan Cuti Anda Ditolak')
             ->greeting("Halo, {$notifiable->name}!")
-            ->line("Pengajuan cuti Anda telah **ditolak**.")
+            ->line('Pengajuan cuti Anda telah **ditolak**.')
             ->line("**Jenis Cuti:** {$this->leaveRequest->leave_type}")
-            ->line("**Tanggal:** " . $this->leaveRequest->start_date->format('d/m/Y') . " - " . $this->leaveRequest->end_date->format('d/m/Y'))
+            ->line('**Tanggal:** '.$this->leaveRequest->start_date->format('d/m/Y').' - '.$this->leaveRequest->end_date->format('d/m/Y'))
             ->line("**Durasi:** {$this->leaveRequest->days} hari");
 
         if ($this->rejectionReason) {

@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\CashierSession;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CashierSessionOpenedNotification extends Notification implements ShouldQueue
@@ -18,31 +19,31 @@ class CashierSessionOpenedNotification extends Notification implements ShouldQue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'cashier_session_opened', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        $openingBalance = 'Rp ' . number_format($this->session->opening_balance, 0, ',', '.');
+        $openingBalance = 'Rp '.number_format($this->session->opening_balance, 0, ',', '.');
 
         return (new MailMessage)
             ->subject("Sesi Kasir Dibuka - {$this->session->cashier->name}")
             ->greeting("Halo, {$notifiable->name}!")
             ->line("Sesi kasir telah dibuka oleh **{$this->session->cashier->name}**.")
-            ->line("**Waktu Buka:** " . $this->session->opened_at->format('d/m/Y H:i'))
+            ->line('**Waktu Buka:** '.$this->session->opened_at->format('d/m/Y H:i'))
             ->line("**Saldo Awal:** {$openingBalance}")
-            ->line("**Lokasi:** " . ($this->session->register_name ?? 'Kasir Utama'))
+            ->line('**Lokasi:** '.($this->session->register_name ?? 'Kasir Utama'))
             ->action('Lihat Sesi Kasir', url("/pos/sessions/{$this->session->id}"))
             ->salutation('Salam, Qalcuity ERP');
     }

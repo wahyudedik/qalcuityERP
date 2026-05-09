@@ -3,18 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\CropCycle;
-use App\Services\WeatherIntegrationService;
-use App\Services\PestDetectionService;
+use App\Models\IrrigationSchedule;
 use App\Services\IrrigationAutomationService;
 use App\Services\MarketPriceMonitorService;
+use App\Services\PestDetectionService;
+use App\Services\WeatherIntegrationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class AgricultureController extends Controller
 {
     protected WeatherIntegrationService $weatherService;
+
     protected PestDetectionService $pestService;
+
     protected IrrigationAutomationService $irrigationService;
+
     protected MarketPriceMonitorService $priceService;
 
     /**
@@ -116,7 +119,7 @@ class AgricultureController extends Controller
             $request->input('crop_cycle_id')
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json(['error' => $result['error']], 500);
         }
 
@@ -169,10 +172,10 @@ class AgricultureController extends Controller
      */
     public function toggleIrrigation(int $id)
     {
-        $schedule = \App\Models\IrrigationSchedule::findOrFail($id);
+        $schedule = IrrigationSchedule::findOrFail($id);
         $this->authorize('update', $schedule);
 
-        $schedule->update(['is_active' => !$schedule->is_active]);
+        $schedule->update(['is_active' => ! $schedule->is_active]);
 
         return response()->json([
             'success' => true,

@@ -10,10 +10,10 @@ use App\Services\PeriodLockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class PeriodLockController extends Controller 
+class PeriodLockController extends Controller
 {
     public function __construct(
-        private PeriodLockService   $lockService,
+        private PeriodLockService $lockService,
         private PeriodBackupService $backupService,
     ) {}
 
@@ -46,9 +46,9 @@ class PeriodLockController extends Controller
     public function storeFiscalYear(Request $request)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:20',
+            'name' => 'required|string|max:20',
             'start_date' => 'required|date',
-            'end_date'   => 'required|date|after:start_date',
+            'end_date' => 'required|date|after:start_date',
             'auto_periods' => 'boolean',
         ]);
 
@@ -56,10 +56,10 @@ class PeriodLockController extends Controller
 
         // Cek overlap
         $overlap = FiscalYear::where('tenant_id', $tid)
-            ->where(fn($q) => $q
+            ->where(fn ($q) => $q
                 ->whereBetween('start_date', [$data['start_date'], $data['end_date']])
                 ->orWhereBetween('end_date', [$data['start_date'], $data['end_date']])
-                ->orWhere(fn($q2) => $q2->where('start_date', '<=', $data['start_date'])->where('end_date', '>=', $data['end_date']))
+                ->orWhere(fn ($q2) => $q2->where('start_date', '<=', $data['start_date'])->where('end_date', '>=', $data['end_date']))
             )->exists();
 
         if ($overlap) {
@@ -71,6 +71,7 @@ class PeriodLockController extends Controller
         // Auto-generate periode bulanan
         if ($request->boolean('auto_periods')) {
             $count = $this->lockService->generateMonthlyPeriods($fy);
+
             return back()->with('success', "Tahun fiskal {$fy->name} dibuat dengan {$count} periode bulanan.");
         }
 
@@ -127,15 +128,15 @@ class PeriodLockController extends Controller
     public function createBackup(Request $request)
     {
         $data = $request->validate([
-            'type'         => 'required|in:monthly,yearly,manual',
-            'label'        => 'required|string|max:50',
+            'type' => 'required|in:monthly,yearly,manual',
+            'label' => 'required|string|max:50',
             'period_start' => 'required|date',
-            'period_end'   => 'required|date|after_or_equal:period_start',
+            'period_end' => 'required|date|after_or_equal:period_start',
         ]);
 
         $backup = PeriodBackup::create(array_merge($data, [
-            'tenant_id'  => $this->tid(),
-            'status'     => 'pending',
+            'tenant_id' => $this->tid(),
+            'status' => 'pending',
             'created_by' => auth()->id(),
         ]));
 
@@ -143,9 +144,10 @@ class PeriodLockController extends Controller
         // Untuk produksi besar, dispatch ke queue: GeneratePeriodBackup::dispatch($backup)
         try {
             $this->backupService->generate($backup);
+
             return back()->with('success', "Backup \"{$backup->label}\" berhasil dibuat.");
         } catch (\Throwable $e) {
-            return back()->with('error', "Backup gagal: " . $e->getMessage());
+            return back()->with('error', 'Backup gagal: '.$e->getMessage());
         }
     }
 

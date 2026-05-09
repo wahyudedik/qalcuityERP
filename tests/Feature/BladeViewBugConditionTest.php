@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Eris\Generator;
 use Eris\TestTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -36,7 +35,7 @@ class BladeViewBugConditionTest extends TestCase
 
         // Resolve views path relative to project root (works in both CLI and artisan test)
         $projectRoot = $this->resolveProjectRoot();
-        $this->viewsPath = $projectRoot . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views';
+        $this->viewsPath = $projectRoot.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views';
     }
 
     // ── Helper: resolve project root ─────────────────────────────
@@ -51,7 +50,7 @@ class BladeViewBugConditionTest extends TestCase
         $cwd = getcwd();
 
         // Verify it looks like a Laravel project root
-        if (is_dir($cwd . '/resources/views')) {
+        if (is_dir($cwd.'/resources/views')) {
             return $cwd;
         }
 
@@ -59,7 +58,7 @@ class BladeViewBugConditionTest extends TestCase
         $dir = __DIR__;
         for ($i = 0; $i < 5; $i++) {
             $dir = dirname($dir);
-            if (is_dir($dir . '/resources/views')) {
+            if (is_dir($dir.'/resources/views')) {
                 return $dir;
             }
         }
@@ -76,7 +75,7 @@ class BladeViewBugConditionTest extends TestCase
      */
     private function getAllBladeFiles(): array
     {
-        if (!is_dir($this->viewsPath)) {
+        if (! is_dir($this->viewsPath)) {
             return [];
         }
 
@@ -93,6 +92,7 @@ class BladeViewBugConditionTest extends TestCase
         }
 
         sort($files);
+
         return $files;
     }
 
@@ -101,10 +101,10 @@ class BladeViewBugConditionTest extends TestCase
     /**
      * Scan file content for a regex pattern and return violation strings.
      *
-     * @param  string $pattern  PCRE regex pattern
-     * @param  string $content  File content
-     * @param  string $filePath Absolute path (used in violation message)
-     * @return string[]         Array of "filePath:lineNumber: matched_line" strings
+     * @param  string  $pattern  PCRE regex pattern
+     * @param  string  $content  File content
+     * @param  string  $filePath  Absolute path (used in violation message)
+     * @return string[] Array of "filePath:lineNumber: matched_line" strings
      */
     private function scanForPattern(string $pattern, string $content, string $filePath): array
     {
@@ -113,7 +113,7 @@ class BladeViewBugConditionTest extends TestCase
 
         foreach ($lines as $lineNumber => $line) {
             if (preg_match($pattern, $line)) {
-                $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                 $relPath = str_replace('\\', '/', $relPath);
                 $violations[] = sprintf(
                     '%s:%d: %s',
@@ -162,8 +162,8 @@ class BladeViewBugConditionTest extends TestCase
                 // Match @foreach($var as ...) — variable must start with $
                 if (preg_match('/@foreach\(\$\w+\s+as/i', $line)) {
                     // Check if the same line has a null guard: ?? [] or ??[]
-                    if (!str_contains($line, '?? []') && !str_contains($line, '??[]')) {
-                        $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                    if (! str_contains($line, '?? []') && ! str_contains($line, '??[]')) {
+                        $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                         $relPath = str_replace('\\', '/', $relPath);
                         $violations[] = sprintf(
                             '%s:%d: %s',
@@ -179,7 +179,7 @@ class BladeViewBugConditionTest extends TestCase
         $count = count($violations);
         $this->assertEmpty(
             $violations,
-            "Found {$count} @foreach without ?? [] null guard:\n" . implode("\n", $violations)
+            "Found {$count} @foreach without ?? [] null guard:\n".implode("\n", $violations)
         );
     }
 
@@ -217,7 +217,7 @@ class BladeViewBugConditionTest extends TestCase
         $this->assertEmpty(
             $violations,
             "Found {$count} x-data with direct Blade {{ }} interpolation (should use @js()):\n"
-                . implode("\n", $violations)
+                .implode("\n", $violations)
         );
     }
 
@@ -385,7 +385,7 @@ class BladeViewBugConditionTest extends TestCase
 
             foreach ($lines as $lineNumber => $line) {
                 // Match $var->prop->prop (two-level chained access)
-                if (!preg_match('/\$\w+->\w+->\w+/', $line)) {
+                if (! preg_match('/\$\w+->\w+->\w+/', $line)) {
                     continue;
                 }
 
@@ -443,7 +443,7 @@ class BladeViewBugConditionTest extends TestCase
                 }
 
                 if ($isViolation) {
-                    $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                    $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                     $relPath = str_replace('\\', '/', $relPath);
                     $violations[] = sprintf(
                         '%s:%d: %s',
@@ -459,7 +459,7 @@ class BladeViewBugConditionTest extends TestCase
         $this->assertEmpty(
             $violations,
             "Found {$count} chained Eloquent access without null-safe operator (?->):\n"
-                . implode("\n", $violations)
+                .implode("\n", $violations)
         );
     }
 
@@ -495,10 +495,10 @@ class BladeViewBugConditionTest extends TestCase
 
             $ids = $matches[1];
             $idCounts = array_count_values($ids);
-            $duplicates = array_filter($idCounts, fn($count) => $count > 1);
+            $duplicates = array_filter($idCounts, fn ($count) => $count > 1);
 
-            if (!empty($duplicates)) {
-                $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+            if (! empty($duplicates)) {
+                $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                 $relPath = str_replace('\\', '/', $relPath);
                 foreach (array_keys($duplicates) as $dupId) {
                     $violations[] = sprintf(
@@ -515,7 +515,7 @@ class BladeViewBugConditionTest extends TestCase
         $this->assertEmpty(
             $violations,
             "Found {$count} duplicate canvas IDs within single view files:\n"
-                . implode("\n", $violations)
+                .implode("\n", $violations)
         );
     }
 
@@ -614,7 +614,7 @@ class BladeViewBugConditionTest extends TestCase
                 // Exclude Alpine.js :class="..." and x-bind:class="..." bindings since
                 // those contain JavaScript expressions, not CSS class names.
                 // Also exclude vendor files (e.g. Bootstrap pagination template).
-                $relPathCheck = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                $relPathCheck = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                 $relPathCheck = str_replace('\\', '/', $relPathCheck);
                 if (str_starts_with($relPathCheck, 'vendor/')) {
                     continue;
@@ -625,8 +625,8 @@ class BladeViewBugConditionTest extends TestCase
                 $lineToScan = preg_replace("/(?:x-bind:class|:class)='[^']*'/", '', $lineToScan);
 
                 if (
-                    !preg_match('/class="[^"]*' . substr($bootstrapPattern, 1, -1) . '[^"]*"/', $lineToScan)
-                    && !preg_match('/class=\'[^\']*' . substr($bootstrapPattern, 1, -1) . '[^\']*\'/', $lineToScan)
+                    ! preg_match('/class="[^"]*'.substr($bootstrapPattern, 1, -1).'[^"]*"/', $lineToScan)
+                    && ! preg_match('/class=\'[^\']*'.substr($bootstrapPattern, 1, -1).'[^\']*\'/', $lineToScan)
                 ) {
                     continue;
                 }
@@ -659,7 +659,7 @@ class BladeViewBugConditionTest extends TestCase
                         }
 
                         // Check if this token matches the Bootstrap pattern
-                        if (!preg_match('/\b(btn|card|d-flex|col-md-|text-primary|text-success|text-danger|text-muted|progress)\b/', $token)) {
+                        if (! preg_match('/\b(btn|card|d-flex|col-md-|text-primary|text-success|text-danger|text-muted|progress)\b/', $token)) {
                             continue;
                         }
 
@@ -672,7 +672,7 @@ class BladeViewBugConditionTest extends TestCase
                             }
                         }
 
-                        if (!$isCustomClass) {
+                        if (! $isCustomClass) {
                             $isRealViolation = true;
                             break;
                         }
@@ -684,7 +684,7 @@ class BladeViewBugConditionTest extends TestCase
                 }
 
                 if ($isRealViolation) {
-                    $relPath = str_replace($this->viewsPath . DIRECTORY_SEPARATOR, '', $filePath);
+                    $relPath = str_replace($this->viewsPath.DIRECTORY_SEPARATOR, '', $filePath);
                     $relPath = str_replace('\\', '/', $relPath);
                     $violations[] = sprintf(
                         '%s:%d: %s',
@@ -700,7 +700,7 @@ class BladeViewBugConditionTest extends TestCase
         $this->assertEmpty(
             $violations,
             "Found {$count} Bootstrap CSS classes in Tailwind project:\n"
-                . implode("\n", $violations)
+                .implode("\n", $violations)
         );
     }
 }

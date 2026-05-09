@@ -31,6 +31,7 @@ use Tests\TestCase;
 class ModuleToggleTenantBugConditionTest extends TestCase
 {
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -38,7 +39,7 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -61,16 +62,16 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         $controller = app(OnboardingController::class);
 
         $request = Request::create('/onboarding/complete', 'POST', [
-            'industry'        => 'retail',
-            'business_size'   => 'small',
+            'industry' => 'retail',
+            'business_size' => 'small',
             'selected_modules' => ['pos', 'hrm'],
         ]);
         $request->setUserResolver(fn () => $this->user);
 
         // Simulate validation by merging into a proper Request
         $request = new Request([], [
-            'industry'        => 'retail',
-            'business_size'   => 'small',
+            'industry' => 'retail',
+            'business_size' => 'small',
             'selected_modules' => ['pos', 'hrm'],
         ]);
         $request->setUserResolver(fn () => $this->user);
@@ -88,10 +89,10 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         $this->assertEquals(
             ['pos', 'hrm'],
             $this->tenant->enabled_modules,
-            "Bug 1: tenant.enabled_modules should be ['pos', 'hrm'] after complete() " .
-            "with selected_modules=['pos', 'hrm'], but got: " .
-            json_encode($this->tenant->enabled_modules) .
-            ". Counterexample: tenant.enabled_modules remains null after complete()."
+            "Bug 1: tenant.enabled_modules should be ['pos', 'hrm'] after complete() ".
+            "with selected_modules=['pos', 'hrm'], but got: ".
+            json_encode($this->tenant->enabled_modules).
+            '. Counterexample: tenant.enabled_modules remains null after complete().'
         );
     }
 
@@ -122,9 +123,9 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         $this->assertNotEquals(
             $defaultModules,
             $restaurantResult['modules'],
-            "Bug 2a: recommend('restaurant') returned default modules: " .
-            json_encode($restaurantResult['modules']) .
-            ". Expected F&B-specific modules (not default). " .
+            "Bug 2a: recommend('restaurant') returned default modules: ".
+            json_encode($restaurantResult['modules']).
+            '. Expected F&B-specific modules (not default). '.
             "Counterexample: 'restaurant' key not mapped to 'fnb', falls to default."
         );
     }
@@ -155,9 +156,9 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         $this->assertNotEquals(
             $defaultModules,
             $manufacturingResult['modules'],
-            "Bug 2b: recommend('manufacturing') returned default modules: " .
-            json_encode($manufacturingResult['modules']) .
-            ". Expected manufacture-specific modules (not default). " .
+            "Bug 2b: recommend('manufacturing') returned default modules: ".
+            json_encode($manufacturingResult['modules']).
+            '. Expected manufacture-specific modules (not default). '.
             "Counterexample: 'manufacturing' key not mapped to 'manufacture', falls to default."
         );
     }
@@ -188,9 +189,9 @@ class ModuleToggleTenantBugConditionTest extends TestCase
         $this->assertNotEquals(
             $defaultModules,
             $servicesResult['modules'],
-            "Bug 2c: recommend('services') returned default modules: " .
-            json_encode($servicesResult['modules']) .
-            ". Expected service-specific modules (not default). " .
+            "Bug 2c: recommend('services') returned default modules: ".
+            json_encode($servicesResult['modules']).
+            '. Expected service-specific modules (not default). '.
             "Counterexample: 'services' key not mapped to 'service', falls to default."
         );
     }

@@ -15,7 +15,7 @@ class EncryptionService
         try {
             $encryptionKey = $this->getActiveKey($tenantId, $keyName);
 
-            if (!$encryptionKey) {
+            if (! $encryptionKey) {
                 // Create new key if doesn't exist
                 $encryptionKey = $this->createEncryptionKey($tenantId, $keyName);
             }
@@ -72,7 +72,7 @@ class EncryptionService
                 ->where('key_name', $keyName)
                 ->latest()
                 ->first()
-                    ?->update([
+                ?->update([
                     'rotated_at' => now(),
                     'rotated_by_user_id' => $userId,
                 ]);

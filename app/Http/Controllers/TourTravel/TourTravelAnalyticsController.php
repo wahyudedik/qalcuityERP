@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\TourBooking;
 use App\Models\TourPackage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class TourTravelAnalyticsController extends Controller
@@ -38,12 +37,12 @@ class TourTravelAnalyticsController extends Controller
             ->withCount([
                 'bookings' => function ($q) {
                     $q->whereIn('status', ['confirmed', 'paid', 'completed']);
-                }
+                },
             ])
             ->withSum([
                 'bookings' => function ($q) {
                     $q->where('status', 'completed');
-                }
+                },
             ], 'total_amount')
             ->orderByDesc('bookings_count')
             ->limit(10)
@@ -70,7 +69,8 @@ class TourTravelAnalyticsController extends Controller
             ->get();
 
         // Popular Destinations — join through tour_packages to get destination
-        $popularDestinations = TourBooking::where('tour_bookings.tenant_id', $tenantId)
+        $popularDestinations = TourBooking::withoutGlobalScope('tenant')
+            ->where('tour_bookings.tenant_id', $tenantId)
             ->where('tour_bookings.status', 'completed')
             ->join('tour_packages', 'tour_bookings.tour_package_id', '=', 'tour_packages.id')
             ->select(

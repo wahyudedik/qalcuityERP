@@ -17,11 +17,11 @@ class AiFallbackAlertNotification extends Notification implements ShouldQueue
     use Queueable;
 
     /**
-     * @param string $useCase Use case yang mengalami fallback tinggi
-     * @param int $totalRequests Total request dalam periode
-     * @param int $fallbackCount Jumlah fallback event
-     * @param float $fallbackPercent Persentase fallback
-     * @param string $period Deskripsi periode (e.g., "1 jam terakhir")
+     * @param  string  $useCase  Use case yang mengalami fallback tinggi
+     * @param  int  $totalRequests  Total request dalam periode
+     * @param  int  $fallbackCount  Jumlah fallback event
+     * @param  float  $fallbackPercent  Persentase fallback
+     * @param  string  $period  Deskripsi periode (e.g., "1 jam terakhir")
      */
     public function __construct(
         public readonly string $useCase,
@@ -41,11 +41,11 @@ class AiFallbackAlertNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("⚠️ Alert Fallback AI — {$this->useCase}")
             ->greeting("Halo, {$notifiable->name}!")
-            ->line("**Persentase fallback event untuk use case melebihi threshold 20%.**")
+            ->line('**Persentase fallback event untuk use case melebihi threshold 20%.**')
             ->line("**Use Case:** {$this->useCase}")
             ->line("**Periode:** {$this->period}")
-            ->line("**Total Request:** " . number_format($this->totalRequests, 0, ',', '.'))
-            ->line("**Fallback Event:** " . number_format($this->fallbackCount, 0, ',', '.'))
+            ->line('**Total Request:** '.number_format($this->totalRequests, 0, ',', '.'))
+            ->line('**Fallback Event:** '.number_format($this->fallbackCount, 0, ',', '.'))
             ->line("**Persentase Fallback:** {$this->fallbackPercent}%")
             ->action('Lihat Monitoring AI', url('/super-admin/ai/monitor'))
             ->line('Provider utama untuk use case ini mungkin mengalami masalah. Periksa status provider dan pertimbangkan untuk mengubah routing rule.')

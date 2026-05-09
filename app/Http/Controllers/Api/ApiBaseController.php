@@ -23,6 +23,7 @@ class ApiBaseController extends Controller
         if ($data !== null) {
             $response['data'] = $data;
         }
+
         return response()->json($response, $status);
     }
 

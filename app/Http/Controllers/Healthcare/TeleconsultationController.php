@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\Teleconsultation;
-use App\Models\Patient;
 use App\Models\Doctor;
+use App\Models\Patient;
+use App\Models\Teleconsultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,6 +40,7 @@ class TeleconsultationController extends Controller
     {
         $patients = Patient::where('is_active', true)->get();
         $doctors = Doctor::where('is_active', true)->get();
+
         return view('healthcare.teleconsultations.create', compact('patients', 'doctors'));
     }
 
@@ -54,7 +55,7 @@ class TeleconsultationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['consultation_number'] = 'TC-' . now()->format('Ymd') . '-' . str_pad(Teleconsultation::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['consultation_number'] = 'TC-'.now()->format('Ymd').'-'.str_pad(Teleconsultation::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'scheduled';
         $validated['created_by'] = Auth::id();
 
@@ -67,6 +68,7 @@ class TeleconsultationController extends Controller
     public function show(Teleconsultation $teleconsultation)
     {
         $teleconsultation->load(['patient', 'doctor', 'prescriptions', 'feedback']);
+
         return view('healthcare.teleconsultations.show', compact('teleconsultation'));
     }
 
@@ -121,8 +123,10 @@ class TeleconsultationController extends Controller
     public function destroy(Teleconsultation $teleconsultation)
     {
         $teleconsultation->delete();
+
         return response()->json(['success' => true, 'message' => 'Consultation deleted']);
     }
+
     /**
      * Show the form for editing.
      * Route: healthcare/teleconsultations/{teleconsultation}/edit
@@ -130,9 +134,10 @@ class TeleconsultationController extends Controller
     public function edit($model)
     {
         $this->authorize('update', $model);
-        
+
         return view('healthcare.teleconsultation.edit', compact('model'));
     }
+
     /**
      * Update the specified resource.
      * Route: healthcare/teleconsultations/{teleconsultation}
@@ -140,13 +145,13 @@ class TeleconsultationController extends Controller
     public function update(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         $model->update($validated);
-        
+
         return redirect()->route('healthcare.teleconsultations.update')
             ->with('success', 'Updated successfully.');
     }

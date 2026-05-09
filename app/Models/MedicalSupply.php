@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MedicalSupply extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'supply_code',
@@ -147,11 +147,12 @@ class MedicalSupply extends Model
      */
     public function isExpiringSoon()
     {
-        if (!$this->has_expiry || !$this->expiry_date) {
+        if (! $this->has_expiry || ! $this->expiry_date) {
             return false;
         }
 
         $daysUntilExpiry = now()->diffInDays($this->expiry_date, false);
+
         return $daysUntilExpiry <= $this->expiry_alert_days;
     }
 
@@ -160,7 +161,7 @@ class MedicalSupply extends Model
      */
     public function getDaysUntilExpiryAttribute()
     {
-        if (!$this->has_expiry || !$this->expiry_date) {
+        if (! $this->has_expiry || ! $this->expiry_date) {
             return null;
         }
 

@@ -3,28 +3,30 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\CosmeticFormula;
-use App\Models\ProductVariant;
-use App\Models\ProductRecall;
-use App\Models\DistributionChannel;
 use App\Models\ChannelSale;
-use App\Services\VariantService;
+use App\Models\CosmeticFormula;
+use App\Models\DistributionChannel;
+use App\Models\ProductRecall;
+use App\Models\ProductVariant;
 use App\Services\PackagingComplianceService;
 use App\Services\RecallManagementService;
+use App\Services\VariantService;
 use Illuminate\Http\Request;
 
 /**
  * Cosmetic Module Controller
- * 
+ *
  * Handles variant matrix, packaging compliance, recall management,
  * and distribution channel analytics for cosmetic products.
- * 
+ *
  * @note Linter may show false positives for auth()->user() - this is standard Laravel
  */
 class CosmeticModuleController extends Controller
 {
     protected $variantService;
+
     protected $packagingService;
+
     protected $recallService;
 
     public function __construct(
@@ -80,7 +82,7 @@ class CosmeticModuleController extends Controller
                 $validated['variants']
             );
 
-            return back()->with('success', count($variants) . ' variant(s) created successfully!');
+            return back()->with('success', count($variants).' variant(s) created successfully!');
         } catch (\Exception $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
@@ -387,7 +389,7 @@ class CosmeticModuleController extends Controller
         ]);
 
         try {
-            $channel = new DistributionChannel();
+            $channel = new DistributionChannel;
             $channel->tenant_id = auth()->user()->tenant_id;
             $channel->channel_name = $validated['channel_name'];
             $channel->channel_type = $validated['channel_type'];
@@ -430,7 +432,7 @@ class CosmeticModuleController extends Controller
             $channel = DistributionChannel::where('tenant_id', auth()->user()->tenant_id)
                 ->findOrFail($validated['channel_id']);
 
-            $sale = new ChannelSale();
+            $sale = new ChannelSale;
             $sale->tenant_id = auth()->user()->tenant_id;
             $sale->channel_id = $validated['channel_id'];
             $sale->formula_id = $validated['formula_id'] ?? null;

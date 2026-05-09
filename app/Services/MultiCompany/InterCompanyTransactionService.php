@@ -2,8 +2,8 @@
 
 namespace App\Services\MultiCompany;
 
-use App\Models\InterCompanyTransaction;
 use App\Models\InterCompanyAccount;
+use App\Models\InterCompanyTransaction;
 
 class InterCompanyTransactionService
 {

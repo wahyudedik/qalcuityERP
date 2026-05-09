@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ChatSession extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'user_id', 'title', 'total_tokens', 'last_model', 'is_active', 'metadata',
         'session_type', 'active_plan', 'execution_status', 'erp_context_snapshot', 'is_cancelled',
@@ -19,11 +19,11 @@ class ChatSession extends Model
     protected function casts(): array
     {
         return [
-            'is_active'            => 'boolean',
-            'metadata'             => 'array',
-            'active_plan'          => 'array',
+            'is_active' => 'boolean',
+            'metadata' => 'array',
+            'active_plan' => 'array',
             'erp_context_snapshot' => 'array',
-            'is_cancelled'         => 'boolean',
+            'is_cancelled' => 'boolean',
         ];
     }
 
@@ -31,10 +31,12 @@ class ChatSession extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
@@ -55,7 +57,7 @@ class ChatSession extends Model
             ->limit($limit) // Database-level limit
             ->get(['role', 'content'])
             ->reverse() // Reverse to get chronological order
-            ->map(fn($m) => ['role' => $m->role, 'text' => $m->content])
+            ->map(fn ($m) => ['role' => $m->role, 'text' => $m->content])
             ->values()
             ->toArray();
     }

@@ -62,52 +62,52 @@ return [
 
         'gemini' => [
             // API key — sama dengan config/gemini.php
-            'api_key'             => env('GEMINI_API_KEY'),
+            'api_key' => env('GEMINI_API_KEY'),
 
             // Model utama — sama dengan config/gemini.php
-            'model'               => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+            'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
 
             // Urutan fallback model dalam provider Gemini
-            'fallback_models'     => [
+            'fallback_models' => [
                 'gemini-2.5-flash',       // primary
                 'gemini-2.5-flash-lite',  // fallback 1 — paling cepat
                 'gemini-1.5-flash',       // fallback 2 — stable, widely available
             ],
 
             // Timeout per API call (detik) — sama dengan config/gemini.php
-            'timeout'             => env('GEMINI_TIMEOUT', 60),
+            'timeout' => env('GEMINI_TIMEOUT', 60),
 
             // Cooldown setelah rate limit error (detik) — sama dengan config/gemini.php
             'rate_limit_cooldown' => env('GEMINI_RATE_LIMIT_COOLDOWN', 60),
 
             // Cooldown setelah quota exceeded error (detik) — sama dengan config/gemini.php
-            'quota_cooldown'      => env('GEMINI_QUOTA_COOLDOWN', 3600),
+            'quota_cooldown' => env('GEMINI_QUOTA_COOLDOWN', 3600),
         ],
 
         'anthropic' => [
             // API key Anthropic Claude
-            'api_key'             => env('ANTHROPIC_API_KEY'),
+            'api_key' => env('ANTHROPIC_API_KEY'),
 
             // Model utama — default: claude-3-5-sonnet-20241022
-            'model'               => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
+            'model' => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
 
             // Urutan fallback model dalam provider Anthropic
-            'fallback_models'     => [
+            'fallback_models' => [
                 'claude-3-5-sonnet-20241022', // primary — paling capable
                 'claude-3-haiku-20240307',    // fallback — paling cepat & murah
             ],
 
             // Timeout per API call (detik)
-            'timeout'             => env('ANTHROPIC_TIMEOUT', 60),
+            'timeout' => env('ANTHROPIC_TIMEOUT', 60),
 
             // Maksimum token output — default: 8192
-            'max_tokens'          => env('ANTHROPIC_MAX_TOKENS', 8192),
+            'max_tokens' => env('ANTHROPIC_MAX_TOKENS', 8192),
 
             // Cooldown setelah rate limit error (detik) — HTTP 429/529
             'rate_limit_cooldown' => 60,
 
             // Cooldown setelah quota exceeded error (detik)
-            'quota_cooldown'      => 3600,
+            'quota_cooldown' => 3600,
         ],
 
     ],
@@ -129,24 +129,24 @@ return [
     */
     'use_case_routing' => [
         // Lightweight use cases — Gemini Flash (cepat, murah, operasional harian)
-        'chatbot'             => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'crud_ai'             => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'auto_reply'          => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'invoice_parsing'     => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'document_parsing'    => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'notification_ai'     => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'chatbot' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'crud_ai' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'auto_reply' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'invoice_parsing' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'document_parsing' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'notification_ai' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
         'product_description' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
-        'email_draft'         => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
+        'email_draft' => ['provider' => 'gemini',    'model' => 'gemini-2.5-flash',          'min_plan' => null],
 
         // Heavyweight use cases — Claude Sonnet (analitik berat, laporan, forecasting)
-        'financial_report'        => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'forecasting'             => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'decision_support'        => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'audit_analysis'          => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'financial_report' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'forecasting' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'decision_support' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'audit_analysis' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
         'business_recommendation' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'bank_reconciliation_ai'  => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'budget_analysis'         => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
-        'anomaly_detection'       => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'bank_reconciliation_ai' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'budget_analysis' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
+        'anomaly_detection' => ['provider' => 'anthropic', 'model' => 'claude-3-5-sonnet-20241022', 'min_plan' => 'professional'],
     ],
 
     /*
@@ -165,15 +165,15 @@ return [
     */
     'cost_per_1k_tokens' => [
         'gemini' => [
-            'gemini-2.5-flash'      => 0.15,   // IDR per 1K token
+            'gemini-2.5-flash' => 0.15,   // IDR per 1K token
             'gemini-2.5-flash-lite' => 0.08,
-            'gemini-1.5-flash'      => 0.10,
-            'default'               => 0.15,
+            'gemini-1.5-flash' => 0.10,
+            'default' => 0.15,
         ],
         'anthropic' => [
             'claude-3-5-sonnet-20241022' => 2.50,  // IDR per 1K token
-            'claude-3-haiku-20240307'    => 0.50,
-            'default'                    => 2.50,
+            'claude-3-haiku-20240307' => 0.50,
+            'default' => 2.50,
         ],
     ],
 

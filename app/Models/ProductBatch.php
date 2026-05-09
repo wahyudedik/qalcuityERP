@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductBatch extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'product_id', 'warehouse_id', 'batch_number',
         'quantity', 'cost_price', 'quantity_remaining',
@@ -20,13 +20,24 @@ class ProductBatch extends Model
     {
         return [
             'manufacture_date' => 'date',
-            'expiry_date'      => 'date',
+            'expiry_date' => 'date',
         ];
     }
 
-    public function tenant(): BelongsTo    { return $this->belongsTo(Tenant::class); }
-    public function product(): BelongsTo   { return $this->belongsTo(Product::class); }
-    public function warehouse(): BelongsTo { return $this->belongsTo(Warehouse::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 
     /** Hari tersisa sebelum expired (negatif = sudah expired) */
     public function daysUntilExpiry(): int

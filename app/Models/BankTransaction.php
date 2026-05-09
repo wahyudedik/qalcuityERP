@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BankTransaction extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -41,14 +40,17 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function bankAccount()
     {
         return $this->belongsTo(BankAccount::class);
     }
+
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
     }
+
     public function expense()
     {
         return $this->belongsTo(Expense::class);

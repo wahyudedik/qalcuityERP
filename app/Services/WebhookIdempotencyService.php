@@ -3,14 +3,16 @@
 namespace App\Services;
 
 use App\Models\PaymentCallback;
+use App\Models\PaymentTransaction;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
  * WebhookIdempotencyService - Prevent webhook replay attacks and duplicate processing
- * 
+ *
  * BUG-API-001 FIX: Ensures each webhook is processed exactly once
- * 
+ *
  * Problems Fixed:
  * 1. No idempotency check - same webhook processed multiple times
  * 2. No unique event tracking - replay attacks possible
@@ -27,14 +29,14 @@ class WebhookIdempotencyService
 
     /**
      * BUG-API-001 FIX: Check if webhook has already been processed
-     * 
+     *
      * Uses multiple strategies for idempotency:
      * 1. Webhook event ID (if provided by gateway)
      * 2. Transaction ID + Status combination
      * 3. Payload hash as fallback
-     * 
-     * @param string $provider Gateway provider (midtrans, xendit, etc.)
-     * @param array $payload Webhook payload
+     *
+     * @param  string  $provider  Gateway provider (midtrans, xendit, etc.)
+     * @param  array  $payload  Webhook payload
      * @return array{idempotency_key: string, is_duplicate: bool, previous_callback: ?PaymentCallback}
      */
     public function checkIdempotency(string $provider, array $payload): array
@@ -94,10 +96,6 @@ class WebhookIdempotencyService
 
     /**
      * BUG-API-001 FIX: Mark webhook as processed (atomic)
-     * 
-     * @param string $idempotencyKey
-     * @param PaymentCallback $callback
-     * @return bool
      */
     public function markAsProcessed(string $idempotencyKey, PaymentCallback $callback): bool
     {
@@ -118,7 +116,7 @@ class WebhookIdempotencyService
 
     /**
      * Generate unique idempotency key for webhook
-     * 
+     *
      * Priority:
      * 1. Gateway event ID (most reliable)
      * 2. Transaction ID + Status
@@ -139,11 +137,13 @@ class WebhookIdempotencyService
 
         if ($orderId && $status) {
             $key = "webhook_{$provider}_{$orderId}_{$status}_{$amount}";
+
             return hash('sha256', $key);
         }
 
         // Strategy 3: Hash entire payload (least reliable but works)
         $payloadHash = hash('sha256', json_encode($payload));
+
         return "webhook_{$provider}_{$payloadHash}";
     }
 
@@ -231,12 +231,12 @@ class WebhookIdempotencyService
         $orderId = $this->extractOrderId($payload);
 
         if ($orderId) {
-            $order = \App\Models\SalesOrder::where('number', $orderId)->first();
+            $order = SalesOrder::where('number', $orderId)->first();
             if ($order) {
                 return $order->tenant_id;
             }
 
-            $payment = \App\Models\PaymentTransaction::where('order_id', $orderId)->first();
+            $payment = PaymentTransaction::where('order_id', $orderId)->first();
             if ($payment) {
                 return $payment->tenant_id;
             }

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\LandedCost;
-use App\Models\LandedCostAllocation;
 use App\Models\Product;
 
 class LandedCostService
@@ -18,8 +17,12 @@ class LandedCostService
         $lc->update(['total_additional_cost' => $totalCost]);
 
         $allocations = $lc->allocations()->with('product')->get();
-        if ($allocations->isEmpty()) return ['success' => false, 'message' => 'Tidak ada item untuk dialokasikan.'];
-        if ($totalCost <= 0) return ['success' => false, 'message' => 'Total biaya tambahan = 0.'];
+        if ($allocations->isEmpty()) {
+            return ['success' => false, 'message' => 'Tidak ada item untuk dialokasikan.'];
+        }
+        if ($totalCost <= 0) {
+            return ['success' => false, 'message' => 'Total biaya tambahan = 0.'];
+        }
 
         $method = $lc->allocation_method;
 
@@ -28,18 +31,20 @@ class LandedCostService
         $lines = [];
 
         foreach ($allocations as $alloc) {
-            $base = match($method) {
-                'by_value'    => (float) $alloc->original_cost,
+            $base = match ($method) {
+                'by_value' => (float) $alloc->original_cost,
                 'by_quantity' => (float) $alloc->quantity,
-                'by_weight'   => (float) ($alloc->weight ?? $alloc->quantity),
-                'equal'       => 1,
-                default       => (float) $alloc->original_cost,
+                'by_weight' => (float) ($alloc->weight ?? $alloc->quantity),
+                'equal' => 1,
+                default => (float) $alloc->original_cost,
             };
             $totalBase += $base;
             $lines[] = ['alloc' => $alloc, 'base' => $base];
         }
 
-        if ($totalBase <= 0) return ['success' => false, 'message' => 'Basis alokasi = 0. Pastikan data item terisi.'];
+        if ($totalBase <= 0) {
+            return ['success' => false, 'message' => 'Basis alokasi = 0. Pastikan data item terisi.'];
+        }
 
         // Distribute cost
         $allocated = 0;
@@ -57,17 +62,17 @@ class LandedCostService
             $landedUnit = $qty > 0 ? round(($originalCost + $share) / $qty, 2) : 0;
 
             $line['alloc']->update([
-                'allocated_cost'  => $share,
-                'landed_unit_cost'=> $landedUnit,
+                'allocated_cost' => $share,
+                'landed_unit_cost' => $landedUnit,
             ]);
 
             $allocated += $share;
         }
 
         return [
-            'success'    => true,
+            'success' => true,
             'total_cost' => $totalCost,
-            'lines'      => count($lines),
+            'lines' => count($lines),
         ];
     }
 
@@ -84,6 +89,7 @@ class LandedCostService
                 $updated++;
             }
         }
+
         return $updated;
     }
 }

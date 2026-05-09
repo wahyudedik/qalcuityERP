@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\Medicine;
-use App\Models\MedicineStock;
-use App\Models\MedicineInteraction;
-use App\Models\PharmacyDispensing;
 use App\Models\MedicineAlert;
+use App\Models\MedicineInteraction;
+use App\Models\MedicineStock;
+use App\Models\PharmacyDispensing;
+use App\Models\Prescription;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -40,7 +42,7 @@ class PharmacyService
             // Update medicine total stock
             $medicine->increment('total_stock', $stockData['quantity']);
 
-            Log::info("Medicine stock added", [
+            Log::info('Medicine stock added', [
                 'medicine_id' => $medicineId,
                 'batch_number' => $stockData['batch_number'],
                 'quantity' => $stockData['quantity'],
@@ -56,12 +58,12 @@ class PharmacyService
     public function dispenseMedicine(int $prescriptionId, array $dispensingData): PharmacyDispensing
     {
         return DB::transaction(function () use ($prescriptionId, $dispensingData) {
-            $prescription = \App\Models\Prescription::findOrFail($prescriptionId);
+            $prescription = Prescription::findOrFail($prescriptionId);
 
             // Check drug interactions
             $interactions = $this->checkDrugInteractions($dispensingData['items'] ?? []);
 
-            if (!empty($interactions['critical']) || !empty($interactions['major'])) {
+            if (! empty($interactions['critical']) || ! empty($interactions['major'])) {
                 throw new Exception('Critical drug interactions detected. Please review before dispensing.');
             }
 
@@ -90,7 +92,7 @@ class PharmacyService
             // Update prescription status
             $prescription->markAsDispensed($dispensingData['dispensed_by']);
 
-            Log::info("Medicine dispensed", [
+            Log::info('Medicine dispensed', [
                 'dispensing_number' => $dispensing->dispensing_number,
                 'prescription_id' => $prescriptionId,
             ]);
@@ -197,7 +199,7 @@ class PharmacyService
             $stock->days_until_expiry = now()->diffInDays($stock->expiry_date, false);
 
             // Send alert if not already sent
-            if (!$stock->expiry_alert_sent && $stock->days_until_expiry <= 30) {
+            if (! $stock->expiry_alert_sent && $stock->days_until_expiry <= 30) {
                 $this->createExpiryAlert($stock);
             }
         });
@@ -256,7 +258,7 @@ class PharmacyService
      */
     public function generateDailyAnalytics($date = null): array
     {
-        $date = $date ? \Carbon\Carbon::parse($date) : today();
+        $date = $date ? Carbon::parse($date) : today();
 
         $dispensings = PharmacyDispensing::whereDate('dispense_date', $date)->get();
 

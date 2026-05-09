@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\SharedService;
-use App\Models\TenantGroupMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CompanyGroup extends Model
 {
-use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'owner_user_id',
@@ -31,18 +29,22 @@ use HasFactory;
     {
         return $this->belongsTo(Tenant::class, 'parent_tenant_id');
     }
+
     public function members()
     {
         return $this->hasMany(TenantGroupMember::class);
     }
+
     public function transactions()
     {
         return $this->hasMany(InterCompanyTransaction::class);
     }
+
     public function reports()
     {
         return $this->hasMany(ConsolidatedReport::class);
     }
+
     public function sharedServices()
     {
         return $this->hasMany(SharedService::class);

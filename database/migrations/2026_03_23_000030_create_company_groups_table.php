@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Grup perusahaan (holding)
-        if (!Schema::hasTable('company_groups')) {
+        if (! Schema::hasTable('company_groups')) {
             Schema::create('company_groups', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('owner_user_id'); // user yang membuat grup
@@ -19,20 +20,20 @@ return new class extends Migration {
         }
 
         // Anggota grup (tenant yang tergabung)
-        if (!Schema::hasTable('company_group_members')) {
+        if (! Schema::hasTable('company_group_members')) {
             Schema::create('company_group_members', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
                 $table->unsignedBigInteger('tenant_id');
                 $table->string('role')->default('member'); // owner, member
                 $table->timestamps();
-    
+
                 $table->unique(['company_group_id', 'tenant_id']);
             });
         }
 
         // Transaksi intercompany
-        if (!Schema::hasTable('intercompany_transactions')) {
+        if (! Schema::hasTable('intercompany_transactions')) {
             Schema::create('intercompany_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('company_group_id');
@@ -46,7 +47,7 @@ return new class extends Migration {
                 $table->string('status')->default('pending'); // pending, posted, cancelled
                 $table->date('date');
                 $table->timestamps();
-    
+
                 $table->index(['company_group_id', 'date']);
             });
         }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Kasir POS — Qalcuity</title>
+    <title>Kasir POS ï¿½ Qalcuity</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="manifest" href="/manifest.json">
@@ -15,94 +15,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="/favicon.png">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js'])
+    @vite(['resources/css/app.css', 'resources/js/pos-app.js'])
 
     {{-- Force Light Mode Script --}}
     <script>
-        // Aggressive light mode enforcement for POS
         (function() {
-            // Clear all theme-related localStorage
-            ['theme', 'color-theme', 'darkMode', 'dark-mode'].forEach(key => {
-                localStorage.removeItem(key);
-            });
-
-            // Force light mode
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.colorScheme = 'light';
             localStorage.setItem('theme', 'light');
-            localStorage.setItem('color-theme', 'light');
-
-            // Remove dark class from html and body
-            function forceLightMode() {
-                const html = document.documentElement;
-                const body = document.body;
-
-                if (html) {
-                    html.classList.remove('dark');
-                    html.setAttribute('data-theme', 'light');
-                    html.style.colorScheme = 'light';
-                }
-
-                if (body) {
-                    body.classList.remove('dark');
-                }
-            }
-
-            // Apply immediately
-            forceLightMode();
-
-            // Apply when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', forceLightMode);
-            } else {
-                forceLightMode();
-            }
-
-            // Monitor for changes and reapply
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'attributes' &&
-                        (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme')
-                    ) {
-                        forceLightMode();
-                    }
-                });
-            });
-
-            // Start observing
-            if (document.documentElement) {
-                observer.observe(document.documentElement, {
-                    attributes: true,
-                    attributeFilter: ['class', 'data-theme']
-                });
-            }
-
-            // Override matchMedia to disable system dark mode detection
-            if (window.matchMedia) {
-                const originalMatchMedia = window.matchMedia;
-                window.matchMedia = function(query) {
-                    if (query.includes('prefers-color-scheme: dark')) {
-                        return {
-                            matches: false,
-                            addListener: function() {},
-                            removeListener: function() {}
-                        };
-                    }
-                    return originalMatchMedia(query);
-                };
-            }
-
-            // Inject CSS to override any dark styles
-            const style = document.createElement('style');
-            style.textContent = `
-                html, body {
-                    background-color: #ffffff !important;
-                    color: #1f2937 !important;
-                }
-                .dark {
-                    background-color: #ffffff !important;
-                    color: #1f2937 !important;
-                }
-            `;
-            document.head.appendChild(style);
         })();
     </script>
 </head>
@@ -129,7 +50,7 @@
                 {{-- Indikator sesi kasir --}}
                 @if (isset($activeSession) && $activeSession)
                     <a href="{{ route('pos.sessions.close-form', $activeSession) }}"
-                        title="Sesi aktif — klik untuk tutup sesi"
+                        title="Sesi aktif ï¿½ klik untuk tutup sesi"
                         class="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition">
                         <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
                         Sesi Aktif
@@ -204,7 +125,7 @@
                         class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-gray-900 whitespace-nowrap">
                         Semua
                     </button>
-                    @foreach ($products->pluck('category')->filter()->unique() as $cat)
+                    @foreach ($categories as $cat)
                         <button onclick="filterCategory('{{ $cat }}')" data-cat="{{ $cat }}"
                             class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 whitespace-nowrap">
                             {{ $cat }}
@@ -225,22 +146,22 @@
             </div>
 
             {{-- Product Grid --}}
-            <div class="flex-1 overflow-y-auto p-4">
+            <div class="flex-1 overflow-y-auto p-4" id="product-scroll-container">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3" id="product-grid">
-                    @foreach ($products ?? [] as $product)
-                        @php $outOfStock = $product->total_stock <= 0; @endphp
+                    @foreach ($initialProducts ?? [] as $product)
+                        @php $outOfStock = $product['total_stock'] <= 0; @endphp
                         <div class="product-card bg-gray-100 rounded-2xl p-3 transition select-none relative
                      {{ $outOfStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-200 hover:ring-2 hover:ring-blue-500' }}"
-                            data-id="{{ $product->id }}" data-name="{{ $product->name }}"
-                            data-price="{{ $product->price_sell }}" data-stock="{{ $product->total_stock }}"
-                            data-sku="{{ $product->sku }}" data-barcode="{{ $product->barcode }}"
-                            data-category="{{ $product->category }}"
-                            onclick="{{ $outOfStock ? 'showToast(\'Stok ' . addslashes($product->name) . ' habis\', \'warning\')' : 'addToCart(this)' }}">
+                            data-id="{{ $product['id'] }}" data-name="{{ $product['name'] }}"
+                            data-price="{{ $product['price_sell'] }}" data-stock="{{ $product['total_stock'] }}"
+                            data-sku="{{ $product['sku'] }}" data-barcode="{{ $product['barcode'] }}"
+                            data-category="{{ $product['category'] }}"
+                            onclick="{{ $outOfStock ? 'showToast(\'Stok ' . addslashes($product['name']) . ' habis\', \'warning\')' : 'addToCart(this)' }}">
                             <div
                                 class="w-full aspect-square bg-gray-200 rounded-xl mb-2 flex items-center justify-center overflow-hidden relative">
-                                @if ($product->image)
-                                    <img src="{{ $product->image }}" class="w-full h-full object-cover rounded-xl"
-                                        alt="">
+                                @if ($product['image'])
+                                    <img src="{{ $product['image'] }}" loading="lazy" decoding="async"
+                                        class="w-full h-full object-cover rounded-xl" alt="{{ $product['name'] }}">
                                 @else
                                     <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -256,17 +177,33 @@
                                     </div>
                                 @endif
                             </div>
-                            <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">{{ $product->name }}
+                            <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">
+                                {{ $product['name'] }}
                             </p>
                             <p class="text-xs text-blue-400 font-semibold mt-1">Rp
-                                {{ number_format($product->price_sell, 0, ',', '.') }}</p>
+                                {{ number_format($product['price_sell'], 0, ',', '.') }}</p>
                             <p
                                 class="text-xs mt-0.5 {{ $outOfStock ? 'text-red-400 font-semibold' : 'text-gray-500' }}">
-                                Stok: {{ $product->total_stock }}
+                                Stok: {{ $product['total_stock'] }}
                             </p>
                         </div>
                     @endforeach
                 </div>
+                {{-- Load more indicator --}}
+                @if ($totalProducts > 30)
+                    <div id="load-more-indicator" class="text-center py-4">
+                        <div class="inline-flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            Memuat produk lainnya...
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -283,14 +220,22 @@
 
             {{-- Customer --}}
             <div class="px-4 py-2 border-b border-gray-200 shrink-0">
-                <select id="customer-select" onchange="onCustomerChange(this.value)"
-                    class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
-                    <option value="">Pelanggan umum</option>
-                    @foreach ($customers ?? [] as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}
-                            {{ $c->phone ? "({$c->phone})" : '' }}</option>
-                    @endforeach
-                </select>
+                <div class="relative">
+                    <input type="text" id="customer-search-input" placeholder="Cari pelanggan..."
+                        class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                        autocomplete="off">
+                    <input type="hidden" id="customer-select" value="">
+                    <div id="customer-selected-badge" class="hidden absolute right-2 top-1.5">
+                        <span
+                            class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-lg font-medium">
+                            <span id="customer-selected-name"></span>
+                            <button onclick="clearCustomerSelection()" class="hover:text-red-500">&times;</button>
+                        </span>
+                    </div>
+                    <div id="customer-dropdown"
+                        class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto hidden">
+                    </div>
+                </div>
                 {{-- Loyalty Points Info --}}
                 <div id="loyalty-info"
                     class="hidden mt-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2">
@@ -385,7 +330,7 @@
                     </div>
                     <input id="paid-input" type="text" value="0" readonly
                         class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-right text-lg font-bold text-gray-900 mb-2 focus:outline-none">
-                    {{-- Kembalian display — prominent --}}
+                    {{-- Kembalian display ï¿½ prominent --}}
                     <div id="change-display-box" class="hidden rounded-xl px-3 py-2 mb-2 text-center">
                         <span class="text-xs text-gray-400 block">Kembalian</span>
                         <span id="change-display" class="text-2xl font-bold text-green-400"></span>
@@ -845,10 +790,186 @@
     </style>
 
     <script>
-        const products = @json($products);
+        const products = @json($initialProducts);
         let cart = [];
         let paymentMethod = 'cash';
         let lastReceipt = null;
+
+        // -- Infinite Scroll / Load More Products ----------------------------------
+        let productOffset = {{ count($initialProducts) }};
+        const productTotal = {{ $totalProducts }};
+        let isLoadingProducts = false;
+        let allProductsLoaded = productOffset >= productTotal;
+        let currentCategoryFilter = '';
+
+        function createProductCard(product) {
+            const outOfStock = product.total_stock <= 0;
+            const card = document.createElement('div');
+            card.className =
+                `product-card bg-gray-100 rounded-2xl p-3 transition select-none relative ${outOfStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-200 hover:ring-2 hover:ring-blue-500'}`;
+            card.dataset.id = product.id;
+            card.dataset.name = product.name;
+            card.dataset.price = product.price_sell;
+            card.dataset.stock = product.total_stock;
+            card.dataset.sku = product.sku || '';
+            card.dataset.barcode = product.barcode || '';
+            card.dataset.category = product.category || '';
+            card.onclick = function() {
+                if (outOfStock) {
+                    showToast('Stok ' + product.name + ' habis', 'warning');
+                } else {
+                    addToCart(this);
+                }
+            };
+
+            const imgHtml = product.image ?
+                `<img src="${product.image}" loading="lazy" decoding="async" class="w-full h-full object-cover rounded-xl" alt="${product.name}">` :
+                `<svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`;
+
+            const outOfStockOverlay = outOfStock ?
+                `<div class="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center"><span class="bg-red-600 text-gray-900 text-xs font-bold px-2 py-1 rounded-lg tracking-wide">HABIS</span></div>` :
+                '';
+
+            card.innerHTML = `
+                <div class="w-full aspect-square bg-gray-200 rounded-xl mb-2 flex items-center justify-center overflow-hidden relative">
+                    ${imgHtml}${outOfStockOverlay}
+                </div>
+                <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">${product.name}</p>
+                <p class="text-xs text-blue-400 font-semibold mt-1">Rp ${Math.round(product.price_sell).toLocaleString('id-ID')}</p>
+                <p class="text-xs mt-0.5 ${outOfStock ? 'text-red-400 font-semibold' : 'text-gray-500'}">Stok: ${product.total_stock}</p>
+            `;
+            return card;
+        }
+
+        async function loadMoreProducts() {
+            if (isLoadingProducts || allProductsLoaded) return;
+            isLoadingProducts = true;
+
+            try {
+                const params = new URLSearchParams({
+                    offset: productOffset,
+                    limit: 30
+                });
+                if (currentCategoryFilter) params.set('category', currentCategoryFilter);
+
+                const res = await fetch(`{{ route('pos.load-products') }}?${params}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const grid = document.getElementById('product-grid');
+                data.products.forEach(p => {
+                    grid.appendChild(createProductCard(p));
+                });
+
+                productOffset += data.products.length;
+                allProductsLoaded = !data.has_more;
+
+                if (allProductsLoaded) {
+                    const indicator = document.getElementById('load-more-indicator');
+                    if (indicator) indicator.remove();
+                }
+            } catch (e) {
+                console.warn('[POS] Load more products failed:', e);
+            } finally {
+                isLoadingProducts = false;
+            }
+        }
+
+        // Infinite scroll observer
+        (function initInfiniteScroll() {
+            const container = document.getElementById('product-scroll-container');
+            if (!container) return;
+
+            container.addEventListener('scroll', function() {
+                if (allProductsLoaded || isLoadingProducts) return;
+                const {
+                    scrollTop,
+                    scrollHeight,
+                    clientHeight
+                } = container;
+                if (scrollTop + clientHeight >= scrollHeight - 200) {
+                    loadMoreProducts();
+                }
+            });
+        })();
+
+        // -- AJAX Customer Search --------------------------------------------------
+        let customerSearchTimer = null;
+
+        const customerSearchInput = document.getElementById('customer-search-input');
+        const customerDropdown = document.getElementById('customer-dropdown');
+
+        customerSearchInput.addEventListener('input', function() {
+            const q = this.value.trim();
+            clearTimeout(customerSearchTimer);
+
+            if (q.length < 1) {
+                customerDropdown.classList.add('hidden');
+                return;
+            }
+
+            customerSearchTimer = setTimeout(() => searchCustomersAjax(q), 250);
+        });
+
+        customerSearchInput.addEventListener('focus', function() {
+            if (this.value.trim().length >= 1) {
+                searchCustomersAjax(this.value.trim());
+            } else {
+                // Show initial customers
+                searchCustomersAjax('');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!customerSearchInput.contains(e.target) && !customerDropdown.contains(e.target)) {
+                customerDropdown.classList.add('hidden');
+            }
+        });
+
+        async function searchCustomersAjax(q) {
+            try {
+                const res = await fetch(`{{ route('pos.search-customers') }}?q=${encodeURIComponent(q)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!res.ok) return;
+                const customers = await res.json();
+
+                if (customers.length === 0) {
+                    customerDropdown.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Tidak ditemukan</div>';
+                } else {
+                    customerDropdown.innerHTML = customers.map(c =>
+                        `<div class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 transition" onclick="selectCustomer(${c.id}, '${c.name.replace(/'/g, "\\'")}')">
+                            ${c.name} ${c.phone ? '<span class=&quot;text-gray-400&quot;>(' + c.phone + ')</span>' : ''}
+                        </div>`
+                    ).join('');
+                }
+                customerDropdown.classList.remove('hidden');
+            } catch {
+                /* ignore */
+            }
+        }
+
+        function selectCustomer(id, name) {
+            document.getElementById('customer-select').value = id;
+            document.getElementById('customer-search-input').value = '';
+            document.getElementById('customer-selected-name').textContent = name;
+            document.getElementById('customer-selected-badge').classList.remove('hidden');
+            customerDropdown.classList.add('hidden');
+            onCustomerChange(id);
+        }
+
+        function clearCustomerSelection() {
+            document.getElementById('customer-select').value = '';
+            document.getElementById('customer-search-input').value = '';
+            document.getElementById('customer-selected-badge').classList.add('hidden');
+            onCustomerChange('');
+        }
 
         // -- Loyalty Points --------------------------------------------------------
         let loyaltyBalance = 0;
@@ -1723,7 +1844,7 @@
         // and end with Enter. We track timing to distinguish scanner from keyboard.
         let barcodeBuffer = '';
         let barcodeLastKeyTime = 0;
-        const BARCODE_SPEED_THRESHOLD = 50; // ms between keystrokes — scanner is faster
+        const BARCODE_SPEED_THRESHOLD = 50; // ms between keystrokes ï¿½ scanner is faster
         const BARCODE_MIN_LENGTH = 3;
 
         // Debounce timer for text search
@@ -1763,7 +1884,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-xs font-medium text-gray-900 truncate">${p.name}</p>
-                <p class="text-xs text-gray-500">${p.sku || ''} ${p.barcode ? '· ' + p.barcode : ''}</p>
+                <p class="text-xs text-gray-500">${p.sku || ''} ${p.barcode ? 'ï¿½ ' + p.barcode : ''}</p>
             </div>
             <div class="text-right shrink-0">
                 <p class="text-xs font-semibold text-blue-400">${formatRp(p.price)}</p>
@@ -1790,7 +1911,7 @@
                 return;
             }
 
-            // Product not in DOM (loaded via search) — add directly to cart
+            // Product not in DOM (loaded via search) ï¿½ add directly to cart
             const existing = cart.find(i => i.id === p.id);
             if (existing) {
                 if (existing.qty >= p.stock) {
@@ -2103,7 +2224,7 @@
                     if (failed > 0) showToast(`${failed} transaksi gagal disinkronisasi, akan dicoba lagi`, 'warning');
                 }
             } catch (e) {
-                // Network still unavailable — restore badge
+                // Network still unavailable ï¿½ restore badge
                 console.warn('[POS] Flush queue failed:', e);
             }
 
@@ -2256,7 +2377,7 @@
                         `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${formatRp(i.price * i.qty)}</span></div>`
                     ).join('') +
                     `<div class="flex justify-between mt-2 font-bold"><span>Total</span><span>${formatRp(total)}</span></div>
-        <div class="mt-2 text-xs text-amber-600 text-center">? Transaksi offline — akan disinkronisasi saat online</div>`;
+        <div class="mt-2 text-xs text-amber-600 text-center">? Transaksi offline ï¿½ akan disinkronisasi saat online</div>`;
                 document.getElementById('receipt-modal').classList.remove('hidden');
                 document.getElementById('receipt-modal').classList.add('flex');
 
@@ -2295,7 +2416,7 @@
                     showToast('Gagal memproses transaksi', 'error');
                 }
             } catch (e) {
-                // Network error while supposedly online — queue it
+                // Network error while supposedly online ï¿½ queue it
                 await queueTransaction(payload);
                 showToast('Koneksi bermasalah. Transaksi disimpan untuk sinkronisasi.', 'warning');
             }
@@ -2860,4 +2981,3 @@
 </body>
 
 </html>
-

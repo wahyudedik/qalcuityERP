@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PoultryEggProduction extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -28,7 +27,7 @@ use HasFactory, BelongsToTenant;
         'feed_consumed_kg',
         'feed_conversion_ratio',
         'notes',
-        'recorded_by'
+        'recorded_by',
     ];
 
     protected $casts = [
@@ -94,7 +93,7 @@ use HasFactory, BelongsToTenant;
      */
     public function getFcrInterpretationAttribute(): string
     {
-        if (!$this->feed_conversion_ratio) {
+        if (! $this->feed_conversion_ratio) {
             return 'N/A';
         }
 

@@ -43,18 +43,22 @@ class InterCompanyTransaction extends Model
     {
         return $this->belongsTo(CompanyGroup::class);
     }
+
     public function fromTenant()
     {
         return $this->belongsTo(Tenant::class, 'from_tenant_id');
     }
+
     public function toTenant()
     {
         return $this->belongsTo(Tenant::class, 'to_tenant_id');
     }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');

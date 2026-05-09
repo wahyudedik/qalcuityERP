@@ -2,9 +2,10 @@
 
 namespace App\Services\Fisheries;
 
+use App\Models\CatchLog;
 use App\Models\FishSpecies;
-use App\Models\QualityGrade;
 use App\Models\FreshnessAssessment;
+use App\Models\QualityGrade;
 
 class SpeciesCatalogService
 {
@@ -22,8 +23,8 @@ class SpeciesCatalogService
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('common_name', 'like', '%' . $search . '%')
-                    ->orWhere('scientific_name', 'like', '%' . $search . '%');
+                $q->where('common_name', 'like', '%'.$search.'%')
+                    ->orWhere('scientific_name', 'like', '%'.$search.'%');
             });
         }
 
@@ -83,10 +84,10 @@ class SpeciesCatalogService
     /**
      * Assess freshness of catch
      */
-    public function assessFreshness(int $catchLogId, float $overallScore, array $criteria = [], int $assessorId = null, string $assessmentType = 'visual'): FreshnessAssessment
+    public function assessFreshness(int $catchLogId, float $overallScore, array $criteria = [], ?int $assessorId = null, string $assessmentType = 'visual'): FreshnessAssessment
     {
         return FreshnessAssessment::create([
-            'tenant_id' => \App\Models\CatchLog::findOrFail($catchLogId)->tenant_id,
+            'tenant_id' => CatchLog::findOrFail($catchLogId)->tenant_id,
             'catch_log_id' => $catchLogId,
             'overall_score' => $overallScore,
             'eye_clarity' => $criteria['eye_clarity'] ?? null,
@@ -124,7 +125,7 @@ class SpeciesCatalogService
     {
         $species = FishSpecies::findOrFail($speciesId);
 
-        $query = \App\Models\CatchLog::where('species_id', $speciesId);
+        $query = CatchLog::where('species_id', $speciesId);
 
         if ($period === 'this_month') {
             $query->whereMonth('caught_at', now()->month);

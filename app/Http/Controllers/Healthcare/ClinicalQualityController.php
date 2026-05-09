@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\PatientVisit;
 use App\Models\LabResult;
-use Illuminate\Http\Request;
+use App\Models\PatientVisit;
 
 class ClinicalQualityController extends Controller
 {
@@ -25,12 +24,14 @@ class ClinicalQualityController extends Controller
     public function readmissionRate()
     {
         $rate = $this->calculateReadmissionRate();
+
         return response()->json(['success' => true, 'data' => $rate]);
     }
 
     public function averageLengthOfStay()
     {
         $alos = $this->calculateAverageLengthOfStay();
+
         return response()->json(['success' => true, 'data' => $alos]);
     }
 

@@ -2,9 +2,10 @@
 
 namespace App\Services\Fisheries;
 
-use App\Models\FishingVessel;
-use App\Models\FishingTrip;
 use App\Models\CatchLog;
+use App\Models\FishingTrip;
+use App\Models\FishingVessel;
+use App\Models\FishingZone;
 use App\Models\FishSpecies;
 use Illuminate\Support\Str;
 
@@ -13,13 +14,13 @@ class CatchTrackingService
     /**
      * Plan a new fishing trip
      */
-    public function planTrip(int $tenantId, int $vesselId, int $captainId, ?int $fishingZoneId = null, array $crewIds = [], string $departureTime = null): array
+    public function planTrip(int $tenantId, int $vesselId, int $captainId, ?int $fishingZoneId = null, array $crewIds = [], ?string $departureTime = null): array
     {
         try {
             $vessel = FishingVessel::findOrFail($vesselId);
 
             // Generate trip number
-            $tripNumber = 'FT-' . date('Ymd') . '-' . Str::upper(Str::random(5));
+            $tripNumber = 'FT-'.date('Ymd').'-'.Str::upper(Str::random(5));
 
             // Create trip
             $trip = FishingTrip::create([
@@ -33,7 +34,7 @@ class CatchTrackingService
             ]);
 
             // Assign crew
-            if (!empty($crewIds)) {
+            if (! empty($crewIds)) {
                 foreach ($crewIds as $crewId) {
                     $trip->crew()->attach($crewId, ['role' => 'crew']);
                 }
@@ -151,7 +152,7 @@ class CatchTrackingService
     /**
      * Complete fishing trip
      */
-    public function completeTrip(int $tripId, float $fuelConsumed = null, string $returnTime = null): array
+    public function completeTrip(int $tripId, ?float $fuelConsumed = null, ?string $returnTime = null): array
     {
         try {
             $trip = FishingTrip::findOrFail($tripId);
@@ -249,7 +250,7 @@ class CatchTrackingService
      */
     public function trackQuotaUsage(int $zoneId, string $periodStart, string $periodEnd): array
     {
-        $zone = \App\Models\FishingZone::findOrFail($zoneId);
+        $zone = FishingZone::findOrFail($zoneId);
 
         $trips = FishingTrip::where('fishing_zone_id', $zoneId)
             ->whereBetween('departure_time', [$periodStart, $periodEnd])
@@ -264,7 +265,7 @@ class CatchTrackingService
             foreach ($trip->catchLogs as $catch) {
                 $speciesId = $catch->species_id;
 
-                if (!isset($totalCatchBySpecies[$speciesId])) {
+                if (! isset($totalCatchBySpecies[$speciesId])) {
                     $totalCatchBySpecies[$speciesId] = [
                         'species_id' => $speciesId,
                         'species_name' => $catch->species->common_name,

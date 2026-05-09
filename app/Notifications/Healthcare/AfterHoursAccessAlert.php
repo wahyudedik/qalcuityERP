@@ -12,7 +12,9 @@ class AfterHoursAccessAlert extends Notification implements ShouldQueue
     use Queueable;
 
     protected $user;
+
     protected $request;
+
     protected $accessTime;
 
     /**

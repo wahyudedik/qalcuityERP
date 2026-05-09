@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Create housekeeping_supplies table
-        if (!Schema::hasTable('housekeeping_supplies')) {
+        if (! Schema::hasTable('housekeeping_supplies')) {
             Schema::create('housekeeping_supplies', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -37,7 +38,7 @@ return new class extends Migration {
         }
 
         // Create housekeeping_tasks table
-        if (!Schema::hasTable('housekeeping_tasks')) {
+        if (! Schema::hasTable('housekeeping_tasks')) {
             Schema::create('housekeeping_tasks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -61,7 +62,7 @@ return new class extends Migration {
         }
 
         // Create housekeeping_task_assignments table
-        if (!Schema::hasTable('housekeeping_task_assignments')) {
+        if (! Schema::hasTable('housekeeping_task_assignments')) {
             Schema::create('housekeeping_task_assignments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -80,7 +81,7 @@ return new class extends Migration {
         }
 
         // Create maintenance_requests table
-        if (!Schema::hasTable('maintenance_requests')) {
+        if (! Schema::hasTable('maintenance_requests')) {
             Schema::create('maintenance_requests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

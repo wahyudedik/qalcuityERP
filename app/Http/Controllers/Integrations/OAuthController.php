@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Integrations;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Integrations\SyncProductsJob;
 use App\Models\Integration;
 use App\Services\Integrations\ShopifyConnector;
 use App\Services\Integrations\WooCommerceConnector;
@@ -83,6 +84,7 @@ class OAuthController extends Controller
         // Verify state
         if ($request->state !== session('oauth_state')) {
             Log::error('OAuth state mismatch', ['provider' => $provider]);
+
             return redirect()->route('integrations.index')
                 ->withErrors(['error' => 'Invalid OAuth state. Please try again.']);
         }
@@ -110,7 +112,7 @@ class OAuthController extends Controller
             ->whereJsonContains('config', $validated['shop'])
             ->first();
 
-        if (!$integration) {
+        if (! $integration) {
             Log::error('Shopify integration not found', [
                 'shop' => $validated['shop'],
             ]);
@@ -145,7 +147,7 @@ class OAuthController extends Controller
             }
 
             // Dispatch initial sync
-            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
+            SyncProductsJob::dispatch($integration);
 
             return redirect()->route('integrations.show', $integration)
                 ->with('success', 'Shopify connected successfully! Initial product sync started.');
@@ -195,14 +197,14 @@ class OAuthController extends Controller
             }
 
             // Dispatch initial sync
-            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
+            SyncProductsJob::dispatch($integration);
 
             return redirect()->route('integrations.show', $integration)
                 ->with('success', 'WooCommerce connected successfully! Initial product sync started.');
         }
 
         return redirect()->back()
-            ->withErrors(['error' => 'Connection test failed: ' . ($result['error'] ?? 'Unknown error')]);
+            ->withErrors(['error' => 'Connection test failed: '.($result['error'] ?? 'Unknown error')]);
     }
 
     /**

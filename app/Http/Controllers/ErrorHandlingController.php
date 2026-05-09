@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\UndoRollbackService;
+use App\Models\AutomatedBackup;
+use App\Services\ActionableErrorService;
 use App\Services\AutomatedBackupService;
 use App\Services\ConflictResolutionService;
 use App\Services\RestorePointService;
-use App\Services\ActionableErrorService;
+use App\Services\UndoRollbackService;
 use Illuminate\Http\Request;
 
 class ErrorHandlingController extends Controller
 {
     protected $undoService;
+
     protected $backupService;
+
     protected $conflictService;
+
     protected $restorePointService;
+
     protected $errorService;
 
     public function __construct(
@@ -56,18 +61,21 @@ class ErrorHandlingController extends Controller
     public function undoLastAction()
     {
         $result = $this->undoService->undoLastAction();
+
         return response()->json($result);
     }
 
     public function undoAction(int $actionId)
     {
         $result = $this->undoService->undoAction($actionId);
+
         return response()->json($result);
     }
 
     public function getUndoableActions()
     {
         $actions = $this->undoService->getUndoableActions();
+
         return response()->json(['success' => true, 'actions' => $actions]);
     }
 
@@ -75,10 +83,11 @@ class ErrorHandlingController extends Controller
     {
         $request->validate([
             'action_ids' => 'required|array',
-            'action_ids.*' => 'integer|exists:action_logs,id'
+            'action_ids.*' => 'integer|exists:action_logs,id',
         ]);
 
         $result = $this->undoService->bulkUndo($request->action_ids);
+
         return response()->json($result);
     }
 
@@ -88,37 +97,41 @@ class ErrorHandlingController extends Controller
     {
         $request->validate([
             'type' => 'sometimes|in:daily,weekly,monthly,manual,pre_change',
-            'tables' => 'sometimes|array'
+            'tables' => 'sometimes|array',
         ]);
 
         $type = $request->input('type', 'manual');
         $tables = $request->input('tables', []);
 
         $result = $this->backupService->createBackup($type, $tables);
+
         return response()->json($result);
     }
 
     public function restoreBackup(int $backupId)
     {
         $result = $this->backupService->restoreFromBackup($backupId);
+
         return response()->json($result);
     }
 
     public function getBackupHistory()
     {
         $backups = $this->backupService->getBackupHistory();
+
         return response()->json(['success' => true, 'backups' => $backups]);
     }
 
     public function deleteBackup(int $backupId)
     {
-        $backup = \App\Models\AutomatedBackup::find($backupId);
+        $backup = AutomatedBackup::find($backupId);
 
-        if (!$backup) {
+        if (! $backup) {
             return response()->json(['success' => false, 'error' => 'Backup not found'], 404);
         }
 
         $backup->deleteFile();
+
         return response()->json(['success' => true, 'message' => 'Backup deleted']);
     }
 
@@ -129,7 +142,7 @@ class ErrorHandlingController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'affected_models' => 'sometimes|array'
+            'affected_models' => 'sometimes|array',
         ]);
 
         $result = $this->restorePointService->createRestorePoint(
@@ -145,12 +158,14 @@ class ErrorHandlingController extends Controller
     public function restoreFromPoint(int $pointId)
     {
         $result = $this->restorePointService->restoreFromPoint($pointId);
+
         return response()->json($result);
     }
 
     public function getRestorePoints()
     {
         $points = $this->restorePointService->getActiveRestorePoints();
+
         return response()->json(['success' => true, 'restore_points' => $points]);
     }
 
@@ -159,6 +174,7 @@ class ErrorHandlingController extends Controller
     public function getPendingConflicts()
     {
         $conflicts = $this->conflictService->getPendingConflicts();
+
         return response()->json(['success' => true, 'conflicts' => $conflicts]);
     }
 
@@ -166,7 +182,7 @@ class ErrorHandlingController extends Controller
     {
         $request->validate([
             'strategy' => 'required|in:first_wins,last_wins,merge',
-            'merged_data' => 'required_if:strategy,merge|array'
+            'merged_data' => 'required_if:strategy,merge|array',
         ]);
 
         $result = $this->conflictService->resolveConflict(
@@ -181,6 +197,7 @@ class ErrorHandlingController extends Controller
     public function discardConflict(int $conflictId)
     {
         $success = $this->conflictService->discardConflict($conflictId);
+
         return response()->json(['success' => $success]);
     }
 
@@ -189,18 +206,21 @@ class ErrorHandlingController extends Controller
     public function getRecentErrors()
     {
         $errors = $this->errorService->getRecentErrors();
+
         return response()->json(['success' => true, 'errors' => $errors]);
     }
 
     public function getErrorStats()
     {
         $stats = $this->errorService->getErrorStats();
+
         return response()->json(['success' => true, 'stats' => $stats]);
     }
 
     public function resolveError(Request $request, int $errorId)
     {
         $success = $this->errorService->resolveError($errorId, $request->notes ?? '');
+
         return response()->json(['success' => $success]);
     }
 
@@ -208,7 +228,7 @@ class ErrorHandlingController extends Controller
     {
         $request->validate([
             'error_type' => 'required|string',
-            'context' => 'sometimes|array'
+            'context' => 'sometimes|array',
         ]);
 
         $error = $this->errorService->getUserFriendlyError(
@@ -224,18 +244,21 @@ class ErrorHandlingController extends Controller
     public function backupsView()
     {
         $backups = $this->backupService->getBackupHistory();
+
         return view('error-handling.backups', compact('backups'));
     }
 
     public function conflictsView()
     {
         $conflicts = $this->conflictService->getPendingConflicts();
+
         return view('error-handling.conflicts', compact('conflicts'));
     }
 
     public function actionLogView()
     {
         $actions = $this->undoService->getUndoableActions(50);
+
         return view('error-handling.action-log', compact('actions'));
     }
 }

@@ -67,7 +67,7 @@ class RecipeCostCalculatorService
      */
     private function calculateProfitMargin(Recipe $recipe, float $costPerServing): array
     {
-        if (!$recipe->menuItem || $recipe->menuItem->price <= 0) {
+        if (! $recipe->menuItem || $recipe->menuItem->price <= 0) {
             return [
                 'selling_price' => 0,
                 'cost_per_serving' => round($costPerServing, 2),
@@ -117,6 +117,7 @@ class RecipeCostCalculatorService
             ->get()
             ->filter(function ($recipe) use ($threshold) {
                 $margin = $recipe->getProfitMargin();
+
                 return $margin < $threshold;
             })
             ->map(function ($recipe) {

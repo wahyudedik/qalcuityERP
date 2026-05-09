@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\FbOrder;
-use App\Models\KitchenOrderItem;
 use App\Models\KitchenOrderTicket;
 use App\Models\MenuItem;
 
@@ -15,7 +14,8 @@ class KitchenDisplayService
     public function createTicketsFromOrder(FbOrder $order): array
     {
         // BUG-FB-002 FIX: Use idempotent ticket service to prevent duplicates
-        $ticketService = new KitchenTicketService();
+        $ticketService = new KitchenTicketService;
+
         return $ticketService->createTicketsForOrder($order);
     }
 
@@ -74,13 +74,13 @@ class KitchenDisplayService
             'overdue' => KitchenOrderTicket::where('tenant_id', $tenantId)
                 ->where('status', 'preparing')
                 ->get()
-                ->filter(fn($t) => $t->isOverdue())
+                ->filter(fn ($t) => $t->isOverdue())
                 ->count(),
             'avg_prep_time' => KitchenOrderTicket::where('tenant_id', $tenantId)
                 ->whereNotNull('completed_at')
                 ->whereDate('created_at', today())
                 ->get()
-                ->map(fn($t) => $t->getElapsedTime())
+                ->map(fn ($t) => $t->getElapsedTime())
                 ->avg() ?? 0,
         ];
     }
@@ -94,7 +94,7 @@ class KitchenDisplayService
             ->where('status', 'preparing')
             ->with(['order.guest', 'items.menuItem'])
             ->get()
-            ->filter(fn($ticket) => $ticket->isOverdue());
+            ->filter(fn ($ticket) => $ticket->isOverdue());
     }
 
     /**
@@ -108,7 +108,7 @@ class KitchenDisplayService
             $menuItem = MenuItem::find($item->menu_item_id);
             $station = $menuItem?->category ?? 'general'; // Use category as station
 
-            if (!isset($stations[$station])) {
+            if (! isset($stations[$station])) {
                 $stations[$station] = [];
             }
 
@@ -162,7 +162,7 @@ class KitchenDisplayService
     private function checkOrderCompletion(int $orderId): void
     {
         $allTickets = KitchenOrderTicket::where('fb_order_id', $orderId)->get();
-        $allReady = $allTickets->every(fn($t) => in_array($t->status, ['ready', 'served']));
+        $allReady = $allTickets->every(fn ($t) => in_array($t->status, ['ready', 'served']));
 
         if ($allReady) {
             // Update order status to ready

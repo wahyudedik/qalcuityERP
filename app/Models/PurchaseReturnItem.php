@@ -13,10 +13,17 @@ class PurchaseReturnItem extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
-        'price'    => 'decimal:2',
-        'total'    => 'decimal:2',
+        'price' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
-    public function purchaseReturn(): BelongsTo { return $this->belongsTo(PurchaseReturn::class); }
-    public function product(): BelongsTo        { return $this->belongsTo(Product::class); }
+    public function purchaseReturn(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseReturn::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\PacsIntegration;
 use App\Models\RadiologyExam;
 use App\Models\RadiologyOrder;
 use App\Models\RadiologyResult;
-use App\Models\PacsIntegration;
-use Exception;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -38,7 +38,7 @@ class RadiologyService
                 'special_instructions' => $orderData['special_instructions'] ?? null,
             ]);
 
-            Log::info("Radiology order created", [
+            Log::info('Radiology order created', [
                 'order_number' => $order->order_number,
                 'exam' => $exam->exam_name,
                 'priority' => $order->priority,
@@ -140,7 +140,7 @@ class RadiologyService
                 'status' => 'reported',
             ]);
 
-            Log::info("Radiology report created", [
+            Log::info('Radiology report created', [
                 'report_number' => $report->report_number,
                 'order_number' => $order->order_number,
             ]);
@@ -200,7 +200,7 @@ class RadiologyService
                 'dicom_metadata' => $pacsData['dicom_metadata'] ?? null,
             ]);
 
-            Log::info("PACS integration recorded", [
+            Log::info('PACS integration recorded', [
                 'study_uid' => $pacs->study_instance_uid,
                 'modality' => $pacs->modality,
                 'image_count' => $pacs->image_count,
@@ -215,7 +215,7 @@ class RadiologyService
      */
     public function getScheduledExams($date = null): array
     {
-        $date = $date ? \Carbon\Carbon::parse($date) : today();
+        $date = $date ? Carbon::parse($date) : today();
 
         return RadiologyOrder::whereDate('scheduled_date', $date)
             ->where('status', 'scheduled')
@@ -279,9 +279,9 @@ class RadiologyService
     protected function generateOrderNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'RAD-ORD-' . $date;
+        $prefix = 'RAD-ORD-'.$date;
 
-        $lastOrder = RadiologyOrder::where('order_number', 'like', $prefix . '%')
+        $lastOrder = RadiologyOrder::where('order_number', 'like', $prefix.'%')
             ->orderBy('order_number', 'desc')
             ->first();
 
@@ -292,7 +292,7 @@ class RadiologyService
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -301,9 +301,9 @@ class RadiologyService
     protected function generateReportNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'RAD-RPT-' . $date;
+        $prefix = 'RAD-RPT-'.$date;
 
-        $lastReport = RadiologyResult::where('report_number', 'like', $prefix . '%')
+        $lastReport = RadiologyResult::where('report_number', 'like', $prefix.'%')
             ->orderBy('report_number', 'desc')
             ->first();
 
@@ -314,6 +314,6 @@ class RadiologyService
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 }

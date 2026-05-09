@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountingPeriod;
 use App\Models\ChartOfAccount;
-use App\Models\JournalEntry;
 use App\Services\FinancialStatementService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Database\Seeders\DefaultCoaSeeder;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AccountingController extends Controller
 {
@@ -23,13 +23,12 @@ class AccountingController extends Controller
     {
         $accounts = ChartOfAccount::where('tenant_id', $this->tid())
             ->with('parent')
-            ->when($request->filled('type'),   fn($q) => $q->where('type', $request->type))
-            ->when($request->filled('search'), fn($q) => $q->where(fn($q2) =>
-                $q2->where('code', 'like', '%' . $request->search . '%')
-                   ->orWhere('name', 'like', '%' . $request->search . '%')
+            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
+            ->when($request->filled('search'), fn ($q) => $q->where(fn ($q2) => $q2->where('code', 'like', '%'.$request->search.'%')
+                ->orWhere('name', 'like', '%'.$request->search.'%')
             ))
-            ->when($request->status === 'active',   fn($q) => $q->where('is_active', true))
-            ->when($request->status === 'inactive', fn($q) => $q->where('is_active', false))
+            ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($request->status === 'inactive', fn ($q) => $q->where('is_active', false))
             ->orderBy('code')
             ->get();
 
@@ -46,15 +45,15 @@ class AccountingController extends Controller
         $tid = $this->tid();
 
         $data = $request->validate([
-            'code'           => 'required|string|max:20',
-            'name'           => 'required|string|max:100',
-            'type'           => 'required|in:asset,liability,equity,revenue,expense',
+            'code' => 'required|string|max:20',
+            'name' => 'required|string|max:100',
+            'type' => 'required|in:asset,liability,equity,revenue,expense',
             'normal_balance' => 'required|in:debit,credit',
             // FIX BUG-015: Validasi parent_id harus filter tenant_id agar tidak bisa pakai COA tenant lain
-            'parent_id'      => ['nullable', \Illuminate\Validation\Rule::exists('chart_of_accounts', 'id')->where('tenant_id', $tid)],
-            'level'          => 'required|integer|min:1|max:5',
-            'is_header'      => 'boolean',
-            'description'    => 'nullable|string|max:255',
+            'parent_id' => ['nullable', Rule::exists('chart_of_accounts', 'id')->where('tenant_id', $tid)],
+            'level' => 'required|integer|min:1|max:5',
+            'is_header' => 'boolean',
+            'description' => 'nullable|string|max:255',
         ]);
 
         if (ChartOfAccount::where('tenant_id', $tid)->where('code', $data['code'])->exists()) {
@@ -71,8 +70,8 @@ class AccountingController extends Controller
         abort_if($account->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'is_active'   => 'boolean',
+            'name' => 'required|string|max:100',
+            'is_active' => 'boolean',
             'description' => 'nullable|string|max:255',
         ]);
 
@@ -93,12 +92,14 @@ class AccountingController extends Controller
         }
 
         $account->delete();
+
         return back()->with('success', 'Akun berhasil dihapus.');
     }
 
     public function seedDefaultCoa()
     {
         DefaultCoaSeeder::seedForTenant($this->tid());
+
         return back()->with('success', 'COA default Indonesia berhasil dimuat.');
     }
 
@@ -118,9 +119,9 @@ class AccountingController extends Controller
         $tid = $this->tid();
 
         $data = $request->validate([
-            'name'       => 'required|string|max:50',
+            'name' => 'required|string|max:50',
             'start_date' => 'required|date',
-            'end_date'   => 'required|date|after:start_date',
+            'end_date' => 'required|date|after:start_date',
         ]);
 
         // FIX BUG-018: Cegah periode yang overlap dengan periode yang sudah ada
@@ -135,7 +136,7 @@ class AccountingController extends Controller
 
         AccountingPeriod::create(array_merge($data, [
             'tenant_id' => $tid,
-            'status'    => 'open',
+            'status' => 'open',
         ]));
 
         return back()->with('success', 'Periode akuntansi berhasil dibuat.');
@@ -147,7 +148,7 @@ class AccountingController extends Controller
         abort_if(! $period->isOpen(), 403, 'Periode sudah ditutup.');
 
         $period->update([
-            'status'    => 'closed',
+            'status' => 'closed',
             'closed_by' => auth()->id(),
             'closed_at' => now(),
         ]);
@@ -169,33 +170,33 @@ class AccountingController extends Controller
 
     public function trialBalance(Request $request)
     {
-        $tid  = $this->tid();
+        $tid = $this->tid();
         $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
+        $to = $request->get('to', now()->toDateString());
 
         $accounts = ChartOfAccount::where('tenant_id', $tid)
             ->where('is_header', false)
             ->where('is_active', true)
-            ->with(['journalLines' => fn($q) => $q->whereHas('journalEntry', fn($je) =>
-                $je->where('tenant_id', $tid)
-                   ->where('status', 'posted')
-                   ->whereBetween('date', [$from, $to])
+            ->with(['journalLines' => fn ($q) => $q->whereHas('journalEntry', fn ($je) => $je->where('tenant_id', $tid)
+                ->where('status', 'posted')
+                ->whereBetween('date', [$from, $to])
             )])
             ->orderBy('code')
             ->get()
             ->map(function ($acc) {
-                $debit  = $acc->journalLines->sum('debit');
+                $debit = $acc->journalLines->sum('debit');
                 $credit = $acc->journalLines->sum('credit');
+
                 return [
-                    'code'   => $acc->code,
-                    'name'   => $acc->name,
-                    'type'   => $acc->getTypeLabel(),
-                    'debit'  => $debit,
+                    'code' => $acc->code,
+                    'name' => $acc->name,
+                    'type' => $acc->getTypeLabel(),
+                    'debit' => $debit,
                     'credit' => $credit,
-                    'balance'=> $acc->normal_balance === 'debit' ? $debit - $credit : $credit - $debit,
+                    'balance' => $acc->normal_balance === 'debit' ? $debit - $credit : $credit - $debit,
                 ];
             })
-            ->filter(fn($a) => $a['debit'] > 0 || $a['credit'] > 0);
+            ->filter(fn ($a) => $a['debit'] > 0 || $a['credit'] > 0);
 
         return view('accounting.trial-balance', compact('accounts', 'from', 'to'));
     }
@@ -206,18 +207,20 @@ class AccountingController extends Controller
     {
         $asOf = $request->get('as_of', now()->toDateString());
         $data = app(FinancialStatementService::class)->balanceSheet($this->tid(), $asOf);
+
         return view('accounting.balance-sheet', compact('data', 'asOf'));
     }
 
     public function balanceSheetPdf(Request $request)
     {
         $request->validate(['as_of' => 'required|date']);
-        $asOf     = $request->as_of;
-        $data     = app(FinancialStatementService::class)->balanceSheet($this->tid(), $asOf);
-        $tenant   = auth()->user()->tenant;
-        $pdf      = Pdf::loadView('accounting.pdf.balance-sheet', compact('data', 'asOf', 'tenant'))
-                       ->setPaper('a4', 'portrait');
-        return $pdf->download('neraca-' . $asOf . '.pdf');
+        $asOf = $request->as_of;
+        $data = app(FinancialStatementService::class)->balanceSheet($this->tid(), $asOf);
+        $tenant = auth()->user()->tenant;
+        $pdf = Pdf::loadView('accounting.pdf.balance-sheet', compact('data', 'asOf', 'tenant'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('neraca-'.$asOf.'.pdf');
     }
 
     // ── Income Statement (Laba Rugi) ──────────────────────────────
@@ -225,21 +228,23 @@ class AccountingController extends Controller
     public function incomeStatement(Request $request)
     {
         $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
+        $to = $request->get('to', now()->toDateString());
         $data = app(FinancialStatementService::class)->incomeStatement($this->tid(), $from, $to);
+
         return view('accounting.income-statement', compact('data', 'from', 'to'));
     }
 
     public function incomeStatementPdf(Request $request)
     {
         $request->validate(['from' => 'required|date', 'to' => 'required|date|after_or_equal:from']);
-        $from   = $request->from;
-        $to     = $request->to;
-        $data   = app(FinancialStatementService::class)->incomeStatement($this->tid(), $from, $to);
+        $from = $request->from;
+        $to = $request->to;
+        $data = app(FinancialStatementService::class)->incomeStatement($this->tid(), $from, $to);
         $tenant = auth()->user()->tenant;
-        $pdf    = Pdf::loadView('accounting.pdf.income-statement', compact('data', 'from', 'to', 'tenant'))
-                     ->setPaper('a4', 'portrait');
-        return $pdf->download('laba-rugi-' . $from . '-sd-' . $to . '.pdf');
+        $pdf = Pdf::loadView('accounting.pdf.income-statement', compact('data', 'from', 'to', 'tenant'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('laba-rugi-'.$from.'-sd-'.$to.'.pdf');
     }
 
     // ── Cash Flow Statement (Arus Kas) ────────────────────────────
@@ -247,31 +252,33 @@ class AccountingController extends Controller
     public function cashFlow(Request $request)
     {
         $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
+        $to = $request->get('to', now()->toDateString());
         $data = app(FinancialStatementService::class)->cashFlowStatement($this->tid(), $from, $to);
+
         return view('accounting.cash-flow', compact('data', 'from', 'to'));
     }
 
     public function cashFlowPdf(Request $request)
     {
         $request->validate(['from' => 'required|date', 'to' => 'required|date|after_or_equal:from']);
-        $from   = $request->from;
-        $to     = $request->to;
-        $data   = app(FinancialStatementService::class)->cashFlowStatement($this->tid(), $from, $to);
+        $from = $request->from;
+        $to = $request->to;
+        $data = app(FinancialStatementService::class)->cashFlowStatement($this->tid(), $from, $to);
         $tenant = auth()->user()->tenant;
-        $pdf    = Pdf::loadView('accounting.pdf.cash-flow', compact('data', 'from', 'to', 'tenant'))
-                     ->setPaper('a4', 'portrait');
-        return $pdf->download('arus-kas-' . $from . '-sd-' . $to . '.pdf');
+        $pdf = Pdf::loadView('accounting.pdf.cash-flow', compact('data', 'from', 'to', 'tenant'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('arus-kas-'.$from.'-sd-'.$to.'.pdf');
     }
 
     // ── General Ledger (Buku Besar) ───────────────────────────────
 
     public function generalLedger(Request $request)
     {
-        $tid       = $this->tid();
+        $tid = $this->tid();
         $accountId = $request->get('account_id');
-        $from      = $request->get('from', now()->startOfMonth()->toDateString());
-        $to        = $request->get('to',   now()->toDateString());
+        $from = $request->get('from', now()->startOfMonth()->toDateString());
+        $to = $request->get('to', now()->toDateString());
 
         $accounts = ChartOfAccount::where('tenant_id', $tid)
             ->where('is_header', false)
@@ -288,7 +295,7 @@ class AccountingController extends Controller
 
             // Calculate opening balance (before $from date)
             $openingBalance = $account->journalLines()
-                ->whereHas('journalEntry', fn($q) => $q
+                ->whereHas('journalEntry', fn ($q) => $q
                     ->where('tenant_id', $tid)
                     ->where('status', 'posted')
                     ->where('date', '<', $from)
@@ -298,13 +305,14 @@ class AccountingController extends Controller
                     if ($account->normal_balance === 'debit') {
                         return $balance + $line->debit - $line->credit;
                     }
+
                     return $balance + $line->credit - $line->debit;
                 }, 0);
 
             // Get journal entries for the period
             $entries = $account->journalLines()
-                ->with(['journalEntry' => fn($q) => $q->with('creator')])
-                ->whereHas('journalEntry', fn($q) => $q
+                ->with(['journalEntry' => fn ($q) => $q->with('creator')])
+                ->whereHas('journalEntry', fn ($q) => $q
                     ->where('tenant_id', $tid)
                     ->where('status', 'posted')
                     ->whereBetween('date', [$from, $to])
@@ -313,7 +321,7 @@ class AccountingController extends Controller
                 ->map(function ($line) use ($account, &$openingBalance) {
                     $debit = $line->debit;
                     $credit = $line->credit;
-                    
+
                     if ($account->normal_balance === 'debit') {
                         $openingBalance += $debit - $credit;
                     } else {
@@ -321,13 +329,13 @@ class AccountingController extends Controller
                     }
 
                     return [
-                        'date'        => $line->journalEntry->date,
-                        'reference'   => $line->journalEntry->reference,
+                        'date' => $line->journalEntry->date,
+                        'reference' => $line->journalEntry->reference,
                         'description' => $line->description ?: $line->journalEntry->description,
-                        'debit'       => $debit,
-                        'credit'      => $credit,
-                        'balance'     => $openingBalance,
-                        'created_by'  => $line->journalEntry->creator->name ?? 'System',
+                        'debit' => $debit,
+                        'credit' => $credit,
+                        'balance' => $openingBalance,
+                        'created_by' => $line->journalEntry->creator->name ?? 'System',
                     ];
                 })
                 ->sortBy('date')
@@ -341,20 +349,20 @@ class AccountingController extends Controller
     {
         $request->validate([
             'account_id' => 'required|exists:chart_of_accounts,id',
-            'from'       => 'required|date',
-            'to'         => 'required|date|after_or_equal:from',
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
         ]);
 
-        $tid       = $this->tid();
+        $tid = $this->tid();
         $accountId = $request->account_id;
-        $from      = $request->from;
-        $to        = $request->to;
+        $from = $request->from;
+        $to = $request->to;
 
         $account = ChartOfAccount::where('tenant_id', $tid)->findOrFail($accountId);
 
         // Calculate opening balance
         $openingBalance = $account->journalLines()
-            ->whereHas('journalEntry', fn($q) => $q
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('tenant_id', $tid)
                 ->where('status', 'posted')
                 ->where('date', '<', $from)
@@ -364,13 +372,14 @@ class AccountingController extends Controller
                 if ($account->normal_balance === 'debit') {
                     return $balance + $line->debit - $line->credit;
                 }
+
                 return $balance + $line->credit - $line->debit;
             }, 0);
 
         // Get journal entries
         $entries = $account->journalLines()
-            ->with(['journalEntry' => fn($q) => $q->with('creator')])
-            ->whereHas('journalEntry', fn($q) => $q
+            ->with(['journalEntry' => fn ($q) => $q->with('creator')])
+            ->whereHas('journalEntry', fn ($q) => $q
                 ->where('tenant_id', $tid)
                 ->where('status', 'posted')
                 ->whereBetween('date', [$from, $to])
@@ -379,7 +388,7 @@ class AccountingController extends Controller
             ->map(function ($line) use ($account, &$openingBalance) {
                 $debit = $line->debit;
                 $credit = $line->credit;
-                
+
                 if ($account->normal_balance === 'debit') {
                     $openingBalance += $debit - $credit;
                 } else {
@@ -387,21 +396,21 @@ class AccountingController extends Controller
                 }
 
                 return [
-                    'date'        => $line->journalEntry->date,
-                    'reference'   => $line->journalEntry->reference,
+                    'date' => $line->journalEntry->date,
+                    'reference' => $line->journalEntry->reference,
                     'description' => $line->description ?: $line->journalEntry->description,
-                    'debit'       => $debit,
-                    'credit'      => $credit,
-                    'balance'     => $openingBalance,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                    'balance' => $openingBalance,
                 ];
             })
             ->sortBy('date')
             ->values();
 
         $tenant = auth()->user()->tenant;
-        $pdf    = Pdf::loadView('accounting.pdf.general-ledger', compact('account', 'entries', 'openingBalance', 'from', 'to', 'tenant'))
-                     ->setPaper('a4', 'portrait');
-        
-        return $pdf->download('buku-besar-' . $account->code . '-' . $from . '-sd-' . $to . '.pdf');
+        $pdf = Pdf::loadView('accounting.pdf.general-ledger', compact('account', 'entries', 'openingBalance', 'from', 'to', 'tenant'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('buku-besar-'.$account->code.'-'.$from.'-sd-'.$to.'.pdf');
     }
 }

@@ -21,7 +21,9 @@ use App\DTOs\Audit\Severity;
 class IntegrationAnalyzer implements AnalyzerInterface
 {
     private string $servicePath;
+
     private string $middlewarePath;
+
     private string $basePath;
 
     /**
@@ -177,27 +179,27 @@ class IntegrationAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
-        $this->middlewarePath = $middlewarePath ?? ($this->basePath . '/app/Http/Middleware');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
+        $this->middlewarePath = $middlewarePath ?? ($this->basePath.'/app/Http/Middleware');
 
         $this->paymentServiceFiles = $paymentServiceFiles ?? [
-            $this->servicePath . '/PaymentGatewayService.php',
+            $this->servicePath.'/PaymentGatewayService.php',
         ];
 
         $this->ecommerceServiceFiles = $ecommerceServiceFiles ?? [
-            $this->servicePath . '/MarketplaceSyncService.php',
-            $this->servicePath . '/EcommerceService.php',
+            $this->servicePath.'/MarketplaceSyncService.php',
+            $this->servicePath.'/EcommerceService.php',
         ];
 
         $this->messagingServiceFiles = $messagingServiceFiles ?? [
-            $this->servicePath . '/WhatsAppService.php',
-            $this->servicePath . '/BotService.php',
+            $this->servicePath.'/WhatsAppService.php',
+            $this->servicePath.'/BotService.php',
         ];
 
         $this->aiServiceFiles = $aiServiceFiles ?? [
-            $this->servicePath . '/GeminiService.php',
-            $this->servicePath . '/AiResponseCacheService.php',
-            $this->servicePath . '/AiQuotaService.php',
+            $this->servicePath.'/GeminiService.php',
+            $this->servicePath.'/AiResponseCacheService.php',
+            $this->servicePath.'/AiQuotaService.php',
         ];
     }
 
@@ -249,7 +251,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
         $findings = [];
 
         foreach ($this->paymentServiceFiles as $filePath) {
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 continue;
             }
 
@@ -266,18 +268,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             $shortClass = $this->shortClassName($className);
 
             // Check for webhook signature validation
-            if (!$this->matchesAnyPattern($sourceCode, self::SIGNATURE_VALIDATION_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::SIGNATURE_VALIDATION_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Critical,
                     title: "Missing webhook signature validation in {$shortClass}",
                     description: "Payment service {$shortClass} does not appear to validate webhook signatures. "
-                        . "Without signature validation, attackers could forge payment notifications "
-                        . "to mark orders as paid without actual payment.",
+                        .'Without signature validation, attackers could forge payment notifications '
+                        .'to mark orders as paid without actual payment.',
                     file: $this->relativePath($filePath),
                     line: null,
                     recommendation: "Implement webhook signature validation using the payment gateway's "
-                        . "server key and hash_hmac() or the gateway's SDK verification method.",
+                        ."server key and hash_hmac() or the gateway's SDK verification method.",
                     metadata: [
                         'service' => $className,
                         'check' => 'payment_signature',
@@ -286,18 +288,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             }
 
             // Check for idempotency handling
-            if (!$this->matchesAnyPattern($sourceCode, self::IDEMPOTENCY_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::IDEMPOTENCY_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Missing idempotency handling in {$shortClass}",
                     description: "Payment service {$shortClass} does not appear to handle duplicate webhook "
-                        . "notifications idempotently. Payment gateways may send the same notification "
-                        . "multiple times, which could result in double-processing of payments.",
+                        .'notifications idempotently. Payment gateways may send the same notification '
+                        .'multiple times, which could result in double-processing of payments.',
                     file: $this->relativePath($filePath),
                     line: null,
-                    recommendation: "Implement idempotency checks using transaction_id or order_id to detect "
-                        . "and skip duplicate notifications. Consider using WebhookIdempotencyService.",
+                    recommendation: 'Implement idempotency checks using transaction_id or order_id to detect '
+                        .'and skip duplicate notifications. Consider using WebhookIdempotencyService.',
                     metadata: [
                         'service' => $className,
                         'check' => 'payment_idempotency',
@@ -325,7 +327,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
         $findings = [];
 
         foreach ($this->ecommerceServiceFiles as $filePath) {
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 continue;
             }
 
@@ -342,18 +344,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             $shortClass = $this->shortClassName($className);
 
             // Check for conflict handling
-            if (!$this->matchesAnyPattern($sourceCode, self::CONFLICT_HANDLING_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::CONFLICT_HANDLING_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Missing sync conflict handling in {$shortClass}",
                     description: "E-commerce service {$shortClass} does not appear to handle sync conflicts. "
-                        . "When syncing orders or stock between the ERP and marketplace platforms, "
-                        . "conflicts can arise from concurrent updates, leading to data inconsistencies or overselling.",
+                        .'When syncing orders or stock between the ERP and marketplace platforms, '
+                        .'conflicts can arise from concurrent updates, leading to data inconsistencies or overselling.',
                     file: $this->relativePath($filePath),
                     line: null,
-                    recommendation: "Implement conflict resolution strategies (e.g., last-write-wins, version checking) "
-                        . "and use ConflictResolutionService or SyncDataLossPreventionService for sync operations.",
+                    recommendation: 'Implement conflict resolution strategies (e.g., last-write-wins, version checking) '
+                        .'and use ConflictResolutionService or SyncDataLossPreventionService for sync operations.',
                     metadata: [
                         'service' => $className,
                         'check' => 'ecommerce_conflict',
@@ -362,18 +364,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             }
 
             // Check for rate limiting
-            if (!$this->matchesAnyPattern($sourceCode, self::RATE_LIMIT_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::RATE_LIMIT_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Medium,
                     title: "Missing rate limit handling in {$shortClass}",
                     description: "E-commerce service {$shortClass} does not appear to respect API rate limits. "
-                        . "Marketplace APIs enforce rate limits, and exceeding them can result in "
-                        . "temporary bans or failed sync operations.",
+                        .'Marketplace APIs enforce rate limits, and exceeding them can result in '
+                        .'temporary bans or failed sync operations.',
                     file: $this->relativePath($filePath),
                     line: null,
-                    recommendation: "Implement rate limit handling with exponential backoff and respect "
-                        . "HTTP 429 responses. Consider using a rate limiter or throttle mechanism.",
+                    recommendation: 'Implement rate limit handling with exponential backoff and respect '
+                        .'HTTP 429 responses. Consider using a rate limiter or throttle mechanism.',
                     metadata: [
                         'service' => $className,
                         'check' => 'ecommerce_rate_limit',
@@ -401,7 +403,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
         $findings = [];
 
         foreach ($this->messagingServiceFiles as $filePath) {
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 continue;
             }
 
@@ -418,18 +420,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             $shortClass = $this->shortClassName($className);
 
             // Check for retry logic
-            if (!$this->matchesAnyPattern($sourceCode, self::RETRY_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::RETRY_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::Medium,
                     title: "Missing retry logic in {$shortClass}",
                     description: "Messaging service {$shortClass} does not appear to implement retry logic "
-                        . "for failed message deliveries. Transient network failures or API rate limits "
-                        . "can cause message delivery to fail without retries.",
+                        .'for failed message deliveries. Transient network failures or API rate limits '
+                        .'can cause message delivery to fail without retries.',
                     file: $this->relativePath($filePath),
                     line: null,
-                    recommendation: "Implement retry logic with exponential backoff for message delivery failures. "
-                        . "Use Laravel's retry() helper or a dedicated retry mechanism.",
+                    recommendation: 'Implement retry logic with exponential backoff for message delivery failures. '
+                        ."Use Laravel's retry() helper or a dedicated retry mechanism.",
                     metadata: [
                         'service' => $className,
                         'check' => 'messaging_retry',
@@ -438,17 +440,17 @@ class IntegrationAnalyzer implements AnalyzerInterface
             }
 
             // Check for secure credential storage
-            if (!$this->matchesAnyPattern($sourceCode, self::SECURE_CREDENTIAL_PATTERNS)) {
+            if (! $this->matchesAnyPattern($sourceCode, self::SECURE_CREDENTIAL_PATTERNS)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
                     title: "Potentially insecure credential storage in {$shortClass}",
                     description: "Messaging service {$shortClass} does not appear to load API credentials "
-                        . "from config() or env(). Credentials should never be hardcoded in service files.",
+                        .'from config() or env(). Credentials should never be hardcoded in service files.',
                     file: $this->relativePath($filePath),
                     line: null,
-                    recommendation: "Store API credentials in .env and access them via config() or env(). "
-                        . "For per-tenant credentials, use encrypted database storage with Crypt::decrypt().",
+                    recommendation: 'Store API credentials in .env and access them via config() or env(). '
+                        .'For per-tenant credentials, use encrypted database storage with Crypt::decrypt().',
                     metadata: [
                         'service' => $className,
                         'check' => 'messaging_credentials',
@@ -480,7 +482,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
         // Collect all AI service source code for cross-referencing
         $aiSources = [];
         foreach ($this->aiServiceFiles as $filePath) {
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 continue;
             }
 
@@ -515,11 +517,11 @@ class IntegrationAnalyzer implements AnalyzerInterface
         foreach ($middlewareFiles as $mwFile) {
             $mwContent = @file_get_contents($mwFile);
             if ($mwContent !== false) {
-                $middlewareSource .= "\n" . $mwContent;
+                $middlewareSource .= "\n".$mwContent;
             }
         }
 
-        $allSource = $combinedSource . "\n" . $middlewareSource;
+        $allSource = $combinedSource."\n".$middlewareSource;
 
         // Check for rate limiting
         $rateLimitPatterns = [
@@ -528,18 +530,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             '/ai.*rate.?limit/i',
             '/throttle.*ai/i',
         ];
-        if (!$this->matchesAnyPattern($allSource, $rateLimitPatterns)) {
+        if (! $this->matchesAnyPattern($allSource, $rateLimitPatterns)) {
             $primaryFile = $aiSources[0];
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::High,
-                title: "Missing AI rate limiting",
-                description: "No RateLimitAiRequests middleware or AI-specific rate limiting was found. "
-                    . "Without rate limiting, a single tenant could exhaust the AI API quota, "
-                    . "affecting all other tenants.",
+                title: 'Missing AI rate limiting',
+                description: 'No RateLimitAiRequests middleware or AI-specific rate limiting was found. '
+                    .'Without rate limiting, a single tenant could exhaust the AI API quota, '
+                    .'affecting all other tenants.',
                 file: $this->relativePath($primaryFile['path']),
                 line: null,
-                recommendation: "Implement RateLimitAiRequests middleware to enforce per-tenant AI request limits.",
+                recommendation: 'Implement RateLimitAiRequests middleware to enforce per-tenant AI request limits.',
                 metadata: [
                     'check' => 'ai_rate_limit',
                 ],
@@ -554,18 +556,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             '/usage.*limit/i',
             '/AiQuota/i',
         ];
-        if (!$this->matchesAnyPattern($allSource, $quotaPatterns)) {
+        if (! $this->matchesAnyPattern($allSource, $quotaPatterns)) {
             $primaryFile = $aiSources[0];
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
-                title: "Missing AI quota management",
-                description: "No CheckAiQuota middleware or quota management was found for AI services. "
-                    . "Without quota management, tenants could exceed their plan's AI usage limits.",
+                title: 'Missing AI quota management',
+                description: 'No CheckAiQuota middleware or quota management was found for AI services. '
+                    ."Without quota management, tenants could exceed their plan's AI usage limits.",
                 file: $this->relativePath($primaryFile['path']),
                 line: null,
-                recommendation: "Implement CheckAiQuota middleware to enforce per-tenant AI usage quotas "
-                    . "based on subscription plan.",
+                recommendation: 'Implement CheckAiQuota middleware to enforce per-tenant AI usage quotas '
+                    .'based on subscription plan.',
                 metadata: [
                     'check' => 'ai_quota',
                 ],
@@ -580,18 +582,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
             '/Cache\s*::\s*remember/i',
             '/->remember\s*\(/i',
         ];
-        if (!$this->matchesAnyPattern($combinedSource, $cachingPatterns)) {
+        if (! $this->matchesAnyPattern($combinedSource, $cachingPatterns)) {
             $primaryFile = $aiSources[0];
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Low,
-                title: "Missing AI response caching",
-                description: "No response caching pattern was found in AI service files. "
-                    . "Caching identical AI responses reduces API costs and improves response times.",
+                title: 'Missing AI response caching',
+                description: 'No response caching pattern was found in AI service files. '
+                    .'Caching identical AI responses reduces API costs and improves response times.',
                 file: $this->relativePath($primaryFile['path']),
                 line: null,
-                recommendation: "Implement response caching using AiResponseCacheService to cache "
-                    . "frequently requested AI responses with appropriate TTL.",
+                recommendation: 'Implement response caching using AiResponseCacheService to cache '
+                    .'frequently requested AI responses with appropriate TTL.',
                 metadata: [
                     'check' => 'ai_caching',
                 ],
@@ -607,19 +609,19 @@ class IntegrationAnalyzer implements AnalyzerInterface
             '/switchModel/i',
             '/AllModelsUnavailable/i',
         ];
-        if (!$this->matchesAnyPattern($combinedSource, $switchingPatterns)) {
+        if (! $this->matchesAnyPattern($combinedSource, $switchingPatterns)) {
             $primaryFile = $aiSources[0];
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
-                title: "Missing AI model auto-switching",
-                description: "No model auto-switching pattern was found in AI service files. "
-                    . "When the primary AI model is unavailable or rate-limited, the system should "
-                    . "automatically switch to a fallback model to maintain availability.",
+                title: 'Missing AI model auto-switching',
+                description: 'No model auto-switching pattern was found in AI service files. '
+                    .'When the primary AI model is unavailable or rate-limited, the system should '
+                    .'automatically switch to a fallback model to maintain availability.',
                 file: $this->relativePath($primaryFile['path']),
                 line: null,
-                recommendation: "Implement model auto-switching logic that falls back to alternative "
-                    . "AI models when the primary model is unavailable. Log switches via AiModelSwitchLog.",
+                recommendation: 'Implement model auto-switching logic that falls back to alternative '
+                    .'AI models when the primary model is unavailable. Log switches via AiModelSwitchLog.',
                 metadata: [
                     'check' => 'ai_model_switching',
                 ],
@@ -637,14 +639,14 @@ class IntegrationAnalyzer implements AnalyzerInterface
      *
      * Validates: Requirement 8.6
      *
-     * @param string $serviceClass Absolute path to the service file
+     * @param  string  $serviceClass  Absolute path to the service file
      * @return AuditFinding[]
      */
     public function checkHttpPatterns(string $serviceClass): array
     {
         $findings = [];
 
-        if (!file_exists($serviceClass)) {
+        if (! file_exists($serviceClass)) {
             return $findings;
         }
 
@@ -662,7 +664,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
             '/curl_exec\s*\(/i',
         ];
 
-        if (!$this->matchesAnyPattern($sourceCode, $httpPatterns)) {
+        if (! $this->matchesAnyPattern($sourceCode, $httpPatterns)) {
             return $findings;
         }
 
@@ -678,18 +680,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
         $shortClass = $this->shortClassName($className);
 
         // Check for timeout configuration
-        if (!$this->matchesAnyPattern($sourceCode, self::TIMEOUT_PATTERNS)) {
+        if (! $this->matchesAnyPattern($sourceCode, self::TIMEOUT_PATTERNS)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::High,
                 title: "Missing HTTP timeout in {$shortClass}",
                 description: "Service {$shortClass} makes HTTP requests but does not configure timeouts. "
-                    . "Without timeouts, requests to unresponsive external services can hang indefinitely, "
-                    . "consuming server resources and blocking user requests.",
+                    .'Without timeouts, requests to unresponsive external services can hang indefinitely, '
+                    .'consuming server resources and blocking user requests.',
                 file: $this->relativePath($serviceClass),
                 line: null,
-                recommendation: "Add timeout configuration to HTTP requests, e.g., "
-                    . "Http::timeout(30)->get(...) or set 'timeout' in Guzzle options.",
+                recommendation: 'Add timeout configuration to HTTP requests, e.g., '
+                    ."Http::timeout(30)->get(...) or set 'timeout' in Guzzle options.",
                 metadata: [
                     'service' => $className,
                     'check' => 'http_timeout',
@@ -698,18 +700,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
         }
 
         // Check for retry logic
-        if (!$this->matchesAnyPattern($sourceCode, self::RETRY_PATTERNS)) {
+        if (! $this->matchesAnyPattern($sourceCode, self::RETRY_PATTERNS)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
                 title: "Missing HTTP retry logic in {$shortClass}",
                 description: "Service {$shortClass} makes HTTP requests but does not implement retry logic. "
-                    . "Transient network failures or temporary service outages can cause requests to fail "
-                    . "without retries, leading to unnecessary errors.",
+                    .'Transient network failures or temporary service outages can cause requests to fail '
+                    .'without retries, leading to unnecessary errors.',
                 file: $this->relativePath($serviceClass),
                 line: null,
-                recommendation: "Implement retry logic with exponential backoff, e.g., "
-                    . "Http::retry(3, 100)->get(...) or use Laravel's retry() helper.",
+                recommendation: 'Implement retry logic with exponential backoff, e.g., '
+                    ."Http::retry(3, 100)->get(...) or use Laravel's retry() helper.",
                 metadata: [
                     'service' => $className,
                     'check' => 'http_retry',
@@ -718,18 +720,18 @@ class IntegrationAnalyzer implements AnalyzerInterface
         }
 
         // Check for circuit breaker pattern
-        if (!$this->matchesAnyPattern($sourceCode, self::CIRCUIT_BREAKER_PATTERNS)) {
+        if (! $this->matchesAnyPattern($sourceCode, self::CIRCUIT_BREAKER_PATTERNS)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Low,
                 title: "Missing circuit breaker pattern in {$shortClass}",
                 description: "Service {$shortClass} makes HTTP requests but does not implement a circuit breaker. "
-                    . "Without a circuit breaker, repeated calls to a failing external service will continue "
-                    . "to timeout, degrading overall system performance.",
+                    .'Without a circuit breaker, repeated calls to a failing external service will continue '
+                    .'to timeout, degrading overall system performance.',
                 file: $this->relativePath($serviceClass),
                 line: null,
-                recommendation: "Implement a circuit breaker pattern that tracks failure counts and "
-                    . "temporarily stops calling the external service after a threshold is reached.",
+                recommendation: 'Implement a circuit breaker pattern that tracks failure counts and '
+                    .'temporarily stops calling the external service after a threshold is reached.',
                 metadata: [
                     'service' => $className,
                     'check' => 'http_circuit_breaker',
@@ -745,8 +747,8 @@ class IntegrationAnalyzer implements AnalyzerInterface
     /**
      * Check if source code matches any of the given regex patterns.
      *
-     * @param string $sourceCode Source code to search
-     * @param string[] $patterns Array of regex patterns
+     * @param  string  $sourceCode  Source code to search
+     * @param  string[]  $patterns  Array of regex patterns
      */
     private function matchesAnyPattern(string $sourceCode, array $patterns): bool
     {
@@ -768,7 +770,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
     {
         $files = [];
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -825,6 +827,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
     private function shortClassName(string $className): string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -833,7 +836,7 @@ class IntegrationAnalyzer implements AnalyzerInterface
      */
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

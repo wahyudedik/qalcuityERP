@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * AiCommandValidator - Validates and sanitizes AI-generated commands before execution.
- * 
+ *
  * Provides strict allowlist-based validation, parameter sanitization, and command structure
  * verification to prevent malicious or malformed commands from being executed.
  */
@@ -55,8 +55,8 @@ class AiCommandValidator
     /**
      * Validate a command's arguments against its schema.
      *
-     * @param string $commandName The name of the command
-     * @param array $arguments The arguments to validate
+     * @param  string  $commandName  The name of the command
+     * @param  array  $arguments  The arguments to validate
      * @return array ['valid' => bool, 'errors' => array, 'sanitized' => array]
      */
     public function validate(string $commandName, array $arguments): array
@@ -67,7 +67,7 @@ class AiCommandValidator
         // Get the tool definition to validate against
         $toolDef = $this->getToolDefinition($commandName);
 
-        if (!$toolDef) {
+        if (! $toolDef) {
             return [
                 'valid' => false,
                 'errors' => ["Unknown command: {$commandName}"],
@@ -78,7 +78,7 @@ class AiCommandValidator
         // Validate required parameters — required is nested inside parameters
         $requiredParams = $toolDef['parameters']['required'] ?? $toolDef['required'] ?? [];
         foreach ($requiredParams as $param) {
-            if (!array_key_exists($param, $arguments)) {
+            if (! array_key_exists($param, $arguments)) {
                 $errors[] = "Missing required parameter: {$param}";
             }
         }
@@ -86,9 +86,10 @@ class AiCommandValidator
         // Validate and sanitize each parameter
         $properties = $toolDef['parameters']['properties'] ?? [];
         foreach ($arguments as $paramName => $paramValue) {
-            if (!isset($properties[$paramName])) {
+            if (! isset($properties[$paramName])) {
                 // Skip unknown parameters silently instead of blocking execution
                 Log::debug("AiCommandValidator: Skipping unknown parameter '{$paramName}' for tool '{$commandName}'");
+
                 continue;
             }
 
@@ -134,6 +135,7 @@ class AiCommandValidator
             if ($isRequired && empty($schema['nullable'])) {
                 return ['valid' => false, 'errors' => ["Parameter {$name} is required"]];
             }
+
             return ['valid' => true, 'value' => null];
         }
 
@@ -171,8 +173,8 @@ class AiCommandValidator
             }
         }
 
-        if (isset($schema['enum']) && !in_array($sanitizedValue, $schema['enum'], true)) {
-            $errors[] = "Parameter {$name} must be one of: " . implode(', ', $schema['enum']);
+        if (isset($schema['enum']) && ! in_array($sanitizedValue, $schema['enum'], true)) {
+            $errors[] = "Parameter {$name} must be one of: ".implode(', ', $schema['enum']);
         }
 
         if (empty($errors)) {
@@ -188,19 +190,19 @@ class AiCommandValidator
     protected function validateType(string $name, mixed $value, string $type): array
     {
         $typeChecks = [
-            'string'  => 'is_string',
-            'integer' => fn($v) => is_int($v) || (is_numeric($v) && floor((float)$v) == (float)$v),
-            'number'  => 'is_numeric',
+            'string' => 'is_string',
+            'integer' => fn ($v) => is_int($v) || (is_numeric($v) && floor((float) $v) == (float) $v),
+            'number' => 'is_numeric',
             'boolean' => 'is_bool',
-            'array'   => 'is_array',
-            'object'  => fn($v) => is_array($v) || is_object($v),
+            'array' => 'is_array',
+            'object' => fn ($v) => is_array($v) || is_object($v),
         ];
 
-        if (!isset($typeChecks[$type])) {
+        if (! isset($typeChecks[$type])) {
             return ['valid' => false, 'errors' => ["Unknown type: {$type}"]];
         }
 
-        if (!$typeChecks[$type]($value)) {
+        if (! $typeChecks[$type]($value)) {
             return [
                 'valid' => false,
                 'errors' => ["Parameter {$name} must be of type {$type}"],
@@ -259,6 +261,7 @@ class AiCommandValidator
                     if (is_string($item)) {
                         return $this->sanitizeByType($item, 'string');
                     }
+
                     return $item;
                 }, $value);
                 break;
@@ -341,6 +344,7 @@ class AiCommandValidator
                 $maxDepth = max($maxDepth, $depth);
             }
         }
+
         return $maxDepth;
     }
 
@@ -362,6 +366,7 @@ class AiCommandValidator
                 Log::error('AiCommandValidator: Failed to load tool definitions', [
                     'error' => $e->getMessage(),
                 ]);
+
                 return null;
             }
         }

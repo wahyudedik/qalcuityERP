@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\MaterialDelivery;
-use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Material Delivery Tracking Service untuk Konstruksi
@@ -16,7 +16,7 @@ class MaterialDeliveryService
     public function createDelivery(array $data, int $tenantId): MaterialDelivery
     {
         // Generate delivery number
-        $deliveryNumber = 'DEL-' . date('Ymd') . '-' . str_pad(
+        $deliveryNumber = 'DEL-'.date('Ymd').'-'.str_pad(
             MaterialDelivery::where('tenant_id', $tenantId)->count() + 1,
             4,
             '0',
@@ -151,21 +151,21 @@ class MaterialDeliveryService
             'by_status' => $deliveries->groupBy('delivery_status')
                 ->map->count()
                 ->toArray(),
-            'on_time_deliveries' => $deliveries->filter(fn($d) => $d->isOnTime())->count(),
-            'delayed_deliveries' => $deliveries->filter(fn($d) => !$d->isOnTime() && $d->actual_delivery_date)->count(),
+            'on_time_deliveries' => $deliveries->filter(fn ($d) => $d->isOnTime())->count(),
+            'delayed_deliveries' => $deliveries->filter(fn ($d) => ! $d->isOnTime() && $d->actual_delivery_date)->count(),
             'pending_deliveries' => $deliveries->where('delivery_status', 'pending')->count(),
             'total_value' => $deliveries->sum('total_value'),
-            'avg_delay_days' => $deliveries->filter(fn($d) => !$d->isOnTime())
-                ->map(fn($d) => $d->getDaysDelayed())
+            'avg_delay_days' => $deliveries->filter(fn ($d) => ! $d->isOnTime())
+                ->map(fn ($d) => $d->getDaysDelayed())
                 ->avg() ?? 0,
             'by_category' => $deliveries->groupBy('material_category')
-                ->map(fn($items) => [
+                ->map(fn ($items) => [
                     'count' => $items->count(),
                     'total_quantity' => $items->sum('quantity_ordered'),
                     'total_value' => $items->sum('total_value'),
                 ])
                 ->toArray(),
-            'recent_deliveries' => $deliveries->sortByDesc('created_at')->take(10)->map(fn($d) => [
+            'recent_deliveries' => $deliveries->sortByDesc('created_at')->take(10)->map(fn ($d) => [
                 'id' => $d->id,
                 'delivery_number' => $d->delivery_number,
                 'material_name' => $d->material_name,
@@ -188,14 +188,14 @@ class MaterialDeliveryService
         $deliveries = MaterialDelivery::where('tenant_id', $tenantId)
             ->whereNotNull('actual_delivery_date')
             ->get()
-            ->filter(fn($d) => !$d->isOnTime())
-            ->sortByDesc(fn($d) => $d->getDaysDelayed());
+            ->filter(fn ($d) => ! $d->isOnTime())
+            ->sortByDesc(fn ($d) => $d->getDaysDelayed());
 
         return [
             'total_delayed' => $deliveries->count(),
-            'avg_delay_days' => $deliveries->map(fn($d) => $d->getDaysDelayed())->avg() ?? 0,
-            'max_delay_days' => $deliveries->map(fn($d) => $d->getDaysDelayed())->max() ?? 0,
-            'deliveries' => $deliveries->map(fn($d) => [
+            'avg_delay_days' => $deliveries->map(fn ($d) => $d->getDaysDelayed())->avg() ?? 0,
+            'max_delay_days' => $deliveries->map(fn ($d) => $d->getDaysDelayed())->max() ?? 0,
+            'deliveries' => $deliveries->map(fn ($d) => [
                 'delivery_number' => $d->delivery_number,
                 'material_name' => $d->material_name,
                 'supplier_name' => $d->supplier_name,
@@ -217,12 +217,12 @@ class MaterialDeliveryService
             ->where('delivery_status', '!=', 'cancelled')
             ->get();
 
-        $shortages = $deliveries->filter(fn($d) => $d->getShortage() > 0);
+        $shortages = $deliveries->filter(fn ($d) => $d->getShortage() > 0);
 
         return [
             'total_shortages' => $shortages->count(),
-            'total_shortage_value' => $shortages->sum(fn($d) => $d->getShortage() * $d->unit_price),
-            'items' => $shortages->map(fn($d) => [
+            'total_shortage_value' => $shortages->sum(fn ($d) => $d->getShortage() * $d->unit_price),
+            'items' => $shortages->map(fn ($d) => [
                 'delivery_number' => $d->delivery_number,
                 'material_name' => $d->material_name,
                 'ordered' => $d->quantity_ordered,
@@ -242,7 +242,7 @@ class MaterialDeliveryService
         $uploadedPaths = [];
 
         foreach ($photos as $photo) {
-            if ($photo instanceof \Illuminate\Http\UploadedFile) {
+            if ($photo instanceof UploadedFile) {
                 $path = $photo->store('material-deliveries', 'public');
                 $uploadedPaths[] = $path;
             }

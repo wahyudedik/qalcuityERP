@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BookingPassenger extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tour_booking_id',
@@ -49,7 +49,7 @@ class BookingPassenger extends Model
 
     public function getAgeAttribute(): ?int
     {
-        if (!$this->date_of_birth) {
+        if (! $this->date_of_birth) {
             return null;
         }
 
@@ -58,7 +58,7 @@ class BookingPassenger extends Model
 
     public function isPassportValid(): bool
     {
-        if (!$this->passport_expiry) {
+        if (! $this->passport_expiry) {
             return false;
         }
 

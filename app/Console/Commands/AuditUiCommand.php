@@ -12,22 +12,23 @@ class AuditUiCommand extends Command
     use HandlesAuditOutput;
 
     protected $signature = 'audit:ui {--directory=} {--format=console} {--severity=} {--output=}';
+
     protected $description = 'Run UI/responsiveness/accessibility audit.';
 
     public function handle(ViewAnalyzer $analyzer): int
     {
         $directory = strtolower((string) $this->option('directory'));
-        $report = new AuditReport();
+        $report = new AuditReport;
 
         foreach ($analyzer->analyze() as $finding) {
-            if ($directory !== '' && $finding->file !== null && !str_contains(strtolower($finding->file), $directory)) {
+            if ($directory !== '' && $finding->file !== null && ! str_contains(strtolower($finding->file), $directory)) {
                 continue;
             }
             $report->add($finding);
         }
 
         $severity = $this->resolveSeverityFilter($this->option('severity'));
-        $filtered = new AuditReport();
+        $filtered = new AuditReport;
         $filtered->addAll($report->getFindings(severity: $severity));
 
         $this->renderAuditReport(

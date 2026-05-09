@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('supplier_performances')) {
+        if (! Schema::hasTable('supplier_performances')) {
             Schema::create('supplier_performances', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -42,7 +43,7 @@ return new class extends Migration {
                 $table->text('delivery_notes')->nullable();
                 $table->foreignId('evaluated_by')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'supplier_id']);
                 $table->index(['tenant_id', 'evaluation_date']);
                 $table->index(['tenant_id', 'rating_grade']);

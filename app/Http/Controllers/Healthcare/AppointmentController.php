@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Models\Patient;
+use App\Models\QueueManagement;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,12 +100,12 @@ class AppointmentController extends Controller
         $user = Auth::user();
         $tenantId = $user?->tenant_id ?? abort(401, 'Unauthenticated.');
 
-        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+        $patients = Patient::where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'medical_record_number']);
 
-        $doctors = \App\Models\Doctor::where('tenant_id', $tenantId)
+        $doctors = Doctor::where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->get();
 
@@ -256,7 +258,7 @@ class AppointmentController extends Controller
 
         // Auto-assign queue number if outpatient
         if ($appointment->visit_type === 'general' || $appointment->visit_type === 'specialist') {
-            $queue = \App\Models\QueueManagement::create([
+            $queue = QueueManagement::create([
                 'patient_id' => $appointment->patient_id,
                 'appointment_id' => $appointment->id,
                 'queue_type' => $appointment->visit_type === 'specialist' ? 'specialist' : 'outpatient',

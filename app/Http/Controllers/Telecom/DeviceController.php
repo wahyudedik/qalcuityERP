@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Telecom;
 
 use App\Http\Controllers\Controller;
+use App\Models\NetworkAlert;
 use App\Models\NetworkDevice;
-use App\Services\Telecom\RouterIntegrationService;
 use App\Services\Telecom\BandwidthMonitoringService;
+use App\Services\Telecom\RouterIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -14,12 +15,13 @@ use Illuminate\Validation\Rule;
 class DeviceController extends Controller
 {
     protected RouterIntegrationService $integrationService;
+
     protected BandwidthMonitoringService $monitoringService;
 
     public function __construct()
     {
-        $this->integrationService = new RouterIntegrationService();
-        $this->monitoringService = new BandwidthMonitoringService();
+        $this->integrationService = new RouterIntegrationService;
+        $this->monitoringService = new BandwidthMonitoringService;
     }
 
     /**
@@ -145,7 +147,7 @@ class DeviceController extends Controller
 
         } catch (\Exception $e) {
             return back()->withInput()
-                ->withErrors(['error' => 'Gagal menambahkan device: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal menambahkan device: '.$e->getMessage()]);
         }
     }
 
@@ -169,11 +171,11 @@ class DeviceController extends Controller
             $healthCheck = $this->integrationService->checkDeviceHealth($device);
             $bandwidthUsage = $this->monitoringService->getDeviceBandwidthUsage($device);
         } catch (\Exception $e) {
-            Log::warning("Failed to get live data for device {$device->id}: " . $e->getMessage());
+            Log::warning("Failed to get live data for device {$device->id}: ".$e->getMessage());
         }
 
         // Get recent alerts
-        $recentAlerts = \App\Models\NetworkAlert::where('device_id', $device->id)
+        $recentAlerts = NetworkAlert::where('device_id', $device->id)
             ->where('tenant_id', $device->tenant_id)
             ->orderBy('triggered_at', 'desc')
             ->limit(10)
@@ -245,14 +247,14 @@ class DeviceController extends Controller
             ];
 
             // Only update password if provided
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $updateData['password'] = $validated['password'];
             }
 
             $device->update($updateData);
 
             // Re-test connection if credentials changed
-            if (!empty($validated['password']) || $device->wasChanged('ip_address') || $device->wasChanged('port')) {
+            if (! empty($validated['password']) || $device->wasChanged('ip_address') || $device->wasChanged('port')) {
                 $connectionTest = $this->integrationService->checkDeviceHealth($device);
 
                 if ($connectionTest['success']) {
@@ -265,7 +267,7 @@ class DeviceController extends Controller
 
         } catch (\Exception $e) {
             return back()->withInput()
-                ->withErrors(['error' => 'Gagal mengupdate device: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal mengupdate device: '.$e->getMessage()]);
         }
     }
 
@@ -295,7 +297,7 @@ class DeviceController extends Controller
                 ->with('success', "Device '{$deviceName}' berhasil dihapus.");
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus device: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus device: '.$e->getMessage()]);
         }
     }
 
@@ -327,14 +329,14 @@ class DeviceController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Koneksi gagal: ' . ($result['error'] ?? 'Unknown error'),
+                    'message' => 'Koneksi gagal: '.($result['error'] ?? 'Unknown error'),
                 ], 400);
             }
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error saat testing koneksi: ' . $e->getMessage(),
+                'message' => 'Error saat testing koneksi: '.$e->getMessage(),
             ], 500);
         }
     }

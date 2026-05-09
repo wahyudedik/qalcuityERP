@@ -4,15 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * BUG-REP-002 FIX: Track queued export jobs for progress monitoring
      */
     public function up(): void
     {
-        if (!Schema::hasTable('export_jobs')) {
+        if (! Schema::hasTable('export_jobs')) {
             Schema::create('export_jobs', function (Blueprint $table) {
                 $table->id();
                 $table->string('job_id')->unique(); // UUID for tracking
@@ -32,7 +33,7 @@ return new class extends Migration {
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamp('failed_at')->nullable();
                 $table->timestamps();
-    
+
                 // Indexes for performance
                 $table->index(['tenant_id', 'status']);
                 $table->index(['user_id', 'created_at']);

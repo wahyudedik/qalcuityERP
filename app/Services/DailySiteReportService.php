@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Models\DailySiteReport;
+use App\Models\Project;
 use App\Models\SiteLaborLog;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Daily Site Report Service untuk Konstruksi
@@ -36,7 +37,7 @@ class DailySiteReportService
         ]);
 
         // Create labor logs if provided
-        if (!empty($data['labor_logs'])) {
+        if (! empty($data['labor_logs'])) {
             foreach ($data['labor_logs'] as $laborData) {
                 SiteLaborLog::create([
                     'tenant_id' => $tenantId,
@@ -64,7 +65,7 @@ class DailySiteReportService
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
-        if (!$report->isComplete()) {
+        if (! $report->isComplete()) {
             throw new \Exception('Report is incomplete. Please fill all required fields.');
         }
 
@@ -122,13 +123,13 @@ class DailySiteReportService
             'weather_summary' => $reports->groupBy('weather_condition')
                 ->map->count()
                 ->toArray(),
-            'recent_reports' => $reports->take(10)->map(fn($r) => [
+            'recent_reports' => $reports->take(10)->map(fn ($r) => [
                 'id' => $r->id,
                 'date' => $r->report_date->format('Y-m-d'),
                 'progress' => $r->progress_percentage,
                 'manpower' => $r->manpower_count,
                 'weather' => $r->weather_condition,
-                'has_photos' => !empty($r->photos),
+                'has_photos' => ! empty($r->photos),
                 'photo_count' => count($r->photos ?? []),
             ]),
         ];
@@ -152,7 +153,7 @@ class DailySiteReportService
             'total_hours' => $laborLogs->sum('hours_worked'),
             'total_cost' => $laborLogs->sum('total_cost'),
             'by_trade' => $laborLogs->groupBy('trade')
-                ->map(fn($logs) => [
+                ->map(fn ($logs) => [
                     'count' => $logs->count(),
                     'total_hours' => $logs->sum('hours_worked'),
                     'total_cost' => $logs->sum('total_cost'),
@@ -160,7 +161,7 @@ class DailySiteReportService
                 ])
                 ->toArray(),
             'by_type' => $laborLogs->groupBy('worker_type')
-                ->map(fn($logs) => [
+                ->map(fn ($logs) => [
                     'count' => $logs->count(),
                     'total_cost' => $logs->sum('total_cost'),
                 ])
@@ -176,7 +177,7 @@ class DailySiteReportService
         $uploadedPaths = [];
 
         foreach ($photos as $photo) {
-            if ($photo instanceof \Illuminate\Http\UploadedFile) {
+            if ($photo instanceof UploadedFile) {
                 $path = $photo->store('site-reports', 'public');
                 $uploadedPaths[] = $path;
             }
@@ -196,7 +197,7 @@ class DailySiteReportService
             ->first();
 
         if ($latestReport) {
-            $project = \App\Models\Project::find($projectId);
+            $project = Project::find($projectId);
             if ($project) {
                 $project->update(['progress' => $latestReport->progress_percentage]);
             }

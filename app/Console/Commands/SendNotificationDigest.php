@@ -66,9 +66,11 @@ class SendNotificationDigest extends Command
         try {
             $sent = $this->digestService->sendDailyDigest();
             $this->info("✅ Daily digest sent to {$sent} user(s).");
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error("❌ Failed to send daily digest: " . $e->getMessage());
+            $this->error('❌ Failed to send daily digest: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -83,9 +85,11 @@ class SendNotificationDigest extends Command
         try {
             $sent = $this->digestService->sendWeeklyDigest();
             $this->info("✅ Weekly digest sent to {$sent} user(s).");
+
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->error("❌ Failed to send weekly digest: " . $e->getMessage());
+            $this->error('❌ Failed to send weekly digest: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

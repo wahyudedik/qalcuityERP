@@ -23,8 +23,8 @@ class DarkModeChartTest extends TestCase
     {
         $chartThemeFile = 'resources/js/chart-theme.js';
 
-        if (!file_exists($chartThemeFile)) {
-            $this->markTestSkipped("chart-theme.js tidak ditemukan");
+        if (! file_exists($chartThemeFile)) {
+            $this->markTestSkipped('chart-theme.js tidak ditemukan');
         }
 
         $content = file_get_contents($chartThemeFile);
@@ -37,20 +37,20 @@ class DarkModeChartTest extends TestCase
 
         $this->assertFalse(
             $hasThemeChangedListener,
-            "chart-theme.js should NOT have theme-changed event listener after dark mode removal"
+            'chart-theme.js should NOT have theme-changed event listener after dark mode removal'
         );
 
         // Verify light mode colors are used
         $this->assertStringContainsString(
             '#1e293b',
             $content,
-            "chart-theme.js should use light mode text color #1e293b"
+            'chart-theme.js should use light mode text color #1e293b'
         );
 
         $this->assertStringContainsString(
             '#64748b',
             $content,
-            "chart-theme.js should use light mode muted color #64748b"
+            'chart-theme.js should use light mode muted color #64748b'
         );
     }
 
@@ -65,7 +65,7 @@ class DarkModeChartTest extends TestCase
         // theme-manager.js should have been deleted
         $this->assertFileDoesNotExist(
             $themeManagerFile,
-            "theme-manager.js should have been deleted after dark mode removal"
+            'theme-manager.js should have been deleted after dark mode removal'
         );
     }
 
@@ -91,9 +91,9 @@ class DarkModeChartTest extends TestCase
         $flatpickrUsed = str_contains($allJsContent, 'flatpickr') ||
             file_exists('node_modules/flatpickr');
 
-        if (!$flatpickrUsed) {
+        if (! $flatpickrUsed) {
             $this->markTestSkipped(
-                "Flatpickr tidak digunakan di project ini — test dikecualikan."
+                'Flatpickr tidak digunakan di project ini — test dikecualikan.'
             );
         }
 
@@ -105,7 +105,7 @@ class DarkModeChartTest extends TestCase
 
         $this->assertFalse(
             $hasFlatpickrThemeListener,
-            "No theme-changed listener for Flatpickr should exist after dark mode removal"
+            'No theme-changed listener for Flatpickr should exist after dark mode removal'
         );
     }
 }

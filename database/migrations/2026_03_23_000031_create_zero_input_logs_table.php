@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('zero_input_logs')) {
+        if (! Schema::hasTable('zero_input_logs')) {
             Schema::create('zero_input_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -21,7 +22,7 @@ return new class extends Migration {
                 $table->string('file_path')->nullable();     // path foto/file
                 $table->text('error_message')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'created_at']);
             });
         }

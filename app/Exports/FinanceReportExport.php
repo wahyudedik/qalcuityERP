@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class FinanceReportExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $startDate,
         protected string $endDate,
     ) {}
@@ -51,5 +51,8 @@ class FinanceReportExport implements FromQuery, WithHeadings, WithMapping, WithS
         ];
     }
 
-    public function title(): string { return 'Laporan Keuangan'; }
+    public function title(): string
+    {
+        return 'Laporan Keuangan';
+    }
 }

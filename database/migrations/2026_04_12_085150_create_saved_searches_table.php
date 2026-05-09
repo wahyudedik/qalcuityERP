@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('saved_searches')) {
+        if (! Schema::hasTable('saved_searches')) {
             Schema::create('saved_searches', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -23,7 +24,7 @@ return new class extends Migration {
                 $table->timestamp('last_used_at')->nullable();
                 $table->boolean('is_public')->default(false);
                 $table->timestamps();
-    
+
                 $table->index(['user_id', 'is_public']);
                 $table->index(['query', 'type']);
                 $table->index('last_used_at');

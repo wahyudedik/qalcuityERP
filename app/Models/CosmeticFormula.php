@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -148,6 +147,7 @@ class CosmeticFormula extends Model
         }
 
         $this->save();
+
         return $totalCost;
     }
 
@@ -156,11 +156,12 @@ class CosmeticFormula extends Model
      */
     public function isPhWithinRange(float $tolerance = 0.5): bool
     {
-        if (!$this->target_ph || !$this->actual_ph) {
+        if (! $this->target_ph || ! $this->actual_ph) {
             return false;
         }
 
         $diff = abs($this->target_ph - $this->actual_ph);
+
         return $diff <= $tolerance;
     }
 
@@ -171,7 +172,8 @@ class CosmeticFormula extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'CF-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'CF-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -215,7 +217,7 @@ class CosmeticFormula extends Model
     public function isReadyForProduction(): bool
     {
         // Must be approved
-        if (!$this->isApproved()) {
+        if (! $this->isApproved()) {
             return false;
         }
 
@@ -225,7 +227,7 @@ class CosmeticFormula extends Model
         }
 
         // Must have pH measured
-        if (!$this->actual_ph) {
+        if (! $this->actual_ph) {
             return false;
         }
 

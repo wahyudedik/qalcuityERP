@@ -4,8 +4,8 @@ namespace App\Http\Controllers\MultiCompany;
 
 use App\Http\Controllers\Controller;
 use App\Services\MultiCompany\CompanyGroupService;
-use App\Services\MultiCompany\InterCompanyTransactionService;
 use App\Services\MultiCompany\ConsolidationService;
+use App\Services\MultiCompany\InterCompanyTransactionService;
 use App\Services\MultiCompany\InventoryTransferService;
 use App\Services\MultiCompany\SharedServiceService;
 use Illuminate\Http\Request;
@@ -13,9 +13,13 @@ use Illuminate\Http\Request;
 class MultiCompanyController extends Controller
 {
     protected $companyGroupService;
+
     protected $interCompanyService;
+
     protected $consolidationService;
+
     protected $inventoryTransferService;
+
     protected $sharedServiceService;
 
     public function __construct(
@@ -73,18 +77,21 @@ class MultiCompanyController extends Controller
     public function removeSubsidiary(int $groupId, int $tenantId)
     {
         $success = $this->companyGroupService->removeSubsidiary($groupId, $tenantId);
+
         return response()->json(['success' => $success]);
     }
 
     public function getMyGroups()
     {
         $groups = $this->companyGroupService->getTenantGroups(auth()->user()->tenant_id);
+
         return response()->json(['success' => true, 'groups' => $groups]);
     }
 
     public function getGroupStructure(int $groupId)
     {
         $structure = $this->companyGroupService->getGroupStructure($groupId);
+
         return response()->json(['success' => true, 'structure' => $structure]);
     }
 
@@ -140,6 +147,7 @@ class MultiCompanyController extends Controller
     public function approveTransaction(int $transactionId)
     {
         $success = $this->interCompanyService->approveTransaction($transactionId, auth()->id());
+
         return response()->json(['success' => $success]);
     }
 
@@ -150,18 +158,21 @@ class MultiCompanyController extends Controller
         ]);
 
         $success = $this->interCompanyService->rejectTransaction($transactionId, $request->reason);
+
         return response()->json(['success' => $success]);
     }
 
     public function completeTransaction(int $transactionId)
     {
         $success = $this->interCompanyService->completeTransaction($transactionId);
+
         return response()->json(['success' => $success]);
     }
 
     public function getPendingTransactions(int $groupId)
     {
         $transactions = $this->interCompanyService->getPendingTransactions($groupId);
+
         return response()->json(['success' => true, 'transactions' => $transactions]);
     }
 
@@ -171,12 +182,14 @@ class MultiCompanyController extends Controller
         $status = $request->query('status');
 
         $history = $this->interCompanyService->getTransactionHistory($groupId, $type, $status);
+
         return response()->json(['success' => true, 'history' => $history]);
     }
 
     public function reconcileAccounts(int $groupId, int $tenantId, int $counterpartyId)
     {
         $reconciliation = $this->interCompanyService->reconcileAccounts($groupId, $tenantId, $counterpartyId);
+
         return response()->json(['success' => true, 'reconciliation' => $reconciliation]);
     }
 
@@ -219,12 +232,14 @@ class MultiCompanyController extends Controller
     public function finalizeReport(int $reportId)
     {
         $success = $this->consolidationService->finalizeReport($reportId);
+
         return response()->json(['success' => $success]);
     }
 
     public function approveReport(int $reportId)
     {
         $success = $this->consolidationService->approveReport($reportId, auth()->id());
+
         return response()->json(['success' => $success]);
     }
 
@@ -232,6 +247,7 @@ class MultiCompanyController extends Controller
     {
         $reportType = $request->query('report_type');
         $history = $this->consolidationService->getReportHistory($groupId, $reportType);
+
         return response()->json(['success' => true, 'history' => $history]);
     }
 
@@ -267,6 +283,7 @@ class MultiCompanyController extends Controller
     {
         $trackingNumber = $request->input('tracking_number');
         $success = $this->inventoryTransferService->sendTransfer($transferId, $trackingNumber);
+
         return response()->json(['success' => $success]);
     }
 
@@ -278,24 +295,28 @@ class MultiCompanyController extends Controller
             auth()->id(),
             $receivedQuantities
         );
+
         return response()->json(['success' => $success]);
     }
 
     public function cancelTransfer(int $transferId)
     {
         $success = $this->inventoryTransferService->cancelTransfer($transferId);
+
         return response()->json(['success' => $success]);
     }
 
     public function getTransferByNumber(string $transferNumber)
     {
         $transfer = $this->inventoryTransferService->getTransferByNumber($transferNumber);
+
         return response()->json(['success' => true, 'transfer' => $transfer]);
     }
 
     public function getPendingTransfers(int $groupId)
     {
         $transfers = $this->inventoryTransferService->getPendingTransfers($groupId);
+
         return response()->json(['success' => true, 'transfers' => $transfers]);
     }
 
@@ -303,6 +324,7 @@ class MultiCompanyController extends Controller
     {
         $status = $request->query('status');
         $history = $this->inventoryTransferService->getTransferHistory($groupId, $status);
+
         return response()->json(['success' => true, 'history' => $history]);
     }
 
@@ -369,24 +391,28 @@ class MultiCompanyController extends Controller
         ]);
 
         $success = $this->sharedServiceService->markAsInvoiced($billingId, $request->invoice_id);
+
         return response()->json(['success' => $success]);
     }
 
     public function markBillingAsPaid(int $billingId)
     {
         $success = $this->sharedServiceService->markAsPaid($billingId);
+
         return response()->json(['success' => $success]);
     }
 
     public function getServiceSubscribers(int $serviceId)
     {
         $subscribers = $this->sharedServiceService->getServiceSubscribers($serviceId);
+
         return response()->json(['success' => true, 'subscribers' => $subscribers]);
     }
 
     public function getPendingBillings(int $groupId)
     {
         $billings = $this->sharedServiceService->getPendingBillings($groupId);
+
         return response()->json(['success' => true, 'billings' => $billings]);
     }
 

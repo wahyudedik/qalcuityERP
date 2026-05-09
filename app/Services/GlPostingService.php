@@ -6,6 +6,7 @@ use App\Models\AccountingPeriod;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -34,10 +35,8 @@ class GlPostingService
      *   ──────────────────────────────────────────────────────────────
      *   Cr  1202  Akumulasi Penyusutan    (total depresiasi periode ini)
      *
-     * @param  int    $tenantId
-     * @param  int    $userId
-     * @param  string $period     Format Y-m, e.g. "2026-03"
-     * @param  float  $totalAmount Total depresiasi semua aset periode ini
+     * @param  string  $period  Format Y-m, e.g. "2026-03"
+     * @param  float  $totalAmount  Total depresiasi semua aset periode ini
      * @param  array  $assetLines  [['asset_name' => ..., 'amount' => ...], ...]
      */
     public function postDepreciation(
@@ -53,16 +52,16 @@ class GlPostingService
 
         // Build description lines
         $desc = count($assetLines) > 0
-            ? implode('; ', array_map(fn($l) => "{$l['asset_name']} Rp " . number_format($l['amount'], 0, ',', '.'), array_slice($assetLines, 0, 5)))
+            ? implode('; ', array_map(fn ($l) => "{$l['asset_name']} Rp ".number_format($l['amount'], 0, ',', '.'), array_slice($assetLines, 0, 5)))
             : "Depresiasi {$period}";
 
         if (count($assetLines) > 5) {
-            $desc .= ' ... (+' . (count($assetLines) - 5) . ' aset lainnya)';
+            $desc .= ' ... (+'.(count($assetLines) - 5).' aset lainnya)';
         }
 
         // Use last day of the period as journal date
         [$year, $month] = explode('-', $period);
-        $date = \Carbon\Carbon::create((int) $year, (int) $month)->endOfMonth()->toDateString();
+        $date = Carbon::create((int) $year, (int) $month)->endOfMonth()->toDateString();
 
         return $this->createAndPost(
             refType: 'asset_depreciation',
@@ -91,7 +90,7 @@ class GlPostingService
         float $total,
         float $cogs = 0,
         string $paymentType = 'credit',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $lines = [];
@@ -130,7 +129,7 @@ class GlPostingService
         int $refId,
         float $amount,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -160,7 +159,7 @@ class GlPostingService
         float $subtotal,
         float $taxAmount,
         float $total,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $lines = [
@@ -190,7 +189,7 @@ class GlPostingService
         int $invoiceId,
         float $amount,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -220,7 +219,7 @@ class GlPostingService
         float $total,
         float $taxAmount = 0,
         string $paymentType = 'credit',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $inventoryAmount = $total - $taxAmount;
@@ -252,7 +251,7 @@ class GlPostingService
         int $poId,
         float $amount,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -283,7 +282,7 @@ class GlPostingService
         float $taxAmount,
         float $total,
         float $cogs = 0,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $lines = [
@@ -321,7 +320,7 @@ class GlPostingService
         float $taxAmount,
         float $total,
         float $cogs = 0,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $lines = [
@@ -357,7 +356,7 @@ class GlPostingService
         int $dpId,
         float $amount,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -384,7 +383,7 @@ class GlPostingService
         int $dpId,
         float $amount,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -410,13 +409,13 @@ class GlPostingService
         string $reference,
         int $dpId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
 
         return $this->createAndPost(
             'down_payment_applied',
-            $reference . '-APP',
+            $reference.'-APP',
             $dpId,
             $tenantId,
             $userId,
@@ -440,7 +439,7 @@ class GlPostingService
         array $invoiceLines,
         float $overpayment = 0,
         string $method = 'transfer',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $cashCode = $method === 'cash' ? '1101' : '1102';
@@ -476,7 +475,7 @@ class GlPostingService
         string $paymentMethod,
         string $categoryType,
         string $categoryName,
-        string $date = null,
+        ?string $date = null,
         ?string $coaAccountCode = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
@@ -524,9 +523,10 @@ class GlPostingService
         int $refId,
         float $amount,
         string $cashCode = '1101',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'reimbursement',
             $reference,
@@ -555,9 +555,10 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'sales_commission',
             $reference,
@@ -588,7 +589,7 @@ class GlPostingService
         int $refId,
         float $totalSales,
         float $commission,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
         $net = $totalSales - $commission;
@@ -599,6 +600,7 @@ class GlPostingService
         if ($commission > 0) {
             $lines[] = ['code' => '5205', 'debit' => $commission, 'credit' => 0, 'desc' => "Komisi konsinyasi {$reference}"];
         }
+
         return $this->createAndPost(
             'consignment_sales',
             $reference,
@@ -623,9 +625,10 @@ class GlPostingService
         int $refId,
         float $amount,
         string $cashCode = '1102',
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'consignment_settlement',
             $reference,
@@ -654,9 +657,10 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'landed_cost',
             $reference,
@@ -685,9 +689,10 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'contract_billing_customer',
             $reference,
@@ -714,9 +719,10 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
+
         return $this->createAndPost(
             'contract_billing_supplier',
             $reference,
@@ -745,7 +751,7 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
 
@@ -775,7 +781,7 @@ class GlPostingService
         string $reference,
         int $refId,
         float $amount,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
 
@@ -807,7 +813,7 @@ class GlPostingService
         string $woNumber,
         int $woId,
         float $materialCost,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
 
@@ -837,13 +843,13 @@ class GlPostingService
         string $woNumber,
         int $woId,
         float $totalCost,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         $date ??= today()->toDateString();
 
         return $this->createAndPost(
             'production_output',
-            $woNumber . '-OUT',
+            $woNumber.'-OUT',
             $woId,
             $tenantId,
             $userId,
@@ -879,7 +885,7 @@ class GlPostingService
         float $totalSales,
         float $totalCash,
         float $totalNonCash,
-        string $date = null
+        ?string $date = null
     ): GlPostingResult {
         if ($totalSales <= 0) {
             return GlPostingResult::skipped('Total penjualan POS 0, tidak perlu jurnal.');
@@ -890,27 +896,27 @@ class GlPostingService
 
         if ($totalCash > 0) {
             $lines[] = [
-                'code'  => '1101',
+                'code' => '1101',
                 'debit' => $totalCash,
                 'credit' => 0,
-                'desc'  => "Kas POS sesi {$sessionNumber}",
+                'desc' => "Kas POS sesi {$sessionNumber}",
             ];
         }
 
         if ($totalNonCash > 0) {
             $lines[] = [
-                'code'  => '1102',
+                'code' => '1102',
                 'debit' => $totalNonCash,
                 'credit' => 0,
-                'desc'  => "Bank/Non-Tunai POS sesi {$sessionNumber}",
+                'desc' => "Bank/Non-Tunai POS sesi {$sessionNumber}",
             ];
         }
 
         $lines[] = [
-            'code'   => '4101',
-            'debit'  => 0,
+            'code' => '4101',
+            'debit' => 0,
             'credit' => $totalSales,
-            'desc'   => "Pendapatan penjualan POS sesi {$sessionNumber}",
+            'desc' => "Pendapatan penjualan POS sesi {$sessionNumber}",
         ];
 
         return $this->createAndPost(
@@ -951,6 +957,7 @@ class GlPostingService
 
                 if ($exists) {
                     Log::info("GL Auto-Post skipped (already exists): {$refType} {$reference}");
+
                     return GlPostingResult::skipped("Jurnal sudah ada untuk {$refType} {$reference}");
                 }
 
@@ -960,7 +967,7 @@ class GlPostingService
 
                 foreach ($lines as $line) {
                     $accountId = $this->resolveAccount($tenantId, $line['code']);
-                    if (!$accountId) {
+                    if (! $accountId) {
                         $missingCodes[] = $line['code'];
                     } else {
                         $resolvedLines[] = [
@@ -972,9 +979,10 @@ class GlPostingService
                     }
                 }
 
-                if (!empty($missingCodes)) {
+                if (! empty($missingCodes)) {
                     $codesStr = implode(', ', $missingCodes);
                     Log::warning("GL Auto-Post: akun [{$codesStr}] tidak ditemukan untuk tenant {$tenantId}. Ref: {$refType} {$reference}");
+
                     return GlPostingResult::failed(
                         "Akun COA tidak ditemukan: {$codesStr}",
                         $missingCodes
@@ -987,15 +995,17 @@ class GlPostingService
                 if (abs($totalDebit - $totalCredit) > 0.01) {
                     $msg = "Jurnal tidak balance (D={$totalDebit} C={$totalCredit})";
                     Log::warning("GL Auto-Post: {$msg} untuk {$refType} {$reference}");
+
                     return GlPostingResult::failed($msg);
                 }
 
                 // BUG-FIN-002 FIX: Check period lock before creating journal
-                $periodLockService = app(\App\Services\PeriodLockService::class);
+                $periodLockService = app(PeriodLockService::class);
                 if ($periodLockService->isLocked($tenantId, $date)) {
                     $lockInfo = $periodLockService->getLockInfo($tenantId, $date);
                     $msg = "Periode {$lockInfo} sudah dikunci. Tidak dapat membuat jurnal untuk tanggal {$date}.";
                     Log::warning("GL Auto-Post: {$msg} Ref: {$refType} {$reference}");
+
                     return GlPostingResult::failed($msg);
                 }
 
@@ -1033,11 +1043,12 @@ class GlPostingService
 
         } catch (\Throwable $e) {
             // Transaction will be automatically rolled back by Laravel
-            Log::error("GL Auto-Post exception for {$refType} {$reference}: " . $e->getMessage(), [
+            Log::error("GL Auto-Post exception for {$refType} {$reference}: ".$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'rolled_back' => true
+                'rolled_back' => true,
             ]);
-            return GlPostingResult::failed("Exception: " . $e->getMessage());
+
+            return GlPostingResult::failed('Exception: '.$e->getMessage());
         }
     }
 
@@ -1057,6 +1068,7 @@ class GlPostingService
             ->value('id');
 
         $this->accountCache[$key] = $id;
+
         return $id;
     }
 }

@@ -13,7 +13,9 @@ class DocumentApprovalNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected Document $document;
+
     protected string $action;
+
     protected string $comments;
 
     /**

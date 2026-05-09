@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Tenant;
 use App\Services\AutomatedBackupService;
 use Illuminate\Console\Command;
 
@@ -35,7 +36,7 @@ class CreateDailyBackup extends Command
         $type = $this->option('type');
 
         // Get all tenants
-        $tenants = \App\Models\Tenant::all();
+        $tenants = Tenant::all();
 
         $this->info("Found {$tenants->count()} tenants to backup");
 
@@ -58,7 +59,7 @@ class CreateDailyBackup extends Command
                 }
 
             } catch (\Throwable $e) {
-                $this->error("✗ Tenant {$tenant->id}: " . $e->getMessage());
+                $this->error("✗ Tenant {$tenant->id}: ".$e->getMessage());
                 $failCount++;
             }
         }
@@ -66,7 +67,7 @@ class CreateDailyBackup extends Command
         $this->info("\nBackup Summary:");
         $this->info("Success: {$successCount}");
         $this->error("Failed: {$failCount}");
-        $this->info("Total: " . ($successCount + $failCount));
+        $this->info('Total: '.($successCount + $failCount));
 
         return 0;
     }

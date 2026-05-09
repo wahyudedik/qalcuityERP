@@ -21,6 +21,7 @@ class SecurityAiPromptInjectionTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -45,8 +46,8 @@ class SecurityAiPromptInjectionTest extends TestCase
     {
         $geminiFile = 'app/Services/GeminiService.php';
 
-        if (!file_exists($geminiFile)) {
-            $this->markTestSkipped("GeminiService tidak ditemukan");
+        if (! file_exists($geminiFile)) {
+            $this->markTestSkipped('GeminiService tidak ditemukan');
         }
 
         $content = file_get_contents($geminiFile);
@@ -64,14 +65,14 @@ class SecurityAiPromptInjectionTest extends TestCase
         // Test ini AKAN GAGAL karena GeminiService tidak memiliki sanitasi input
         $this->assertFalse(
             $hasSanitization,
-            "GeminiService sudah memiliki sanitasi - test perlu diupdate"
+            'GeminiService sudah memiliki sanitasi - test perlu diupdate'
         );
 
         // Verifikasi bahwa tidak ada sanitasi (membuktikan bug ada)
         $this->assertFalse(
             $hasSanitization,
-            "Bug 1.25: GeminiService tidak memiliki sanitasi input untuk prompt injection. " .
-            "Input pengguna diteruskan langsung ke Gemini API tanpa filtering."
+            'Bug 1.25: GeminiService tidak memiliki sanitasi input untuk prompt injection. '.
+            'Input pengguna diteruskan langsung ke Gemini API tanpa filtering.'
         );
     }
 
@@ -101,7 +102,7 @@ class SecurityAiPromptInjectionTest extends TestCase
         $hasInjectionFilter = false;
 
         foreach ($aiServiceFiles as $file) {
-            if (!file_exists($file)) {
+            if (! file_exists($file)) {
                 continue;
             }
 
@@ -123,9 +124,9 @@ class SecurityAiPromptInjectionTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada injection filter
         $this->assertTrue(
             $hasInjectionFilter,
-            "Bug 1.25: Tidak ditemukan filter untuk pola prompt injection di AI service. " .
-            "Pola seperti 'ignore previous instructions' diteruskan langsung ke Gemini API. " .
-            "File yang dicari: " . implode(', ', $aiServiceFiles)
+            'Bug 1.25: Tidak ditemukan filter untuk pola prompt injection di AI service. '.
+            "Pola seperti 'ignore previous instructions' diteruskan langsung ke Gemini API. ".
+            'File yang dicari: '.implode(', ', $aiServiceFiles)
         );
     }
 
@@ -145,7 +146,7 @@ class SecurityAiPromptInjectionTest extends TestCase
         $hasLengthLimit = false;
 
         foreach ($aiServiceFiles as $file) {
-            if (!file_exists($file)) {
+            if (! file_exists($file)) {
                 continue;
             }
 
@@ -166,9 +167,9 @@ class SecurityAiPromptInjectionTest extends TestCase
         // Test ini AKAN GAGAL karena tidak ada pembatasan panjang input
         $this->assertTrue(
             $hasLengthLimit,
-            "Bug 1.25: Tidak ditemukan pembatasan panjang input untuk AI Chat. " .
-            "Input pengguna yang sangat panjang bisa digunakan untuk prompt injection " .
-            "atau menghabiskan token Gemini API."
+            'Bug 1.25: Tidak ditemukan pembatasan panjang input untuk AI Chat. '.
+            'Input pengguna yang sangat panjang bisa digunakan untuk prompt injection '.
+            'atau menghabiskan token Gemini API.'
         );
     }
 }

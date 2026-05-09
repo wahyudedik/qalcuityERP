@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('erp_notifications')) {
+        if (! Schema::hasTable('erp_notifications')) {
             Schema::create('erp_notifications', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->json('data')->nullable();
                 $table->timestamp('read_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'user_id', 'read_at']);
             });
         }

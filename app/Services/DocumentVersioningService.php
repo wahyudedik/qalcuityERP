@@ -4,14 +4,14 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentVersion;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Document Versioning Service
- * 
+ *
  * Handles document version control, version history, and rollback functionality.
  */
 class DocumentVersioningService
@@ -170,7 +170,7 @@ class DocumentVersioningService
      */
     public function downloadVersion(DocumentVersion $version)
     {
-        if (!Storage::exists($version->file_path)) {
+        if (! Storage::exists($version->file_path)) {
             abort(404, 'Version file not found');
         }
 
@@ -182,11 +182,11 @@ class DocumentVersioningService
      */
     protected function handleFileUpload(Document $document, ?UploadedFile $file = null): array
     {
-        if (!$file) {
+        if (! $file) {
             return [];
         }
 
-        $path = $file->store('documents/' . $document->tenant_id, 'public');
+        $path = $file->store('documents/'.$document->tenant_id, 'public');
 
         return [
             'file_name' => $file->getClientOriginalName(),
@@ -217,7 +217,7 @@ class DocumentVersioningService
             'total_storage' => $versions->sum('file_size'),
             'last_updated' => $versions->first()->created_at->format('d M Y H:i'),
             'most_active_editor' => $versions->groupBy('changed_by')
-                ->sortByDesc(fn($group) => $group->count())
+                ->sortByDesc(fn ($group) => $group->count())
                 ->keys()
                 ->first(),
         ];

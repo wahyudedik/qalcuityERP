@@ -2,22 +2,22 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property \Carbon\Carbon $start_date
- * @property \Carbon\Carbon $end_date
+ * @property Carbon $start_date
+ * @property Carbon $end_date
  */
 class GroupBooking extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -82,7 +82,7 @@ class GroupBooking extends Model
             ->whereYear('created_at', $year)
             ->count() + 1;
 
-        return "{$prefix}/{$year}/" . str_pad($count, 5, '0', STR_PAD_LEFT);
+        return "{$prefix}/{$year}/".str_pad($count, 5, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -109,6 +109,7 @@ class GroupBooking extends Model
         if ($this->total_amount == 0) {
             return 0;
         }
+
         return round(($this->paid_amount / $this->total_amount) * 100, 2);
     }
 

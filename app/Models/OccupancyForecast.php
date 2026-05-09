@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OccupancyForecast extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -73,6 +72,6 @@ class OccupancyForecast extends Model
      */
     public function getOccupancyRatePercentageAttribute(): string
     {
-        return number_format($this->projected_occupancy_rate, 1) . '%';
+        return number_format($this->projected_occupancy_rate, 1).'%';
     }
 }

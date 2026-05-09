@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -52,7 +53,7 @@ class ProductRecall extends Model
         return $this->belongsTo(CosmeticFormula::class, 'product_id');
     }
 
-    public function batches(): \Illuminate\Database\Eloquent\Collection
+    public function batches(): Collection
     {
         return CosmeticBatchRecord::whereIn('id', $this->batch_ids ?? [])->get();
     }

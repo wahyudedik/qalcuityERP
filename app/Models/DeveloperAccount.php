@@ -34,14 +34,17 @@ class DeveloperAccount extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function apps()
     {
         return $this->hasMany(MarketplaceApp::class, 'developer_id');
     }
+
     public function earnings()
     {
         return $this->hasMany(DeveloperEarning::class);
     }
+
     public function payouts()
     {
         return $this->hasMany(DeveloperPayout::class);

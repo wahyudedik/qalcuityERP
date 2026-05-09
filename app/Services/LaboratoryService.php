@@ -2,11 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\LabTestCatalog;
-use App\Models\LabSample;
-use App\Models\LabResultDetail;
+use App\Jobs\Healthcare\EscalateCriticalLabResult;
+use App\Models\ActivityLog;
+use App\Models\ErpNotification;
 use App\Models\LabEquipment;
+use App\Models\LabEquipmentCalibration;
+use App\Models\LabQcLog;
+use App\Models\LabResultDetail;
+use App\Models\LabSample;
 use Exception;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -30,7 +35,7 @@ class LaboratoryService
                 'status' => 'collected',
             ]);
 
-            Log::info("Lab sample created", [
+            Log::info('Lab sample created', [
                 'sample_number' => $sample->sample_number,
                 'sample_type' => $sample->sample_type,
             ]);
@@ -60,7 +65,7 @@ class LaboratoryService
 
             $sample->update($updateData);
 
-            Log::info("Lab sample received", [
+            Log::info('Lab sample received', [
                 'sample_number' => $sample->sample_number,
                 'condition' => $condition,
             ]);
@@ -182,7 +187,7 @@ class LaboratoryService
                 $qcData['acceptable_range_max']
             );
 
-            $qcLog = \App\Models\LabQcLog::create([
+            $qcLog = LabQcLog::create([
                 'equipment_id' => $qcData['equipment_id'] ?? null,
                 'test_id' => $qcData['test_id'] ?? null,
                 'performed_by' => $qcData['performed_by'],
@@ -215,7 +220,7 @@ class LaboratoryService
         return DB::transaction(function () use ($equipmentId, $calibrationData) {
             $equipment = LabEquipment::findOrFail($equipmentId);
 
-            $calibration = \App\Models\LabEquipmentCalibration::create([
+            $calibration = LabEquipmentCalibration::create([
                 'equipment_id' => $equipmentId,
                 'performed_by' => $calibrationData['performed_by'],
                 'verified_by' => $calibrationData['verified_by'] ?? null,
@@ -255,6 +260,7 @@ class LaboratoryService
             ->get()
             ->map(function ($equipment) {
                 $equipment->days_until_due = now()->diffInDays($equipment->next_calibration_date, false);
+
                 return $equipment;
             })
             ->toArray();
@@ -266,9 +272,9 @@ class LaboratoryService
     protected function generateSampleNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'SAMPLE-' . $date;
+        $prefix = 'SAMPLE-'.$date;
 
-        $lastSample = LabSample::where('sample_number', 'like', $prefix . '%')
+        $lastSample = LabSample::where('sample_number', 'like', $prefix.'%')
             ->orderBy('sample_number', 'desc')
             ->first();
 
@@ -279,7 +285,7 @@ class LaboratoryService
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -321,7 +327,7 @@ class LaboratoryService
      */
     protected function handleCriticalValue(LabResultDetail $result): void
     {
-        Log::critical("Critical lab value detected", [
+        Log::critical('Critical lab value detected', [
             'sample_id' => $result->sample_id,
             'parameter' => $result->parameter_name,
             'value' => $result->result_value,
@@ -344,27 +350,30 @@ class LaboratoryService
     protected function sendCriticalValueNotification(LabResultDetail $result): void
     {
         $sample = $result->sample;
-        if (!$sample)
+        if (! $sample) {
             return;
+        }
 
         $order = $sample->labOrder;
-        if (!$order)
+        if (! $order) {
             return;
+        }
 
         $doctor = $order->orderedBy;
-        if (!$doctor)
+        if (! $doctor) {
             return;
+        }
 
         // Create urgent notification
-        \App\Models\ErpNotification::create([
+        ErpNotification::create([
             'user_id' => $doctor->user_id ?? null,
             'type' => 'critical_lab_result',
             'title' => '⚠️ HASIL LAB KRITIS - Perlu Tindakan Segera',
-            'body' => "Pasien: {$sample->patient->full_name}\n" .
-                "Parameter: {$result->parameter_name}\n" .
-                "Nilai: {$result->result_value} {$result->unit}\n" .
-                "Status: KRITIS ({$result->flag})\n" .
-                "Waktu: " . now()->format('d/m/Y H:i'),
+            'body' => "Pasien: {$sample->patient->full_name}\n".
+                "Parameter: {$result->parameter_name}\n".
+                "Nilai: {$result->result_value} {$result->unit}\n".
+                "Status: KRITIS ({$result->flag})\n".
+                'Waktu: '.now()->format('d/m/Y H:i'),
             'data' => [
                 'lab_order_id' => $order->id,
                 'sample_id' => $sample->id,
@@ -389,8 +398,9 @@ class LaboratoryService
     protected function flagCriticalResultInPatientRecord(LabResultDetail $result): void
     {
         $sample = $result->sample;
-        if (!$sample)
+        if (! $sample) {
             return;
+        }
 
         // Add flag to patient's medical record
         $visit = $sample->labOrder->visit ?? null;
@@ -403,7 +413,7 @@ class LaboratoryService
         }
 
         // Log in audit trail
-        \App\Models\ActivityLog::log(
+        ActivityLog::log(
             $sample->patient,
             'critical_result_flagged',
             [
@@ -428,8 +438,8 @@ class LaboratoryService
         ]);
 
         // Schedule escalation job if not reviewed within 15 minutes
-        \Illuminate\Support\Facades\Bus::dispatch(
-            new \App\Jobs\Healthcare\EscalateCriticalLabResult($result->id)
+        Bus::dispatch(
+            new EscalateCriticalLabResult($result->id)
         )->delay(now()->addMinutes(15));
     }
 
@@ -476,7 +486,7 @@ class LaboratoryService
 
         if ($anyCritical) {
             return 'out_of_control';
-        } elseif (!$allInRange) {
+        } elseif (! $allInRange) {
             return 'warning';
         }
 
@@ -498,7 +508,7 @@ class LaboratoryService
                 ->where('validation_status', 'preliminary')->count(),
             'equipment_operational' => LabEquipment::where('status', 'operational')->count(),
             'equipment_due_calibration' => $this->getEquipmentDueForCalibration(7),
-            'qc_status_today' => \App\Models\LabQcLog::whereDate('qc_date', today())
+            'qc_status_today' => LabQcLog::whereDate('qc_date', today())
                 ->groupBy('qc_status')
                 ->selectRaw('qc_status, count(*) as count')
                 ->pluck('count', 'qc_status')

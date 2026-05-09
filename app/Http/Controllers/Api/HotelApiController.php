@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Room;
-use App\Models\Reservation;
-use App\Models\RoomType;
 use App\Models\Guest;
 use App\Models\HotelBilling;
 use App\Models\HousekeepingStatus;
+use App\Models\Reservation;
+use App\Models\Room;
+use App\Models\RoomType;
 use Illuminate\Http\Request;
 
 class HotelApiController extends ApiBaseController
@@ -75,7 +74,7 @@ class HotelApiController extends ApiBaseController
         $room = Room::where('tenant_id', $this->getTenantId())->findOrFail($id);
 
         $validated = $request->validate([
-            'room_number' => 'sometimes|string|unique:rooms,room_number,' . $id,
+            'room_number' => 'sometimes|string|unique:rooms,room_number,'.$id,
             'room_type_id' => 'sometimes|exists:room_types,id',
             'floor' => 'nullable|integer',
             'status' => 'sometimes|in:available,occupied,maintenance,cleaned',
@@ -141,7 +140,7 @@ class HotelApiController extends ApiBaseController
 
         $reservation = Reservation::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'reservation_number' => 'RES-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'reservation_number' => 'RES-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => 'confirmed',
         ]));
 

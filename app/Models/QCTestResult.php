@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class QCTestResult extends Model
 {
@@ -123,7 +122,7 @@ class QCTestResult extends Model
         $this->approved_by = $userId;
         $this->approved_at = now();
         if ($reason) {
-            $this->observations = ($this->observations ? $this->observations . "\n\n" : '') . 'Rejection Reason: ' . $reason;
+            $this->observations = ($this->observations ? $this->observations."\n\n" : '').'Rejection Reason: '.$reason;
         }
         $this->save();
     }
@@ -131,7 +130,7 @@ class QCTestResult extends Model
     // Generate COA from this test
     public function generateCOA(): ?CoaCertificate
     {
-        if (!$this->batch_id || !$this->isApproved()) {
+        if (! $this->batch_id || ! $this->isApproved()) {
             return null;
         }
 
@@ -213,6 +212,7 @@ class QCTestResult extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'QC-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'QC-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 }

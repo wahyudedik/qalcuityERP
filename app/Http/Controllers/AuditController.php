@@ -6,6 +6,9 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
  * @property User $user
@@ -18,13 +21,13 @@ class AuditController extends Controller
 
         $logs = ActivityLog::where('tenant_id', $tenantId)
             ->with('user')
-            ->when($request->action, fn($q) => $q->where('action', $request->action))
-            ->when($request->user_id, fn($q) => $q->where('user_id', $request->user_id))
-            ->when($request->filled('is_ai'), fn($q) => $q->where('is_ai_action', (bool) $request->is_ai))
-            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-            ->when($request->module, fn($q) => $q->where('model_type', 'like', '%' . $request->module))
-            ->when($request->search, fn($q) => $q->where('description', 'like', '%' . $request->search . '%'))
+            ->when($request->action, fn ($q) => $q->where('action', $request->action))
+            ->when($request->user_id, fn ($q) => $q->where('user_id', $request->user_id))
+            ->when($request->filled('is_ai'), fn ($q) => $q->where('is_ai_action', (bool) $request->is_ai))
+            ->when($request->date_from, fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->when($request->module, fn ($q) => $q->where('model_type', 'like', '%'.$request->module))
+            ->when($request->search, fn ($q) => $q->where('description', 'like', '%'.$request->search.'%'))
             ->latest()
             ->paginate(50)
             ->withQueryString();
@@ -32,14 +35,14 @@ class AuditController extends Controller
         $actions = ActivityLog::where('tenant_id', $tenantId)
             ->distinct()->pluck('action')->sort()->values();
 
-        $users = \App\Models\User::where('tenant_id', $tenantId)
+        $users = User::where('tenant_id', $tenantId)
             ->orderBy('name')->get(['id', 'name', 'role']);
 
         $modules = ActivityLog::where('tenant_id', $tenantId)
             ->whereNotNull('model_type')
             ->distinct()
             ->pluck('model_type')
-            ->map(fn($m) => class_basename($m))
+            ->map(fn ($m) => class_basename($m))
             ->unique()
             ->sort()
             ->values();
@@ -108,12 +111,12 @@ class AuditController extends Controller
                 'created_at' => $activityLog->created_at->format('d/m/Y H:i:s'),
                 'ago' => $activityLog->created_at->diffForHumans(),
             ],
-            'timeline' => $timeline->map(fn($t) => [
+            'timeline' => $timeline->map(fn ($t) => [
                 'id' => $t->id,
                 'action' => $t->action,
                 'user_name' => $t->user?->name ?? 'System',
                 'created_at' => $t->created_at->format('d/m H:i'),
-                'has_diff' => !empty($t->old_values) || !empty($t->new_values),
+                'has_diff' => ! empty($t->old_values) || ! empty($t->new_values),
                 'is_current' => $t->id === $activityLog->id,
             ]),
         ]);
@@ -128,15 +131,15 @@ class AuditController extends Controller
         abort_if($activityLog->tenant_id !== $user->tenant_id, 403);
 
         // Only admins and managers may roll back
-        if (!in_array($user->role, ['admin', 'manager', 'super_admin'])) {
+        if (! in_array($user->role, ['admin', 'manager', 'super_admin'])) {
             return response()->json(['ok' => false, 'message' => 'Anda tidak memiliki izin untuk melakukan rollback.'], 403);
         }
 
-        if (!config('audit.rollback_enabled', true)) {
+        if (! config('audit.rollback_enabled', true)) {
             return response()->json(['ok' => false, 'message' => 'Rollback dinonaktifkan oleh administrator.'], 403);
         }
 
-        if (!$activityLog->isRollbackable()) {
+        if (! $activityLog->isRollbackable()) {
             return response()->json(['ok' => false, 'message' => 'Entry ini tidak dapat di-rollback.'], 422);
         }
 
@@ -144,12 +147,12 @@ class AuditController extends Controller
         $force = (bool) $request->input('force', false);
         $result = $activityLog->rollback($user->id);
 
-        if (!$result['ok']) {
+        if (! $result['ok']) {
             return response()->json(['ok' => false, 'message' => $result['message']], 422);
         }
 
         // If there were conflicts and caller didn't force, return a warning first
-        if (!empty($result['conflicts']) && !$force) {
+        if (! empty($result['conflicts']) && ! $force) {
             return response()->json([
                 'ok' => false,
                 'conflict' => true,
@@ -175,9 +178,9 @@ class AuditController extends Controller
 
         $query = ActivityLog::where('tenant_id', $tenantId)
             ->with('user')
-            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-            ->when($request->module, fn($q) => $q->where('model_type', 'like', '%' . $request->module))
+            ->when($request->date_from, fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->when($request->module, fn ($q) => $q->where('model_type', 'like', '%'.$request->module))
             ->latest();
 
         // Support both CSV and Excel export
@@ -195,7 +198,7 @@ class AuditController extends Controller
      */
     protected function exportCsv($query)
     {
-        $filename = 'audit_trail_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'audit_trail_'.now()->format('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -213,7 +216,7 @@ class AuditController extends Controller
                         $log->description,
                         $log->ip_address ?? '-',
                         $log->is_ai_action ? 'Ya' : 'Tidak',
-                        $log->rolled_back_at ? 'Ya (' . $log->rolled_back_at->format('d/m/Y') . ')' : 'Tidak',
+                        $log->rolled_back_at ? 'Ya ('.$log->rolled_back_at->format('d/m/Y').')' : 'Tidak',
                     ]);
                 }
             });
@@ -230,24 +233,24 @@ class AuditController extends Controller
      */
     protected function exportExcel($query)
     {
-        $filename = 'audit_trail_' . now()->format('Y-m-d_His') . '.xlsx';
+        $filename = 'audit_trail_'.now()->format('Y-m-d_His').'.xlsx';
 
         // Use Maatwebsite Excel package (already installed)
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set headers
         $headers = ['Waktu', 'User', 'Role', 'Aksi', 'Modul', 'ID', 'Deskripsi', 'IP', 'AI?', 'Rolled Back?'];
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . '1', $header);
+            $sheet->setCellValue($col.'1', $header);
             $col++;
         }
 
         // Style headers
         $sheet->getStyle('A1:J1')->getFont()->setBold(true);
         $sheet->getStyle('A1:J1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FF3B82F6');
         $sheet->getStyle('A1:J1')->getFont()->getColor()->setARGB('FFFFFFFF');
 
@@ -255,28 +258,28 @@ class AuditController extends Controller
         $row = 2;
         $query->chunk(500, function ($logs) use ($sheet, &$row) {
             foreach ($logs as $log) {
-                $sheet->setCellValue('A' . $row, $log->created_at->format('Y-m-d H:i:s'));
-                $sheet->setCellValue('B' . $row, $log->user?->name ?? 'System');
-                $sheet->setCellValue('C' . $row, $log->user?->role ?? '-');
-                $sheet->setCellValue('D' . $row, $log->action);
-                $sheet->setCellValue('E' . $row, $log->model_type ? class_basename($log->model_type) : '-');
-                $sheet->setCellValue('F' . $row, $log->model_id ?? '-');
-                $sheet->setCellValue('G' . $row, $log->description);
-                $sheet->setCellValue('H' . $row, $log->ip_address ?? '-');
-                $sheet->setCellValue('I' . $row, $log->is_ai_action ? 'Ya' : 'Tidak');
-                $sheet->setCellValue('J' . $row, $log->rolled_back_at ? 'Ya' : 'Tidak');
+                $sheet->setCellValue('A'.$row, $log->created_at->format('Y-m-d H:i:s'));
+                $sheet->setCellValue('B'.$row, $log->user?->name ?? 'System');
+                $sheet->setCellValue('C'.$row, $log->user?->role ?? '-');
+                $sheet->setCellValue('D'.$row, $log->action);
+                $sheet->setCellValue('E'.$row, $log->model_type ? class_basename($log->model_type) : '-');
+                $sheet->setCellValue('F'.$row, $log->model_id ?? '-');
+                $sheet->setCellValue('G'.$row, $log->description);
+                $sheet->setCellValue('H'.$row, $log->ip_address ?? '-');
+                $sheet->setCellValue('I'.$row, $log->is_ai_action ? 'Ya' : 'Tidak');
+                $sheet->setCellValue('J'.$row, $log->rolled_back_at ? 'Ya' : 'Tidak');
 
                 // Highlight AI actions
                 if ($log->is_ai_action) {
-                    $sheet->getStyle('A' . $row . ':J' . $row)->getFill()
-                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    $sheet->getStyle('A'.$row.':J'.$row)->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB('FFF3E8FF');
                 }
 
                 // Highlight rolled back
                 if ($log->rolled_back_at) {
-                    $sheet->getStyle('A' . $row . ':J' . $row)->getFill()
-                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    $sheet->getStyle('A'.$row.':J'.$row)->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB('FFFFF3CD');
                 }
 
@@ -293,7 +296,7 @@ class AuditController extends Controller
         $sheet->freezePane('A2');
 
         // Write to output
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer = new Xlsx($spreadsheet);
 
         ob_start();
         $writer->save('php://output');
@@ -322,7 +325,7 @@ class AuditController extends Controller
         $tenantId = $user->tenant_id;
 
         // Only admins / managers may generate compliance reports
-        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+        abort_if(! in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
 
         $dateFrom = $request->date_from;
         $dateTo = $request->date_to;
@@ -339,7 +342,7 @@ class AuditController extends Controller
         $rbCount = (clone $query)->whereNotNull('rolled_back_at')->count();
         $uniqueUsers = (clone $query)->distinct()->pluck('user_id')->count();
 
-        $filename = 'compliance_report_' . $dateFrom . '_to_' . $dateTo . '_' . now()->format('His') . '.csv';
+        $filename = 'compliance_report_'.$dateFrom.'_to_'.$dateTo.'_'.now()->format('His').'.csv';
 
         return response()->streamDownload(function () use ($query, $dateFrom, $dateTo, $totalCount, $aiCount, $rbCount, $uniqueUsers) {
             $handle = fopen('php://output', 'w');
@@ -347,7 +350,7 @@ class AuditController extends Controller
             // ── Report header ──────────────────────────────────────────────
             fputcsv($handle, ['QALCUITY ERP - AUDIT COMPLIANCE REPORT']);
             fputcsv($handle, ['Generated', now()->format('Y-m-d H:i:s')]);
-            fputcsv($handle, ['Period', $dateFrom . ' to ' . $dateTo]);
+            fputcsv($handle, ['Period', $dateFrom.' to '.$dateTo]);
             fputcsv($handle, ['Total Events', $totalCount]);
             fputcsv($handle, ['Unique Users', $uniqueUsers]);
             fputcsv($handle, ['AI-Generated Actions', $aiCount]);
@@ -394,7 +397,7 @@ class AuditController extends Controller
                         $allKeys = array_unique(array_merge(array_keys($log->old_values), array_keys($log->new_values)));
                         $changed = array_filter(
                             $allKeys,
-                            fn($k) => (string) ($log->old_values[$k] ?? '') !== (string) ($log->new_values[$k] ?? '')
+                            fn ($k) => (string) ($log->old_values[$k] ?? '') !== (string) ($log->new_values[$k] ?? '')
                         );
                         $fieldsChanged = implode(', ', $changed);
                     }
@@ -402,12 +405,12 @@ class AuditController extends Controller
                     // Integrity hash: deterministic fingerprint for tamper detection
                     $integrityHash = hash(
                         'sha256',
-                        $log->id . '|' .
-                        $log->tenant_id . '|' .
-                        $log->user_id . '|' .
-                        $log->action . '|' .
-                        $log->created_at->toIso8601String() . '|' .
-                        $oldJson . '|' .
+                        $log->id.'|'.
+                        $log->tenant_id.'|'.
+                        $log->user_id.'|'.
+                        $log->action.'|'.
+                        $log->created_at->toIso8601String().'|'.
+                        $oldJson.'|'.
                         $newJson
                     );
 

@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\PatientSatisfactionSurvey;
 use App\Models\HospitalAnalyticsDaily;
-use Illuminate\Support\Facades\DB;
+use App\Models\PatientSatisfactionSurvey;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class HospitalAnalyticsService
 {

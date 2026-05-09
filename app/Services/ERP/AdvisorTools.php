@@ -12,12 +12,12 @@ class AdvisorTools
     {
         return [
             [
-                'name'        => 'get_ai_advisor',
+                'name' => 'get_ai_advisor',
                 'description' => 'Dapatkan rekomendasi strategis AI Financial Advisor berdasarkan seluruh data bisnis. '
-                    . 'Gunakan untuk: "rekomendasi bisnis", "saran keuangan", "apa yang harus saya lakukan?", '
-                    . '"analisis bisnis saya", "advisor", "saran AI", "tips bisnis minggu ini".',
-                'parameters'  => [
-                    'type'       => 'object',
+                    .'Gunakan untuk: "rekomendasi bisnis", "saran keuangan", "apa yang harus saya lakukan?", '
+                    .'"analisis bisnis saya", "advisor", "saran AI", "tips bisnis minggu ini".',
+                'parameters' => [
+                    'type' => 'object',
                     'properties' => [],
                 ],
             ],
@@ -31,7 +31,7 @@ class AdvisorTools
 
         if (empty($recommendations)) {
             return [
-                'status'  => 'empty',
+                'status' => 'empty',
                 'message' => 'Belum cukup data untuk menghasilkan rekomendasi. Pastikan sudah ada data penjualan, pengeluaran, atau aktivitas bisnis lainnya.',
             ];
         }
@@ -51,9 +51,9 @@ class AdvisorTools
         $lines[] = '_Rekomendasi ini dihasilkan berdasarkan analisis seluruh data bisnis Anda oleh AI._';
 
         return [
-            'status'  => 'success',
+            'status' => 'success',
             'message' => implode("\n", $lines),
-            'data'    => ['count' => count($recommendations), 'recommendations' => $recommendations],
+            'data' => ['count' => count($recommendations), 'recommendations' => $recommendations],
         ];
     }
 }

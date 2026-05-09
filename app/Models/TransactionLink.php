@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class TransactionLink extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'source_type', 'source_id', 'source_number',
@@ -20,32 +20,42 @@ class TransactionLink extends Model
 
     protected $casts = ['amount' => 'decimal:2'];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
-    public function source(): MorphTo { return $this->morphTo('source'); }
-    public function target(): MorphTo { return $this->morphTo('target'); }
+    public function source(): MorphTo
+    {
+        return $this->morphTo('source');
+    }
+
+    public function target(): MorphTo
+    {
+        return $this->morphTo('target');
+    }
 
     /**
      * Buat link antara dua transaksi.
      */
     public static function link(
-        int    $tenantId,
+        int $tenantId,
         object $source,
         object $target,
         string $linkType,
         ?float $amount = null
     ): self {
         return self::firstOrCreate([
-            'tenant_id'   => $tenantId,
+            'tenant_id' => $tenantId,
             'source_type' => get_class($source),
-            'source_id'   => $source->id,
+            'source_id' => $source->id,
             'target_type' => get_class($target),
-            'target_id'   => $target->id,
-            'link_type'   => $linkType,
+            'target_id' => $target->id,
+            'link_type' => $linkType,
         ], [
             'source_number' => $source->number ?? null,
             'target_number' => $target->number ?? null,
-            'amount'        => $amount,
+            'amount' => $amount,
         ]);
     }
 
@@ -56,7 +66,7 @@ class TransactionLink extends Model
     public static function chainFor(int $tenantId, object $model): array
     {
         $type = get_class($model);
-        $id   = $model->id;
+        $id = $model->id;
 
         // Upstream: transaksi yang menjadi sumber dari model ini
         $upstream = self::where('tenant_id', $tenantId)
@@ -71,7 +81,7 @@ class TransactionLink extends Model
             ->get();
 
         return [
-            'upstream'   => $upstream,
+            'upstream' => $upstream,
             'downstream' => $downstream,
         ];
     }
@@ -80,17 +90,17 @@ class TransactionLink extends Model
     public function linkTypeLabel(): string
     {
         return match ($this->link_type) {
-            'so_to_do'           => 'SO → Surat Jalan',
-            'do_to_invoice'      => 'Surat Jalan → Invoice',
-            'so_to_invoice'      => 'SO → Invoice',
+            'so_to_do' => 'SO → Surat Jalan',
+            'do_to_invoice' => 'Surat Jalan → Invoice',
+            'so_to_invoice' => 'SO → Invoice',
             'invoice_to_payment' => 'Invoice → Pembayaran',
-            'invoice_to_gl'      => 'Invoice → Jurnal GL',
-            'so_to_gl'           => 'SO → Jurnal GL',
-            'payment_to_gl'      => 'Pembayaran → Jurnal GL',
-            'return_to_invoice'  => 'Retur → Invoice',
-            'dp_to_invoice'      => 'Uang Muka → Invoice',
-            'bulk_to_invoice'    => 'Bulk Payment → Invoice',
-            default              => str_replace('_', ' → ', $this->link_type),
+            'invoice_to_gl' => 'Invoice → Jurnal GL',
+            'so_to_gl' => 'SO → Jurnal GL',
+            'payment_to_gl' => 'Pembayaran → Jurnal GL',
+            'return_to_invoice' => 'Retur → Invoice',
+            'dp_to_invoice' => 'Uang Muka → Invoice',
+            'bulk_to_invoice' => 'Bulk Payment → Invoice',
+            default => str_replace('_', ' → ', $this->link_type),
         };
     }
 

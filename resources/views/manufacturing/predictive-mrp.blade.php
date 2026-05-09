@@ -4,15 +4,15 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <form method="POST" action="{{ route('manufacturing.mrp.predictive.refresh') }}" class="inline">
-                    @csrf
-                    <input type="hidden" name="months" value="{{ $months }}">
-                    @if ($productId)
-                        <input type="hidden" name="product_id" value="{{ $productId }}">
-                    @endif
-                    <button type="submit"
-                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                        🔄 Refresh Forecast
-                    </button>
+            @csrf
+            <input type="hidden" name="months" value="{{ $months }}">
+            @if ($productId)
+                <input type="hidden" name="product_id" value="{{ $productId }}">
+            @endif
+            <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                🔄 Refresh Forecast
+            </button>
     </div>
 
     <div class="py-12">
@@ -117,8 +117,7 @@
             @if (!empty($forecast['forecast']['products']))
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach ($forecast['forecast']['products'] as $product)
-                        <div
-                            class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                             {{-- Header --}}
                             <div class="flex justify-between items-start mb-4">
                                 <div>
@@ -129,12 +128,9 @@
                                 @php
                                     $urgencyColor = match ($product['reorder_urgency']) {
                                         'critical' => 'bg-red-100 text-red-700',
-                                        'high'
-                                            => 'bg-orange-100 text-orange-700',
-                                        'medium'
-                                            => 'bg-yellow-100 text-yellow-700',
-                                        default
-                                            => 'bg-green-100 text-green-700',
+                                        'high' => 'bg-orange-100 text-orange-700',
+                                        'medium' => 'bg-yellow-100 text-yellow-700',
+                                        default => 'bg-green-100 text-green-700',
                                     };
                                 @endphp
                                 <span class="px-2 py-1 rounded-full text-xs font-bold {{ $urgencyColor }}">
@@ -163,11 +159,12 @@
                             </div>
 
                             {{-- Demand Chart --}}
-                            <canvas id="chart-{{ $product['product_id'] }}" height="150" class="mb-4"></canvas>
+                            <div class="relative h-40 mb-4">
+                                <canvas id="chart-{{ $product['product_id'] }}"></canvas>
+                            </div>
 
                             {{-- Recommendation --}}
-                            <div
-                                class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                 <div class="text-xs text-blue-600 font-semibold mb-1">RECOMMENDED
                                     ACTION:</div>
                                 <div class="text-sm text-gray-700">
@@ -186,8 +183,7 @@
                     @endforeach
                 </div>
             @else
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <div class="text-6xl mb-4">📊</div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">No Forecast Data Available</h3>
                     <p class="text-gray-500 mb-4">

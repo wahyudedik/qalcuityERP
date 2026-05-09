@@ -4,20 +4,25 @@ namespace App\Services\Integrations;
 
 use App\Models\AccountingIntegration;
 use App\Models\AccountingSyncLog;
+use App\Models\Expense;
+use App\Models\Invoice;
+use App\Models\JournalEntry;
+use App\Models\Payment;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
  * AccurateOnlineConnector — Integrasi dengan Accurate Online
- * 
+ *
  * Menyediakan sinkronisasi data akuntansi dengan Accurate Online.
- * 
+ *
  * Requirement 16: Integrasi akuntansi (Jurnal.id, Accurate Online) berfungsi:
  * sinkronisasi data akuntansi berjalan dengan benar
  */
 class AccurateOnlineConnector extends BaseConnector
 {
     protected const API_BASE_URL = 'https://api.accurate.id/v1';
+
     protected const TIMEOUT = 30;
 
     public function __construct(AccountingIntegration $integration)
@@ -32,10 +37,10 @@ class AccurateOnlineConnector extends BaseConnector
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->integration->access_token,
+                'Authorization' => 'Bearer '.$this->integration->access_token,
             ])
                 ->timeout(self::TIMEOUT)
-                ->get(self::API_BASE_URL . '/companies');
+                ->get(self::API_BASE_URL.'/companies');
 
             if ($response->successful()) {
                 return ['success' => true, 'message' => 'Koneksi ke Accurate Online berhasil'];
@@ -53,7 +58,7 @@ class AccurateOnlineConnector extends BaseConnector
 
             return [
                 'success' => false,
-                'error' => 'Koneksi gagal: ' . $e->getMessage(),
+                'error' => 'Koneksi gagal: '.$e->getMessage(),
             ];
         }
     }
@@ -86,9 +91,10 @@ class AccurateOnlineConnector extends BaseConnector
                         default => null,
                     };
 
-                    if (!$payload) {
+                    if (! $payload) {
                         $failed++;
                         $errors[] = "Tipe data {$dataType} tidak didukung";
+
                         continue;
                     }
 
@@ -100,10 +106,10 @@ class AccurateOnlineConnector extends BaseConnector
                     };
 
                     $response = Http::withHeaders([
-                        'Authorization' => 'Bearer ' . $this->integration->access_token,
+                        'Authorization' => 'Bearer '.$this->integration->access_token,
                     ])
                         ->timeout(self::TIMEOUT)
-                        ->post(self::API_BASE_URL . $endpoint, $payload);
+                        ->post(self::API_BASE_URL.$endpoint, $payload);
 
                     if ($response->successful()) {
                         $synced++;
@@ -114,11 +120,11 @@ class AccurateOnlineConnector extends BaseConnector
                         ]);
                     } else {
                         $failed++;
-                        $errors[] = "{$dataType} ID {$id}: " . ($response->json('message') ?? 'Sync gagal');
+                        $errors[] = "{$dataType} ID {$id}: ".($response->json('message') ?? 'Sync gagal');
                     }
                 } catch (\Throwable $e) {
                     $failed++;
-                    $errors[] = "{$dataType} ID {$id}: " . $e->getMessage();
+                    $errors[] = "{$dataType} ID {$id}: ".$e->getMessage();
                     Log::error('AccurateOnlineConnector: sync data error', [
                         'data_type' => $dataType,
                         'id' => $id,
@@ -160,8 +166,8 @@ class AccurateOnlineConnector extends BaseConnector
      */
     protected function getJournalData(int $journalId): ?array
     {
-        $journal = \App\Models\JournalEntry::find($journalId);
-        if (!$journal) {
+        $journal = JournalEntry::find($journalId);
+        if (! $journal) {
             return null;
         }
 
@@ -186,8 +192,8 @@ class AccurateOnlineConnector extends BaseConnector
      */
     protected function getInvoiceData(int $invoiceId): ?array
     {
-        $invoice = \App\Models\Invoice::find($invoiceId);
-        if (!$invoice) {
+        $invoice = Invoice::find($invoiceId);
+        if (! $invoice) {
             return null;
         }
 
@@ -215,8 +221,8 @@ class AccurateOnlineConnector extends BaseConnector
      */
     protected function getPaymentData(int $paymentId): ?array
     {
-        $payment = \App\Models\Payment::find($paymentId);
-        if (!$payment) {
+        $payment = Payment::find($paymentId);
+        if (! $payment) {
             return null;
         }
 
@@ -235,8 +241,8 @@ class AccurateOnlineConnector extends BaseConnector
      */
     protected function getExpenseData(int $expenseId): ?array
     {
-        $expense = \App\Models\Expense::find($expenseId);
-        if (!$expense) {
+        $expense = Expense::find($expenseId);
+        if (! $expense) {
             return null;
         }
 
@@ -256,6 +262,7 @@ class AccurateOnlineConnector extends BaseConnector
     public static function verifyWebhookSignature(string $payload, string $signature, string $secret): bool
     {
         $expected = hash_hmac('sha256', $payload, $secret);
+
         return hash_equals($expected, $signature);
     }
 }

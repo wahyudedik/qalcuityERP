@@ -8,9 +8,13 @@ use App\DTOs\Audit\Severity;
 class SecurityAnalyzer implements AnalyzerInterface
 {
     private string $basePath;
+
     private string $middlewarePath;
+
     private string $modelPath;
+
     private string $servicePath;
+
     private string $controllerPath;
 
     /**
@@ -57,10 +61,10 @@ class SecurityAnalyzer implements AnalyzerInterface
             }
         }
 
-        $this->middlewarePath = $middlewarePath ?? ($this->basePath . '/app/Http/Middleware');
-        $this->modelPath = $modelPath ?? ($this->basePath . '/app/Models');
-        $this->servicePath = $servicePath ?? ($this->basePath . '/app/Services');
-        $this->controllerPath = $controllerPath ?? ($this->basePath . '/app/Http/Controllers');
+        $this->middlewarePath = $middlewarePath ?? ($this->basePath.'/app/Http/Middleware');
+        $this->modelPath = $modelPath ?? ($this->basePath.'/app/Models');
+        $this->servicePath = $servicePath ?? ($this->basePath.'/app/Services');
+        $this->controllerPath = $controllerPath ?? ($this->basePath.'/app/Http/Controllers');
     }
 
     /**
@@ -91,13 +95,13 @@ class SecurityAnalyzer implements AnalyzerInterface
     {
         $findings = [];
         $allSource = $this->collectPhpSources([
-            $this->controllerPath . '/Auth',
+            $this->controllerPath.'/Auth',
             $this->servicePath,
-            $this->basePath . '/routes',
-            $this->basePath . '/config',
+            $this->basePath.'/routes',
+            $this->basePath.'/config',
         ]);
 
-        if (!$this->matchesAny($allSource, ['/throttle/i', '/RateLimiter/i', '/TooManyRequests/i'])) {
+        if (! $this->matchesAny($allSource, ['/throttle/i', '/RateLimiter/i', '/TooManyRequests/i'])) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::High,
@@ -110,7 +114,7 @@ class SecurityAnalyzer implements AnalyzerInterface
             );
         }
 
-        if (!$this->matchesAny($allSource, ['/Password::/i', '/min:\d{1,2}/i', '/password.*rules/i'])) {
+        if (! $this->matchesAny($allSource, ['/Password::/i', '/min:\d{1,2}/i', '/password.*rules/i'])) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
@@ -123,7 +127,7 @@ class SecurityAnalyzer implements AnalyzerInterface
             );
         }
 
-        if (!$this->matchesAny($allSource, ['/invalidate\(\)/i', '/regenerateToken\(\)/i', '/session\.lifetime/i'])) {
+        if (! $this->matchesAny($allSource, ['/invalidate\(\)/i', '/regenerateToken\(\)/i', '/session\.lifetime/i'])) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
@@ -145,9 +149,9 @@ class SecurityAnalyzer implements AnalyzerInterface
     public function checkFileUploadSecurity(): array
     {
         $findings = [];
-        $middlewareFile = $this->middlewarePath . '/ValidateFileUpload.php';
+        $middlewareFile = $this->middlewarePath.'/ValidateFileUpload.php';
 
-        if (!file_exists($middlewareFile)) {
+        if (! file_exists($middlewareFile)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::High,
@@ -158,11 +162,12 @@ class SecurityAnalyzer implements AnalyzerInterface
                 recommendation: 'Create and apply ValidateFileUpload middleware on file upload routes.',
                 metadata: ['check' => 'file_upload_middleware'],
             );
+
             return $findings;
         }
 
-        $routesSource = $this->collectPhpSources([$this->basePath . '/routes']);
-        if (!$this->matchesAny($routesSource, ['/ValidateFileUpload/i', '/validate\.upload/i'])) {
+        $routesSource = $this->collectPhpSources([$this->basePath.'/routes']);
+        if (! $this->matchesAny($routesSource, ['/ValidateFileUpload/i', '/validate\.upload/i'])) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Medium,
@@ -184,9 +189,9 @@ class SecurityAnalyzer implements AnalyzerInterface
     public function checkSecurityHeaders(): array
     {
         $findings = [];
-        $middlewareFile = $this->middlewarePath . '/AddSecurityHeaders.php';
+        $middlewareFile = $this->middlewarePath.'/AddSecurityHeaders.php';
 
-        if (!file_exists($middlewareFile)) {
+        if (! file_exists($middlewareFile)) {
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::Critical,
@@ -197,6 +202,7 @@ class SecurityAnalyzer implements AnalyzerInterface
                 recommendation: 'Create AddSecurityHeaders middleware and register it globally.',
                 metadata: ['check' => 'security_headers_middleware'],
             );
+
             return $findings;
         }
 
@@ -208,7 +214,7 @@ class SecurityAnalyzer implements AnalyzerInterface
             $findings[] = new AuditFinding(
                 category: $this->category(),
                 severity: Severity::High,
-                title: 'Missing or incorrect security header: ' . $issue['header'],
+                title: 'Missing or incorrect security header: '.$issue['header'],
                 description: $issue['message'],
                 file: $this->relativePath($middlewareFile),
                 line: null,
@@ -228,13 +234,13 @@ class SecurityAnalyzer implements AnalyzerInterface
         $findings = [];
 
         foreach (self::CRITICAL_AUDIT_MODELS as $model) {
-            $path = $this->modelPath . '/' . $model . '.php';
-            if (!file_exists($path)) {
+            $path = $this->modelPath.'/'.$model.'.php';
+            if (! file_exists($path)) {
                 continue;
             }
 
             $source = (string) @file_get_contents($path);
-            if (!preg_match('/AuditsChanges/', $source)) {
+            if (! preg_match('/AuditsChanges/', $source)) {
                 $findings[] = new AuditFinding(
                     category: $this->category(),
                     severity: Severity::High,
@@ -292,7 +298,7 @@ class SecurityAnalyzer implements AnalyzerInterface
     /**
      * Validate presence and correctness of required headers.
      *
-     * @param array<string, string> $headers
+     * @param  array<string, string>  $headers
      * @return array<int, array{header:string, message:string}>
      */
     public function validateSecurityHeaders(array $headers): array
@@ -300,11 +306,12 @@ class SecurityAnalyzer implements AnalyzerInterface
         $issues = [];
 
         foreach (self::REQUIRED_SECURITY_HEADERS as $header => $expectedValue) {
-            if (!array_key_exists($header, $headers)) {
+            if (! array_key_exists($header, $headers)) {
                 $issues[] = [
                     'header' => $header,
                     'message' => "Header {$header} is not configured.",
                 ];
+
                 continue;
             }
 
@@ -316,6 +323,7 @@ class SecurityAnalyzer implements AnalyzerInterface
                         'message' => "Header {$header} is present but empty.",
                     ];
                 }
+
                 continue;
             }
 
@@ -331,7 +339,7 @@ class SecurityAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * @param array<string, mixed> $entry
+     * @param  array<string, mixed>  $entry
      * @return string[]
      */
     public function checkAuditLogEntryCompleteness(array $entry): array
@@ -340,7 +348,7 @@ class SecurityAnalyzer implements AnalyzerInterface
         $missing = [];
 
         foreach ($required as $field) {
-            if (!array_key_exists($field, $entry) || $entry[$field] === null) {
+            if (! array_key_exists($field, $entry) || $entry[$field] === null) {
                 $missing[] = $field;
             }
         }
@@ -349,7 +357,7 @@ class SecurityAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * @param string[] $directories
+     * @param  string[]  $directories
      */
     private function collectPhpSources(array $directories): string
     {
@@ -359,7 +367,7 @@ class SecurityAnalyzer implements AnalyzerInterface
             foreach ($this->discoverPhpFiles($directory) as $file) {
                 $source = @file_get_contents($file);
                 if ($source !== false) {
-                    $buffer .= "\n" . $source;
+                    $buffer .= "\n".$source;
                 }
             }
         }
@@ -373,7 +381,7 @@ class SecurityAnalyzer implements AnalyzerInterface
     private function discoverPhpFiles(string $directory): array
     {
         $files = [];
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return $files;
         }
 
@@ -394,7 +402,7 @@ class SecurityAnalyzer implements AnalyzerInterface
     }
 
     /**
-     * @param string[] $patterns
+     * @param  string[]  $patterns
      */
     private function matchesAny(string $content, array $patterns): bool
     {
@@ -429,7 +437,7 @@ class SecurityAnalyzer implements AnalyzerInterface
 
     private function relativePath(string $absolutePath): string
     {
-        $basePath = $this->basePath . '/';
+        $basePath = $this->basePath.'/';
         if (str_starts_with($absolutePath, $basePath)) {
             return substr($absolutePath, strlen($basePath));
         }

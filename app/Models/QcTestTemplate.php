@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * QC Test Template Model
- * 
+ *
  * TASK-2.20: Reusable test templates for quality inspections
  */
 class QcTestTemplate extends Model
@@ -75,13 +75,14 @@ class QcTestTemplate extends Model
         foreach ($results as $result) {
             $parameter = collect($this->test_parameters)->firstWhere('name', $result['parameter']);
 
-            if (!$parameter) {
+            if (! $parameter) {
                 $validated[] = [
                     ...$result,
                     'passed' => false,
                     'error' => 'Parameter not found in template',
                 ];
                 $allPassed = false;
+
                 continue;
             }
 
@@ -110,7 +111,7 @@ class QcTestTemplate extends Model
                 'error' => $error,
             ];
 
-            if (!$passed) {
+            if (! $passed) {
                 $allPassed = false;
             }
         }
@@ -143,7 +144,7 @@ class QcTestTemplate extends Model
             'status' => 'pending',
         ]);
 
-        if (!empty($testResults)) {
+        if (! empty($testResults)) {
             $validation = $this->validateResults($testResults);
             $inspection->recordTestResults($validation['results']);
         }

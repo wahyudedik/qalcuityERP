@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -16,14 +17,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        if (!Schema::hasTable('housekeeping_tasks')) {
+        if (! Schema::hasTable('housekeeping_tasks')) {
             return;
         }
 
         // Add actual_duration column if missing
-        if (!Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
+        if (! Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
             Schema::table('housekeeping_tasks', function (Blueprint $table) {
-                if (!Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
+                if (! Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
                     $table->integer('actual_duration')->nullable()->after('estimated_duration');
                 }
             });
@@ -39,7 +40,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        if (!Schema::hasTable('housekeeping_tasks')) {
+        if (! Schema::hasTable('housekeeping_tasks')) {
             return;
         }
 

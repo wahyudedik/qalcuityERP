@@ -19,11 +19,12 @@ class GenerateTenantReport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 180;
 
     public function __construct(
-        public readonly int    $tenantId,
+        public readonly int $tenantId,
         public readonly string $reportType, // 'monthly_summary'
         public readonly string $period,     // 'YYYY-MM'
     ) {}
@@ -31,7 +32,9 @@ class GenerateTenantReport implements ShouldQueue
     public function handle(): void
     {
         $tenant = Tenant::find($this->tenantId);
-        if (!$tenant) return;
+        if (! $tenant) {
+            return;
+        }
 
         [$year, $month] = explode('-', $this->period);
 
@@ -45,7 +48,7 @@ class GenerateTenantReport implements ShouldQueue
             ->whereNotIn('status', ['cancelled'])
             ->count();
 
-        $income  = Transaction::where('tenant_id', $this->tenantId)
+        $income = Transaction::where('tenant_id', $this->tenantId)
             ->where('type', 'income')
             ->whereYear('date', $year)->whereMonth('date', $month)
             ->sum('amount');
@@ -56,12 +59,12 @@ class GenerateTenantReport implements ShouldQueue
             ->sum('amount');
 
         $summary = [
-            'period'       => $this->period,
-            'sales_total'  => $salesTotal,
-            'sales_count'  => $salesCount,
-            'income'       => $income,
-            'expense'      => $expense,
-            'profit'       => $income - $expense,
+            'period' => $this->period,
+            'sales_total' => $salesTotal,
+            'sales_count' => $salesCount,
+            'income' => $income,
+            'expense' => $expense,
+            'profit' => $income - $expense,
             'generated_at' => now()->toIso8601String(),
         ];
 
@@ -74,11 +77,11 @@ class GenerateTenantReport implements ShouldQueue
         foreach ($admins as $userId) {
             ErpNotification::create([
                 'tenant_id' => $this->tenantId,
-                'user_id'   => $userId,
-                'type'      => 'report_ready',
-                'title'     => '📊 Laporan Bulanan Siap',
-                'body'      => "Laporan ringkasan bulan **{$this->period}** sudah siap. Penjualan: Rp " . number_format($salesTotal, 0, ',', '.') . ", Profit: Rp " . number_format($income - $expense, 0, ',', '.'),
-                'data'      => $summary,
+                'user_id' => $userId,
+                'type' => 'report_ready',
+                'title' => '📊 Laporan Bulanan Siap',
+                'body' => "Laporan ringkasan bulan **{$this->period}** sudah siap. Penjualan: Rp ".number_format($salesTotal, 0, ',', '.').', Profit: Rp '.number_format($income - $expense, 0, ',', '.'),
+                'data' => $summary,
             ]);
         }
 

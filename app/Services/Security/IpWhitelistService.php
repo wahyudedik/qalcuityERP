@@ -90,6 +90,7 @@ class IpWhitelistService
 
             if ($whitelist) {
                 $whitelist->update(['is_active' => false]);
+
                 return true;
             }
 
@@ -148,7 +149,8 @@ class IpWhitelistService
         // Support single IP or CIDR notation
         if (strpos($ipAddress, '/') !== false) {
             // CIDR notation
-            list($ip, $prefix) = explode('/', $ipAddress);
+            [$ip, $prefix] = explode('/', $ipAddress);
+
             return filter_var($ip, FILTER_VALIDATE_IP) &&
                 is_numeric($prefix) &&
                 $prefix >= 0 &&

@@ -2,15 +2,15 @@
 
 namespace App\Services\Integrations;
 
-use App\Models\WebhookSubscription;
 use App\Models\WebhookDelivery;
+use App\Models\WebhookSubscription;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Webhook Delivery Service
- * 
+ *
  * Handles webhook delivery with retry logic,
  * exponential backoff, and delivery tracking.
  */
@@ -28,11 +28,6 @@ class WebhookDeliveryService
 
     /**
      * Deliver webhook to subscription
-     * 
-     * @param WebhookSubscription $subscription
-     * @param string $eventType
-     * @param array $payload
-     * @return WebhookDelivery
      */
     public function deliver(WebhookSubscription $subscription, string $eventType, array $payload): WebhookDelivery
     {
@@ -54,17 +49,14 @@ class WebhookDeliveryService
 
     /**
      * Attempt to deliver webhook
-     * 
-     * @param WebhookDelivery $delivery
-     * @param WebhookSubscription $subscription
-     * @return bool
      */
     public function attemptDelivery(WebhookDelivery $delivery, WebhookSubscription $subscription): bool
     {
         try {
             // Check if can retry
-            if (!$delivery->canRetry()) {
+            if (! $delivery->canRetry()) {
                 $delivery->markAsFailed('Max attempts exceeded');
+
                 return false;
             }
 
@@ -131,13 +123,14 @@ class WebhookDeliveryService
             return false;
         } catch (Throwable $e) {
             $this->handleDeliveryError($delivery, $e);
+
             return false;
         }
     }
 
     /**
      * Retry failed webhook deliveries
-     * 
+     *
      * @return int Number of deliveries retried
      */
     public function retryFailedDeliveries(): int
@@ -167,18 +160,16 @@ class WebhookDeliveryService
 
     /**
      * Retry specific delivery
-     * 
-     * @param WebhookDelivery $delivery
-     * @return bool
      */
     public function retryDelivery(WebhookDelivery $delivery): bool
     {
         $subscription = $delivery->subscription;
 
-        if (!$subscription || !$subscription->is_active) {
+        if (! $subscription || ! $subscription->is_active) {
             Log::warning('Cannot retry webhook: subscription inactive', [
                 'delivery_id' => $delivery->id,
             ]);
+
             return false;
         }
 
@@ -187,9 +178,6 @@ class WebhookDeliveryService
 
     /**
      * Handle delivery error
-     * 
-     * @param WebhookDelivery $delivery
-     * @param Throwable $e
      */
     protected function handleDeliveryError(WebhookDelivery $delivery, Throwable $e): void
     {
@@ -217,9 +205,6 @@ class WebhookDeliveryService
 
     /**
      * Get delivery statistics for subscription
-     * 
-     * @param WebhookSubscription $subscription
-     * @return array
      */
     public function getDeliveryStats(WebhookSubscription $subscription): array
     {
@@ -239,9 +224,6 @@ class WebhookDeliveryService
 
     /**
      * Get average response time for subscription
-     * 
-     * @param WebhookSubscription $subscription
-     * @return float
      */
     protected function getAverageResponseTime(WebhookSubscription $subscription): float
     {
@@ -252,8 +234,7 @@ class WebhookDeliveryService
 
     /**
      * Clean up old deliveries
-     * 
-     * @param int $daysOld
+     *
      * @return int Number of deliveries deleted
      */
     public function cleanupOldDeliveries(int $daysOld = 30): int
@@ -272,11 +253,6 @@ class WebhookDeliveryService
 
     /**
      * Trigger webhook for event
-     * 
-     * @param string $eventType
-     * @param array $payload
-     * @param int $tenantId
-     * @return array
      */
     public function triggerWebhook(string $eventType, array $payload, int $tenantId): array
     {
@@ -303,9 +279,6 @@ class WebhookDeliveryService
 
     /**
      * Test webhook delivery
-     * 
-     * @param WebhookSubscription $subscription
-     * @return array
      */
     public function testWebhook(WebhookSubscription $subscription): array
     {
@@ -336,10 +309,6 @@ class WebhookDeliveryService
 
     /**
      * Get recent deliveries
-     * 
-     * @param int $tenantId
-     * @param int $limit
-     * @return array
      */
     public function getRecentDeliveries(int $tenantId, int $limit = 50): array
     {

@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierIncident extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -27,7 +26,7 @@ use HasFactory, BelongsToTenant;
         'resolved_at',
         'resolved_by',
         'resolution_notes',
-        'preventive_actions'
+        'preventive_actions',
     ];
 
     protected $casts = [
@@ -40,18 +39,22 @@ use HasFactory, BelongsToTenant;
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
+
     public function purchaseOrder(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class);
     }
+
     public function reportedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_by');
     }
+
     public function resolvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'resolved_by');

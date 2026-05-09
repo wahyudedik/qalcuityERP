@@ -2,10 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Budget;
-use App\Models\ChartOfAccount;
-use App\Models\CropCycle;
-use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\ErpNotification;
 use App\Models\FarmPlot;
@@ -13,10 +9,8 @@ use App\Models\FarmPlotActivity;
 use App\Models\HarvestLog;
 use App\Models\Invoice;
 use App\Models\Payable;
-use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\Project;
-use App\Models\RabItem;
 use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\Transaction;
@@ -38,13 +32,17 @@ class AiFinancialAdvisorService
     public function generateRecommendations(int $tenantId, string $period = 'weekly'): array
     {
         $tenant = Tenant::find($tenantId);
-        if (!$tenant) return [];
+        if (! $tenant) {
+            return [];
+        }
 
         // Collect cross-module data snapshot
         $snapshot = $this->collectSnapshot($tenantId);
 
         // If not enough data, skip
-        if ($snapshot['_has_data'] === false) return [];
+        if ($snapshot['_has_data'] === false) {
+            return [];
+        }
 
         // Send to Gemini for analysis
         $recommendations = $this->analyzeWithAi($tenant, $snapshot, $period);
@@ -97,7 +95,9 @@ class AiFinancialAdvisorService
             ->groupBy('customers.id', 'customers.name')
             ->orderByDesc('total')
             ->limit(5)->get();
-        if ($topCustomers->isNotEmpty()) $data['top_customers'] = $topCustomers->toArray();
+        if ($topCustomers->isNotEmpty()) {
+            $data['top_customers'] = $topCustomers->toArray();
+        }
 
         // ── Expenses ──
         $thisMonthExpense = (float) Transaction::where('tenant_id', $tenantId)
@@ -171,12 +171,12 @@ class AiFinancialAdvisorService
         if ($activeProjects->isNotEmpty()) {
             $data['_has_data'] = true;
             $data['projects'] = $activeProjects->map(fn ($p) => [
-                'name'        => $p->name,
-                'progress'    => $p->progress,
-                'budget'      => (float) $p->budget,
+                'name' => $p->name,
+                'progress' => $p->progress,
+                'budget' => (float) $p->budget,
                 'actual_cost' => (float) $p->actual_cost,
-                'budget_pct'  => $p->budgetUsedPercent(),
-                'overdue'     => $p->end_date && $p->end_date->isPast(),
+                'budget_pct' => $p->budgetUsedPercent(),
+                'overdue' => $p->end_date && $p->end_date->isPast(),
             ])->toArray();
         }
 
@@ -186,10 +186,10 @@ class AiFinancialAdvisorService
             $data['_has_data'] = true;
             $overduePlots = $farmPlots->filter(fn ($p) => $p->isHarvestOverdue());
             $data['farm'] = [
-                'total_plots'   => $farmPlots->count(),
-                'total_area'    => $farmPlots->sum('area_size') . ' ha',
-                'overdue_harvest'=> $overduePlots->count(),
-                'by_status'     => $farmPlots->groupBy('status')->map->count()->toArray(),
+                'total_plots' => $farmPlots->count(),
+                'total_area' => $farmPlots->sum('area_size').' ha',
+                'overdue_harvest' => $overduePlots->count(),
+                'by_status' => $farmPlots->groupBy('status')->map->count()->toArray(),
             ];
 
             // Farm cost analysis
@@ -238,6 +238,7 @@ class AiFinancialAdvisorService
 
         } catch (\Throwable $e) {
             Log::warning("AiFinancialAdvisor: Gemini call failed for tenant {$tenant->id}: {$e->getMessage()}");
+
             return [];
         }
     }
@@ -298,15 +299,19 @@ PROMPT;
 
             foreach ($lines as $line) {
                 $parts = array_map('trim', explode('|', $line, 3));
-                if (count($parts) < 3) continue;
+                if (count($parts) < 3) {
+                    continue;
+                }
 
                 $severity = strtolower($parts[0]);
-                if (!in_array($severity, ['critical', 'warning', 'info'])) $severity = 'info';
+                if (! in_array($severity, ['critical', 'warning', 'info'])) {
+                    $severity = 'info';
+                }
 
                 $recommendations[] = [
                     'severity' => $severity,
-                    'title'    => $parts[1],
-                    'body'     => $parts[2],
+                    'title' => $parts[1],
+                    'body' => $parts[2],
                 ];
             }
         }
@@ -315,8 +320,8 @@ PROMPT;
         if (empty($recommendations) && strlen($text) > 50) {
             $recommendations[] = [
                 'severity' => 'info',
-                'title'    => '💡 Ringkasan AI Advisor',
-                'body'     => mb_substr(strip_tags($text), 0, 500),
+                'title' => '💡 Ringkasan AI Advisor',
+                'body' => mb_substr(strip_tags($text), 0, 500),
             ];
         }
 
@@ -328,7 +333,9 @@ PROMPT;
      */
     private function saveRecommendations(int $tenantId, array $recommendations): void
     {
-        if (empty($recommendations)) return;
+        if (empty($recommendations)) {
+            return;
+        }
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
@@ -340,23 +347,25 @@ PROMPT;
             // Skip if same title already sent today
             $exists = ErpNotification::where('tenant_id', $tenantId)
                 ->where('type', 'ai_advisor')
-                ->where('title', 'like', '%' . mb_substr($rec['title'], 0, 50) . '%')
+                ->where('title', 'like', '%'.mb_substr($rec['title'], 0, 50).'%')
                 ->whereDate('created_at', today())
                 ->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             $icon = $icons[$rec['severity']] ?? '💡';
 
             foreach ($recipients as $userId) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => 'ai_advisor',
-                    'title'     => "{$icon} {$rec['title']}",
-                    'body'      => $rec['body'],
-                    'data'      => [
+                    'user_id' => $userId,
+                    'type' => 'ai_advisor',
+                    'title' => "{$icon} {$rec['title']}",
+                    'body' => $rec['body'],
+                    'data' => [
                         'severity' => $rec['severity'],
-                        'source'   => 'ai_financial_advisor',
+                        'source' => 'ai_financial_advisor',
                     ],
                 ]);
             }

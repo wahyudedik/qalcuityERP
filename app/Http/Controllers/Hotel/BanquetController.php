@@ -77,6 +77,7 @@ class BanquetController extends Controller
     public function show(int $id)
     {
         $event = BanquetEvent::with(['orders.menuItem', 'coordinator', 'clientGuest'])->findOrFail($id);
+
         return view('hotel.fb.banquet.show', compact('event'));
     }
 
@@ -94,12 +95,14 @@ class BanquetController extends Controller
     public function completeEvent(int $id)
     {
         $event = $this->banquetService->completeEvent($id);
+
         return back()->with('success', 'Event marked as completed');
     }
 
     public function cancelEvent(int $id)
     {
         $event = $this->banquetService->cancelEvent($id);
+
         return back()->with('success', 'Event cancelled');
     }
 

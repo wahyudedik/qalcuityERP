@@ -5,7 +5,9 @@ namespace App\Services\Audit;
 class MigrationGeneratorService
 {
     private string $basePath;
+
     private string $migrationPath;
+
     private int $counter = 0;
 
     private const BASE_TIMESTAMP = '2026_05_10_000001';
@@ -22,17 +24,17 @@ class MigrationGeneratorService
             }
         }
 
-        $this->migrationPath = $migrationPath ?? ($this->basePath . '/database/migrations');
+        $this->migrationPath = $migrationPath ?? ($this->basePath.'/database/migrations');
     }
 
     /**
-     * @param string[] $columns
+     * @param  string[]  $columns
      * @return array{filename:string, content:string}
      */
     public function generateIndexMigration(string $table, array $columns): array
     {
-        $class = 'AddIndexesTo' . $this->studly($table) . 'Table';
-        $name = 'add_indexes_to_' . $table . '_table';
+        $class = 'AddIndexesTo'.$this->studly($table).'Table';
+        $name = 'add_indexes_to_'.$table.'_table';
         $timestamp = $this->getNextTimestamp();
         $filename = "{$timestamp}_{$name}.php";
         $indexLines = array_map(
@@ -42,7 +44,7 @@ class MigrationGeneratorService
 
         $content = $this->makeMigrationTemplate(
             className: $class,
-            upBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            " . implode("\n            ", $indexLines) . "\n        });",
+            upBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            ".implode("\n            ", $indexLines)."\n        });",
             downBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            // TODO: drop indexes if needed.\n        });",
         );
 
@@ -50,13 +52,13 @@ class MigrationGeneratorService
     }
 
     /**
-     * @param array<string, string> $foreignKeys key=column, value=referenced table
+     * @param  array<string, string>  $foreignKeys  key=column, value=referenced table
      * @return array{filename:string, content:string}
      */
     public function generateForeignKeyMigration(string $table, array $foreignKeys): array
     {
-        $class = 'AddForeignKeysTo' . $this->studly($table) . 'Table';
-        $name = 'add_foreign_keys_to_' . $table . '_table';
+        $class = 'AddForeignKeysTo'.$this->studly($table).'Table';
+        $name = 'add_foreign_keys_to_'.$table.'_table';
         $timestamp = $this->getNextTimestamp();
         $filename = "{$timestamp}_{$name}.php";
         $fkLines = [];
@@ -67,7 +69,7 @@ class MigrationGeneratorService
 
         $content = $this->makeMigrationTemplate(
             className: $class,
-            upBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            " . implode("\n            ", $fkLines) . "\n        });",
+            upBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            ".implode("\n            ", $fkLines)."\n        });",
             downBody: "Schema::table('{$table}', function (Blueprint \$table): void {\n            // TODO: drop foreign keys if needed.\n        });",
         );
 
@@ -79,8 +81,8 @@ class MigrationGeneratorService
      */
     public function generateSoftDeleteMigration(string $table): array
     {
-        $class = 'AddSoftDeletesTo' . $this->studly($table) . 'Table';
-        $name = 'add_soft_deletes_to_' . $table . '_table';
+        $class = 'AddSoftDeletesTo'.$this->studly($table).'Table';
+        $name = 'add_soft_deletes_to_'.$table.'_table';
         $timestamp = $this->getNextTimestamp();
         $filename = "{$timestamp}_{$name}.php";
 
@@ -94,13 +96,13 @@ class MigrationGeneratorService
     }
 
     /**
-     * @param string[] $allowedValues
+     * @param  string[]  $allowedValues
      * @return array{filename:string, content:string}
      */
     public function generateEnumExpansionMigration(string $table, string $column, array $allowedValues): array
     {
-        $class = 'ExpandEnum' . $this->studly($table) . $this->studly($column);
-        $name = 'expand_enum_' . $table . '_' . $column;
+        $class = 'ExpandEnum'.$this->studly($table).$this->studly($column);
+        $name = 'expand_enum_'.$table.'_'.$column;
         $timestamp = $this->getNextTimestamp();
         $filename = "{$timestamp}_{$name}.php";
         $enumValues = implode("', '", $allowedValues);
@@ -122,7 +124,7 @@ class MigrationGeneratorService
             throw new \RuntimeException('Invalid base timestamp format.');
         }
 
-        $next = $base->modify('+' . $this->counter . ' seconds');
+        $next = $base->modify('+'.$this->counter.' seconds');
         $this->counter++;
 
         return $next->format('Y_m_d_His');
@@ -130,11 +132,11 @@ class MigrationGeneratorService
 
     public function writeMigrationFile(string $filename, string $content): string
     {
-        if (!is_dir($this->migrationPath)) {
+        if (! is_dir($this->migrationPath)) {
             mkdir($this->migrationPath, 0777, true);
         }
 
-        $fullPath = $this->migrationPath . '/' . $filename;
+        $fullPath = $this->migrationPath.'/'.$filename;
         file_put_contents($fullPath, $content);
 
         return $fullPath;
@@ -143,6 +145,7 @@ class MigrationGeneratorService
     private function studly(string $value): string
     {
         $value = str_replace(['-', '_'], ' ', strtolower($value));
+
         return str_replace(' ', '', ucwords($value));
     }
 

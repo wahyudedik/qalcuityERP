@@ -42,7 +42,7 @@ class PackageModuleValidationPreservationTest extends TestCase
     public function test_null_enabled_modules_backward_compatibility(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'pro',
+            'plan' => 'pro',
             'enabled_modules' => null,
         ]);
         $user = $this->createAdminUser($tenant);
@@ -70,13 +70,13 @@ class PackageModuleValidationPreservationTest extends TestCase
         $this->assertEquals(
             sort($allModules),
             sort($enabledModules),
-            "Preservation 3.1: enabledModules() must return all modules from ALL_MODULES when enabled_modules is null."
+            'Preservation 3.1: enabledModules() must return all modules from ALL_MODULES when enabled_modules is null.'
         );
 
         $this->assertCount(
             count($allModules),
             $enabledModules,
-            "Preservation 3.1: enabledModules() must return exactly " . count($allModules) . " modules when enabled_modules is null."
+            'Preservation 3.1: enabledModules() must return exactly '.count($allModules).' modules when enabled_modules is null.'
         );
 
         // Tenant with null enabled_modules can access fleet route without 403
@@ -87,8 +87,8 @@ class PackageModuleValidationPreservationTest extends TestCase
         $this->assertNotEquals(
             403,
             $response->getStatusCode(),
-            "Preservation 3.1: Tenant with null enabled_modules must NOT get 403 on /fleet. " .
-            "Got: HTTP " . $response->getStatusCode()
+            'Preservation 3.1: Tenant with null enabled_modules must NOT get 403 on /fleet. '.
+            'Got: HTTP '.$response->getStatusCode()
         );
     }
 
@@ -109,7 +109,7 @@ class PackageModuleValidationPreservationTest extends TestCase
     public function test_allowed_module_activation_succeeds(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'business',
+            'plan' => 'business',
             'enabled_modules' => ['pos'], // start with something to avoid null path
         ]);
         $user = $this->createAdminUser($tenant);
@@ -165,19 +165,19 @@ class PackageModuleValidationPreservationTest extends TestCase
     {
         // Create a tenant that is expired — CheckTenantActive would normally redirect
         $tenant = $this->createTenant([
-            'plan'            => 'pro',
+            'plan' => 'pro',
             'plan_expires_at' => now()->subDays(10), // expired
-            'is_active'       => true,
+            'is_active' => true,
         ]);
 
         // Create super-admin user
         $superAdmin = User::create([
-            'tenant_id'         => $tenant->id,
-            'name'              => 'Super Admin Test',
-            'email'             => 'superadmin-' . uniqid() . '@test.com',
-            'password'          => bcrypt('password'),
-            'role'              => 'super_admin',
-            'is_active'         => true,
+            'tenant_id' => $tenant->id,
+            'name' => 'Super Admin Test',
+            'email' => 'superadmin-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
 
@@ -186,7 +186,7 @@ class PackageModuleValidationPreservationTest extends TestCase
         // Verify the tenant is actually expired (canAccess returns false)
         $this->assertFalse(
             $tenant->canAccess(),
-            "Preservation 3.3: Test setup — tenant should be expired for this test to be meaningful."
+            'Preservation 3.3: Test setup — tenant should be expired for this test to be meaningful.'
         );
 
         // Super-admin accessing a route should NOT be redirected to subscription.expired
@@ -197,8 +197,8 @@ class PackageModuleValidationPreservationTest extends TestCase
         $this->assertNotEquals(
             route('subscription.expired'),
             $response->headers->get('Location'),
-            "Preservation 3.3: Super-admin must NOT be redirected to subscription.expired " .
-            "even when tenant is expired. CheckTenantActive must skip super_admin role."
+            'Preservation 3.3: Super-admin must NOT be redirected to subscription.expired '.
+            'even when tenant is expired. CheckTenantActive must skip super_admin role.'
         );
 
         // Should not redirect to subscription.expired route
@@ -230,7 +230,7 @@ class PackageModuleValidationPreservationTest extends TestCase
     public function test_professional_plan_can_activate_advanced_modules(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'professional',
+            'plan' => 'professional',
             'enabled_modules' => ['pos'], // start with something to avoid null path
         ]);
         $user = $this->createAdminUser($tenant);
@@ -277,7 +277,7 @@ class PackageModuleValidationPreservationTest extends TestCase
     public function test_is_module_enabled_respects_enabled_modules_array(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'pro',
+            'plan' => 'pro',
             'enabled_modules' => ['pos', 'inventory'],
         ]);
 
@@ -330,20 +330,20 @@ class PackageModuleValidationPreservationTest extends TestCase
     public function test_expired_tenant_redirected_by_check_tenant_active(): void
     {
         $tenant = $this->createTenant([
-            'plan'            => 'pro',
+            'plan' => 'pro',
             'plan_expires_at' => now()->subDays(5), // expired 5 days ago
-            'is_active'       => true,
+            'is_active' => true,
         ]);
         $user = $this->createAdminUser($tenant);
 
         // Verify the tenant is actually expired
         $this->assertTrue(
             $tenant->isPlanExpired(),
-            "Preservation 3.6: Test setup — tenant plan should be expired."
+            'Preservation 3.6: Test setup — tenant plan should be expired.'
         );
         $this->assertFalse(
             $tenant->canAccess(),
-            "Preservation 3.6: Test setup — tenant canAccess() should return false."
+            'Preservation 3.6: Test setup — tenant canAccess() should return false.'
         );
 
         $this->actingAs($user);
@@ -358,7 +358,7 @@ class PackageModuleValidationPreservationTest extends TestCase
         $this->assertStringContainsString(
             'subscription/expired',
             $location ?? '',
-            "Preservation 3.6: Expired tenant must be redirected to subscription/expired route. " .
+            'Preservation 3.6: Expired tenant must be redirected to subscription/expired route. '.
             "Got redirect to: {$location}"
         );
     }

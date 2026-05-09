@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Telecom;
 
 use App\Http\Controllers\Controller;
-use App\Models\NetworkDevice;
+use App\Models\GeofenceAlert;
 use App\Models\LocationHistory;
 use App\Models\MobileDeviceTrack;
-use App\Models\GeofenceAlert;
+use App\Models\NetworkDevice;
 use App\Services\Telecom\GeofencingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ class LocationTrackingController extends Controller
 
     public function __construct()
     {
-        $this->geofencingService = new GeofencingService();
+        $this->geofencingService = new GeofencingService;
     }
 
     /**
@@ -74,7 +74,7 @@ class LocationTrackingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update location: ' . $e->getMessage(),
+                'message' => 'Failed to update location: '.$e->getMessage(),
             ], 500);
         }
     }

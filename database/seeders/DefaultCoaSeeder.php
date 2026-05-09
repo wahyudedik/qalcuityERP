@@ -23,18 +23,18 @@ class DefaultCoaSeeder extends Seeder
         // First pass: create header accounts (no parent)
         $created = [];
         foreach ($accounts as $acc) {
-            if ($acc['is_header'] && !$acc['parent_code']) {
+            if ($acc['is_header'] && ! $acc['parent_code']) {
                 $record = ChartOfAccount::create([
-                    'tenant_id'      => $tenantId,
-                    'parent_id'      => null,
-                    'code'           => $acc['code'],
-                    'name'           => $acc['name'],
-                    'type'           => $acc['type'],
+                    'tenant_id' => $tenantId,
+                    'parent_id' => null,
+                    'code' => $acc['code'],
+                    'name' => $acc['name'],
+                    'type' => $acc['type'],
                     'normal_balance' => $acc['normal_balance'],
-                    'level'          => $acc['level'],
-                    'is_header'      => $acc['is_header'],
-                    'is_active'      => true,
-                    'description'    => $acc['description'] ?? null,
+                    'level' => $acc['level'],
+                    'is_header' => $acc['is_header'],
+                    'is_active' => true,
+                    'description' => $acc['description'] ?? null,
                 ]);
                 $created[$acc['code']] = $record->id;
             }
@@ -42,27 +42,27 @@ class DefaultCoaSeeder extends Seeder
 
         // Subsequent passes: create child accounts
         $maxPasses = 5;
-        $remaining = array_filter($accounts, fn($a) => !isset($created[$a['code']]));
+        $remaining = array_filter($accounts, fn ($a) => ! isset($created[$a['code']]));
 
         for ($pass = 0; $pass < $maxPasses && count($remaining) > 0; $pass++) {
             foreach ($remaining as $key => $acc) {
                 $parentId = $acc['parent_code'] ? ($created[$acc['parent_code']] ?? null) : null;
 
-                if ($acc['parent_code'] && !$parentId) {
+                if ($acc['parent_code'] && ! $parentId) {
                     continue; // parent not yet created
                 }
 
                 $record = ChartOfAccount::create([
-                    'tenant_id'      => $tenantId,
-                    'parent_id'      => $parentId,
-                    'code'           => $acc['code'],
-                    'name'           => $acc['name'],
-                    'type'           => $acc['type'],
+                    'tenant_id' => $tenantId,
+                    'parent_id' => $parentId,
+                    'code' => $acc['code'],
+                    'name' => $acc['name'],
+                    'type' => $acc['type'],
                     'normal_balance' => $acc['normal_balance'],
-                    'level'          => $acc['level'],
-                    'is_header'      => $acc['is_header'],
-                    'is_active'      => true,
-                    'description'    => $acc['description'] ?? null,
+                    'level' => $acc['level'],
+                    'is_header' => $acc['is_header'],
+                    'is_active' => true,
+                    'description' => $acc['description'] ?? null,
                 ]);
                 $created[$acc['code']] = $record->id;
                 unset($remaining[$key]);
@@ -91,7 +91,7 @@ class DefaultCoaSeeder extends Seeder
             ['code' => '1112', 'name' => 'Piutang Lain-lain',             'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
             ['code' => '1120', 'name' => 'Persediaan Barang Dagang',      'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
             ['code' => '1121', 'name' => 'Persediaan Bahan Baku',         'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
-            ['code' => '1122', 'name' => 'Persediaan Barang Dalam Proses','type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
+            ['code' => '1122', 'name' => 'Persediaan Barang Dalam Proses', 'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
             ['code' => '1130', 'name' => 'Uang Muka Pembelian',           'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
             ['code' => '1131', 'name' => 'Biaya Dibayar Dimuka',          'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
             ['code' => '1132', 'name' => 'PPN Masukan',                   'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1100'],
@@ -102,11 +102,11 @@ class DefaultCoaSeeder extends Seeder
             ['code' => '1202', 'name' => 'Bangunan',                      'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1203', 'name' => 'Akumulasi Penyusutan Bangunan', 'type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1204', 'name' => 'Kendaraan',                     'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
-            ['code' => '1205', 'name' => 'Akumulasi Penyusutan Kendaraan','type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
+            ['code' => '1205', 'name' => 'Akumulasi Penyusutan Kendaraan', 'type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1206', 'name' => 'Peralatan',                     'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
-            ['code' => '1207', 'name' => 'Akumulasi Penyusutan Peralatan','type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
+            ['code' => '1207', 'name' => 'Akumulasi Penyusutan Peralatan', 'type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1208', 'name' => 'Inventaris Kantor',             'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
-            ['code' => '1209', 'name' => 'Akumulasi Penyusutan Inventaris','type' => 'asset',    'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
+            ['code' => '1209', 'name' => 'Akumulasi Penyusutan Inventaris', 'type' => 'asset',    'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1210', 'name' => 'Aset Tak Berwujud',             'type' => 'asset',     'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
             ['code' => '1211', 'name' => 'Akumulasi Amortisasi',          'type' => 'asset',     'normal_balance' => 'credit', 'level' => 3, 'is_header' => false, 'parent_code' => '1200'],
 
@@ -177,7 +177,7 @@ class DefaultCoaSeeder extends Seeder
             ['code' => '5209', 'name' => 'Beban Pemasaran & Iklan',       'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
             ['code' => '5210', 'name' => 'Beban Transportasi',            'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
             ['code' => '5211', 'name' => 'Beban Perjalanan Dinas',        'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
-            ['code' => '5212', 'name' => 'Beban Pemeliharaan & Perbaikan','type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
+            ['code' => '5212', 'name' => 'Beban Pemeliharaan & Perbaikan', 'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
             ['code' => '5213', 'name' => 'Beban Penyusutan',              'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
             ['code' => '5214', 'name' => 'Beban Amortisasi',              'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],
             ['code' => '5215', 'name' => 'Beban Asuransi',                'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'is_header' => false, 'parent_code' => '5200'],

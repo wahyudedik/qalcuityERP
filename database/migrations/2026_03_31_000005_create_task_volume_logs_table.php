@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('task_volume_logs')) {
+        if (! Schema::hasTable('task_volume_logs')) {
             Schema::create('task_volume_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('project_task_id')->constrained()->cascadeOnDelete();
@@ -20,7 +20,7 @@ return new class extends Migration
                 $table->string('description')->nullable();  // e.g. "Pengecoran zona A"
                 $table->text('notes')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['project_task_id', 'date']);
             });
         }

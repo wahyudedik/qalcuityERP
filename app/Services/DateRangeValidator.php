@@ -2,23 +2,21 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
  * DateRangeValidator - Centralized date range validation for reports
- * 
+ *
  * BUG-REP-001 FIX: Ensures consistent date validation across all report endpoints
  */
 class DateRangeValidator
 {
     /**
      * Validate date range for reports
-     * 
-     * @param Request $request
+     *
      * @throws ValidationException
-     * @return void
      */
     public function validate(Request $request): void
     {
@@ -58,7 +56,7 @@ class DateRangeValidator
         if ($monthsDiff > 60) {
             throw ValidationException::withMessages([
                 'date_range' => [
-                    'Rentang tanggal terlalu besar (' . $monthsDiff . ' bulan). Maksimal 5 tahun (60 bulan).'
+                    'Rentang tanggal terlalu besar ('.$monthsDiff.' bulan). Maksimal 5 tahun (60 bulan).',
                 ],
             ]);
         }
@@ -82,8 +80,7 @@ class DateRangeValidator
 
     /**
      * Parse and normalize date range
-     * 
-     * @param Request $request
+     *
      * @return array{start: Carbon, end: Carbon}
      */
     public function parseDateRange(Request $request): array
@@ -98,15 +95,12 @@ class DateRangeValidator
 
     /**
      * Get formatted date range string
-     * 
-     * @param Request $request
-     * @return string
      */
     public function getFormattedRange(Request $request): string
     {
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);
 
-        return $start->format('d M Y') . ' s/d ' . $end->format('d M Y');
+        return $start->format('d M Y').' s/d '.$end->format('d M Y');
     }
 }

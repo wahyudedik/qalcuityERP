@@ -99,7 +99,7 @@ class MobileDeviceTrack extends Model
      */
     public function getSessionDistance(): float
     {
-        if (!$this->session_id) {
+        if (! $this->session_id) {
             return 0;
         }
 

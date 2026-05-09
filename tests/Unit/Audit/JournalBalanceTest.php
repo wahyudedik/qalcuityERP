@@ -4,7 +4,6 @@ namespace Tests\Unit\Audit;
 
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
-use App\Models\JournalLine;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,9 +11,9 @@ use Tests\TestCase;
 
 /**
  * Task 24.7: Unit test for journal balance calculation
- * 
+ *
  * Validates: Requirements 10.2
- * 
+ *
  * This test ensures that:
  * - Journal entries always have debit = credit
  * - System rejects unbalanced journal entries
@@ -25,9 +24,13 @@ class JournalBalanceTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
+
     protected ChartOfAccount $kasAccount;
+
     protected ChartOfAccount $piutangAccount;
+
     protected ChartOfAccount $salesAccount;
 
     protected function setUp(): void

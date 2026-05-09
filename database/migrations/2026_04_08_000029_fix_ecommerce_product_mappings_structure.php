@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -31,16 +32,16 @@ return new class extends Migration {
                 }
 
                 // Add new columns if they don't exist
-                if (!Schema::hasColumn('ecommerce_product_mappings', 'external_id')) {
+                if (! Schema::hasColumn('ecommerce_product_mappings', 'external_id')) {
                     $table->string('external_id')->after('channel_id');
                 }
-                if (!Schema::hasColumn('ecommerce_product_mappings', 'external_variant_id')) {
+                if (! Schema::hasColumn('ecommerce_product_mappings', 'external_variant_id')) {
                     $table->string('external_variant_id')->nullable()->after('external_sku');
                 }
-                if (!Schema::hasColumn('ecommerce_product_mappings', 'metadata')) {
+                if (! Schema::hasColumn('ecommerce_product_mappings', 'metadata')) {
                     $table->json('metadata')->nullable()->after('is_active');
                 }
-                if (!Schema::hasColumn('ecommerce_product_mappings', 'last_synced_at')) {
+                if (! Schema::hasColumn('ecommerce_product_mappings', 'last_synced_at')) {
                     $table->timestamp('last_synced_at')->nullable()->after('metadata');
                 }
 
@@ -48,9 +49,9 @@ return new class extends Migration {
                 try {
                     // Try to add unique constraint - will fail if it already exists
                     Schema::getConnection()->statement(
-                        "ALTER TABLE ecommerce_product_mappings ADD UNIQUE KEY unique_product_channel (product_id, channel_id)"
+                        'ALTER TABLE ecommerce_product_mappings ADD UNIQUE KEY unique_product_channel (product_id, channel_id)'
                     );
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Unique constraint might already exist
                 }
             });
@@ -60,7 +61,7 @@ return new class extends Migration {
                 Schema::table('ecommerce_product_mappings', function (Blueprint $table) {
                     $table->index(['tenant_id', 'is_active']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
 
@@ -68,7 +69,7 @@ return new class extends Migration {
                 Schema::table('ecommerce_product_mappings', function (Blueprint $table) {
                     $table->index(['channel_id', 'external_id']);
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Index might already exist
             }
         }

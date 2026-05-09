@@ -17,7 +17,7 @@
                     <p class="text-sm text-white/80">Memerlukan penanganan segera</p>
                 </div>
             </div>
-            <a href="{{ route('healthcare.er.triage', ['priority' => 'red']) }}"
+            <a href="{{ route('healthcare.er.patients', ['priority' => 'red']) }}"
                 class="px-4 py-2 bg-white text-red-600 rounded-xl font-medium hover:bg-white/90">
                 Lihat Detail
             </a>
@@ -27,27 +27,29 @@
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
         @php
-            $totalERPatients = \App\Models\EmergencyCase::where('tenant_id', $tid)->where('status', 'active')->count();
+            $totalERPatients = \App\Models\EmergencyCase::where('tenant_id', $tid)
+                ->whereIn('status', ['triaged', 'waiting', 'in_treatment', 'critical', 'stable'])
+                ->count();
             $redPriority = \App\Models\EmergencyCase::where('tenant_id', $tid)
                 ->where('triage_level', 'red')
-                ->where('status', 'active')
+                ->whereIn('status', ['triaged', 'waiting', 'in_treatment', 'critical', 'stable'])
                 ->count();
             $yellowPriority = \App\Models\EmergencyCase::where('tenant_id', $tid)
                 ->where('triage_level', 'yellow')
-                ->where('status', 'active')
+                ->whereIn('status', ['triaged', 'waiting', 'in_treatment', 'critical', 'stable'])
                 ->count();
             $greenPriority = \App\Models\EmergencyCase::where('tenant_id', $tid)
                 ->where('triage_level', 'green')
-                ->where('status', 'active')
+                ->whereIn('status', ['triaged', 'waiting', 'in_treatment', 'critical', 'stable'])
                 ->count();
             $blackPriority = \App\Models\EmergencyCase::where('tenant_id', $tid)
                 ->where('triage_level', 'black')
-                ->where('status', 'active')
+                ->whereIn('status', ['triaged', 'waiting', 'in_treatment', 'critical', 'stable'])
                 ->count();
             $avgStayTime =
                 \App\Models\EmergencyCase::where('tenant_id', $tid)
                     ->where('status', 'discharged')
-                    ->avg('stay_duration_minutes') ?? 0;
+                    ->avg('total_er_duration_minutes') ?? 0;
             $todayThroughput = \App\Models\EmergencyCase::where('tenant_id', $tid)
                 ->whereDate('created_at', today())
                 ->count();
@@ -111,7 +113,7 @@
             <div class="px-6 py-4 border-b border-red-200 bg-red-50">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-bold text-red-600">🔴 Resusitasi - Immediate</h3>
-                    <a href="{{ route('healthcare.er.triage', ['priority' => 'red']) }}"
+                    <a href="{{ route('healthcare.er.patients', ['priority' => 'red']) }}"
                         class="text-sm text-red-600 hover:underline">Lihat Semua</a>
                 </div>
             </div>
@@ -130,7 +132,7 @@
                         <div class="flex items-center justify-between text-xs text-gray-500">
                             <span>Sejak
                                 {{ $case->arrival_time ? \Carbon\Carbon::parse($case->arrival_time)->format('H:i') : '-' }}</span>
-                            <a href="{{ route('healthcare.er.triage.assess', $case) }}"
+                            <a href="{{ route('healthcare.er.triage.show', $case->id) }}"
                                 class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Tangani</a>
                         </div>
                     </div>
@@ -141,19 +143,17 @@
         </div>
 
         {{-- Emergent Patients (Yellow) --}}
-        <div
-            class="bg-white rounded-2xl border-2 border-amber-200 overflow-hidden">
+        <div class="bg-white rounded-2xl border-2 border-amber-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-amber-200 bg-amber-50">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-bold text-amber-600">🟠 Emergent - < 15 menit</h3>
-                            <a href="{{ route('healthcare.er.triage', ['priority' => 'yellow']) }}"
+                            <a href="{{ route('healthcare.er.patients', ['priority' => 'yellow']) }}"
                                 class="text-sm text-amber-600 hover:underline">Lihat Semua</a>
                 </div>
             </div>
             <div class="p-4 space-y-3">
                 @forelse($emergentCases ?? [] as $case)
-                    <div
-                        class="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
                         <div class="flex items-start justify-between mb-2">
                             <div>
                                 <p class="font-bold text-gray-900">
@@ -166,7 +166,7 @@
                         <div class="flex items-center justify-between text-xs text-gray-500">
                             <span>Sejak
                                 {{ $case->arrival_time ? \Carbon\Carbon::parse($case->arrival_time)->format('H:i') : '-' }}</span>
-                            <a href="{{ route('healthcare.er.triage.assess', $case) }}"
+                            <a href="{{ route('healthcare.er.triage.show', $case->id) }}"
                                 class="px-3 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Tangani</a>
                         </div>
                     </div>
@@ -179,10 +179,9 @@
 
     {{-- Recent ER Admissions Table --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div
-            class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900">Pemasukan IGD Terbaru</h3>
-            <a href="{{ route('healthcare.er.triage') }}"
+            <a href="{{ route('healthcare.er.patients') }}"
                 class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">+ Triage Baru</a>
         </div>
         <div class="overflow-x-auto">
@@ -239,13 +238,12 @@
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
                                 <span
-                                    class="font-bold text-gray-900">{{ $case->stay_duration_minutes ?? '-' }}</span>
+                                    class="font-bold text-gray-900">{{ $case->total_er_duration_minutes ?? '-' }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('healthcare.er.triage.assess', $case) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                        title="Assessment">
+                                    <a href="{{ route('healthcare.er.triage.show', $case->id) }}"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Assessment">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"

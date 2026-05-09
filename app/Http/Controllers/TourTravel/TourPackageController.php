@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\TourTravel;
 
 use App\Http\Controllers\Controller;
-use App\Models\TourPackage;
 use App\Models\ItineraryDay;
-use App\Models\TourBooking;
-use App\Models\BookingPassenger;
-use App\Models\TourSupplier;
 use App\Models\PackageSupplierAllocation;
+use App\Models\TourBooking;
+use App\Models\TourPackage;
 use App\Models\VisaApplication;
-use App\Models\TravelDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -37,7 +34,7 @@ class TourPackageController extends Controller
             ->withCount([
                 'bookings' => function ($q) {
                     $q->whereIn('status', ['pending', 'confirmed', 'paid']);
-                }
+                },
             ])
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -78,9 +75,9 @@ class TourPackageController extends Controller
 
         try {
             DB::transaction(function () use ($validated, $request) {
-                $package = new TourPackage();
+                $package = new TourPackage;
                 $package->tenant_id = auth()->user()->tenant_id;
-                $package->package_code = 'TOUR-' . now()->format('Y') . '-' . str_pad(TourPackage::count() + 1, 4, '0', STR_PAD_LEFT);
+                $package->package_code = 'TOUR-'.now()->format('Y').'-'.str_pad(TourPackage::count() + 1, 4, '0', STR_PAD_LEFT);
                 $package->fill($validated);
                 $package->status = 'draft';
                 $package->created_by = auth()->id();
@@ -121,7 +118,7 @@ class TourPackageController extends Controller
             'bookings' => function ($q) {
                 $q->latest()->take(10);
             },
-            'createdBy'
+            'createdBy',
         ])->findOrFail($id);
 
         return view('tour-travel.packages.show', compact('package'));
@@ -133,6 +130,7 @@ class TourPackageController extends Controller
     public function edit($id)
     {
         $package = TourPackage::with('itineraryDays')->findOrFail($id);
+
         return view('tour-travel.packages.edit', compact('package'));
     }
 

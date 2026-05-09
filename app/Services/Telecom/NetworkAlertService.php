@@ -2,22 +2,25 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
+use App\Models\ErpNotification;
 use App\Models\NetworkAlert;
+use App\Models\NetworkDevice;
 use App\Models\TelecomSubscription;
+use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\WebhookService;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Network Alert Service
- * 
+ *
  * Manages network alerts, notifications, and automated responses
  * for various network events (device offline, quota exceeded, etc.)
  */
 class NetworkAlertService
 {
     protected NotificationService $notificationService;
+
     protected WebhookService $webhookService;
 
     public function __construct(
@@ -290,7 +293,7 @@ class NetworkAlertService
             ->where('tenant_id', $tenantId)
             ->first();
 
-        if (!$alert) {
+        if (! $alert) {
             return false;
         }
 
@@ -364,7 +367,7 @@ class NetworkAlertService
      */
     protected function calculateDowntimeDuration(NetworkDevice $device): string
     {
-        if (!$device->last_seen_at) {
+        if (! $device->last_seen_at) {
             return 'Unknown';
         }
 
@@ -385,7 +388,7 @@ class NetworkAlertService
     protected function sendNotificationToCustomer($customer, string $type, array $data): void
     {
         // Create in-app notification for customer
-        \App\Models\ErpNotification::create([
+        ErpNotification::create([
             'tenant_id' => $customer->tenant_id,
             'user_id' => $customer->user_id ?? null,
             'type' => $type,
@@ -408,12 +411,12 @@ class NetworkAlertService
     protected function sendNotificationToAdmins(int $tenantId, string $type, array $data): void
     {
         // Get all admin users for tenant
-        $admins = \App\Models\User::where('tenant_id', $tenantId)
+        $admins = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->pluck('id');
 
         foreach ($admins as $adminId) {
-            \App\Models\ErpNotification::create([
+            ErpNotification::create([
                 'tenant_id' => $tenantId,
                 'user_id' => $adminId,
                 'type' => $type,
@@ -440,7 +443,7 @@ class NetworkAlertService
         return match ($type) {
             'device.offline' => "🔴 Device Offline: {$data['device_name']}",
             'device.recovered' => "✅ Device Back Online: {$data['device_name']}",
-            'quota.exceeded' => "⚠️ Quota Exceeded",
+            'quota.exceeded' => '⚠️ Quota Exceeded',
             'quota.exceeded.admin' => "🚨 Customer Quota Exceeded: {$data['customer_name']}",
             'quota.warning' => "⚡ Quota Warning: {$data['usage_percentage']}% Used",
             default => 'Telecom Alert',

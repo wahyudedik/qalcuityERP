@@ -20,15 +20,17 @@ use PHPUnit\Framework\TestCase;
 class RouteAnalyzerTest extends TestCase
 {
     private string $fixtureDir;
+
     private string $routeDir;
+
     private string $controllerDir;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fixtureDir = sys_get_temp_dir() . '/route_analyzer_test_' . uniqid();
-        $this->routeDir = $this->fixtureDir . '/routes';
-        $this->controllerDir = $this->fixtureDir . '/app/Http/Controllers';
+        $this->fixtureDir = sys_get_temp_dir().'/route_analyzer_test_'.uniqid();
+        $this->routeDir = $this->fixtureDir.'/routes';
+        $this->controllerDir = $this->fixtureDir.'/app/Http/Controllers';
         mkdir($this->routeDir, 0777, true);
         mkdir($this->controllerDir, 0777, true);
     }
@@ -322,7 +324,7 @@ PHP);
 
         $this->assertCount(2, $findings);
 
-        $methods = array_map(fn(AuditFinding $f) => $f->metadata['method'], $findings);
+        $methods = array_map(fn (AuditFinding $f) => $f->metadata['method'], $findings);
         $this->assertContains('PUT', $methods);
         $this->assertContains('PATCH', $methods);
     }
@@ -473,8 +475,8 @@ PHP);
         $findings = $analyzer->analyze();
 
         // Should have at least one unprotected route finding and one orphaned route finding
-        $unprotected = array_filter($findings, fn(AuditFinding $f) => str_contains($f->title, 'Unprotected'));
-        $orphaned = array_filter($findings, fn(AuditFinding $f) => str_contains($f->title, 'Missing controller'));
+        $unprotected = array_filter($findings, fn (AuditFinding $f) => str_contains($f->title, 'Unprotected'));
+        $orphaned = array_filter($findings, fn (AuditFinding $f) => str_contains($f->title, 'Missing controller'));
 
         $this->assertNotEmpty($unprotected, 'Should detect unprotected POST route');
         $this->assertNotEmpty($orphaned, 'Should detect missing controller');
@@ -584,10 +586,10 @@ PHP);
 
     public function test_detects_orphaned_route_in_subdirectory_controller(): void
     {
-        $adminDir = $this->controllerDir . '/Admin';
+        $adminDir = $this->controllerDir.'/Admin';
         mkdir($adminDir, 0777, true);
 
-        file_put_contents($adminDir . '/UserController.php', <<<'PHP'
+        file_put_contents($adminDir.'/UserController.php', <<<'PHP'
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -625,22 +627,22 @@ PHP);
     private function makeAnalyzer(?array $routeFileNames = null): RouteAnalyzer
     {
         $routeFiles = $routeFileNames
-            ? array_map(fn($name) => $this->routeDir . '/' . $name, $routeFileNames)
-            : [$this->routeDir . '/web.php'];
+            ? array_map(fn ($name) => $this->routeDir.'/'.$name, $routeFileNames)
+            : [$this->routeDir.'/web.php'];
 
         return new RouteAnalyzer($routeFiles, $this->fixtureDir);
     }
 
     private function writeRouteFile(string $filename, string $content): void
     {
-        file_put_contents($this->routeDir . '/' . $filename, $content);
+        file_put_contents($this->routeDir.'/'.$filename, $content);
     }
 
     private function writeControllerFile(string $relativePath, string $content): void
     {
-        $fullPath = $this->controllerDir . '/' . $relativePath;
+        $fullPath = $this->controllerDir.'/'.$relativePath;
         $dir = dirname($fullPath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         file_put_contents($fullPath, $content);
@@ -656,6 +658,7 @@ PHP);
                 return $route;
             }
         }
+
         return null;
     }
 
@@ -672,7 +675,7 @@ PHP);
 
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

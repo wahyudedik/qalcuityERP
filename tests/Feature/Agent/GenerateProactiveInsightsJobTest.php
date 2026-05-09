@@ -6,8 +6,9 @@ use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\ProactiveInsight;
 use App\Models\SalesOrder;
+use App\Models\Tenant;
+use App\Models\User;
 use App\Services\Agent\ProactiveInsightEngine;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -25,7 +26,7 @@ class GenerateProactiveInsightsJobTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->engine = new ProactiveInsightEngine();
+        $this->engine = new ProactiveInsightEngine;
     }
 
     /**
@@ -33,29 +34,29 @@ class GenerateProactiveInsightsJobTest extends TestCase
      */
     private function createOverdueInvoice(int $tenantId, int $customerId, array $attrs = []): Invoice
     {
-        $user = \App\Models\User::where('tenant_id', $tenantId)->first()
-            ?? $this->createAdminUser(\App\Models\Tenant::find($tenantId));
+        $user = User::where('tenant_id', $tenantId)->first()
+            ?? $this->createAdminUser(Tenant::find($tenantId));
 
         $so = SalesOrder::create([
-            'tenant_id'   => $tenantId,
+            'tenant_id' => $tenantId,
             'customer_id' => $customerId,
-            'user_id'     => $user->id,
-            'number'      => 'SO-TEST-' . uniqid(),
-            'status'      => 'confirmed',
-            'date'        => now()->subDays(30)->toDateString(),
-            'subtotal'    => $attrs['total_amount'] ?? 5_000_000,
-            'total'       => $attrs['total_amount'] ?? 5_000_000,
+            'user_id' => $user->id,
+            'number' => 'SO-TEST-'.uniqid(),
+            'status' => 'confirmed',
+            'date' => now()->subDays(30)->toDateString(),
+            'subtotal' => $attrs['total_amount'] ?? 5_000_000,
+            'total' => $attrs['total_amount'] ?? 5_000_000,
         ]);
 
         return Invoice::create(array_merge([
-            'tenant_id'        => $tenantId,
-            'customer_id'      => $customerId,
-            'sales_order_id'   => $so->id,
-            'number'           => 'INV-TEST-' . uniqid(),
-            'due_date'         => now()->subDays(10)->toDateString(),
-            'status'           => 'unpaid',
-            'subtotal_amount'  => 5_000_000,
-            'total_amount'     => 5_000_000,
+            'tenant_id' => $tenantId,
+            'customer_id' => $customerId,
+            'sales_order_id' => $so->id,
+            'number' => 'INV-TEST-'.uniqid(),
+            'due_date' => now()->subDays(10)->toDateString(),
+            'status' => 'unpaid',
+            'subtotal_amount' => 5_000_000,
+            'total_amount' => 5_000_000,
             'remaining_amount' => 5_000_000,
         ], $attrs));
     }
@@ -66,9 +67,9 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1, 4.2
     // =========================================================================
 
-    public function testAnalyzeGeneratesLowStockInsightWhenConditionIsMet(): void
+    public function test_analyze_generates_low_stock_insight_when_condition_is_met(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
 
         // Buat produk dengan stock_min = 10, stok aktual = 2 (di bawah minimum)
@@ -86,7 +87,7 @@ class GenerateProactiveInsightsJobTest extends TestCase
 
         // Verifikasi record tersimpan di database
         $this->assertDatabaseHas('proactive_insights', [
-            'tenant_id'      => $tenant->id,
+            'tenant_id' => $tenant->id,
             'condition_type' => 'low_stock',
         ]);
 
@@ -105,9 +106,9 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1, 4.2
     // =========================================================================
 
-    public function testAnalyzeGeneratesOverdueArInsightWhenConditionIsMet(): void
+    public function test_analyze_generates_overdue_ar_insight_when_condition_is_met(): void
     {
-        $tenant   = $this->createTenant();
+        $tenant = $this->createTenant();
         $customer = $this->createCustomer($tenant->id);
 
         // Buat invoice yang sudah melewati jatuh tempo > 7 hari
@@ -118,7 +119,7 @@ class GenerateProactiveInsightsJobTest extends TestCase
         $this->assertNotEmpty($insights, 'analyze() harus menghasilkan insight untuk piutang jatuh tempo');
 
         $this->assertDatabaseHas('proactive_insights', [
-            'tenant_id'      => $tenant->id,
+            'tenant_id' => $tenant->id,
             'condition_type' => 'overdue_ar',
         ]);
     }
@@ -129,7 +130,7 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1
     // =========================================================================
 
-    public function testAnalyzeReturnsEmptyWhenNoConditionsAreMet(): void
+    public function test_analyze_returns_empty_when_no_conditions_are_met(): void
     {
         $tenant = $this->createTenant();
 
@@ -149,11 +150,11 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1
     // =========================================================================
 
-    public function testAnalyzeGeneratesMultipleInsightsForMultipleConditions(): void
+    public function test_analyze_generates_multiple_insights_for_multiple_conditions(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
-        $customer  = $this->createCustomer($tenant->id);
+        $customer = $this->createCustomer($tenant->id);
 
         // Kondisi 1: stok rendah
         $product = $this->createProduct($tenant->id, [
@@ -164,10 +165,10 @@ class GenerateProactiveInsightsJobTest extends TestCase
 
         // Kondisi 2: piutang jatuh tempo
         $this->createOverdueInvoice($tenant->id, $customer->id, [
-            'total_amount'     => 15_000_000,
-            'subtotal_amount'  => 15_000_000,
+            'total_amount' => 15_000_000,
+            'subtotal_amount' => 15_000_000,
             'remaining_amount' => 15_000_000,
-            'due_date'         => now()->subDays(8)->toDateString(),
+            'due_date' => now()->subDays(8)->toDateString(),
         ]);
 
         $insights = $this->engine->analyze($tenant->id);
@@ -186,10 +187,10 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1, 9.1
     // =========================================================================
 
-    public function testAnalyzeOnlyGeneratesInsightsForSpecifiedTenant(): void
+    public function test_analyze_only_generates_insights_for_specified_tenant(): void
     {
-        $tenantA   = $this->createTenant(['name' => 'Tenant A ' . uniqid()]);
-        $tenantB   = $this->createTenant(['name' => 'Tenant B ' . uniqid()]);
+        $tenantA = $this->createTenant(['name' => 'Tenant A '.uniqid()]);
+        $tenantB = $this->createTenant(['name' => 'Tenant B '.uniqid()]);
         $warehouse = $this->createWarehouse($tenantA->id);
 
         // Hanya tenant A yang memiliki kondisi stok rendah
@@ -226,9 +227,9 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1, 4.5
     // =========================================================================
 
-    public function testAnalyzeDoesNotCreateDuplicateInsightsWithinSuppressionWindow(): void
+    public function test_analyze_does_not_create_duplicate_insights_within_suppression_window(): void
     {
-        $tenant    = $this->createTenant();
+        $tenant = $this->createTenant();
         $warehouse = $this->createWarehouse($tenant->id);
 
         $product = $this->createProduct($tenant->id, [
@@ -262,18 +263,18 @@ class GenerateProactiveInsightsJobTest extends TestCase
     // Validates: Requirements 4.1, 4.2
     // =========================================================================
 
-    public function testAnalyzeGeneratesContractExpiryInsightWhenConditionIsMet(): void
+    public function test_analyze_generates_contract_expiry_insight_when_condition_is_met(): void
     {
         $tenant = $this->createTenant();
 
         // Buat karyawan dengan kontrak berakhir dalam 15 hari
         Employee::create([
-            'tenant_id'   => $tenant->id,
-            'name'        => 'Karyawan Test',
-            'employee_id' => 'EMP-' . uniqid(),
-            'status'      => 'active',
+            'tenant_id' => $tenant->id,
+            'name' => 'Karyawan Test',
+            'employee_id' => 'EMP-'.uniqid(),
+            'status' => 'active',
             'resign_date' => now()->addDays(15)->toDateString(),
-            'join_date'   => now()->subYear()->toDateString(),
+            'join_date' => now()->subYear()->toDateString(),
         ]);
 
         $insights = $this->engine->analyze($tenant->id);
@@ -283,7 +284,7 @@ class GenerateProactiveInsightsJobTest extends TestCase
             'analyze() harus menghasilkan insight contract_expiry untuk karyawan yang kontraknya akan berakhir');
 
         $this->assertDatabaseHas('proactive_insights', [
-            'tenant_id'      => $tenant->id,
+            'tenant_id' => $tenant->id,
             'condition_type' => 'contract_expiry',
         ]);
     }

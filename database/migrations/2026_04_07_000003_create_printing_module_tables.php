@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Print Jobs Queue
-        if (!Schema::hasTable('print_jobs')) {
+        if (! Schema::hasTable('print_jobs')) {
             Schema::create('print_jobs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -55,7 +56,7 @@ return new class extends Migration {
         }
 
         // Pre-Press Workflows
-        if (!Schema::hasTable('prepress_workflows')) {
+        if (! Schema::hasTable('prepress_workflows')) {
             Schema::create('prepress_workflows', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -79,7 +80,7 @@ return new class extends Migration {
         }
 
         // Printing Plates
-        if (!Schema::hasTable('printing_plates')) {
+        if (! Schema::hasTable('printing_plates')) {
             Schema::create('printing_plates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -107,7 +108,7 @@ return new class extends Migration {
         }
 
         // Press Runs (Real-time tracking)
-        if (!Schema::hasTable('press_runs')) {
+        if (! Schema::hasTable('press_runs')) {
             Schema::create('press_runs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -138,7 +139,7 @@ return new class extends Migration {
         }
 
         // Finishing Operations
-        if (!Schema::hasTable('finishing_operations')) {
+        if (! Schema::hasTable('finishing_operations')) {
             Schema::create('finishing_operations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -165,7 +166,7 @@ return new class extends Migration {
         }
 
         // Print Job Estimates (Advanced estimating engine)
-        if (!Schema::hasTable('print_estimates')) {
+        if (! Schema::hasTable('print_estimates')) {
             Schema::create('print_estimates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -208,7 +209,7 @@ return new class extends Migration {
         }
 
         // Web-to-Print Orders
-        if (!Schema::hasTable('web_to_print_orders')) {
+        if (! Schema::hasTable('web_to_print_orders')) {
             Schema::create('web_to_print_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

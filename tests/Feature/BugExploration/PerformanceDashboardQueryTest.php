@@ -25,6 +25,7 @@ class PerformanceDashboardQueryTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenant;
+
     private User $user;
 
     protected function setUp(): void
@@ -67,11 +68,11 @@ class PerformanceDashboardQueryTest extends TestCase
         $this->assertLessThanOrEqual(
             $queryThreshold,
             $queryCount,
-            "Bug 1.27: Dashboard menjalankan {$queryCount} queries, melebihi threshold {$queryThreshold}. " .
-            "Ini mengindikasikan N+1 query problem. " .
-            "Query yang dijalankan:\n" .
+            "Bug 1.27: Dashboard menjalankan {$queryCount} queries, melebihi threshold {$queryThreshold}. ".
+            'Ini mengindikasikan N+1 query problem. '.
+            "Query yang dijalankan:\n".
             implode("\n", array_map(
-                fn($q) => substr($q['query'], 0, 100),
+                fn ($q) => substr($q['query'], 0, 100),
                 array_slice($queries, 0, 10)
             ))
         );
@@ -87,8 +88,8 @@ class PerformanceDashboardQueryTest extends TestCase
     {
         $dashboardFile = 'app/Http/Controllers/DashboardController.php';
 
-        if (!file_exists($dashboardFile)) {
-            $this->markTestSkipped("DashboardController tidak ditemukan");
+        if (! file_exists($dashboardFile)) {
+            $this->markTestSkipped('DashboardController tidak ditemukan');
         }
 
         $content = file_get_contents($dashboardFile);
@@ -103,8 +104,8 @@ class PerformanceDashboardQueryTest extends TestCase
         // Test ini AKAN GAGAL jika tidak ada cache
         $this->assertTrue(
             $usesCache,
-            "Bug 1.27: DashboardController tidak menggunakan cache untuk query agregat. " .
-            "Setiap load dashboard akan menjalankan semua query dari awal."
+            'Bug 1.27: DashboardController tidak menggunakan cache untuk query agregat. '.
+            'Setiap load dashboard akan menjalankan semua query dari awal.'
         );
     }
 
@@ -118,8 +119,8 @@ class PerformanceDashboardQueryTest extends TestCase
     {
         $dashboardFile = 'app/Http/Controllers/DashboardController.php';
 
-        if (!file_exists($dashboardFile)) {
-            $this->markTestSkipped("DashboardController tidak ditemukan");
+        if (! file_exists($dashboardFile)) {
+            $this->markTestSkipped('DashboardController tidak ditemukan');
         }
 
         $content = file_get_contents($dashboardFile);
@@ -134,8 +135,8 @@ class PerformanceDashboardQueryTest extends TestCase
         // Test ini AKAN GAGAL jika tidak ada eager loading
         $this->assertTrue(
             $usesEagerLoading,
-            "Bug 1.27: DashboardController tidak menggunakan eager loading untuk relasi. " .
-            "Ini menyebabkan N+1 query problem saat memuat data dashboard."
+            'Bug 1.27: DashboardController tidak menggunakan eager loading untuk relasi. '.
+            'Ini menyebabkan N+1 query problem saat memuat data dashboard.'
         );
     }
 
@@ -149,8 +150,8 @@ class PerformanceDashboardQueryTest extends TestCase
     {
         $dashboardFile = 'app/Http/Controllers/DashboardController.php';
 
-        if (!file_exists($dashboardFile)) {
-            $this->markTestSkipped("DashboardController tidak ditemukan");
+        if (! file_exists($dashboardFile)) {
+            $this->markTestSkipped('DashboardController tidak ditemukan');
         }
 
         $content = file_get_contents($dashboardFile);
@@ -166,8 +167,8 @@ class PerformanceDashboardQueryTest extends TestCase
         // Test ini AKAN GAGAL jika tidak ada aggregate queries
         $this->assertTrue(
             $usesAggregates,
-            "Bug 1.27: DashboardController tidak menggunakan aggregate queries (selectRaw, sum, count). " .
-            "Ini menyebabkan N+1 query problem."
+            'Bug 1.27: DashboardController tidak menggunakan aggregate queries (selectRaw, sum, count). '.
+            'Ini menyebabkan N+1 query problem.'
         );
     }
 }

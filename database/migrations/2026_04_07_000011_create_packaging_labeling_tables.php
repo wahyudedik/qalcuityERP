@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - Packaging & Labeling Module.
      */
     public function up(): void
     {
         // 1. Packaging Materials - Primary & secondary packaging specs
-        if (!Schema::hasTable('packaging_materials')) {
+        if (! Schema::hasTable('packaging_materials')) {
             Schema::create('packaging_materials', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -29,14 +30,14 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'material_type']);
                 $table->index(['tenant_id', 'material_category']);
             });
         }
 
         // 2. Label Versions - Label design tracking
-        if (!Schema::hasTable('label_versions')) {
+        if (! Schema::hasTable('label_versions')) {
             Schema::create('label_versions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -57,14 +58,14 @@ return new class extends Migration {
                 $table->text('approval_notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'label_type']);
             });
         }
 
         // 3. Label Compliance Checks - Regulatory compliance verification
-        if (!Schema::hasTable('label_compliance_checks')) {
+        if (! Schema::hasTable('label_compliance_checks')) {
             Schema::create('label_compliance_checks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -78,7 +79,7 @@ return new class extends Migration {
                 $table->timestamp('checked_at')->nullable();
                 $table->text('remarks')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_compliant']);
             });
         }

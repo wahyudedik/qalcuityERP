@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BanquetEvent extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -88,7 +87,8 @@ class BanquetEvent extends Model
     {
         $date = now()->format('Ymd');
         $count = static::whereDate('created_at', today())->count() + 1;
-        return "BNQ-{$date}-" . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        return "BNQ-{$date}-".str_pad($count, 3, '0', STR_PAD_LEFT);
     }
 
     /**

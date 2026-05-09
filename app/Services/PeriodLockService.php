@@ -63,6 +63,7 @@ class PeriodLockService
 
         if ($period) {
             $label = $period->isLocked() ? 'dikunci' : 'ditutup';
+
             return "Periode {$period->name} ({$label})";
         }
 
@@ -80,13 +81,13 @@ class PeriodLockService
             ->where('end_date', '<=', $fiscalYear->end_date)
             ->where('status', 'open')
             ->update([
-                'status'    => 'locked',
+                'status' => 'locked',
                 'locked_by' => $userId,
                 'locked_at' => now(),
             ]);
 
         $fiscalYear->update([
-            'status'    => 'locked',
+            'status' => 'locked',
             'locked_by' => $userId,
             'locked_at' => now(),
         ]);
@@ -102,13 +103,13 @@ class PeriodLockService
             ->where('end_date', '<=', $fiscalYear->end_date)
             ->where('status', 'open')
             ->update([
-                'status'    => 'closed',
+                'status' => 'closed',
                 'closed_by' => $userId,
                 'closed_at' => now(),
             ]);
 
         $fiscalYear->update([
-            'status'    => 'closed',
+            'status' => 'closed',
             'closed_by' => $userId,
             'closed_at' => now(),
         ]);
@@ -124,7 +125,7 @@ class PeriodLockService
         }
 
         $fiscalYear->update([
-            'status'    => 'open',
+            'status' => 'open',
             'closed_by' => null,
             'closed_at' => null,
         ]);
@@ -136,7 +137,7 @@ class PeriodLockService
     public function lockPeriod(AccountingPeriod $period, int $userId): void
     {
         $period->update([
-            'status'    => 'locked',
+            'status' => 'locked',
             'locked_by' => $userId,
             'locked_at' => now(),
         ]);
@@ -149,15 +150,19 @@ class PeriodLockService
     {
         $created = 0;
         $current = $fiscalYear->start_date->copy()->startOfMonth();
-        $end     = $fiscalYear->end_date->copy()->endOfMonth();
+        $end = $fiscalYear->end_date->copy()->endOfMonth();
 
         while ($current->lte($end)) {
             $periodStart = $current->copy()->startOfMonth();
-            $periodEnd   = $current->copy()->endOfMonth();
+            $periodEnd = $current->copy()->endOfMonth();
 
             // Clamp ke batas fiscal year
-            if ($periodStart->lt($fiscalYear->start_date)) $periodStart = $fiscalYear->start_date->copy();
-            if ($periodEnd->gt($fiscalYear->end_date))     $periodEnd   = $fiscalYear->end_date->copy();
+            if ($periodStart->lt($fiscalYear->start_date)) {
+                $periodStart = $fiscalYear->start_date->copy();
+            }
+            if ($periodEnd->gt($fiscalYear->end_date)) {
+                $periodEnd = $fiscalYear->end_date->copy();
+            }
 
             $exists = AccountingPeriod::where('tenant_id', $fiscalYear->tenant_id)
                 ->where('start_date', $periodStart)
@@ -166,12 +171,12 @@ class PeriodLockService
 
             if (! $exists) {
                 AccountingPeriod::create([
-                    'tenant_id'      => $fiscalYear->tenant_id,
+                    'tenant_id' => $fiscalYear->tenant_id,
                     'fiscal_year_id' => $fiscalYear->id,
-                    'name'           => $current->translatedFormat('F Y'),
-                    'start_date'     => $periodStart,
-                    'end_date'       => $periodEnd,
-                    'status'         => 'open',
+                    'name' => $current->translatedFormat('F Y'),
+                    'start_date' => $periodStart,
+                    'end_date' => $periodEnd,
+                    'status' => 'open',
                 ]);
                 $created++;
             }

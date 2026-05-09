@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('chart_of_accounts')) {
+        if (! Schema::hasTable('chart_of_accounts')) {
             Schema::create('chart_of_accounts', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -22,7 +22,7 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->string('description')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'code']);
                 $table->index(['tenant_id', 'type']);
                 $table->foreign('parent_id')->references('id')->on('chart_of_accounts')->nullOnDelete();

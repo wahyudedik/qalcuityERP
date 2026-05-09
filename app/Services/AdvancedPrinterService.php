@@ -2,18 +2,20 @@
 
 namespace App\Services;
 
-use Mike42\Escpos\Printer;
+use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\CapabilityProfile;
+use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use Mike42\Escpos\CapabilityProfile;
-use Mike42\Escpos\EscposImage;
-use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\Printer;
 
 class AdvancedPrinterService
 {
     protected $printer;
+
     protected $connector;
+
     protected $profile;
 
     /**
@@ -47,6 +49,7 @@ class AdvancedPrinterService
                 'destination' => $destination,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -58,11 +61,11 @@ class AdvancedPrinterService
         string $barcode,
         string $productName,
         float $price,
-        string $sku = null,
+        ?string $sku = null,
         int $quantity = 1
     ): bool {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
@@ -74,7 +77,7 @@ class AdvancedPrinterService
 
             // Product name (small)
             $p->setTextSize(1, 1);
-            $p->text(substr($productName, 0, 30) . "\n");
+            $p->text(substr($productName, 0, 30)."\n");
 
             // SKU if available
             if ($sku) {
@@ -85,7 +88,7 @@ class AdvancedPrinterService
             // Price (large, bold)
             $p->setEmphasis(true);
             $p->setTextSize(2, 2);
-            $p->text("Rp " . number_format($price, 0, ',', '.') . "\n");
+            $p->text('Rp '.number_format($price, 0, ',', '.')."\n");
             $p->setEmphasis(false);
 
             // Barcode
@@ -107,6 +110,7 @@ class AdvancedPrinterService
             return true;
         } catch (\Exception $e) {
             Log::error('Barcode Label Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -117,7 +121,7 @@ class AdvancedPrinterService
     public function printQRCode(string $data, int $size = 6): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
@@ -128,6 +132,7 @@ class AdvancedPrinterService
             return true;
         } catch (\Exception $e) {
             Log::error('QR Code Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -135,14 +140,14 @@ class AdvancedPrinterService
     /**
      * Print logo image
      */
-    public function printLogo(string $imagePath, int $width = null): bool
+    public function printLogo(string $imagePath, ?int $width = null): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
-            if (!file_exists($imagePath)) {
+            if (! file_exists($imagePath)) {
                 throw new \Exception("Logo file not found: {$imagePath}");
             }
 
@@ -155,9 +160,11 @@ class AdvancedPrinterService
             }
 
             $this->printer->feed();
+
             return true;
         } catch (\Exception $e) {
             Log::error('Logo Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -168,7 +175,7 @@ class AdvancedPrinterService
     public function printKitchenTicket(array $orderData): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
@@ -184,27 +191,27 @@ class AdvancedPrinterService
 
             // Order info
             $p->setJustification(Printer::JUSTIFY_LEFT);
-            $p->text("Order #: " . $orderData['order_number'] . "\n");
-            $p->text("Table: " . ($orderData['table'] ?? 'N/A') . "\n");
-            $p->text("Time: " . date('H:i:s') . "\n");
+            $p->text('Order #: '.$orderData['order_number']."\n");
+            $p->text('Table: '.($orderData['table'] ?? 'N/A')."\n");
+            $p->text('Time: '.date('H:i:s')."\n");
             $p->text("--------------------------------\n");
 
             // Items
             foreach ($orderData['items'] as $item) {
                 $p->setEmphasis(true);
-                $p->text($item['quantity'] . "x " . $item['name'] . "\n");
+                $p->text($item['quantity'].'x '.$item['name']."\n");
                 $p->setEmphasis(false);
 
                 // Modifiers/notes
-                if (!empty($item['modifiers'])) {
+                if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $modifier) {
-                        $p->text("   - " . $modifier . "\n");
+                        $p->text('   - '.$modifier."\n");
                     }
                 }
 
                 // Special instructions
-                if (!empty($item['notes'])) {
-                    $p->text("   Note: " . $item['notes'] . "\n");
+                if (! empty($item['notes'])) {
+                    $p->text('   Note: '.$item['notes']."\n");
                 }
 
                 $p->text("\n");
@@ -217,6 +224,7 @@ class AdvancedPrinterService
             return true;
         } catch (\Exception $e) {
             Log::error('Kitchen Ticket Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -227,7 +235,7 @@ class AdvancedPrinterService
     public function printPickingList(array $pickingData): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
@@ -241,21 +249,21 @@ class AdvancedPrinterService
             $p->text("--------------------------------\n");
 
             $p->setJustification(Printer::JUSTIFY_LEFT);
-            $p->text("SO#: " . $pickingData['sales_order'] . "\n");
-            $p->text("Date: " . date('Y-m-d') . "\n");
-            $p->text("Warehouse: " . $pickingData['warehouse'] . "\n");
+            $p->text('SO#: '.$pickingData['sales_order']."\n");
+            $p->text('Date: '.date('Y-m-d')."\n");
+            $p->text('Warehouse: '.$pickingData['warehouse']."\n");
             $p->text("--------------------------------\n\n");
 
             // Items with locations
             foreach ($pickingData['items'] as $item) {
                 $p->setEmphasis(true);
-                $p->text($item['product_code'] . "\n");
+                $p->text($item['product_code']."\n");
                 $p->setEmphasis(false);
-                $p->text($item['product_name'] . "\n");
-                $p->text("Qty: " . $item['quantity'] . " | Loc: " . $item['bin_location'] . "\n");
+                $p->text($item['product_name']."\n");
+                $p->text('Qty: '.$item['quantity'].' | Loc: '.$item['bin_location']."\n");
 
                 // Print barcode for product
-                if (!empty($item['barcode'])) {
+                if (! empty($item['barcode'])) {
                     $p->setBarcodeHeight(40);
                     $p->barcode($item['barcode'], Printer::BARCODE_CODE128);
                 }
@@ -269,6 +277,7 @@ class AdvancedPrinterService
             return true;
         } catch (\Exception $e) {
             Log::error('Picking List Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -279,7 +288,7 @@ class AdvancedPrinterService
     public function printAssetTag(array $assetData): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
@@ -290,16 +299,16 @@ class AdvancedPrinterService
 
             // Company name
             $p->setTextSize(1, 1);
-            $p->text($assetData['company'] ?? 'ASSET TAG' . "\n");
+            $p->text($assetData['company'] ?? 'ASSET TAG'."\n");
             $p->text("--------------------------------\n");
 
             // Asset info
             $p->setJustification(Printer::JUSTIFY_LEFT);
-            $p->text("ID: " . $assetData['asset_id'] . "\n");
-            $p->text("Name: " . substr($assetData['name'], 0, 25) . "\n");
-            $p->text("Category: " . $assetData['category'] . "\n");
-            $p->text("Location: " . $assetData['location'] . "\n");
-            $p->text("Purchase: " . $assetData['purchase_date'] . "\n");
+            $p->text('ID: '.$assetData['asset_id']."\n");
+            $p->text('Name: '.substr($assetData['name'], 0, 25)."\n");
+            $p->text('Category: '.$assetData['category']."\n");
+            $p->text('Location: '.$assetData['location']."\n");
+            $p->text('Purchase: '.$assetData['purchase_date']."\n");
 
             // QR code with asset ID
             $p->feed();
@@ -312,6 +321,7 @@ class AdvancedPrinterService
             return true;
         } catch (\Exception $e) {
             Log::error('Asset Tag Print Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -322,14 +332,16 @@ class AdvancedPrinterService
     public function kickCashDrawer(): bool
     {
         try {
-            if (!$this->printer) {
+            if (! $this->printer) {
                 throw new \Exception('Printer not connected');
             }
 
             $this->printer->pulse(0, 60, 120);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Cash Drawer Kick Error', ['error' => $e->getMessage()]);
+
             return false;
         }
     }

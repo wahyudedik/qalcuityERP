@@ -2,18 +2,20 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Trait for applying database transaction isolation levels.
- * 
+ *
  * Usage in controllers or services:
- * 
+ *
  * ```php
  * use HasTransactionIsolation;
- * 
+ *
  * public function processPayment() {
  *     $this->withIsolation('payment_processing', function () {
  *         // Your transactional code here
@@ -26,8 +28,8 @@ trait HasTransactionIsolation
     /**
      * Execute a callback with specific transaction isolation level.
      *
-     * @param string $operationType Type of operation (from config)
-     * @param callable $callback The transactional operation
+     * @param  string  $operationType  Type of operation (from config)
+     * @param  callable  $callback  The transactional operation
      * @return mixed Result from the callback
      */
     protected function withIsolation(string $operationType, callable $callback)
@@ -104,8 +106,8 @@ trait HasTransactionIsolation
      * Execute with row locking for update
      * Prevents concurrent modifications to the same record
      *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param callable $callback Callback that operates on the locked model
+     * @param  Model  $model
+     * @param  callable  $callback  Callback that operates on the locked model
      * @return mixed
      */
     protected function withLock($model, callable $callback)
@@ -117,7 +119,7 @@ trait HasTransactionIsolation
                 ->lockForUpdate()
                 ->first();
 
-            if (!$locked) {
+            if (! $locked) {
                 throw new \RuntimeException('Record not found or locked by another transaction');
             }
 
@@ -129,7 +131,7 @@ trait HasTransactionIsolation
      * Execute with pessimistic write lock
      * Similar to withLock but works on query builder level
      */
-    protected function withPessimisticLock(\Illuminate\Database\Query\Builder $query, callable $callback)
+    protected function withPessimisticLock(Builder $query, callable $callback)
     {
         return DB::transaction(function () use ($query, $callback) {
             return $query->lockForUpdate()->first() ? $callback() : null;

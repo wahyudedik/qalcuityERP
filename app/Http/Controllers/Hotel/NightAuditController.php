@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
+use App\Models\DailyOccupancyStat;
+use App\Models\DailyRateStat;
+use App\Models\MinibarTransaction;
 use App\Models\NightAuditBatch;
 use App\Models\NightAuditLog;
 use App\Models\RevenuePosting;
-use App\Models\DailyOccupancyStat;
-use App\Models\DailyRateStat;
 use App\Services\NightAuditService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -59,7 +61,7 @@ class NightAuditController extends Controller
         try {
             $batch = $this->auditService->startAudit(
                 $this->tenantId(),
-                \Carbon\Carbon::parse($validated['audit_date'])
+                Carbon::parse($validated['audit_date'])
             );
 
             return redirect()->route('hotel.night-audit.batch', $batch->id)
@@ -90,9 +92,9 @@ class NightAuditController extends Controller
         try {
             $result = $this->auditService->postRoomCharges($batch);
 
-            return back()->with('success', "Posted {$result['posted_count']} room charges. Total: Rp " . number_format($result['total_revenue'], 0, ',', '.'));
+            return back()->with('success', "Posted {$result['posted_count']} room charges. Total: Rp ".number_format($result['total_revenue'], 0, ',', '.'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post room charges: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post room charges: '.$e->getMessage());
         }
     }
 
@@ -106,9 +108,9 @@ class NightAuditController extends Controller
         try {
             $result = $this->auditService->postFBRevenue($batch);
 
-            return back()->with('success', "Posted {$result['posted_count']} F&B transactions. Total: Rp " . number_format($result['total_revenue'], 0, ',', '.'));
+            return back()->with('success', "Posted {$result['posted_count']} F&B transactions. Total: Rp ".number_format($result['total_revenue'], 0, ',', '.'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post F&B revenue: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post F&B revenue: '.$e->getMessage());
         }
     }
 
@@ -122,9 +124,9 @@ class NightAuditController extends Controller
         try {
             $result = $this->auditService->postMinibarCharges($batch);
 
-            return back()->with('success', "Posted {$result['posted_count']} minibar charges. Total: Rp " . number_format($result['total_revenue'], 0, ',', '.'));
+            return back()->with('success', "Posted {$result['posted_count']} minibar charges. Total: Rp ".number_format($result['total_revenue'], 0, ',', '.'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post minibar charges: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post minibar charges: '.$e->getMessage());
         }
     }
 
@@ -140,7 +142,7 @@ class NightAuditController extends Controller
 
             return back()->with('success', 'Occupancy statistics calculated successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to calculate occupancy: ' . $e->getMessage());
+            return back()->with('error', 'Failed to calculate occupancy: '.$e->getMessage());
         }
     }
 
@@ -175,7 +177,7 @@ class NightAuditController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return back()->with('error', 'Failed to complete audit: ' . $e->getMessage());
+            return back()->with('error', 'Failed to complete audit: '.$e->getMessage());
         }
     }
 
@@ -210,7 +212,7 @@ class NightAuditController extends Controller
             return redirect()->route('hotel.night-audit.batch', $batch->id)
                 ->with('success', 'Audit batch berhasil di-reset. Silakan lanjutkan processing.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to retry audit: ' . $e->getMessage());
+            return back()->with('error', 'Failed to retry audit: '.$e->getMessage());
         }
     }
 
@@ -244,7 +246,7 @@ class NightAuditController extends Controller
                         ]);
 
                     // Reset minibar transactions billing status
-                    \App\Models\MinibarTransaction::where('tenant_id', $batch->tenant_id)
+                    MinibarTransaction::where('tenant_id', $batch->tenant_id)
                         ->whereDate('consumption_date', $batch->audit_date)
                         ->where('billing_status', 'billed')
                         ->update(['billing_status' => 'pending']);
@@ -268,7 +270,7 @@ class NightAuditController extends Controller
             return redirect()->route('hotel.night-audit.index')
                 ->with('success', 'Audit batch cancelled. Semua postings telah di-void.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to cancel audit: ' . $e->getMessage());
+            return back()->with('error', 'Failed to cancel audit: '.$e->getMessage());
         }
     }
 
@@ -329,7 +331,7 @@ class NightAuditController extends Controller
 
         $posting = RevenuePosting::findOrFail($id);
 
-        if (!$posting->canBeVoided()) {
+        if (! $posting->canBeVoided()) {
             return back()->with('error', 'This posting cannot be voided');
         }
 
@@ -391,7 +393,7 @@ class NightAuditController extends Controller
         ]);
 
         $tenantId = $this->tenantId();
-        $date = \Carbon\Carbon::parse($validated['stat_date']);
+        $date = Carbon::parse($validated['stat_date']);
 
         $stats = DailyRateStat::where('tenant_id', $tenantId)
             ->where('stat_date', $date)
@@ -399,6 +401,7 @@ class NightAuditController extends Controller
 
         if ($stats) {
             $stats->calculateMetrics();
+
             return back()->with('success', 'Rates recalculated successfully');
         }
 

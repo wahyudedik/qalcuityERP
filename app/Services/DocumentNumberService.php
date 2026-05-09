@@ -30,14 +30,13 @@ class DocumentNumberService
      * Generate nomor dokumen berikutnya.
      * Menggunakan DB lock untuk mencegah race condition.
      *
-     * @param  int    $tenantId
-     * @param  string $docType   Jenis dokumen: invoice, po, so, je, dll
-     * @param  string $prefix    Override prefix (opsional, default dari $docType)
-     * @param  string $periodKey YYYY atau YYYYMM (default: tahun sekarang)
-     * @return string            Nomor dokumen, e.g. INV-2026-0001
+     * @param  string  $docType  Jenis dokumen: invoice, po, so, je, dll
+     * @param  string  $prefix  Override prefix (opsional, default dari $docType)
+     * @param  string  $periodKey  YYYY atau YYYYMM (default: tahun sekarang)
+     * @return string Nomor dokumen, e.g. INV-2026-0001
      */
     public function generate(
-        int    $tenantId,
+        int $tenantId,
         string $docType,
         string $prefix = '',
         string $periodKey = ''
@@ -60,26 +59,28 @@ class DocumentNumberService
 
             if ($seq) {
                 $seq->increment('last_number');
+
                 return $seq->fresh()->last_number;
             } else {
                 DocumentNumberSequence::create([
-                    'tenant_id'   => $tenantId,
-                    'doc_type'    => $docType,
-                    'period_key'  => $periodKey,
+                    'tenant_id' => $tenantId,
+                    'doc_type' => $docType,
+                    'period_key' => $periodKey,
                     'last_number' => 1,
                 ]);
+
                 return 1;
             }
         });
 
-        return $prefix . '-' . $periodKey . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.$periodKey.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**
      * Generate dengan format bulan: INV-202601-0001
      */
     public function generateMonthly(
-        int    $tenantId,
+        int $tenantId,
         string $docType,
         string $prefix = ''
     ): string {
@@ -102,7 +103,7 @@ class DocumentNumberService
             ->where('period_key', $periodKey)
             ->value('last_number') ?? 0;
 
-        return $prefix . '-' . $periodKey . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.$periodKey.'-'.str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -111,22 +112,22 @@ class DocumentNumberService
     private function defaultPrefix(string $docType): string
     {
         return match ($docType) {
-            'invoice'   => 'INV',
-            'po'        => 'PO',
-            'so'        => 'SO',
+            'invoice' => 'INV',
+            'po' => 'PO',
+            'so' => 'SO',
             'quotation' => 'QUO',
-            'je'        => 'JE',
-            'jrv'       => 'JRV',
-            'pr'        => 'PR',
-            'rfq'       => 'RFQ',
-            'gr'        => 'GR',
-            'wt'        => 'WT',
-            'expense'   => 'EXP',
-            'payroll'            => 'PAY',
-            'writeoff'           => 'WO',
+            'je' => 'JE',
+            'jrv' => 'JRV',
+            'pr' => 'PR',
+            'rfq' => 'RFQ',
+            'gr' => 'GR',
+            'wt' => 'WT',
+            'expense' => 'EXP',
+            'payroll' => 'PAY',
+            'writeoff' => 'WO',
             'deferred_deferred_revenue' => 'DR',
-            'deferred_prepaid_expense'  => 'PE',
-            default              => strtoupper($docType),
+            'deferred_prepaid_expense' => 'PE',
+            default => strtoupper($docType),
         };
     }
 }

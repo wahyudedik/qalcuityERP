@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Asset;
 use App\Models\AssetDepreciation;
+use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use Tests\TestCase;
 
 class AssetDepreciationTest extends TestCase
 {
     private $tenant;
+
     private $user;
 
     protected function setUp(): void
@@ -17,24 +19,24 @@ class AssetDepreciationTest extends TestCase
         parent::setUp();
 
         $this->tenant = $this->createTenant();
-        $this->user   = $this->createAdminUser($this->tenant);
+        $this->user = $this->createAdminUser($this->tenant);
         $this->seedCoa($this->tenant->id);
     }
 
     private function createAsset(array $attrs = []): Asset
     {
         return Asset::create(array_merge([
-            'tenant_id'           => $this->tenant->id,
-            'asset_code'          => 'AST-' . uniqid(),
-            'name'                => 'Laptop Test',
-            'category'            => 'equipment',
-            'purchase_date'       => now()->subYear(),
-            'purchase_price'      => 12000000,
-            'current_value'       => 12000000,
-            'salvage_value'       => 1000000,
-            'useful_life_years'   => 5,
+            'tenant_id' => $this->tenant->id,
+            'asset_code' => 'AST-'.uniqid(),
+            'name' => 'Laptop Test',
+            'category' => 'equipment',
+            'purchase_date' => now()->subYear(),
+            'purchase_price' => 12000000,
+            'current_value' => 12000000,
+            'salvage_value' => 1000000,
+            'useful_life_years' => 5,
             'depreciation_method' => 'straight_line',
-            'status'              => 'active',
+            'status' => 'active',
         ], $attrs));
     }
 
@@ -44,7 +46,7 @@ class AssetDepreciationTest extends TestCase
     {
         $asset = $this->createAsset();
         $originalValue = $asset->current_value;
-        $monthlyDep    = $asset->monthlyDepreciation();
+        $monthlyDep = $asset->monthlyDepreciation();
 
         $this->actingAs($this->user);
 
@@ -66,8 +68,8 @@ class AssetDepreciationTest extends TestCase
         // Record depresiasi tersimpan
         $this->assertDatabaseHas('asset_depreciations', [
             'tenant_id' => $this->tenant->id,
-            'asset_id'  => $asset->id,
-            'period'    => '2026-03',
+            'asset_id' => $asset->id,
+            'period' => '2026-03',
         ]);
     }
 
@@ -122,8 +124,8 @@ class AssetDepreciationTest extends TestCase
     public function test_batches_multiple_assets_into_one_journal(): void
     {
         $this->createAsset(['name' => 'Laptop 1']);
-        $this->createAsset(['name' => 'Laptop 2', 'asset_code' => 'AST-2-' . uniqid()]);
-        $this->createAsset(['name' => 'Printer',  'asset_code' => 'AST-3-' . uniqid()]);
+        $this->createAsset(['name' => 'Laptop 2', 'asset_code' => 'AST-2-'.uniqid()]);
+        $this->createAsset(['name' => 'Printer',  'asset_code' => 'AST-3-'.uniqid()]);
 
         $this->actingAs($this->user);
 
@@ -178,7 +180,7 @@ class AssetDepreciationTest extends TestCase
 
     public function test_still_calculates_depreciation_even_when_coa_missing(): void
     {
-        \App\Models\ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
+        ChartOfAccount::where('tenant_id', $this->tenant->id)->delete();
 
         $asset = $this->createAsset();
 
@@ -189,7 +191,7 @@ class AssetDepreciationTest extends TestCase
         // Depresiasi tetap dihitung
         $this->assertDatabaseHas('asset_depreciations', [
             'asset_id' => $asset->id,
-            'period'   => '2026-03',
+            'period' => '2026-03',
         ]);
 
         // Tapi ada warning
@@ -197,7 +199,7 @@ class AssetDepreciationTest extends TestCase
 
         // Tidak ada jurnal
         $this->assertDatabaseMissing('journal_entries', [
-            'tenant_id'      => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'reference_type' => 'asset_depreciation',
         ]);
     }

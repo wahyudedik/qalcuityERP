@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * NotificationDigestService - Generate and send notification digest emails.
- * 
+ *
  * Supports:
  * - Daily digest (summary of yesterday's notifications)
  * - Weekly digest (summary of last week's notifications)
@@ -20,7 +20,7 @@ class NotificationDigestService
 {
     /**
      * Send daily digest to users who prefer daily frequency.
-     * 
+     *
      * @return int Number of digests sent
      */
     public function sendDailyDigest(): int
@@ -37,7 +37,7 @@ class NotificationDigestService
             try {
                 $user = User::find($pref->user_id);
 
-                if (!$user || !$user->email) {
+                if (! $user || ! $user->email) {
                     continue;
                 }
 
@@ -64,7 +64,7 @@ class NotificationDigestService
                 $count++;
                 Log::info("Daily digest sent to {$user->email}");
             } catch (\Throwable $e) {
-                Log::error("Failed to send daily digest to user {$pref->user_id}: " . $e->getMessage());
+                Log::error("Failed to send daily digest to user {$pref->user_id}: ".$e->getMessage());
             }
         }
 
@@ -73,7 +73,7 @@ class NotificationDigestService
 
     /**
      * Send weekly digest to users who prefer weekly frequency.
-     * 
+     *
      * @return int Number of digests sent
      */
     public function sendWeeklyDigest(): int
@@ -91,7 +91,7 @@ class NotificationDigestService
             try {
                 $user = User::find($pref->user_id);
 
-                if (!$user || !$user->email) {
+                if (! $user || ! $user->email) {
                     continue;
                 }
 
@@ -119,7 +119,7 @@ class NotificationDigestService
                 $count++;
                 Log::info("Weekly digest sent to {$user->email}");
             } catch (\Throwable $e) {
-                Log::error("Failed to send weekly digest to user {$pref->user_id}: " . $e->getMessage());
+                Log::error("Failed to send weekly digest to user {$pref->user_id}: ".$e->getMessage());
             }
         }
 
@@ -144,7 +144,7 @@ class NotificationDigestService
             $grouped['by_module'][$module] = [
                 'count' => $moduleNotifications->count(),
                 'unread' => $moduleNotifications->whereNull('read_at')->count(),
-                'notifications' => $moduleNotifications->map(fn($n) => [
+                'notifications' => $moduleNotifications->map(fn ($n) => [
                     'id' => $n->id,
                     'type' => $n->type,
                     'title' => $n->title,
@@ -173,7 +173,7 @@ class NotificationDigestService
         } elseif ($period === 'weekly') {
             $query->whereBetween('created_at', [
                 now()->startOfWeek(),
-                now()->endOfWeek()
+                now()->endOfWeek(),
             ]);
         }
 
@@ -195,7 +195,7 @@ class NotificationDigestService
         try {
             $user = User::find($userId);
 
-            if (!$user || !$user->email) {
+            if (! $user || ! $user->email) {
                 return false;
             }
 
@@ -221,7 +221,8 @@ class NotificationDigestService
 
             return true;
         } catch (\Throwable $e) {
-            Log::error("Failed to send user digest: " . $e->getMessage());
+            Log::error('Failed to send user digest: '.$e->getMessage());
+
             return false;
         }
     }

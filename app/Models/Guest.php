@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,14 +11,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Guest extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     // VIP level constants
-    const VIP_NONE     = 'none';
-    const VIP_REGULAR  = 'regular';
-    const VIP_SILVER   = 'silver';
-    const VIP_GOLD     = 'gold';
+    const VIP_NONE = 'none';
+
+    const VIP_REGULAR = 'regular';
+
+    const VIP_SILVER = 'silver';
+
+    const VIP_GOLD = 'gold';
+
     const VIP_PLATINUM = 'platinum';
 
     const VIP_LEVELS = [

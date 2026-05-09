@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\GoodsReceipt;
+use App\Models\NotificationPreference;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class GoodsReceivedNotification extends Notification implements ShouldQueue
@@ -18,17 +19,17 @@ class GoodsReceivedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'goods_received', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
@@ -40,7 +41,7 @@ class GoodsReceivedNotification extends Notification implements ShouldQueue
             ->line("Penerimaan barang **#{$this->goodsReceipt->receipt_number}** telah berhasil dicatat.")
             ->line("**PO:** #{$this->goodsReceipt->purchaseOrder->po_number}")
             ->line("**Supplier:** {$this->goodsReceipt->purchaseOrder->supplier->name}")
-            ->line("**Tanggal Terima:** " . $this->goodsReceipt->received_date->format('d/m/Y'))
+            ->line('**Tanggal Terima:** '.$this->goodsReceipt->received_date->format('d/m/Y'))
             ->action('Lihat Penerimaan Barang', url("/purchasing/goods-receipts/{$this->goodsReceipt->id}"))
             ->line('Stok telah diperbarui di sistem.')
             ->salutation('Salam, Qalcuity ERP');

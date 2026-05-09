@@ -2,10 +2,11 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -34,7 +35,7 @@ return new class extends Migration {
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Lab Samples table
-        if (!Schema::hasTable('lab_samples')) {
+        if (! Schema::hasTable('lab_samples')) {
             Schema::create('lab_samples', function (Blueprint $table) {
                 $table->id();
                 $table->string('sample_number')->unique(); // SAMPLE-YYYYMMDD-XXXX
@@ -57,14 +58,14 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'collection_date']);
                 $table->index(['sample_type', 'status']);
             });
         }
 
         // Lab Results table
-        if (!Schema::hasTable('lab_results')) {
+        if (! Schema::hasTable('lab_results')) {
             Schema::create('lab_results', function (Blueprint $table) {
                 $table->id();
                 $table->string('result_number')->unique(); // LAB-RESULT-YYYYMMDD-XXXX
@@ -77,7 +78,7 @@ return new class extends Migration {
                 $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamp('result_date');
                 $table->timestamp('verified_at')->nullable();
-    
+
                 $table->string('result_value')->nullable();
                 $table->string('result_unit')->nullable();
                 $table->decimal('numeric_value', 10, 2)->nullable();
@@ -86,14 +87,14 @@ return new class extends Migration {
                 $table->boolean('is_critical')->default(false);
                 $table->boolean('is_abnormal')->default(false);
                 $table->enum('status', ['pending', 'preliminary', 'final', 'corrected', 'cancelled'])->default('pending');
-    
+
                 $table->text('interpretation')->nullable();
                 $table->text('clinical_notes')->nullable();
                 $table->text('comments')->nullable();
-    
+
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'result_date']);
                 $table->index(['is_critical', 'status']);
                 $table->index(['patient_id', 'result_date']);
@@ -101,7 +102,7 @@ return new class extends Migration {
         }
 
         // Lab Result Details table (for multi-parameter tests)
-        if (!Schema::hasTable('lab_result_details')) {
+        if (! Schema::hasTable('lab_result_details')) {
             Schema::create('lab_result_details', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('lab_result_id'); // FK to lab_results
@@ -117,13 +118,13 @@ return new class extends Migration {
                 $table->boolean('is_abnormal')->default(false);
                 $table->text('interpretation')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['lab_result_id', 'parameter_name']);
             });
         }
 
         // Radiology Images table
-        if (!Schema::hasTable('radiology_images')) {
+        if (! Schema::hasTable('radiology_images')) {
             Schema::create('radiology_images', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('radiology_exam_id'); // FK to radiology_exams
@@ -145,14 +146,14 @@ return new class extends Migration {
                 $table->json('dicom_metadata')->nullable(); // Full DICOM metadata
                 $table->timestamp('image_date');
                 $table->timestamps();
-    
+
                 $table->index(['radiology_exam_id', 'series_number']);
                 $table->index(['modality', 'image_date']);
             });
         }
 
         // PACS Studies table
-        if (!Schema::hasTable('pacs_studies')) {
+        if (! Schema::hasTable('pacs_studies')) {
             Schema::create('pacs_studies', function (Blueprint $table) {
                 $table->id();
                 $table->string('study_instance_uid')->unique(); // DICOM Study UID
@@ -174,7 +175,7 @@ return new class extends Migration {
                 $table->timestamp('interpreted_at')->nullable();
                 $table->timestamp('reported_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['status', 'study_date']);
                 $table->index(['patient_id', 'study_date']);
                 $table->index(['modality', 'status']);
@@ -182,7 +183,7 @@ return new class extends Migration {
         }
 
         // Insurance Claims table
-        if (!Schema::hasTable('insurance_claims')) {
+        if (! Schema::hasTable('insurance_claims')) {
             Schema::create('insurance_claims', function (Blueprint $table) {
                 $table->id();
                 $table->string('claim_number')->unique(); // CLAIM-YYYYMMDD-XXXX
@@ -199,7 +200,7 @@ return new class extends Migration {
                 $table->timestamp('processing_date')->nullable();
                 $table->timestamp('adjudication_date')->nullable();
                 $table->timestamp('payment_date')->nullable();
-    
+
                 $table->decimal('total_billed', 15, 2)->default(0);
                 $table->decimal('allowed_amount', 15, 2)->nullable();
                 $table->decimal('denied_amount', 15, 2)->default(0);
@@ -209,7 +210,7 @@ return new class extends Migration {
                 $table->decimal('insurance_payment', 15, 2)->default(0);
                 $table->decimal('patient_responsibility', 15, 2)->default(0);
                 $table->decimal('write_off_amount', 15, 2)->default(0);
-    
+
                 $table->enum('status', ['draft', 'submitted', 'received', 'in_review', 'approved', 'denied', 'partially_paid', 'paid', 'appealed', 'cancelled'])->default('draft');
                 $table->enum('claim_type', ['institutional', 'professional', 'dental', 'pharmacy'])->default('institutional');
                 $table->string('primary_diagnosis_code')->nullable(); // ICD-10
@@ -218,10 +219,10 @@ return new class extends Migration {
                 $table->text('denial_reason')->nullable();
                 $table->text('appeal_notes')->nullable();
                 $table->timestamp('appeal_date')->nullable();
-    
+
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['status', 'submission_date']);
                 $table->index(['patient_id', 'status']);
                 $table->index(['insurance_provider_id', 'status']);

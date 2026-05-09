@@ -2,26 +2,26 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\OfflineSyncConflict;
 use App\Models\ProductStock;
 use App\Models\SalesOrder;
-use App\Models\Customer;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Offline Sync Conflict Resolution Service
- * 
+ *
  * BUG-OFF-001 FIX: Mencegah data overwrite saat offline sync
  * dengan conflict detection dan resolution yang proper.
- * 
+ *
  * Problem:
  * - User offline dan mengubah data
  * - User lain online dan mengubah data yang sama
  * - Saat sync, perubahan salah satu user hilang tanpa warning
- * 
+ *
  * Solution:
  * - Version tracking dengan timestamp
  * - Conflict detection saat sync
@@ -32,9 +32,9 @@ class OfflineConflictResolutionService
 {
     /**
      * Check for conflicts before applying offline mutation
-     * 
+     *
      * BUG-OFF-001 FIX: Detect conflicts BEFORE applying changes
-     * 
+     *
      * SMART CONFLICT DETECTION:
      * - Field-level comparison (not just timestamp)
      * - User role priority tracking
@@ -51,7 +51,7 @@ class OfflineConflictResolutionService
         $userRole = $mutation['user_role'] ?? null;
 
         // Skip conflict check if no timestamp
-        if (!$offlineTimestamp) {
+        if (! $offlineTimestamp) {
             return ['has_conflict' => false, 'apply' => true];
         }
 
@@ -152,7 +152,7 @@ class OfflineConflictResolutionService
      */
     protected function checkInventoryConflict(array $body, string $offlineTimestamp): array
     {
-        if (!isset($body['product_id']) || !isset($body['warehouse_id'])) {
+        if (! isset($body['product_id']) || ! isset($body['warehouse_id'])) {
             return ['has_conflict' => false, 'apply' => true];
         }
 
@@ -160,7 +160,7 @@ class OfflineConflictResolutionService
             ->where('warehouse_id', $body['warehouse_id'])
             ->first();
 
-        if (!$productStock) {
+        if (! $productStock) {
             return ['has_conflict' => false, 'apply' => true];
         }
 
@@ -269,7 +269,7 @@ class OfflineConflictResolutionService
      */
     protected function checkCustomerConflict(array $body, string $offlineTimestamp): array
     {
-        if (!isset($body['customer_id'])) {
+        if (! isset($body['customer_id'])) {
             return ['has_conflict' => false, 'apply' => true];
         }
 
@@ -317,11 +317,11 @@ class OfflineConflictResolutionService
     /**
      * Auto-resolve conflicts with appropriate strategy
      */
-    public function autoResolveConflict(int $conflictId, string $strategy = null): array
+    public function autoResolveConflict(int $conflictId, ?string $strategy = null): array
     {
         $conflict = OfflineSyncConflict::find($conflictId);
 
-        if (!$conflict) {
+        if (! $conflict) {
             return ['success' => false, 'error' => 'Conflict not found'];
         }
 
@@ -483,7 +483,7 @@ class OfflineConflictResolutionService
     {
         // Get tenant ID safely
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
@@ -504,7 +504,7 @@ class OfflineConflictResolutionService
     {
         // Get tenant ID safely
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return [
                 'total_conflicts' => 0,
                 'pending_conflicts' => 0,

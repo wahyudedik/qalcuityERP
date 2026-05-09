@@ -2,13 +2,13 @@
 
 namespace App\Services\Manufacturing;
 
-use App\Models\QualityCheck;
 use App\Models\DefectRecord;
+use App\Models\QualityCheck;
 use App\Models\WorkOrder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class QualityControlService
 {
@@ -79,7 +79,7 @@ class QualityControlService
 
         $allowed = $allowedStages[$workOrder->status] ?? [];
 
-        if (!in_array($stage, $allowed)) {
+        if (! in_array($stage, $allowed)) {
             throw new \InvalidArgumentException(
                 "QC stage '{$stage}' is not allowed for work order with status '{$workOrder->status}'"
             );
@@ -96,8 +96,8 @@ class QualityControlService
             $sampleFailed = $summary['sample_failed'] ?? 0;
 
             // Determine pass/fail based on results
-            $allPassed = collect($results)->every(fn($r) => $r['passed']);
-            $hasCriticalFail = collect($results)->contains(fn($r) => $r['critical'] && !$r['passed']);
+            $allPassed = collect($results)->every(fn ($r) => $r['passed']);
+            $hasCriticalFail = collect($results)->contains(fn ($r) => $r['critical'] && ! $r['passed']);
 
             if ($hasCriticalFail) {
                 $status = 'failed';
@@ -122,7 +122,7 @@ class QualityControlService
                 $this->updateWorkOrderQualityStatus($qualityCheck->workOrder, $status);
             }
 
-            Log::info("Quality check submitted", [
+            Log::info('Quality check submitted', [
                 'check_number' => $qualityCheck->check_number,
                 'status' => $status,
                 'pass_rate' => $qualityCheck->pass_rate,
@@ -152,7 +152,7 @@ class QualityControlService
                 'reported_by' => $data['reported_by'] ?? Auth::id(),
             ]);
 
-            Log::warning("Defect recorded", [
+            Log::warning('Defect recorded', [
                 'defect_code' => $defect->defect_code,
                 'severity' => $defect->severity,
                 'product_id' => $defect->product_id,
@@ -174,7 +174,7 @@ class QualityControlService
             $data['resolved_by'] ?? Auth::id()
         );
 
-        Log::info("Defect resolved", [
+        Log::info('Defect resolved', [
             'defect_code' => $defect->defect_code,
             'root_cause' => $defect->root_cause,
         ]);
@@ -290,7 +290,7 @@ class QualityControlService
     {
         return DB::transaction(function () use ($data) {
             $capa = [
-                'capa_number' => 'CAPA-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'capa_number' => 'CAPA-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
                 'defect_id' => $data['defect_id'],
                 'type' => $data['type'], // corrective, preventive
                 'root_cause' => $data['root_cause'],
@@ -314,7 +314,7 @@ class QualityControlService
                 ]);
             }
 
-            Log::info("CAPA created", [
+            Log::info('CAPA created', [
                 'capa_number' => $capa['capa_number'],
                 'type' => $capa['type'],
             ]);
@@ -400,7 +400,7 @@ class QualityControlService
         }
 
         $coa = [
-            'coa_number' => 'COA-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'coa_number' => 'COA-'.date('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
             'quality_check_id' => $qualityCheck->id,
             'check_number' => $qualityCheck->check_number,
             'product' => [
@@ -442,12 +442,12 @@ class QualityControlService
     protected function generateCOAConclusion(QualityCheck $qualityCheck): string
     {
         if ($qualityCheck->status === 'passed') {
-            return "The product has been inspected and tested in accordance with the specified quality standards. All test results meet the acceptance criteria. The batch is hereby approved for release.";
+            return 'The product has been inspected and tested in accordance with the specified quality standards. All test results meet the acceptance criteria. The batch is hereby approved for release.';
         } elseif ($qualityCheck->status === 'conditional_pass') {
-            return "The product has been inspected and meets most quality requirements with minor deviations noted. The batch is conditionally approved subject to the corrective actions specified.";
+            return 'The product has been inspected and meets most quality requirements with minor deviations noted. The batch is conditionally approved subject to the corrective actions specified.';
         }
 
-        return "The product does not meet the quality standards and is rejected.";
+        return 'The product does not meet the quality standards and is rejected.';
     }
 
     /**

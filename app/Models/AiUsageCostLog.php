@@ -45,12 +45,12 @@ class AiUsageCostLog extends Model
     ];
 
     protected $casts = [
-        'input_tokens'       => 'integer',
-        'output_tokens'      => 'integer',
+        'input_tokens' => 'integer',
+        'output_tokens' => 'integer',
         'estimated_cost_idr' => 'float',
-        'response_time_ms'   => 'integer',
-        'fallback_degraded'  => 'boolean',
-        'created_at'         => 'datetime',
+        'response_time_ms' => 'integer',
+        'fallback_degraded' => 'boolean',
+        'created_at' => 'datetime',
     ];
 
     /**

@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DocumentTemplate extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id', 'name', 'doc_type', 'html_content', 'is_default',
     ];
@@ -27,12 +27,12 @@ class DocumentTemplate extends Model
     public static function docTypeLabel(string $type): string
     {
         return match ($type) {
-            'invoice'   => 'Invoice',
-            'po'        => 'Purchase Order',
+            'invoice' => 'Invoice',
+            'po' => 'Purchase Order',
             'quotation' => 'Penawaran (Quotation)',
-            'letter'    => 'Surat Umum',
-            'memo'      => 'Memo Internal',
-            default     => ucfirst($type),
+            'letter' => 'Surat Umum',
+            'memo' => 'Memo Internal',
+            default => ucfirst($type),
         };
     }
 }

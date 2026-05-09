@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentTransaction extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -49,7 +48,7 @@ use HasFactory, BelongsToTenant;
 
     public function salesOrder()
     {
-        return $this->belongsTo(\App\Models\SalesOrder::class);
+        return $this->belongsTo(SalesOrder::class);
     }
 
     /**

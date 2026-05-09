@@ -68,10 +68,10 @@ class AiCostReportController extends Controller
     {
         try {
             $validated = $request->validate([
-                'from'      => 'nullable|date',
-                'to'        => 'nullable|date|after_or_equal:from',
+                'from' => 'nullable|date',
+                'to' => 'nullable|date|after_or_equal:from',
                 'tenant_id' => 'nullable|integer|exists:tenants,id',
-                'use_case'  => 'nullable|string|max:100',
+                'use_case' => 'nullable|string|max:100',
             ]);
 
             $from = $validated['from'] ?? now()->startOfMonth()->toDateString();
@@ -107,9 +107,9 @@ class AiCostReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data'    => [
-                    'from'   => $from,
-                    'to'     => $to,
+                'data' => [
+                    'from' => $from,
+                    'to' => $to,
                     'report' => $data,
                 ],
             ]);
@@ -120,7 +120,7 @@ class AiCostReportController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil laporan biaya: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil laporan biaya: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -137,7 +137,7 @@ class AiCostReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data'    => $data,
+                'data' => $data,
             ]);
         } catch (\Throwable $e) {
             Log::error('AiCostReportController: gagal mengambil top use cases', [
@@ -146,7 +146,7 @@ class AiCostReportController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil top use cases: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil top use cases: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -173,13 +173,14 @@ class AiCostReportController extends Controller
                     ->orderByDesc('total_cost')
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'provider'      => $item->provider,
+                return $data->map(fn ($item) => [
+                    'provider' => $item->provider,
                     'request_count' => $item->request_count,
-                    'total_cost'    => round($item->total_cost, 2),
+                    'total_cost' => round($item->total_cost, 2),
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiCostReportController: could not load cost by provider.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -205,13 +206,14 @@ class AiCostReportController extends Controller
                     ->orderByDesc('total_cost')
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'use_case'      => $item->use_case,
+                return $data->map(fn ($item) => [
+                    'use_case' => $item->use_case,
                     'request_count' => $item->request_count,
-                    'total_cost'    => round($item->total_cost, 2),
+                    'total_cost' => round($item->total_cost, 2),
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiCostReportController: could not load cost by use case.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });
@@ -238,13 +240,14 @@ class AiCostReportController extends Controller
                     ->limit(10)
                     ->get();
 
-                return $data->map(fn($item) => [
-                    'use_case'      => $item->use_case,
+                return $data->map(fn ($item) => [
+                    'use_case' => $item->use_case,
                     'request_count' => $item->request_count,
-                    'total_cost'    => round($item->total_cost, 2),
+                    'total_cost' => round($item->total_cost, 2),
                 ])->toArray();
             } catch (\Throwable $e) {
                 Log::debug('AiCostReportController: could not load top use cases.', ['error' => $e->getMessage()]);
+
                 return [];
             }
         });

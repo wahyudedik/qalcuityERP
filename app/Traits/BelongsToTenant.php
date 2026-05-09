@@ -2,16 +2,18 @@
 
 namespace App\Traits;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
 /**
  * BelongsToTenant - Global scope untuk otomatis filter & set tenant_id
- * 
+ *
  * Trait ini memberikan 2 fungsi utama:
  * 1. Otomatis menambahkan `->where('tenant_id', auth()->user()->tenant_id)` ke SEMUA query
  * 2. Otomatis set `tenant_id` saat create model baru
- * 
+ *
  * Cara pakai:
  * ```php
  * class Product extends Model
@@ -19,13 +21,13 @@ use Illuminate\Support\Facades\Auth;
  *     use BelongsToTenant;
  * }
  * ```
- * 
+ *
  * Setelah itu, query otomatis ter-filter:
  * ```php
  * Product::all(); // Otomatis hanya product dari tenant user yang login
  * Product::where('is_active', true)->get(); // Tetap filtered by tenant_id
  * ```
- * 
+ *
  * SuperAdmin bypass: User dengan role 'super_admin' TIDAK akan di-filter,
  * sehingga bisa akses data dari semua tenant.
  */
@@ -44,7 +46,7 @@ trait BelongsToTenant
             // - Tidak ada user yang login (guest, CLI, job)
             // - User adalah super_admin (bisa akses semua tenant)
             // - User tidak punya tenant_id (affiliate, dll)
-            if (!$user || $user->isSuperAdmin() || !$user->tenant_id) {
+            if (! $user || $user->isSuperAdmin() || ! $user->tenant_id) {
                 return;
             }
 
@@ -60,7 +62,7 @@ trait BelongsToTenant
             // - Tidak ada user yang login (CLI, job, seeder)
             // - Model sudah punya tenant_id yang di-set manual
             // - User tidak punya tenant_id
-            if (!$user || $model->tenant_id || !$user->tenant_id) {
+            if (! $user || $model->tenant_id || ! $user->tenant_id) {
                 return;
             }
 
@@ -71,9 +73,9 @@ trait BelongsToTenant
 
     /**
      * Scope untuk mengakses SEMUA data (bypass tenant filter).
-     * 
+     *
      * Gunakan dengan HATI-HATI - hanya untuk keperluan admin/superadmin.
-     * 
+     *
      * Contoh:
      * ```php
      * Product::withoutTenantScope()->get(); // Ambil semua product dari semua tenant
@@ -86,9 +88,9 @@ trait BelongsToTenant
 
     /**
      * Scope untuk akses data tenant tertentu.
-     * 
+     *
      * Berguna untuk SuperAdmin yang ingin lihat data tenant spesifik.
-     * 
+     *
      * Contoh:
      * ```php
      * Product::forTenant(5)->get(); // Product dari tenant ID 5
@@ -102,8 +104,8 @@ trait BelongsToTenant
     /**
      * Helper method untuk check apakah model punya relasi tenant.
      */
-    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function tenant(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 }

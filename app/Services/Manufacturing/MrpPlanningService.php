@@ -2,6 +2,7 @@
 
 namespace App\Services\Manufacturing;
 
+use App\Models\Bom;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\WorkOrder;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * MRP Planning Service
- * 
+ *
  * Enhances basic MRP calculation with:
  * - Lead time calculations
  * - Purchase recommendations
@@ -49,10 +50,13 @@ class MrpPlanningService
 
         // Sort by priority (shortages first, then by lead time)
         usort($planningItems, function ($a, $b) {
-            if ($a['has_shortage'] && !$b['has_shortage'])
+            if ($a['has_shortage'] && ! $b['has_shortage']) {
                 return -1;
-            if (!$a['has_shortage'] && $b['has_shortage'])
+            }
+            if (! $a['has_shortage'] && $b['has_shortage']) {
                 return 1;
+            }
+
             return $a['lead_time_days'] <=> $b['lead_time_days'];
         });
 
@@ -99,14 +103,15 @@ class MrpPlanningService
     protected function calculateLeadTime(int $productId, int $tenantId): int
     {
         // Get last 5 POs for this product
+        // Note: purchase_orders uses 'date' as order date and 'updated_at' as received proxy
         $poHistory = DB::table('purchase_order_items')
             ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
             ->where('purchase_orders.tenant_id', $tenantId)
             ->where('purchase_order_items.product_id', $productId)
             ->where('purchase_orders.status', 'received')
-            ->whereNotNull('purchase_orders.received_at')
-            ->whereNotNull('purchase_orders.order_date')
-            ->orderByDesc('purchase_orders.received_at')
+            ->whereNotNull('purchase_orders.updated_at')
+            ->whereNotNull('purchase_orders.date')
+            ->orderByDesc('purchase_orders.updated_at')
             ->limit(5)
             ->get();
 
@@ -118,8 +123,8 @@ class MrpPlanningService
         $count = 0;
 
         foreach ($poHistory as $po) {
-            $orderDate = is_string($po->order_date) ? strtotime($po->order_date) : $po->order_date;
-            $receivedDate = is_string($po->received_at) ? strtotime($po->received_at) : $po->received_at;
+            $orderDate = is_string($po->date) ? strtotime($po->date) : $po->date;
+            $receivedDate = is_string($po->updated_at) ? strtotime($po->updated_at) : $po->updated_at;
 
             $days = ceil(($receivedDate - $orderDate) / 86400);
             if ($days > 0) {
@@ -214,7 +219,7 @@ class MrpPlanningService
             ->select('suppliers.name as supplier_name', 'suppliers.phone', 'suppliers.email')
             ->first();
 
-        if (!$lastSupplier) {
+        if (! $lastSupplier) {
             return null;
         }
 
@@ -259,9 +264,9 @@ class MrpPlanningService
      */
     protected function runSingleBomMrp(int $tenantId, int $bomId, float $quantity): array
     {
-        $bom = \App\Models\Bom::with('lines.product')->find($bomId);
+        $bom = Bom::with('lines.product')->find($bomId);
 
-        if (!$bom || $bom->tenant_id !== $tenantId) {
+        if (! $bom || $bom->tenant_id !== $tenantId) {
             return [];
         }
 
@@ -299,7 +304,7 @@ class MrpPlanningService
                     'tenant_id' => $tenantId,
                     'supplier_id' => null, // TODO: Auto-assign supplier
                     'user_id' => Auth::id(),
-                    'order_date' => now(),
+                    'date' => now(),
                     'expected_date' => now()->addDays($item['lead_time_days']),
                     'status' => 'draft',
                     'notes' => "Auto-generated dari MRP Planning - {$item['product_name']}",

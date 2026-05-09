@@ -26,7 +26,7 @@ class PermissionService
         // Get user's role
         $role = $user->role ?? null;
 
-        if (!$role) {
+        if (! $role) {
             return false;
         }
 
@@ -59,7 +59,7 @@ class PermissionService
     public function hasAllPermissions($user, array $permissions): bool
     {
         foreach ($permissions as $permission) {
-            if (!$this->hasPermission($user, $permission)) {
+            if (! $this->hasPermission($user, $permission)) {
                 return false;
             }
         }
@@ -183,6 +183,7 @@ class PermissionService
     {
         return Cache::remember("role_perms_list:{$roleId}", now()->addMinutes(self::CACHE_TTL), function () use ($roleId) {
             $role = Role::with('permissions')->findOrFail($roleId);
+
             return $role->permissions->pluck('name')->toArray();
         });
     }

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Livestock;
 
 use App\Http\Controllers\Controller;
-use App\Models\PoultryEggProduction;
 use App\Models\LivestockHerd;
+use App\Models\PoultryEggProduction;
+use App\Models\PoultryFlockPerformance;
 use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PoultryController extends Controller
 {
@@ -30,6 +32,7 @@ class PoultryController extends Controller
     {
         return Auth::id() ?? abort(401, 'Unauthenticated.');
     }
+
     /**
      * Display poultry flocks list
      */
@@ -114,7 +117,7 @@ class PoultryController extends Controller
         ]);
 
         try {
-            $record = new PoultryEggProduction();
+            $record = new PoultryEggProduction;
             $record->tenant_id = $this->tenantId();
             $record->fill($validated);
             $record->eggs_broken = $validated['eggs_broken'] ?? 0;
@@ -132,7 +135,7 @@ class PoultryController extends Controller
                     (float) $pricePerEgg
                 );
                 if ($result->isFailed()) {
-                    \Illuminate\Support\Facades\Log::warning("Egg production journal failed: " . $result->reason);
+                    Log::warning('Egg production journal failed: '.$result->reason);
                 }
             }
 
@@ -153,15 +156,15 @@ class PoultryController extends Controller
             'total_flocks' => LivestockHerd::where('tenant_id', $tenantId)
                 ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
                 ->count(),
-            'avg_mortality_rate' => \App\Models\PoultryFlockPerformance::where('tenant_id', $tenantId)
+            'avg_mortality_rate' => PoultryFlockPerformance::where('tenant_id', $tenantId)
                 ->whereBetween('record_date', [now()->subDays(30), now()])
                 ->avg('mortality_rate_percentage') ?? 0,
-            'avg_fcr' => \App\Models\PoultryFlockPerformance::where('tenant_id', $tenantId)
+            'avg_fcr' => PoultryFlockPerformance::where('tenant_id', $tenantId)
                 ->whereBetween('record_date', [now()->subDays(30), now()])
                 ->avg('feed_conversion_ratio') ?? 0,
         ];
 
-        $performances = \App\Models\PoultryFlockPerformance::with(['herd', 'recordedBy'])
+        $performances = PoultryFlockPerformance::with(['herd', 'recordedBy'])
             ->where('tenant_id', $tenantId)
             ->orderByDesc('record_date')
             ->paginate(20);
@@ -194,7 +197,7 @@ class PoultryController extends Controller
         ]);
 
         try {
-            $performance = new \App\Models\PoultryFlockPerformance();
+            $performance = new PoultryFlockPerformance;
             $performance->tenant_id = $this->tenantId();
             $performance->fill($validated);
             $performance->mortality_count = $validated['mortality_count'] ?? 0;

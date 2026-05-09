@@ -59,7 +59,7 @@ class ConsolidationReport extends Model
 
     public function getReportTypeLabel(): string
     {
-        return match($this->report_type) {
+        return match ($this->report_type) {
             'balance_sheet' => 'Neraca Konsolidasi',
             'income_statement' => 'Laba Rugi Konsolidasi',
             'cash_flow' => 'Arus Kas Konsolidasi',
@@ -69,7 +69,7 @@ class ConsolidationReport extends Model
 
     public function getPeriodTypeLabel(): string
     {
-        return match($this->period_type) {
+        return match ($this->period_type) {
             'monthly' => 'Bulanan',
             'quarterly' => 'Kuartalan',
             'yearly' => 'Tahunan',

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PharmacyInventory extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'item_code',
@@ -120,11 +120,12 @@ class PharmacyInventory extends Model
      */
     public function isExpiringSoon()
     {
-        if (!$this->has_expiry || !$this->expiry_date) {
+        if (! $this->has_expiry || ! $this->expiry_date) {
             return false;
         }
 
         $daysUntilExpiry = now()->diffInDays($this->expiry_date, false);
+
         return $daysUntilExpiry <= $this->expiry_alert_days && $daysUntilExpiry >= 0;
     }
 
@@ -133,7 +134,7 @@ class PharmacyInventory extends Model
      */
     public function getDaysUntilExpiryAttribute()
     {
-        if (!$this->has_expiry || !$this->expiry_date) {
+        if (! $this->has_expiry || ! $this->expiry_date) {
             return null;
         }
 
@@ -199,6 +200,7 @@ class PharmacyInventory extends Model
         if ($this->selling_price > 0) {
             return (($this->selling_price - $this->cost_price) / $this->selling_price) * 100;
         }
+
         return 0;
     }
 
@@ -326,7 +328,7 @@ class PharmacyInventory extends Model
     public function reserveStock($quantity)
     {
         if ($this->available_stock < $quantity) {
-            throw new \Exception("Insufficient available stock for reservation");
+            throw new \Exception('Insufficient available stock for reservation');
         }
 
         $this->increment('reserved_stock', $quantity);

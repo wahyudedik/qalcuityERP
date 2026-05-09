@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // 1. Room Types
-        if (!Schema::hasTable('room_types')) {
+        if (! Schema::hasTable('room_types')) {
             Schema::create('room_types', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -27,7 +28,7 @@ return new class extends Migration {
         }
 
         // 2. Rooms
-        if (!Schema::hasTable('rooms')) {
+        if (! Schema::hasTable('rooms')) {
             Schema::create('rooms', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -45,7 +46,7 @@ return new class extends Migration {
         }
 
         // 3. Room Rates
-        if (!Schema::hasTable('room_rates')) {
+        if (! Schema::hasTable('room_rates')) {
             Schema::create('room_rates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -65,7 +66,7 @@ return new class extends Migration {
         }
 
         // 4. Guests
-        if (!Schema::hasTable('guests')) {
+        if (! Schema::hasTable('guests')) {
             Schema::create('guests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -89,7 +90,7 @@ return new class extends Migration {
         }
 
         // 5. Reservations
-        if (!Schema::hasTable('reservations')) {
+        if (! Schema::hasTable('reservations')) {
             Schema::create('reservations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -119,7 +120,7 @@ return new class extends Migration {
         }
 
         // 6. Reservation Rooms
-        if (!Schema::hasTable('reservation_rooms')) {
+        if (! Schema::hasTable('reservation_rooms')) {
             Schema::create('reservation_rooms', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
@@ -133,7 +134,7 @@ return new class extends Migration {
         }
 
         // 7. Check-In / Check-Outs
-        if (!Schema::hasTable('check_in_outs')) {
+        if (! Schema::hasTable('check_in_outs')) {
             Schema::create('check_in_outs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -153,7 +154,7 @@ return new class extends Migration {
         }
 
         // 8. Housekeeping Tasks
-        if (!Schema::hasTable('housekeeping_tasks')) {
+        if (! Schema::hasTable('housekeeping_tasks')) {
             Schema::create('housekeeping_tasks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -173,7 +174,7 @@ return new class extends Migration {
         }
 
         // 9. Room Maintenance
-        if (!Schema::hasTable('room_maintenance')) {
+        if (! Schema::hasTable('room_maintenance')) {
             Schema::create('room_maintenance', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -192,7 +193,7 @@ return new class extends Migration {
         }
 
         // 10. Channel Manager Configs
-        if (!Schema::hasTable('channel_manager_configs')) {
+        if (! Schema::hasTable('channel_manager_configs')) {
             Schema::create('channel_manager_configs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -210,7 +211,7 @@ return new class extends Migration {
         }
 
         // 11. Channel Manager Logs
-        if (!Schema::hasTable('channel_manager_logs')) {
+        if (! Schema::hasTable('channel_manager_logs')) {
             Schema::create('channel_manager_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -225,7 +226,7 @@ return new class extends Migration {
         }
 
         // 12. Hotel Settings
-        if (!Schema::hasTable('hotel_settings')) {
+        if (! Schema::hasTable('hotel_settings')) {
             Schema::create('hotel_settings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->unique()->constrained()->cascadeOnDelete();

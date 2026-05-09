@@ -3,25 +3,27 @@
 namespace App\Http\Controllers\Api\Telecom;
 
 use App\Models\NetworkDevice;
-use App\Services\Telecom\RouterIntegrationService;
 use App\Services\Telecom\BandwidthMonitoringService;
+use App\Services\Telecom\RouterIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DeviceController extends TelecomApiController
 {
     protected RouterIntegrationService $integrationService;
+
     protected BandwidthMonitoringService $monitoringService;
 
     public function __construct()
     {
-        $this->integrationService = new RouterIntegrationService();
-        $this->monitoringService = new BandwidthMonitoringService();
+        $this->integrationService = new RouterIntegrationService;
+        $this->monitoringService = new BandwidthMonitoringService;
     }
 
     /**
      * Register a new network device.
-     * 
+     *
      * POST /api/telecom/devices
      */
     public function store(Request $request)
@@ -72,7 +74,7 @@ class DeviceController extends TelecomApiController
 
             $this->logApiRequest($request, 'POST /api/telecom/devices', [
                 'device_id' => $device->id,
-                'connection_test' => $connectionTest['success']
+                'connection_test' => $connectionTest['success'],
             ]);
 
             return $this->success([
@@ -80,20 +82,21 @@ class DeviceController extends TelecomApiController
                 'connection_test' => $connectionTest,
             ], 'Device registered successfully', 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->error('Validation failed', 422, $e->errors());
         } catch (\Exception $e) {
-            Log::error("Failed to register device", [
+            Log::error('Failed to register device', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Failed to register device: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to register device: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get device status and health.
-     * 
+     *
      * GET /api/telecom/devices/{id}/status
      */
     public function status(NetworkDevice $device)
@@ -132,17 +135,18 @@ class DeviceController extends TelecomApiController
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to get device status", [
+            Log::error('Failed to get device status', [
                 'device_id' => $device->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to get device status: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to get device status: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * List all devices for tenant.
-     * 
+     *
      * GET /api/telecom/devices
      */
     public function index(Request $request)
@@ -178,14 +182,15 @@ class DeviceController extends TelecomApiController
                     'per_page' => $devices->perPage(),
                     'total' => $devices->total(),
                     'last_page' => $devices->lastPage(),
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to list devices", [
-                'error' => $e->getMessage()
+            Log::error('Failed to list devices', [
+                'error' => $e->getMessage(),
             ]);
-            return $this->error('Failed to list devices: ' . $e->getMessage(), 500);
+
+            return $this->error('Failed to list devices: '.$e->getMessage(), 500);
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class KitchenOrderTicket extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'fb_order_id',
@@ -58,7 +58,8 @@ class KitchenOrderTicket extends Model
     {
         $date = now()->format('Ymd');
         $count = self::whereDate('created_at', today())->count() + 1;
-        return "KOT-{$date}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return "KOT-{$date}-".str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -88,11 +89,12 @@ class KitchenOrderTicket extends Model
      */
     public function getElapsedTime(): int
     {
-        if (!$this->started_at) {
+        if (! $this->started_at) {
             return 0;
         }
 
         $endTime = $this->completed_at ?? now();
+
         return $this->started_at->diffInMinutes($endTime);
     }
 
@@ -101,7 +103,7 @@ class KitchenOrderTicket extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->started_at || !$this->estimated_time) {
+        if (! $this->started_at || ! $this->estimated_time) {
             return false;
         }
 

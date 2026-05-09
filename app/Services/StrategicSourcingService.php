@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\SourcingOpportunity;
-use App\Models\SupplierRfqResponse;
 use App\Models\PurchaseOrder;
+use App\Models\SourcingOpportunity;
 use App\Models\Supplier;
-use Carbon\Carbon;
+use App\Models\SupplierRfqResponse;
 
 class StrategicSourcingService
 {
@@ -177,7 +176,7 @@ class StrategicSourcingService
         $avgLeadTime = $responses->avg('lead_time_days');
 
         // Score each response with comprehensive criteria
-        $scoredResponses = $responses->map(function ($response) use ($lowestPrice, $avgPrice, $avgLeadTime) {
+        $scoredResponses = $responses->map(function ($response) use ($lowestPrice, $avgLeadTime) {
             // 1. Price score (lower is better) - 40% weight (reduced from 50%)
             $priceScore = $lowestPrice > 0 ? ($lowestPrice / $response->quoted_price) * 100 : 0;
 
@@ -254,7 +253,7 @@ class StrategicSourcingService
      */
     protected function calculateSupplierRatingScore($supplier): float
     {
-        if (!$supplier || !$supplier->scorecards || $supplier->scorecards->isEmpty()) {
+        if (! $supplier || ! $supplier->scorecards || $supplier->scorecards->isEmpty()) {
             return 70; // Default neutral score if no rating data
         }
 
@@ -263,7 +262,7 @@ class StrategicSourcingService
             ->sortByDesc('period_end')
             ->first();
 
-        if (!$latestScorecard) {
+        if (! $latestScorecard) {
             return 70;
         }
 
@@ -276,7 +275,7 @@ class StrategicSourcingService
      */
     protected function calculateDeliveryPerformanceScore($supplier): float
     {
-        if (!$supplier || !$supplier->scorecards || $supplier->scorecards->isEmpty()) {
+        if (! $supplier || ! $supplier->scorecards || $supplier->scorecards->isEmpty()) {
             return 75; // Default good score if no data
         }
 
@@ -294,7 +293,7 @@ class StrategicSourcingService
     protected function calculatePaymentTermsScore($response): float
     {
         // If no terms specified, return neutral score
-        if (!$response->terms_and_conditions) {
+        if (! $response->terms_and_conditions) {
             return 70;
         }
 
@@ -342,7 +341,7 @@ class StrategicSourcingService
                 ->get();
 
             $totalSpend = $pos->sum('total_amount');
-            $onTimeDelivery = $pos->filter(fn($po) => $po->delivery_date <= $po->expected_delivery_date)->count();
+            $onTimeDelivery = $pos->filter(fn ($po) => $po->delivery_date <= $po->expected_delivery_date)->count();
             $totalDeliveries = $pos->whereNotNull('delivery_date')->count();
             $onTimeRate = $totalDeliveries > 0 ? ($onTimeDelivery / $totalDeliveries) * 100 : 0;
 
@@ -376,9 +375,9 @@ class StrategicSourcingService
             $updateData['actual_completion_date'] = now();
         }
 
-        if (!empty($notes)) {
-            $updateData['strategy_notes'] = ($opportunity->strategy_notes ? $opportunity->strategy_notes . "\n\n" : '')
-                . now()->format('Y-m-d') . ': ' . implode(', ', $notes);
+        if (! empty($notes)) {
+            $updateData['strategy_notes'] = ($opportunity->strategy_notes ? $opportunity->strategy_notes."\n\n" : '')
+                .now()->format('Y-m-d').': '.implode(', ', $notes);
         }
 
         $opportunity->update($updateData);

@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('simulations')) {
+        if (! Schema::hasTable('simulations')) {
             Schema::create('simulations', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -19,7 +20,7 @@ return new class extends Migration {
                 $table->text('ai_narrative')->nullable(); // narasi AI
                 $table->string('status')->default('draft'); // draft, calculated
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'created_at']);
             });
         }

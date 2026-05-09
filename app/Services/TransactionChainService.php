@@ -20,9 +20,7 @@ class TransactionChainService
     /**
      * Bangun rantai lengkap dari sebuah dokumen (upstream + downstream).
      *
-     * @param string $modelClass  Fully-qualified class name (e.g. Invoice::class)
-     * @param int    $modelId
-     * @return TransactionChainDTO
+     * @param  string  $modelClass  Fully-qualified class name (e.g. Invoice::class)
      */
     public function buildChain(string $modelClass, int $modelId): TransactionChainDTO
     {
@@ -184,7 +182,7 @@ class TransactionChainService
         return new ChainNodeDTO(
             type: $type,
             id: $model->id,
-            number: $model->number ?? ('#' . $model->id),
+            number: $model->number ?? ('#'.$model->id),
             date: $date?->toDateString() ?? now()->toDateString(),
             status: $model->status ?? $model->posting_status ?? 'unknown',
             amount: (float) ($model->total ?? $model->total_amount ?? $model->amount ?? 0),

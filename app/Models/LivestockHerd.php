@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class LivestockHerd extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'farm_plot_id',
@@ -62,30 +62,37 @@ class LivestockHerd extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function plot(): BelongsTo
     {
         return $this->belongsTo(FarmPlot::class, 'farm_plot_id');
     }
+
     public function movements(): HasMany
     {
         return $this->hasMany(LivestockMovement::class)->orderByDesc('date');
     }
+
     public function healthRecords(): HasMany
     {
         return $this->hasMany(LivestockHealthRecord::class)->orderByDesc('date');
     }
+
     public function vaccinations(): HasMany
     {
         return $this->hasMany(LivestockVaccination::class)->orderBy('scheduled_date');
     }
+
     public function feedLogs(): HasMany
     {
         return $this->hasMany(LivestockFeedLog::class)->orderByDesc('date');
     }
+
     public function eggProductions(): HasMany
     {
         return $this->hasMany(PoultryEggProduction::class, 'livestock_herd_id');
     }
+
     public function flockPerformances(): HasMany
     {
         return $this->hasMany(PoultryFlockPerformance::class, 'livestock_herd_id');
@@ -143,6 +150,7 @@ class LivestockHerd extends Model
         $activityCost = $this->plot
             ? (float) FarmPlotActivity::where('farm_plot_id', $this->farm_plot_id)->sum('cost')
             : 0;
+
         return $purchaseCost + $activityCost;
     }
 
@@ -180,6 +188,7 @@ class LivestockHerd extends Model
     public function latestBodyWeight(): ?float
     {
         $latest = $this->feedLogs()->where('avg_body_weight_kg', '>', 0)->first();
+
         return $latest ? (float) $latest->avg_body_weight_kg : null;
     }
 
@@ -187,8 +196,10 @@ class LivestockHerd extends Model
     public function weightGain(): ?float
     {
         $current = $this->latestBodyWeight();
-        if (!$current || $this->entry_weight_kg <= 0)
+        if (! $current || $this->entry_weight_kg <= 0) {
             return null;
+        }
+
         return round($current - (float) $this->entry_weight_kg, 3);
     }
 
@@ -202,8 +213,9 @@ class LivestockHerd extends Model
         $totalFeed = $this->totalFeedKg();
         $currentWeight = $this->latestBodyWeight();
 
-        if ($totalFeed <= 0 || !$currentWeight || $this->entry_weight_kg <= 0)
+        if ($totalFeed <= 0 || ! $currentWeight || $this->entry_weight_kg <= 0) {
             return null;
+        }
 
         $totalWeightGain = ($currentWeight - (float) $this->entry_weight_kg) * $this->current_count;
 
@@ -214,6 +226,7 @@ class LivestockHerd extends Model
     public function avgDailyFeed(): ?float
     {
         $days = $this->feedLogs()->distinct('date')->count('date');
+
         return $days > 0 ? round($this->totalFeedKg() / $days, 2) : null;
     }
 
@@ -221,8 +234,9 @@ class LivestockHerd extends Model
     public function feedCostPerKgGain(): ?float
     {
         $currentWeight = $this->latestBodyWeight();
-        if (!$currentWeight || $this->entry_weight_kg <= 0)
+        if (! $currentWeight || $this->entry_weight_kg <= 0) {
             return null;
+        }
 
         $totalWeightGain = ($currentWeight - (float) $this->entry_weight_kg) * $this->current_count;
         $totalFeedCost = $this->totalFeedCost();
@@ -240,7 +254,8 @@ class LivestockHerd extends Model
             default => 'LST',
         };
         $count = self::where('tenant_id', $tenantId)->count() + 1;
-        return $prefix . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        return $prefix.'-'.str_pad($count, 3, '0', STR_PAD_LEFT);
     }
 
     /**

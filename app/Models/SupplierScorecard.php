@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SupplierScorecard extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -73,23 +71,31 @@ use HasFactory, BelongsToTenant;
 
     public function calculateRating(): string
     {
-        if ($this->overall_score >= 90)
+        if ($this->overall_score >= 90) {
             return 'A';
-        if ($this->overall_score >= 80)
+        }
+        if ($this->overall_score >= 80) {
             return 'B';
-        if ($this->overall_score >= 70)
+        }
+        if ($this->overall_score >= 70) {
             return 'C';
-        if ($this->overall_score >= 60)
+        }
+        if ($this->overall_score >= 60) {
             return 'D';
+        }
+
         return 'F';
     }
 
     public function calculateStatus(): string
     {
-        if ($this->overall_score >= 80)
+        if ($this->overall_score >= 80) {
             return 'active';
-        if ($this->overall_score >= 60)
+        }
+        if ($this->overall_score >= 60) {
             return 'warning';
+        }
+
         return 'critical';
     }
 

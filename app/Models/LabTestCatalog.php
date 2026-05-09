@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LabTestCatalog extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'test_code',
@@ -101,6 +101,7 @@ class LabTestCatalog extends Model
         if ($this->price > 0) {
             return (($this->price - $this->cost) / $this->price) * 100;
         }
+
         return 0;
     }
 
@@ -114,6 +115,7 @@ class LabTestCatalog extends Model
         }
 
         $days = floor($this->turnaround_time / 24);
+
         return "{$days} day(s)";
     }
 }

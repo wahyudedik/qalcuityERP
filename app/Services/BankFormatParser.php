@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * BankFormatParser - Handle parsing CSV mutasi rekening dari berbagai bank Indonesia
- * 
+ *
  * Supported banks:
  * - BCA (KlikBCA)
  * - Mandiri (Corporate Internet Banking)
@@ -108,10 +108,10 @@ class BankFormatParser
 
     /**
      * Parse uploaded CSV file and return normalized bank statements
-     * 
-     * @param UploadedFile $file
-     * @param string|null $forcedBank Force specific bank format (bca, mandiri, bni, bri, generic)
+     *
+     * @param  string|null  $forcedBank  Force specific bank format (bca, mandiri, bni, bri, generic)
      * @return array Normalized statements
+     *
      * @throws \Exception
      */
     public function parse(UploadedFile $file, ?string $forcedBank = null): array
@@ -124,7 +124,7 @@ class BankFormatParser
             $bankKey = $forcedBank ?? $this->detectBankFormat($file);
             $format = $this->bankFormats[$bankKey] ?? $this->bankFormats['generic'];
 
-            $this->logInfo("Parsing bank statement", [
+            $this->logInfo('Parsing bank statement', [
                 'bank' => $format['name'],
                 'file' => $file->getClientOriginalName(),
             ]);
@@ -152,7 +152,7 @@ class BankFormatParser
             // Normalize rows to standard format
             $statements = $this->normalizeRows($rows, $format);
 
-            $this->logInfo("Successfully parsed bank statements", [
+            $this->logInfo('Successfully parsed bank statements', [
                 'bank' => $format['name'],
                 'count' => count($statements),
             ]);
@@ -160,7 +160,7 @@ class BankFormatParser
             return $statements;
 
         } catch (\Exception $e) {
-            $this->logError("Failed to parse bank statement", [
+            $this->logError('Failed to parse bank statement', [
                 'error' => $e->getMessage(),
                 'file' => $file->getClientOriginalName(),
             ]);
@@ -174,7 +174,7 @@ class BankFormatParser
     public function getSupportedBanks(): array
     {
         return collect($this->bankFormats)
-            ->map(fn($format, $key) => [
+            ->map(fn ($format, $key) => [
                 'key' => $key,
                 'name' => $format['name'],
             ])
@@ -190,9 +190,9 @@ class BankFormatParser
         $allowedMimes = ['csv', 'txt'];
         $extension = strtolower($file->getClientOriginalExtension());
 
-        if (!in_array($extension, $allowedMimes)) {
+        if (! in_array($extension, $allowedMimes)) {
             throw new \Exception(
-                "Format file tidak didukung. Gunakan: " . implode(', ', $allowedMimes)
+                'Format file tidak didukung. Gunakan: '.implode(', ', $allowedMimes)
             );
         }
 
@@ -213,19 +213,22 @@ class BankFormatParser
 
         // Check each bank's header patterns
         foreach ($this->bankFormats as $key => $format) {
-            if ($key === 'generic')
+            if ($key === 'generic') {
                 continue;
+            }
 
             foreach ($format['header_patterns'] as $pattern) {
                 if (str_contains($firstLinesLower, strtolower($pattern))) {
-                    $this->logInfo("Detected bank format", ['bank' => $format['name']]);
+                    $this->logInfo('Detected bank format', ['bank' => $format['name']]);
+
                     return $key;
                 }
             }
         }
 
         // Fallback to generic
-        $this->logInfo("Using generic bank format (no specific pattern detected)");
+        $this->logInfo('Using generic bank format (no specific pattern detected)');
+
         return 'generic';
     }
 
@@ -261,6 +264,7 @@ class BankFormatParser
         if (str_starts_with($content, $bom)) {
             return substr($content, 3);
         }
+
         return $content;
     }
 
@@ -282,7 +286,7 @@ class BankFormatParser
         arsort($counts);
         $bestDelimiter = array_key_first($counts);
 
-        $this->logInfo("Detected CSV delimiter", ['delimiter' => $bestDelimiter === "\t" ? 'tab' : $bestDelimiter]);
+        $this->logInfo('Detected CSV delimiter', ['delimiter' => $bestDelimiter === "\t" ? 'tab' : $bestDelimiter]);
 
         return $bestDelimiter;
     }
@@ -297,12 +301,13 @@ class BankFormatParser
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if (empty($line))
+            if (empty($line)) {
                 continue;
+            }
 
             // Parse CSV line (handles quoted fields)
             $row = str_getcsv($line, $delimiter, '"', '\\');
-            if (!empty($row)) {
+            if (! empty($row)) {
                 $rows[] = $row;
             }
         }
@@ -312,7 +317,7 @@ class BankFormatParser
 
     /**
      * Normalize rows to standard format
-     * 
+     *
      * Returns: [
      *   'transaction_date' => 'Y-m-d',
      *   'description' => '...',
@@ -344,7 +349,7 @@ class BankFormatParser
 
                 // Extract fields based on format
                 $date = $this->extractDate($row[$columns['transaction_date']] ?? '', $format);
-                if (!$date) {
+                if (! $date) {
                     continue; // Skip invalid dates
                 }
 
@@ -406,11 +411,12 @@ class BankFormatParser
                 ];
 
             } catch (\Exception $e) {
-                $this->logWarning("Failed to parse row", [
+                $this->logWarning('Failed to parse row', [
                     'row' => $index + 1,
                     'error' => $e->getMessage(),
                     'data' => $row,
                 ]);
+
                 continue;
             }
         }
@@ -423,8 +429,9 @@ class BankFormatParser
      */
     private function rowContainsHeaders(array $row, array $format): bool
     {
-        if (empty($row))
+        if (empty($row)) {
             return false;
+        }
 
         $firstCell = strtolower(trim($row[0] ?? ''));
 
@@ -450,8 +457,9 @@ class BankFormatParser
     private function extractDate(string $dateStr, array $format): ?string
     {
         $dateStr = trim($dateStr);
-        if (empty($dateStr))
+        if (empty($dateStr)) {
             return null;
+        }
 
         $dateFormat = $format['date_format'];
 
@@ -478,7 +486,7 @@ class BankFormatParser
                 }
             }
         } catch (\Exception $e) {
-            $this->logWarning("Failed to parse date", ['date' => $dateStr, 'error' => $e->getMessage()]);
+            $this->logWarning('Failed to parse date', ['date' => $dateStr, 'error' => $e->getMessage()]);
         }
 
         return null;
@@ -511,15 +519,16 @@ class BankFormatParser
     private function parseAmount(string $amountStr): float
     {
         $amountStr = trim($amountStr);
-        if (empty($amountStr))
+        if (empty($amountStr)) {
             return 0.0;
+        }
 
         // Remove currency symbols and spaces
         $amountStr = preg_replace('/[Rp$\s]/i', '', $amountStr);
 
         // Handle negative sign in parentheses: (1000) => -1000
         if (preg_match('/^\((.+)\)$/', $amountStr, $matches)) {
-            $amountStr = '-' . $matches[1];
+            $amountStr = '-'.$matches[1];
         }
 
         // Handle different thousand/decimal separators
@@ -559,6 +568,7 @@ class BankFormatParser
         }
 
         $amount = floatval($amountStr);
+
         return is_finite($amount) ? $amount : 0.0;
     }
 
@@ -617,7 +627,7 @@ class BankFormatParser
         try {
             Log::info($message, $context);
         } catch (\Throwable $e) {
-            error_log("INFO: {$message} - " . json_encode($context));
+            error_log("INFO: {$message} - ".json_encode($context));
         }
     }
 
@@ -629,7 +639,7 @@ class BankFormatParser
         try {
             Log::error($message, $context);
         } catch (\Throwable $e) {
-            error_log("ERROR: {$message} - " . json_encode($context));
+            error_log("ERROR: {$message} - ".json_encode($context));
         }
     }
 
@@ -641,7 +651,7 @@ class BankFormatParser
         try {
             Log::warning($message, $context);
         } catch (\Throwable $e) {
-            error_log("WARNING: {$message} - " . json_encode($context));
+            error_log("WARNING: {$message} - ".json_encode($context));
         }
     }
 }

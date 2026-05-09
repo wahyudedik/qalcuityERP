@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChannelInventory extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -35,6 +34,7 @@ use HasFactory, BelongsToTenant;
     public function calculateAvailableStock(): float
     {
         $this->available_stock = $this->allocated_stock - $this->sold_stock - $this->reserved_stock;
+
         return $this->available_stock;
     }
 
@@ -42,6 +42,7 @@ use HasFactory, BelongsToTenant;
     public function isLowStock(float $threshold = 10): bool
     {
         $this->calculateAvailableStock();
+
         return $this->available_stock < $threshold;
     }
 
@@ -64,6 +65,7 @@ use HasFactory, BelongsToTenant;
         $this->sold_stock += $quantity;
         $this->calculateAvailableStock();
         $this->save();
+
         return true;
     }
 

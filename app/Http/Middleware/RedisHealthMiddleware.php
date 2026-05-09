@@ -18,8 +18,6 @@ class RedisHealthMiddleware
 {
     /**
      * Redis health service instance
-     *
-     * @var RedisHealthService
      */
     private RedisHealthService $redisHealth;
 
@@ -34,12 +32,12 @@ class RedisHealthMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         // Only perform health checks in production or when explicitly enabled
-        if (!$this->shouldPerformHealthCheck()) {
+        if (! $this->shouldPerformHealthCheck()) {
             return $next($request);
         }
 
@@ -57,8 +55,6 @@ class RedisHealthMiddleware
 
     /**
      * Determine if health check should be performed
-     *
-     * @return bool
      */
     private function shouldPerformHealthCheck(): bool
     {
@@ -68,7 +64,7 @@ class RedisHealthMiddleware
         }
 
         // Skip if Redis is not enabled
-        if (!env('REDIS_ENABLED', false)) {
+        if (! env('REDIS_ENABLED', false)) {
             return false;
         }
 
@@ -78,8 +74,6 @@ class RedisHealthMiddleware
 
     /**
      * Perform Redis health check before request processing
-     *
-     * @return void
      */
     private function performPreRequestHealthCheck(): void
     {
@@ -87,7 +81,7 @@ class RedisHealthMiddleware
             // Use cached health status to avoid performance impact
             $healthStatus = $this->redisHealth->getCachedHealthStatus('default');
 
-            if (!$healthStatus['healthy']) {
+            if (! $healthStatus['healthy']) {
                 Log::warning('Redis unhealthy at request start', [
                     'status' => $healthStatus['status'],
                     'message' => $healthStatus['message'],
@@ -112,8 +106,6 @@ class RedisHealthMiddleware
 
     /**
      * Perform Redis health check after request processing
-     *
-     * @return void
      */
     private function performPostRequestHealthCheck(): void
     {
@@ -127,7 +119,7 @@ class RedisHealthMiddleware
             $this->redisHealth->clearHealthCache('default');
             $healthStatus = $this->redisHealth->checkConnection('default');
 
-            if (!$healthStatus['healthy']) {
+            if (! $healthStatus['healthy']) {
                 Log::info('Redis health degraded during request processing', [
                     'status' => $healthStatus['status'],
                     'response_time' => $healthStatus['response_time'],
@@ -142,8 +134,6 @@ class RedisHealthMiddleware
 
     /**
      * Trigger fallback to database drivers
-     *
-     * @return void
      */
     private function triggerFallback(): void
     {

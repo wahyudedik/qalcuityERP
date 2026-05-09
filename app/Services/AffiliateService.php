@@ -27,13 +27,16 @@ class AffiliateService
         }
 
         $affiliate = Affiliate::where('code', $code)->where('is_active', true)->first();
-        if (!$affiliate) return false;
+        if (! $affiliate) {
+            return false;
+        }
 
         // FRAUD CHECK: affiliate cannot refer their own demo tenant
         if ($affiliate->demo_tenant_id === $tenant->id) {
             AffiliateAuditLog::log($affiliate->id, 'fraud_self_referral', "Attempted self-referral to own demo tenant #{$tenant->id}", 'fraud', [
                 'tenant_id' => $tenant->id, 'tenant_name' => $tenant->name,
             ]);
+
             return false;
         }
 
@@ -44,16 +47,16 @@ class AffiliateService
 
         AffiliateReferral::create([
             'affiliate_id' => $affiliate->id,
-            'tenant_id'    => $tenant->id,
-            'referred_at'  => now(),
-            'source'       => 'link',
+            'tenant_id' => $tenant->id,
+            'referred_at' => now(),
+            'source' => 'link',
         ]);
 
         $tenant->update(['referred_by_code' => $code]);
 
         $severity = $sameIp ? 'warning' : 'info';
         AffiliateAuditLog::log($affiliate->id, 'referral_created',
-            "Referral: {$tenant->name} (#{$tenant->id})" . ($sameIp ? ' ⚠ SAME IP as affiliate' : ''),
+            "Referral: {$tenant->name} (#{$tenant->id})".($sameIp ? ' ⚠ SAME IP as affiliate' : ''),
             $severity, [
                 'tenant_id' => $tenant->id, 'tenant_name' => $tenant->name,
                 'ip' => $currentIp, 'same_ip' => $sameIp,
@@ -69,13 +72,19 @@ class AffiliateService
     public function createCommission(Tenant $tenant, SubscriptionPayment $payment): void
     {
         $referral = AffiliateReferral::where('tenant_id', $tenant->id)->first();
-        if (!$referral) return;
+        if (! $referral) {
+            return;
+        }
 
         $affiliate = $referral->affiliate;
-        if (!$affiliate || !$affiliate->is_active) return;
+        if (! $affiliate || ! $affiliate->is_active) {
+            return;
+        }
 
         // Prevent duplicate commission for same payment
-        if (AffiliateCommission::where('subscription_payment_id', $payment->id)->exists()) return;
+        if (AffiliateCommission::where('subscription_payment_id', $payment->id)->exists()) {
+            return;
+        }
 
         // FRAUD CHECK: commission for demo tenant
         if ($affiliate->demo_tenant_id === $tenant->id) {
@@ -83,6 +92,7 @@ class AffiliateService
                 "Blocked commission for own demo tenant #{$tenant->id}", 'fraud', [
                     'tenant_id' => $tenant->id, 'payment_id' => $payment->id,
                 ]);
+
             return;
         }
 
@@ -94,23 +104,25 @@ class AffiliateService
         $rate = (float) $affiliate->commission_rate;
         $commission = round($paymentAmount * $rate / 100, 2);
 
-        if ($commission <= 0) return;
+        if ($commission <= 0) {
+            return;
+        }
 
         $commissionRecord = AffiliateCommission::create([
-            'affiliate_id'            => $affiliate->id,
-            'tenant_id'               => $tenant->id,
+            'affiliate_id' => $affiliate->id,
+            'tenant_id' => $tenant->id,
             'subscription_payment_id' => $payment->id,
-            'plan_name'               => $payment->plan->name ?? 'Unknown',
-            'payment_amount'          => $paymentAmount,
-            'commission_rate'         => $rate,
-            'commission_amount'       => $commission,
-            'status'                  => 'pending',
+            'plan_name' => $payment->plan->name ?? 'Unknown',
+            'payment_amount' => $paymentAmount,
+            'commission_rate' => $rate,
+            'commission_amount' => $commission,
+            'status' => 'pending',
         ]);
 
         $severity = $recentReferrals > 5 ? 'warning' : 'info';
         AffiliateAuditLog::log($affiliate->id, 'commission_created',
-            "Commission Rp " . number_format($commission, 0, ',', '.') . " from {$tenant->name}"
-            . ($recentReferrals > 5 ? " ⚠ {$recentReferrals} referrals in 24h" : ''),
+            'Commission Rp '.number_format($commission, 0, ',', '.')." from {$tenant->name}"
+            .($recentReferrals > 5 ? " ⚠ {$recentReferrals} referrals in 24h" : ''),
             $severity, [
                 'commission_id' => $commissionRecord->id,
                 'tenant_id' => $tenant->id, 'amount' => $commission,
@@ -123,30 +135,30 @@ class AffiliateService
      */
     public function createDemoTenant(Affiliate $affiliate): Tenant
     {
-        $slug = 'demo-' . strtolower(Str::random(8));
+        $slug = 'demo-'.strtolower(Str::random(8));
 
         $tenant = Tenant::create([
-            'name'                 => 'Demo - ' . ($affiliate->company_name ?: $affiliate->user->name),
-            'slug'                 => $slug,
-            'email'                => $affiliate->user->email,
-            'phone'                => $affiliate->phone,
-            'plan'                 => 'professional',
-            'is_active'            => true,
-            'trial_ends_at'        => null,
-            'plan_expires_at'      => now()->addYears(10), // demo never expires
-            'business_type'        => 'distributor',
-            'business_description' => 'Akun demo untuk affiliate ' . $affiliate->code,
+            'name' => 'Demo - '.($affiliate->company_name ?: $affiliate->user->name),
+            'slug' => $slug,
+            'email' => $affiliate->user->email,
+            'phone' => $affiliate->phone,
+            'plan' => 'professional',
+            'is_active' => true,
+            'trial_ends_at' => null,
+            'plan_expires_at' => now()->addYears(10), // demo never expires
+            'business_type' => 'distributor',
+            'business_description' => 'Akun demo untuk affiliate '.$affiliate->code,
             'onboarding_completed' => true,
         ]);
 
         // Create admin user for demo tenant (linked to affiliate's email)
         $demoUser = User::create([
-            'tenant_id'         => $tenant->id,
-            'name'              => $affiliate->user->name . ' (Demo)',
-            'email'             => 'demo-' . $slug . '@qalcuity.com',
-            'password'          => Hash::make('demo123456'),
-            'role'              => 'admin',
-            'is_active'         => true,
+            'tenant_id' => $tenant->id,
+            'name' => $affiliate->user->name.' (Demo)',
+            'email' => 'demo-'.$slug.'@qalcuity.com',
+            'password' => Hash::make('demo123456'),
+            'role' => 'admin',
+            'is_active' => true,
             'email_verified_at' => now(),
         ]);
 

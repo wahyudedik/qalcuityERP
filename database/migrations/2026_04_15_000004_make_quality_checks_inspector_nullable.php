@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -15,7 +16,7 @@ return new class extends Migration {
     public function up(): void
     {
         if (Schema::hasTable('quality_checks') && Schema::hasColumn('quality_checks', 'inspector_id')) {
-            DB::statement("ALTER TABLE quality_checks MODIFY COLUMN inspector_id BIGINT UNSIGNED NULL");
+            DB::statement('ALTER TABLE quality_checks MODIFY COLUMN inspector_id BIGINT UNSIGNED NULL');
         }
     }
 
@@ -28,7 +29,7 @@ return new class extends Migration {
     public function down(): void
     {
         if (Schema::hasTable('quality_checks') && Schema::hasColumn('quality_checks', 'inspector_id')) {
-            DB::statement("ALTER TABLE quality_checks MODIFY COLUMN inspector_id BIGINT UNSIGNED NOT NULL");
+            DB::statement('ALTER TABLE quality_checks MODIFY COLUMN inspector_id BIGINT UNSIGNED NOT NULL');
         }
     }
 };

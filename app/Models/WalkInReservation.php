@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WalkInReservation extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -67,7 +66,7 @@ class WalkInReservation extends Model
             ->whereMonth('created_at', $month)
             ->count() + 1;
 
-        return "{$prefix}/{$year}/{$month}/" . str_pad($count, 4, '0', STR_PAD_LEFT);
+        return "{$prefix}/{$year}/{$month}/".str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /**

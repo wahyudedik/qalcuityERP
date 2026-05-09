@@ -41,7 +41,7 @@ class IntegrationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message_id' => 'HL7-' . time(),
+            'message_id' => 'HL7-'.time(),
             'acknowledgment' => 'AA', // Application Accept
         ]);
     }

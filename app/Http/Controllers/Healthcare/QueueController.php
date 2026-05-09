@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\QueueManagement;
-use App\Models\Appointment;
 use Illuminate\Http\Request;
 
 class QueueController extends Controller
@@ -70,7 +69,7 @@ class QueueController extends Controller
             'success' => true,
             'queue_number' => $queue->queue_number,
             'token_number' => $queue->token_number,
-            'estimated_wait' => $queue->estimatedWaitTime() . ' minutes',
+            'estimated_wait' => $queue->estimatedWaitTime().' minutes',
         ]);
     }
 
@@ -149,13 +148,13 @@ class QueueController extends Controller
             ->orderBy('queue_number')
             ->first();
 
-        if (!$nextQueue) {
+        if (! $nextQueue) {
             return back()->with('error', 'No patients in queue');
         }
 
         $nextQueue->call();
 
-        return back()->with('success', 'Calling patient: ' . $nextQueue->token_number);
+        return back()->with('success', 'Calling patient: '.$nextQueue->token_number);
     }
 
     /**

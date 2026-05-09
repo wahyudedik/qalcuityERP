@@ -113,7 +113,7 @@ class TelemedicinePrescription extends Model
     public function canDispense(): bool
     {
         return $this->status === 'active'
-            && !$this->isExpired()
+            && ! $this->isExpired()
             && $this->sent_to_pharmacy
             && in_array($this->pharmacy_status, ['confirmed', 'preparing', 'ready']);
     }

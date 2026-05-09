@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PrepressWorkflow extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -24,7 +23,7 @@ use HasFactory, BelongsToTenant;
         'started_at',
         'completed_at',
         'technician_id',
-        'rejection_reason'
+        'rejection_reason',
     ];
 
     protected $casts = [

@@ -28,8 +28,9 @@ class RedisConfigurationService
         // Check if Redis is enabled
         $redisEnabled = env('REDIS_ENABLED', false);
 
-        if (!$redisEnabled) {
+        if (! $redisEnabled) {
             $this->enableDatabaseFallback('Redis is disabled via REDIS_ENABLED=false');
+
             return false;
         }
 
@@ -48,8 +49,9 @@ class RedisConfigurationService
         // Test Redis connection and authentication
         $connectionResult = $this->testRedisConnection($redisPassword, $isPlaceholderPassword);
 
-        if (!$connectionResult['success']) {
+        if (! $connectionResult['success']) {
             $this->handleRedisConnectionFailure($connectionResult, $isPlaceholderPassword);
+
             return false;
         }
 
@@ -59,8 +61,7 @@ class RedisConfigurationService
     /**
      * Check if the provided password is a placeholder value
      *
-     * @param mixed $password
-     * @return bool
+     * @param  mixed  $password
      */
     private function isPlaceholderPassword($password): bool
     {
@@ -68,53 +69,52 @@ class RedisConfigurationService
             'your_actual_redis_password_here',
             'null',
             null,
-            ''
+            '',
         ], true);
     }
 
     /**
      * Test Redis connection and authentication
      *
-     * @param mixed $password
-     * @param bool $isPlaceholder
-     * @return array
+     * @param  mixed  $password
      */
     private function testRedisConnection($password, bool $isPlaceholder): array
     {
         try {
             // Skip connection test if Redis extension is not loaded
-            if (!extension_loaded('redis')) {
+            if (! extension_loaded('redis')) {
                 return [
                     'success' => false,
                     'error' => 'Redis PHP extension not loaded',
-                    'type' => 'extension_missing'
+                    'type' => 'extension_missing',
                 ];
             }
 
-            $redis = new Redis();
+            $redis = new Redis;
             $host = env('REDIS_HOST', '127.0.0.1');
             $port = env('REDIS_PORT', '6379');
             $timeout = 2.0; // Short timeout for validation
 
             $connected = $redis->connect($host, $port, $timeout);
 
-            if (!$connected) {
+            if (! $connected) {
                 return [
                     'success' => false,
                     'error' => 'Failed to connect to Redis server',
-                    'type' => 'connection_failed'
+                    'type' => 'connection_failed',
                 ];
             }
 
             // Test authentication if password is provided and not placeholder
-            if (!$isPlaceholder && $password) {
+            if (! $isPlaceholder && $password) {
                 $authenticated = $redis->auth($password);
-                if (!$authenticated) {
+                if (! $authenticated) {
                     $redis->close();
+
                     return [
                         'success' => false,
                         'error' => 'Redis authentication failed',
-                        'type' => 'auth_failed'
+                        'type' => 'auth_failed',
                     ];
                 }
             }
@@ -127,7 +127,7 @@ class RedisConfigurationService
                 return [
                     'success' => false,
                     'error' => 'Redis ping failed',
-                    'type' => 'ping_failed'
+                    'type' => 'ping_failed',
                 ];
             }
 
@@ -136,22 +136,19 @@ class RedisConfigurationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'type' => 'redis_exception'
+                'type' => 'redis_exception',
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'type' => 'general_exception'
+                'type' => 'general_exception',
             ];
         }
     }
 
     /**
      * Handle Redis connection failure and implement fallback
-     *
-     * @param array $connectionResult
-     * @param bool $isPlaceholderPassword
      */
     private function handleRedisConnectionFailure(array $connectionResult, bool $isPlaceholderPassword): void
     {
@@ -187,8 +184,6 @@ class RedisConfigurationService
 
     /**
      * Enable database fallback for session, cache, and queue drivers
-     *
-     * @param string $reason
      */
     private function enableDatabaseFallback(string $reason): void
     {
@@ -200,7 +195,7 @@ class RedisConfigurationService
         ]);
 
         // Only modify configuration if not running in console (avoid affecting migrations, etc.)
-        if (!app()->runningInConsole()) {
+        if (! app()->runningInConsole()) {
             // Fallback session driver to database
             if (config('session.driver') === 'redis') {
                 Config::set('session.driver', 'database');
@@ -227,14 +222,12 @@ class RedisConfigurationService
 
     /**
      * Check if Redis fallback should be triggered based on current configuration
-     *
-     * @return bool
      */
     public function shouldTriggerFallback(): bool
     {
         $redisEnabled = env('REDIS_ENABLED', false);
 
-        if (!$redisEnabled) {
+        if (! $redisEnabled) {
             return true;
         }
 
@@ -249,23 +242,21 @@ class RedisConfigurationService
         // Test connection to determine if fallback is needed
         $connectionResult = $this->testRedisConnection($redisPassword, $isPlaceholderPassword);
 
-        return !$connectionResult['success'];
+        return ! $connectionResult['success'];
     }
 
     /**
      * Get Redis connection status for monitoring
-     *
-     * @return array
      */
     public function getConnectionStatus(): array
     {
         $redisEnabled = env('REDIS_ENABLED', false);
 
-        if (!$redisEnabled) {
+        if (! $redisEnabled) {
             return [
                 'enabled' => false,
                 'status' => 'disabled',
-                'message' => 'Redis is disabled via REDIS_ENABLED=false'
+                'message' => 'Redis is disabled via REDIS_ENABLED=false',
             ];
         }
 
@@ -277,7 +268,7 @@ class RedisConfigurationService
                 'enabled' => true,
                 'status' => 'misconfigured',
                 'message' => 'Redis password is placeholder value',
-                'placeholder_password' => true
+                'placeholder_password' => true,
             ];
         }
 
@@ -287,7 +278,7 @@ class RedisConfigurationService
             return [
                 'enabled' => true,
                 'status' => 'connected',
-                'message' => 'Redis connection successful'
+                'message' => 'Redis connection successful',
             ];
         }
 
@@ -295,7 +286,7 @@ class RedisConfigurationService
             'enabled' => true,
             'status' => 'failed',
             'message' => $connectionResult['error'] ?? 'Connection failed',
-            'error_type' => $connectionResult['type'] ?? 'unknown'
+            'error_type' => $connectionResult['type'] ?? 'unknown',
         ];
     }
 }

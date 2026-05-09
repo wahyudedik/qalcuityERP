@@ -52,7 +52,7 @@ class JournalEntryLine extends Model
     {
         $journal = JournalEntry::find($journalEntryId);
 
-        if (!$journal) {
+        if (! $journal) {
             return;
         }
 
@@ -83,6 +83,7 @@ class JournalEntryLine extends Model
     {
         return $this->belongsTo(JournalEntry::class);
     }
+
     public function account(): BelongsTo
     {
         return $this->belongsTo(ChartOfAccount::class, 'account_id');

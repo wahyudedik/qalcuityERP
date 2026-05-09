@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FingerprintDevice;
 use App\Models\Employee;
+use App\Models\FingerprintDevice;
 use App\Services\FingerprintDeviceService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\JsonResponse;
 
 class FingerprintDeviceController extends Controller
 {
     public function __construct(
         private FingerprintDeviceService $fingerprintService
-    ) {
-    }
+    ) {}
 
     // tenantId() inherited from parent Controller
 
@@ -206,10 +205,10 @@ class FingerprintDeviceController extends Controller
     {
         $this->authorizeTenant($employee);
 
-        if (!$employee->fingerprint_registered || !$employee->fingerprint_uid) {
+        if (! $employee->fingerprint_registered || ! $employee->fingerprint_uid) {
             return response()->json([
                 'success' => false,
-                'message' => 'Karyawan belum terdaftar di perangkat fingerprint'
+                'message' => 'Karyawan belum terdaftar di perangkat fingerprint',
             ], 400);
         }
 
@@ -218,10 +217,10 @@ class FingerprintDeviceController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$device) {
+        if (! $device) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak ada perangkat fingerprint aktif'
+                'message' => 'Tidak ada perangkat fingerprint aktif',
             ], 400);
         }
 

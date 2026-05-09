@@ -32,10 +32,10 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
     {
         parent::setUp();
 
-        $this->tempDir = sys_get_temp_dir() . '/bfa_prop_test_' . uniqid();
-        mkdir($this->tempDir . '/app/Models', 0777, true);
-        mkdir($this->tempDir . '/app/Services', 0777, true);
-        mkdir($this->tempDir . '/app/Http/Controllers', 0777, true);
+        $this->tempDir = sys_get_temp_dir().'/bfa_prop_test_'.uniqid();
+        mkdir($this->tempDir.'/app/Models', 0777, true);
+        mkdir($this->tempDir.'/app/Services', 0777, true);
+        mkdir($this->tempDir.'/app/Http/Controllers', 0777, true);
     }
 
     protected function tearDown(): void
@@ -104,17 +104,17 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($salesModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
                         "Analyzer MUST detect missing model '{$model}'. "
-                            . "Present models: " . implode(', ', $presentModels)
+                            .'Present models: '.implode(', ', $presentModels)
                     );
                 } else {
                     $this->assertNotContains(
@@ -128,20 +128,20 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing state machine methods are detected
             $methodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'TransactionStateMachine'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'TransactionStateMachine'
             );
             $detectedMissingMethods = array_map(
-                fn(AuditFinding $f) => $f->metadata['method'],
+                fn (AuditFinding $f) => $f->metadata['method'],
                 $methodFindings
             );
 
             foreach ($stateMethods as $method) {
-                if (!in_array($method, $presentMethods)) {
+                if (! in_array($method, $presentMethods)) {
                     $this->assertContains(
                         $method,
                         $detectedMissingMethods,
                         "Analyzer MUST detect missing state machine method '{$method}'. "
-                            . "Present methods: " . implode(', ', $presentMethods)
+                            .'Present methods: '.implode(', ', $presentMethods)
                     );
                 } else {
                     $this->assertNotContains(
@@ -233,12 +233,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($purchasingModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
@@ -256,15 +256,15 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing state machine methods
             $stateMethodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'TransactionStateMachine'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'TransactionStateMachine'
             );
             $detectedStateMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['method'],
+                fn (AuditFinding $f) => $f->metadata['method'],
                 $stateMethodFindings
             );
 
             foreach ($stateMethods as $method) {
-                if (!in_array($method, $presentStateMethods)) {
+                if (! in_array($method, $presentStateMethods)) {
                     $this->assertContains(
                         $method,
                         $detectedStateMissing,
@@ -282,15 +282,15 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing GL methods
             $glMethodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
             );
             $detectedGlMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['method'],
+                fn (AuditFinding $f) => $f->metadata['method'],
                 $glMethodFindings
             );
 
             foreach ($glMethods as $method) {
-                if (!in_array($method, $presentGlMethods)) {
+                if (! in_array($method, $presentGlMethods)) {
                     $this->assertContains(
                         $method,
                         $detectedGlMissing,
@@ -375,12 +375,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($payrollModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
@@ -398,15 +398,15 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing calculation methods
             $methodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'PayrollCalculationService'
             );
             $detectedMissingMethods = array_map(
-                fn(AuditFinding $f) => $f->metadata['method'],
+                fn (AuditFinding $f) => $f->metadata['method'],
                 $methodFindings
             );
 
             foreach ($calcMethods as $method) {
-                if (!in_array($method, $presentMethods)) {
+                if (! in_array($method, $presentMethods)) {
                     $this->assertContains(
                         $method,
                         $detectedMissingMethods,
@@ -482,12 +482,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($inventoryModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
@@ -505,15 +505,15 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing costing methods
             $methodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'InventoryCostingService'
             );
             $detectedMissingMethods = array_map(
-                fn(AuditFinding $f) => $f->metadata['method'],
+                fn (AuditFinding $f) => $f->metadata['method'],
                 $methodFindings
             );
 
             foreach ($costingMethods as $method) {
-                if (!in_array($method, $presentMethods)) {
+                if (! in_array($method, $presentMethods)) {
                     $this->assertContains(
                         $method,
                         $detectedMissingMethods,
@@ -592,12 +592,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($posModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
@@ -616,26 +616,26 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             $sessionFindings = $this->filterByCheck($findings, 'pos_session_fields');
             $cashierSessionPresent = in_array('CashierSession', $presentModels);
 
-            if (!$cashierSessionPresent) {
+            if (! $cashierSessionPresent) {
                 // CashierSession not present → no session field finding (model missing is reported separately)
                 $this->assertCount(
                     0,
                     $sessionFindings,
-                    "No session field finding when CashierSession model is absent."
+                    'No session field finding when CashierSession model is absent.'
                 );
             } elseif ($hasStatusField) {
                 // CashierSession present WITH status fields → no finding
                 $this->assertCount(
                     0,
                     $sessionFindings,
-                    "No session field finding when CashierSession has status/opening_balance."
+                    'No session field finding when CashierSession has status/opening_balance.'
                 );
             } else {
                 // CashierSession present WITHOUT status fields → MUST produce finding
                 $this->assertCount(
                     1,
                     $sessionFindings,
-                    "Analyzer MUST detect missing session tracking fields."
+                    'Analyzer MUST detect missing session tracking fields.'
                 );
                 $this->assertSame(Severity::Medium, $sessionFindings[0]->severity);
                 $this->assertSame('POS', $sessionFindings[0]->metadata['flow']);
@@ -644,12 +644,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify GL method detection
             $glMethodFindings = array_filter(
                 $this->filterByCheck($findings, 'flow_service_method_missing'),
-                fn(AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
+                fn (AuditFinding $f) => $f->metadata['service'] === 'GlPostingService'
             );
 
             if ($hasGlMethod) {
                 $missingGlMethods = array_map(
-                    fn(AuditFinding $f) => $f->metadata['method'],
+                    fn (AuditFinding $f) => $f->metadata['method'],
                     $glMethodFindings
                 );
                 $this->assertNotContains(
@@ -659,7 +659,7 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
                 );
             } else {
                 $missingGlMethods = array_map(
-                    fn(AuditFinding $f) => $f->metadata['method'],
+                    fn (AuditFinding $f) => $f->metadata['method'],
                     $glMethodFindings
                 );
                 $this->assertContains(
@@ -741,12 +741,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing models are detected
             $missingModelFindings = $this->filterByCheck($findings, 'flow_model_missing');
             $detectedMissing = array_map(
-                fn(AuditFinding $f) => $f->metadata['model'],
+                fn (AuditFinding $f) => $f->metadata['model'],
                 $missingModelFindings
             );
 
             foreach ($approvalModels as $model) {
-                if (!in_array($model, $presentModels)) {
+                if (! in_array($model, $presentModels)) {
                     $this->assertContains(
                         $model,
                         $detectedMissing,
@@ -764,12 +764,12 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             // Verify missing approval services are detected
             $missingServiceFindings = $this->filterByCheck($findings, 'approval_service_missing');
             $detectedMissingServices = array_map(
-                fn(AuditFinding $f) => $f->metadata['service'],
+                fn (AuditFinding $f) => $f->metadata['service'],
                 $missingServiceFindings
             );
 
             foreach ($approvalServices as $service) {
-                if (!in_array($service, $presentServices)) {
+                if (! in_array($service, $presentServices)) {
                     $this->assertContains(
                         $service,
                         $detectedMissingServices,
@@ -790,10 +790,10 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             if ($workflowEnginePresent) {
                 $engineMethodFindings = array_filter(
                     $this->filterByCheck($findings, 'flow_service_method_missing'),
-                    fn(AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
+                    fn (AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
                 );
                 $detectedMissingEngineMethods = array_map(
-                    fn(AuditFinding $f) => $f->metadata['method'],
+                    fn (AuditFinding $f) => $f->metadata['method'],
                     $engineMethodFindings
                 );
 
@@ -805,7 +805,7 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
                 }
 
                 foreach ($engineMethods as $method) {
-                    if (!in_array($method, $presentEngineMethods)) {
+                    if (! in_array($method, $presentEngineMethods)) {
                         $this->assertContains(
                             $method,
                             $detectedMissingEngineMethods,
@@ -824,11 +824,11 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
                 // instead of individual method-missing findings
                 $serviceMissingFindings = array_filter(
                     $this->filterByCheck($findings, 'flow_service_missing'),
-                    fn(AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
+                    fn (AuditFinding $f) => $f->metadata['service'] === 'WorkflowEngine'
                 );
                 $this->assertNotEmpty(
                     $serviceMissingFindings,
-                    "Analyzer MUST report WorkflowEngine as missing service when not present."
+                    'Analyzer MUST report WorkflowEngine as missing service when not present.'
                 );
                 foreach ($serviceMissingFindings as $f) {
                     $this->assertSame(Severity::Critical, $f->severity);
@@ -853,9 +853,9 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
     private function makeAnalyzer(): BusinessFlowAnalyzer
     {
         return new BusinessFlowAnalyzer(
-            modelPath: $this->tempDir . '/app/Models',
-            servicePath: $this->tempDir . '/app/Services',
-            controllerPath: $this->tempDir . '/app/Http/Controllers',
+            modelPath: $this->tempDir.'/app/Models',
+            servicePath: $this->tempDir.'/app/Services',
+            controllerPath: $this->tempDir.'/app/Http/Controllers',
             basePath: $this->tempDir,
         );
     }
@@ -863,7 +863,7 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
     private function createModelStub(string $name, string $extraContent = ''): void
     {
         $content = "<?php\nnamespace App\\Models;\nclass {$name} {\n    {$extraContent}\n}\n";
-        file_put_contents($this->tempDir . "/app/Models/{$name}.php", $content);
+        file_put_contents($this->tempDir."/app/Models/{$name}.php", $content);
     }
 
     private function createServiceStub(string $name, array $methods): void
@@ -873,20 +873,20 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
             $methodDefs .= "    public function {$method}() {}\n";
         }
         $content = "<?php\nnamespace App\\Services;\nclass {$name} {\n{$methodDefs}}\n";
-        file_put_contents($this->tempDir . "/app/Services/{$name}.php", $content);
+        file_put_contents($this->tempDir."/app/Services/{$name}.php", $content);
     }
 
     /**
      * Filter findings by the 'check' metadata key.
      *
-     * @param AuditFinding[] $findings
+     * @param  AuditFinding[]  $findings
      * @return AuditFinding[]
      */
     private function filterByCheck(array $findings, string $check): array
     {
         return array_values(array_filter(
             $findings,
-            fn(AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
+            fn (AuditFinding $f) => ($f->metadata['check'] ?? null) === $check
         ));
     }
 
@@ -896,15 +896,15 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
     private function cleanTempFiles(): void
     {
         $dirs = [
-            $this->tempDir . '/app/Models',
-            $this->tempDir . '/app/Services',
+            $this->tempDir.'/app/Models',
+            $this->tempDir.'/app/Services',
         ];
 
         foreach ($dirs as $dir) {
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 continue;
             }
-            $files = glob($dir . '/*.php');
+            $files = glob($dir.'/*.php');
             if ($files) {
                 foreach ($files as $file) {
                     @unlink($file);
@@ -918,7 +918,7 @@ class BusinessFlowAnalyzerPropertyTest extends TestCase
      */
     private function removeDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 

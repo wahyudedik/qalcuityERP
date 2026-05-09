@@ -12,7 +12,7 @@ class PerformanceMonitor
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -27,7 +27,7 @@ class PerformanceMonitor
 
             // Add performance headers
             $response->headers->set('X-Query-Count', $stats['total_queries']);
-            $response->headers->set('X-Query-Time', $stats['total_time_ms'] . 'ms');
+            $response->headers->set('X-Query-Time', $stats['total_time_ms'].'ms');
             $response->headers->set('X-Slow-Queries', $stats['slow_queries']);
             $response->headers->set('X-NPlus-One-Suspects', $stats['n_plus_one_suspects']);
 

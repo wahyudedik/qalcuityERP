@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         // Tenant payment gateway configurations
-        if (!Schema::hasTable('tenant_payment_gateways')) {
+        if (! Schema::hasTable('tenant_payment_gateways')) {
             Schema::create('tenant_payment_gateways', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -22,14 +23,14 @@ return new class extends Migration {
                 $table->string('webhook_secret')->nullable();
                 $table->timestamp('last_verified_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->unique(['tenant_id', 'provider']);
                 $table->index(['tenant_id', 'is_active']);
             });
         }
 
         // Payment transactions
-        if (!Schema::hasTable('payment_transactions')) {
+        if (! Schema::hasTable('payment_transactions')) {
             Schema::create('payment_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -60,7 +61,7 @@ return new class extends Migration {
                 $table->text('failure_reason')->nullable();
                 $table->json('metadata')->nullable(); // Additional data
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'created_at']);
                 $table->index('gateway_transaction_id');
@@ -68,7 +69,7 @@ return new class extends Migration {
         }
 
         // Payment callbacks/logs
-        if (!Schema::hasTable('payment_callbacks')) {
+        if (! Schema::hasTable('payment_callbacks')) {
             Schema::create('payment_callbacks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -82,7 +83,7 @@ return new class extends Migration {
                 $table->text('error_message')->nullable();
                 $table->timestamp('processed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'processed']);
                 $table->index(['tenant_id', 'created_at']);
             });

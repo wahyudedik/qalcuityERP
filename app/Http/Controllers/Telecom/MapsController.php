@@ -107,12 +107,12 @@ class MapsController extends Controller
                 'parentDevice',
                 'subscriptions' => function ($q) {
                     $q->where('status', 'active')->with('customer');
-                }
+                },
             ])
             ->withCount(['subscriptions', 'hotspotUsers'])
             ->first();
 
-        if (!$device) {
+        if (! $device) {
             return response()->json([
                 'success' => false,
                 'message' => 'Device not found',
@@ -164,7 +164,7 @@ class MapsController extends Controller
             ->withCount(['subscriptions', 'hotspotUsers'])
             ->get()
             ->map(function ($device) use ($validated) {
-                /** @var \App\Models\NetworkDevice $device */
+                /** @var NetworkDevice $device */
                 $distance = $device->getDistanceTo($validated['latitude'], $validated['longitude']);
 
                 return [
@@ -233,6 +233,6 @@ class MapsController extends Controller
                 'isRemoteEnabled' => true,
             ]);
 
-        return $pdf->download('network-maps-report-' . date('Y-m-d') . '.pdf');
+        return $pdf->download('network-maps-report-'.date('Y-m-d').'.pdf');
     }
 }

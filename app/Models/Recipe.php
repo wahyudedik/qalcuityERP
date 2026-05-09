@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Recipe extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'menu_item_id',
@@ -79,11 +79,12 @@ class Recipe extends Model
      */
     public function getProfitMargin(): float
     {
-        if (!$this->menuItem || $this->menuItem->price <= 0) {
+        if (! $this->menuItem || $this->menuItem->price <= 0) {
             return 0;
         }
 
         $costPerServing = $this->calculateCostPerServing();
+
         return (($this->menuItem->price - $costPerServing) / $this->menuItem->price) * 100;
     }
 }

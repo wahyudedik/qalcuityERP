@@ -2,31 +2,29 @@
 
 namespace App\Services;
 
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Email Configuration Service
- * 
+ *
  * Provides fallback mechanism for email configuration:
  * 1. Database settings (tenant-specific)
  * 2. Environment variables (.env)
  * 3. Default fallback (log driver)
- * 
+ *
  * BUG-014: Email Configuration Fallback Tidak Jelas
  */
 class EmailConfigurationService
 {
     /**
      * Get email configuration with fallback
-     * 
+     *
      * Priority:
      * 1. Tenant database settings
      * 2. Environment variables (.env)
      * 3. Default log driver (failsafe)
-     * 
-     * @param int|null $tenantId
-     * @return array
      */
     public function getEmailConfig(?int $tenantId = null): array
     {
@@ -54,8 +52,8 @@ class EmailConfigurationService
     protected function getTenantEmailConfig(int $tenantId): ?array
     {
         try {
-            $tenant = \App\Models\Tenant::find($tenantId);
-            if (!$tenant || !$tenant->email_settings) {
+            $tenant = Tenant::find($tenantId);
+            if (! $tenant || ! $tenant->email_settings) {
                 return null;
             }
 
@@ -143,10 +141,6 @@ class EmailConfigurationService
 
     /**
      * Apply email configuration dynamically
-     * 
-     * @param array $config
-     * @param string $mailerName
-     * @return void
      */
     public function applyConfig(array $config, string $mailerName = 'dynamic'): void
     {
@@ -166,9 +160,6 @@ class EmailConfigurationService
 
     /**
      * Test email configuration
-     * 
-     * @param array $config
-     * @return array
      */
     public function testConfig(array $config): array
     {
@@ -180,12 +171,13 @@ class EmailConfigurationService
 
         try {
             // Validate config structure
-            if (!$this->isValidConfig($config)) {
+            if (! $this->isValidConfig($config)) {
                 $result['message'] = 'Invalid configuration';
                 $result['details'] = [
                     'driver' => $config['driver'] ?? 'missing',
                     'host' => $config['host'] ?? 'missing',
                 ];
+
                 return $result;
             }
 
@@ -193,6 +185,7 @@ class EmailConfigurationService
             if (in_array($config['driver'], ['log', 'array'])) {
                 $result['success'] = true;
                 $result['message'] = 'Configuration valid (log/array driver)';
+
                 return $result;
             }
 
@@ -210,7 +203,7 @@ class EmailConfigurationService
             }
 
         } catch (\Exception $e) {
-            $result['message'] = 'Test failed: ' . $e->getMessage();
+            $result['message'] = 'Test failed: '.$e->getMessage();
         }
 
         return $result;
@@ -225,7 +218,7 @@ class EmailConfigurationService
 
         return [
             'current_driver' => $currentDriver,
-            'has_env_config' => !empty(env('MAIL_HOST')),
+            'has_env_config' => ! empty(env('MAIL_HOST')),
             'has_tenant_config' => false, // Will be set if tenant context exists
             'is_fallback' => $currentDriver === 'log' && empty(env('MAIL_HOST')),
             'recommendation' => $this->getRecommendation($currentDriver),

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Livestock;
 
 use App\Http\Controllers\Controller;
+use App\Models\DairyMilkingSession;
 use App\Models\DairyMilkRecord;
 use App\Models\LivestockHerd;
 use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DairyController extends Controller
 {
@@ -79,7 +81,7 @@ class DairyController extends Controller
         ]);
 
         try {
-            $record = new DairyMilkRecord();
+            $record = new DairyMilkRecord;
             $record->tenant_id = auth()->user()->tenant_id;
             $record->fill($validated);
             $record->recorded_by = auth()->id();
@@ -96,7 +98,7 @@ class DairyController extends Controller
                     (float) $pricePerLiter
                 );
                 if ($result->isFailed()) {
-                    \Illuminate\Support\Facades\Log::warning("Dairy production journal failed: " . $result->reason);
+                    Log::warning('Dairy production journal failed: '.$result->reason);
                 }
             }
 
@@ -111,7 +113,7 @@ class DairyController extends Controller
      */
     public function milkingSessions(Request $request)
     {
-        $sessions = \App\Models\DairyMilkingSession::where('tenant_id', auth()->user()->tenant_id)
+        $sessions = DairyMilkingSession::where('tenant_id', auth()->user()->tenant_id)
             ->orderByDesc('session_date')
             ->paginate(20);
 
@@ -136,9 +138,9 @@ class DairyController extends Controller
         ]);
 
         try {
-            $session = new \App\Models\DairyMilkingSession();
+            $session = new DairyMilkingSession;
             $session->tenant_id = auth()->user()->tenant_id;
-            $session->session_code = 'MS-' . now()->format('Ymd') . '-' . str_pad(\App\Models\DairyMilkingSession::count() + 1, 4, '0', STR_PAD_LEFT);
+            $session->session_code = 'MS-'.now()->format('Ymd').'-'.str_pad(DairyMilkingSession::count() + 1, 4, '0', STR_PAD_LEFT);
             $session->fill($validated);
             $session->created_by = auth()->id();
 

@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivestockHealthRecord extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'livestock_herd_id',
         'tenant_id',
@@ -34,11 +34,11 @@ class LivestockHealthRecord extends Model
     }
 
     public const TYPE_LABELS = [
-        'illness'     => '🤒 Penyakit',
-        'treatment'   => '💊 Pengobatan',
+        'illness' => '🤒 Penyakit',
+        'treatment' => '💊 Pengobatan',
         'observation' => '👁️ Observasi',
-        'quarantine'  => '🔒 Karantina',
-        'recovery'    => '✅ Sembuh',
+        'quarantine' => '🔒 Karantina',
+        'recovery' => '✅ Sembuh',
     ];
 
     public const SEVERITY_COLORS = [
@@ -52,10 +52,12 @@ class LivestockHealthRecord extends Model
     {
         return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id');
     }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -73,6 +75,7 @@ class LivestockHealthRecord extends Model
     {
         return self::TYPE_LABELS[$this->type] ?? $this->type;
     }
+
     public function severityColor(): string
     {
         return self::SEVERITY_COLORS[$this->severity] ?? 'gray';

@@ -51,6 +51,7 @@ class SendTelemedicineReminders extends Command
 
         if ($consultations->isEmpty()) {
             $this->info('No consultations found that need reminders.');
+
             return 0;
         }
 
@@ -67,14 +68,14 @@ class SendTelemedicineReminders extends Command
 
                 if ($success) {
                     $sentCount++;
-                    $this->info("✓ Reminder sent successfully");
+                    $this->info('✓ Reminder sent successfully');
                 } else {
                     $failedCount++;
-                    $this->warn("✗ Failed to send reminder");
+                    $this->warn('✗ Failed to send reminder');
                 }
             } catch (\Exception $e) {
                 $failedCount++;
-                $this->error("✗ Error: " . $e->getMessage());
+                $this->error('✗ Error: '.$e->getMessage());
                 Log::error('Telemedicine reminder failed', [
                     'consultation_id' => $consultation->id,
                     'error' => $e->getMessage(),
@@ -83,7 +84,7 @@ class SendTelemedicineReminders extends Command
         }
 
         $this->newLine();
-        $this->info("Reminder Summary:");
+        $this->info('Reminder Summary:');
         $this->line("✓ Sent: {$sentCount}");
         $this->line("✗ Failed: {$failedCount}");
         $this->line("Total: {$consultations->count()}");

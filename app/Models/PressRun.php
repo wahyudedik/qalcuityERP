@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PressRun extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -29,7 +28,7 @@ use HasFactory, BelongsToTenant;
         'registration_accuracy',
         'quality_checks',
         'operator_id',
-        'run_notes'
+        'run_notes',
     ];
 
     protected $casts = [

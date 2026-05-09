@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('overtime_requests')) {
+        if (! Schema::hasTable('overtime_requests')) {
             Schema::create('overtime_requests', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -26,7 +26,7 @@ return new class extends Migration
                 $table->boolean('included_in_payroll')->default(false);
                 $table->string('payroll_period')->nullable(); // Y-m
                 $table->timestamps();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
                 $table->foreign('employee_id')->references('id')->on('employees')->cascadeOnDelete();
                 $table->foreign('approved_by')->references('id')->on('users')->nullOnDelete();

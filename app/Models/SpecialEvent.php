@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpecialEvent extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
         'tenant_id',
@@ -43,7 +43,7 @@ class SpecialEvent extends Model
     /**
      * Check if event is active on given date
      */
-    public function isActiveOn(\Carbon\Carbon $date): bool
+    public function isActiveOn(Carbon $date): bool
     {
         return $date->between($this->start_date, $this->end_date);
     }
@@ -51,7 +51,7 @@ class SpecialEvent extends Model
     /**
      * Get events affecting a date range
      */
-    public static function getEventsForPeriod(int $tenantId, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate)
+    public static function getEventsForPeriod(int $tenantId, Carbon $startDate, Carbon $endDate)
     {
         return static::where('tenant_id', $tenantId)
             ->where('affects_pricing', true)

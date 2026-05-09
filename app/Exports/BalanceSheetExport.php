@@ -3,20 +3,20 @@
 namespace App\Exports;
 
 use App\Services\FinancialStatementService;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class BalanceSheetExport implements WithMultipleSheets
 {
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $asOf,
         protected string $tenantName = 'Qalcuity ERP',
     ) {}
@@ -24,28 +24,29 @@ class BalanceSheetExport implements WithMultipleSheets
     public function sheets(): array
     {
         $data = app(FinancialStatementService::class)->balanceSheet($this->tenantId, $this->asOf);
+
         return [new BalanceSheetSheet($data, $this->asOf, $this->tenantName)];
     }
 }
 
-class BalanceSheetSheet implements FromArray, WithTitle, WithStyles, WithColumnWidths
+class BalanceSheetSheet implements FromArray, WithColumnWidths, WithStyles, WithTitle
 {
     public function __construct(
-        protected array  $data,
+        protected array $data,
         protected string $asOf,
         protected string $tenantName,
     ) {}
 
     public function array(): array
     {
-        $fmt = fn($n) => round(abs((float) $n), 2);
+        $fmt = fn ($n) => round(abs((float) $n), 2);
         $rows = [];
 
         // Header
         $rows[] = [$this->tenantName];
         $rows[] = ['NERACA (BALANCE SHEET)'];
-        $rows[] = ['Per Tanggal: ' . \Carbon\Carbon::parse($this->asOf)->translatedFormat('d F Y')];
-        $rows[] = ['Status: ' . ($this->data['is_balanced'] ? 'BALANCE ✓' : 'TIDAK BALANCE ✗')];
+        $rows[] = ['Per Tanggal: '.Carbon::parse($this->asOf)->translatedFormat('d F Y')];
+        $rows[] = ['Status: '.($this->data['is_balanced'] ? 'BALANCE ✓' : 'TIDAK BALANCE ✗')];
         $rows[] = [];
         $rows[] = ['KODE', 'NAMA AKUN', 'JUMLAH (Rp)'];
 
@@ -96,7 +97,10 @@ class BalanceSheetSheet implements FromArray, WithTitle, WithStyles, WithColumnW
         return $rows;
     }
 
-    public function title(): string { return 'Neraca'; }
+    public function title(): string
+    {
+        return 'Neraca';
+    }
 
     public function columnWidths(): array
     {
@@ -111,6 +115,7 @@ class BalanceSheetSheet implements FromArray, WithTitle, WithStyles, WithColumnW
         $sheet->getStyle('A6:C6')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1E40AF');
         $sheet->getStyle('A6:C6')->getFont()->getColor()->setRGB('FFFFFF');
         $sheet->getStyle('C6:C200')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
         return [];
     }
 }

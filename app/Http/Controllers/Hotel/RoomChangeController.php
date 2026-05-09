@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Hotel;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Reservation;
-use App\Models\Room;
 use App\Models\ReservationRoomChange;
+use App\Models\Room;
 use App\Services\CheckInOutService;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Http\Request;
@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 class RoomChangeController extends Controller
 {
     private CheckInOutService $checkInOutService;
+
     private RoomAvailabilityService $availabilityService;
 
     public function __construct(
@@ -39,7 +40,7 @@ class RoomChangeController extends Controller
     {
         abort_unless($reservation->tenant_id === $this->tenantId(), 403);
 
-        if (!$reservation->isCheckedIn()) {
+        if (! $reservation->isCheckedIn()) {
             return back()->withErrors(['error' => 'Can only change room for checked-in reservations.']);
         }
 
@@ -83,9 +84,9 @@ class RoomChangeController extends Controller
                 $reservation
             );
 
-            $message = "Room changed successfully. " .
-                ucfirst($result['change_type']) . " - " .
-                "Rate difference: Rp " . number_format($result['rate_difference'], 0, ',', '.') . "/night";
+            $message = 'Room changed successfully. '.
+                ucfirst($result['change_type']).' - '.
+                'Rate difference: Rp '.number_format($result['rate_difference'], 0, ',', '.').'/night';
 
             return redirect()->route('hotel.reservations.show', $reservation)
                 ->with('success', $message);

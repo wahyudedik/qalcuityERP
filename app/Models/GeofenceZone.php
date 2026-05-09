@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GeofenceZone extends Model
@@ -81,7 +81,7 @@ class GeofenceZone extends Model
      */
     protected function isPointInCircle(float $latitude, float $longitude): bool
     {
-        if (!$this->center_latitude || !$this->center_longitude || !$this->radius_meters) {
+        if (! $this->center_latitude || ! $this->center_longitude || ! $this->radius_meters) {
             return false;
         }
 
@@ -109,7 +109,7 @@ class GeofenceZone extends Model
      */
     protected function isPointInPolygon(float $latitude, float $longitude): bool
     {
-        if (!$this->polygon_coordinates || empty($this->polygon_coordinates)) {
+        if (! $this->polygon_coordinates || empty($this->polygon_coordinates)) {
             return false;
         }
 
@@ -127,7 +127,7 @@ class GeofenceZone extends Model
                 && ($latitude < ($xj - $xi) * ($longitude - $yi) / ($yj - $yi) + $xi);
 
             if ($intersect) {
-                $inside = !$inside;
+                $inside = ! $inside;
             }
         }
 
@@ -139,7 +139,7 @@ class GeofenceZone extends Model
      */
     public function getDistanceFromCenter(float $latitude, float $longitude): float
     {
-        if (!$this->center_latitude || !$this->center_longitude) {
+        if (! $this->center_latitude || ! $this->center_longitude) {
             return -1;
         }
 

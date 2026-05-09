@@ -6,12 +6,13 @@ use App\Models\ActivityLog;
 use App\Models\ExpenseCategory;
 use App\Models\Transaction;
 use App\Services\GlPostingService;
+use App\Traits\DispatchesWebhooks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ExpenseController extends Controller
 {
-    use \App\Traits\DispatchesWebhooks;
+    use DispatchesWebhooks;
 
     private function tid(): int
     {
@@ -20,7 +21,7 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tid();
+        $tid = $this->tid();
         $query = Transaction::with(['category', 'user'])
             ->where('tenant_id', $tid)
             ->where('type', 'expense');
@@ -36,11 +37,11 @@ class ExpenseController extends Controller
         }
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('description', 'like', "%$s%")
+            $query->where(fn ($q) => $q->where('description', 'like', "%$s%")
                 ->orWhere('number', 'like', "%$s%"));
         }
 
-        $expenses   = $query->with('journalEntry')->latest('date')->paginate(20)->withQueryString();
+        $expenses = $query->with('journalEntry')->latest('date')->paginate(20)->withQueryString();
         $categories = ExpenseCategory::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
 
         // Stats
@@ -54,7 +55,7 @@ class ExpenseController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $d = now()->subMonths($i);
             $chartData[] = [
-                'month'  => $d->format('M Y'),
+                'month' => $d->format('M Y'),
                 'amount' => Transaction::where('tenant_id', $tid)->where('type', 'expense')
                     ->whereMonth('date', $d->month)->whereYear('date', $d->year)->sum('amount'),
             ];
@@ -79,12 +80,12 @@ class ExpenseController extends Controller
     {
         $data = $request->validate([
             'expense_category_id' => 'required|exists:expense_categories,id',
-            'date'                => 'required|date',
-            'amount'              => 'required|numeric|min:0.01',
-            'payment_method'      => 'required|in:cash,transfer,card,other',
-            'description'         => 'required|string|max:500',
-            'reference'           => 'nullable|string|max:100',
-            'attachment'          => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:cash,transfer,card,other',
+            'description' => 'required|string|max:500',
+            'reference' => 'nullable|string|max:100',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $tid = $this->tid();
@@ -98,42 +99,42 @@ class ExpenseController extends Controller
             $attachmentPath = $request->file('attachment')->store("expenses/{$tid}", 'public');
         }
 
-        $number = 'EXP-' . date('Ymd') . '-' . str_pad(
+        $number = 'EXP-'.date('Ymd').'-'.str_pad(
             Transaction::where('tenant_id', $tid)->where('type', 'expense')->whereDate('date', today())->count() + 1,
             3, '0', STR_PAD_LEFT
         );
 
         $expense = Transaction::create([
-            'tenant_id'           => $tid,
-            'user_id'             => auth()->id(),
+            'tenant_id' => $tid,
+            'user_id' => auth()->id(),
             'expense_category_id' => $data['expense_category_id'],
-            'number'              => $number,
-            'type'                => 'expense',
-            'date'                => $data['date'],
-            'amount'              => $data['amount'],
-            'payment_method'      => $data['payment_method'],
-            'description'         => $data['description'],
-            'reference'           => $data['reference'] ?? null,
-            'attachment'          => $attachmentPath ? Storage::url($attachmentPath) : null,
+            'number' => $number,
+            'type' => 'expense',
+            'date' => $data['date'],
+            'amount' => $data['amount'],
+            'payment_method' => $data['payment_method'],
+            'description' => $data['description'],
+            'reference' => $data['reference'] ?? null,
+            'attachment' => $attachmentPath ? Storage::url($attachmentPath) : null,
         ]);
 
         ActivityLog::record('expense_created',
-            "Pengeluaran dicatat: {$number} - {$category->name} Rp " . number_format($data['amount'], 0, ',', '.'),
+            "Pengeluaran dicatat: {$number} - {$category->name} Rp ".number_format($data['amount'], 0, ',', '.'),
             $expense);
 
         $this->fireWebhook('expense.created', $expense->toArray());
 
         // ── GL Auto-Posting ───────────────────────────────────────
         $glResult = app(GlPostingService::class)->postExpense(
-            tenantId:       $tid,
-            userId:         auth()->id(),
-            expenseNumber:  $number,
-            expenseId:      $expense->id,
-            amount:         (float) $data['amount'],
-            paymentMethod:  $data['payment_method'],
-            categoryType:   $category->type,
-            categoryName:   $category->name,
-            date:           $data['date'],
+            tenantId: $tid,
+            userId: auth()->id(),
+            expenseNumber: $number,
+            expenseId: $expense->id,
+            amount: (float) $data['amount'],
+            paymentMethod: $data['payment_method'],
+            categoryType: $category->type,
+            categoryName: $category->name,
+            date: $data['date'],
             coaAccountCode: $category->coa_account_code ?: null,
         );
         if ($glResult->isFailed()) {
@@ -165,7 +166,7 @@ class ExpenseController extends Controller
     public function categories()
     {
         $categories = ExpenseCategory::where('tenant_id', $this->tid())
-            ->withCount(['transactions as expense_count' => fn($q) => $q->where('type', 'expense')])
+            ->withCount(['transactions as expense_count' => fn ($q) => $q->where('type', 'expense')])
             ->orderBy('name')->get();
 
         return view('expenses.categories', compact('categories'));
@@ -174,11 +175,11 @@ class ExpenseController extends Controller
     public function storeCategory(Request $request)
     {
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'code'             => 'required|string|max:20',
-            'type'             => 'required|in:operational,cogs,marketing,hr,admin,other',
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:20',
+            'type' => 'required|in:operational,cogs,marketing,hr,admin,other',
             'coa_account_code' => 'nullable|string|max:20',
-            'description'      => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tid();
@@ -197,12 +198,12 @@ class ExpenseController extends Controller
         abort_if($category->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'             => 'required|string|max:100',
-            'code'             => 'required|string|max:20',
-            'type'             => 'required|in:operational,cogs,marketing,hr,admin,other',
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:20',
+            'type' => 'required|in:operational,cogs,marketing,hr,admin,other',
             'coa_account_code' => 'nullable|string|max:20',
-            'description'      => 'nullable|string|max:255',
-            'is_active'        => 'boolean',
+            'description' => 'nullable|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');

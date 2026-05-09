@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - BPOM/Regulatory Compliance Module.
      */
     public function up(): void
     {
         // 1. Product Registrations - BPOM notification tracking
-        if (!Schema::hasTable('product_registrations')) {
+        if (! Schema::hasTable('product_registrations')) {
             Schema::create('product_registrations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -29,14 +30,14 @@ return new class extends Migration {
                 $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'expiry_date']);
             });
         }
 
         // 2. Registration Documents - Uploaded certificates
-        if (!Schema::hasTable('registration_documents')) {
+        if (! Schema::hasTable('registration_documents')) {
             Schema::create('registration_documents', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -49,13 +50,13 @@ return new class extends Migration {
                 $table->text('description')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'document_type']);
             });
         }
 
         // 3. Ingredient Restrictions - Banned/restricted ingredients
-        if (!Schema::hasTable('ingredient_restrictions')) {
+        if (! Schema::hasTable('ingredient_restrictions')) {
             Schema::create('ingredient_restrictions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -67,13 +68,13 @@ return new class extends Migration {
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'restriction_type']);
             });
         }
 
         // 4. Safety Data Sheets - SDS management
-        if (!Schema::hasTable('safety_data_sheets')) {
+        if (! Schema::hasTable('safety_data_sheets')) {
             Schema::create('safety_data_sheets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -93,7 +94,7 @@ return new class extends Migration {
                 $table->string('status')->default('draft'); // draft, active, outdated
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'issue_date']);
             });

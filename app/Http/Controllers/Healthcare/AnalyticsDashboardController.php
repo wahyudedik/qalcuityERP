@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\Patient;
-use App\Models\PatientVisit;
 use App\Models\Appointment;
 use App\Models\MedicalBill;
-use Illuminate\Http\Request;
+use App\Models\Patient;
+use App\Models\PatientVisit;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AnalyticsDashboardController extends Controller
 {
@@ -86,6 +86,7 @@ class AnalyticsDashboardController extends Controller
         $period = $request->get('period', '12');
         $months = collect(range(1, $period))->map(function ($month) {
             $date = Carbon::now()->subMonths($month);
+
             return [
                 'month' => $date->format('Y-m'),
                 'revenue' => MedicalBill::whereYear('bill_date', $date->year)
@@ -96,6 +97,7 @@ class AnalyticsDashboardController extends Controller
 
         return response()->json(['success' => true, 'data' => $months]);
     }
+
     /**
      * VisitTrends.
      * Route: healthcare/analytics/visit-trends
@@ -103,13 +105,13 @@ class AnalyticsDashboardController extends Controller
     public function visitTrends(Request $request, $model)
     {
         $this->authorize('update', $model);
-        
+
         $validated = $request->validate([
             // TODO: Add validation rules
         ]);
-        
+
         // TODO: Implement VisitTrends logic
-        
+
         return back()->with('success', 'VisitTrends completed successfully.');
     }
 }

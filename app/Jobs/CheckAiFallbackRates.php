@@ -7,7 +7,6 @@ use App\Models\AiProviderSwitchLog;
 use App\Models\AiUsageCostLog;
 use App\Models\User;
 use App\Notifications\AiFallbackAlertNotification;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -58,10 +57,11 @@ class CheckAiFallbackRates implements ShouldQueue
             // Cek apakah melebihi threshold
             if ($fallbackPercent > $threshold) {
                 // Cek apakah sudah pernah dikirim notifikasi dalam 1 jam terakhir untuk use case ini
-                $cacheKey = "ai_fallback_alert_sent:{$useCase}:" . now()->format('Y-m-d-H');
+                $cacheKey = "ai_fallback_alert_sent:{$useCase}:".now()->format('Y-m-d-H');
 
                 if (Cache::has($cacheKey)) {
                     Log::debug("[CheckAiFallbackRates] Notifikasi untuk use case {$useCase} jam ini sudah dikirim, skip.");
+
                     continue;
                 }
 

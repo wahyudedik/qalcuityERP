@@ -58,10 +58,11 @@ class SyncProductsJob implements ShouldQueue
             $connector = new $connectorClass($this->integration);
 
             // Check if connected
-            if (!$connector->isConnected()) {
+            if (! $connector->isConnected()) {
                 Log::error('Integration not connected', [
                     'integration' => $this->integration->slug,
                 ]);
+
                 return;
             }
 

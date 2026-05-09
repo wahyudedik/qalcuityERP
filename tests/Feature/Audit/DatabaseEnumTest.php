@@ -6,18 +6,17 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
+use App\Models\Supplier;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Task 24.1: Test all ENUM columns with valid and invalid values
- * 
+ *
  * Validates: Requirements 1.1, 1.2, 1.3
- * 
+ *
  * This test ensures that:
  * - All ENUM columns accept valid values
  * - All ENUM columns reject invalid values
@@ -26,7 +25,9 @@ use Tests\TestCase;
 class DatabaseEnumTest extends TestCase
 {
     protected Tenant $tenant;
+
     protected User $user;
+
     protected Customer $customer;
 
     protected function setUp(): void
@@ -49,7 +50,7 @@ class DatabaseEnumTest extends TestCase
             $invoice = Invoice::create([
                 'tenant_id' => $this->tenant->id,
                 'customer_id' => $this->customer->id,
-                'number' => 'INV-' . uniqid(),
+                'number' => 'INV-'.uniqid(),
                 'subtotal_amount' => 100000,
                 'tax_amount' => 11000,
                 'total_amount' => 111000,
@@ -92,7 +93,7 @@ class DatabaseEnumTest extends TestCase
                 'tenant_id' => $this->tenant->id,
                 'customer_id' => $this->customer->id,
                 'user_id' => $this->user->id,
-                'number' => 'SO-' . uniqid(),
+                'number' => 'SO-'.uniqid(),
                 'status' => $status,
                 'date' => today(),
                 'subtotal' => 100000,
@@ -128,7 +129,7 @@ class DatabaseEnumTest extends TestCase
     public function purchase_order_status_accepts_valid_enum_values()
     {
         // Create supplier first
-        $supplier = \App\Models\Supplier::create([
+        $supplier = Supplier::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Test Supplier',
             'is_active' => true,
@@ -141,7 +142,7 @@ class DatabaseEnumTest extends TestCase
                 'tenant_id' => $this->tenant->id,
                 'supplier_id' => $supplier->id,
                 'user_id' => $this->user->id,
-                'number' => 'PO-' . uniqid(),
+                'number' => 'PO-'.uniqid(),
                 'status' => $status,
                 'date' => today(),
                 'subtotal' => 100000,
@@ -157,7 +158,7 @@ class DatabaseEnumTest extends TestCase
     #[Test]
     public function purchase_order_status_rejects_invalid_enum_value()
     {
-        $supplier = \App\Models\Supplier::create([
+        $supplier = Supplier::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Test Supplier',
             'is_active' => true,
@@ -281,8 +282,3 @@ class DatabaseEnumTest extends TestCase
         }
     }
 }
-
-
-
-
-

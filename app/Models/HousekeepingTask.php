@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
-
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,17 +11,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HousekeepingTask extends Model
 {
+    use AuditsChanges, SoftDeletes;
     use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
 
     // Task type constants — keep ALL values (including legacy duplicates for backward compat)
-    const TYPE_CHECKOUT_CLEAN   = 'checkout_clean';
-    const TYPE_STAY_CLEAN       = 'stay_clean';
-    const TYPE_DEEP_CLEAN       = 'deep_clean';       // legacy alias
-    const TYPE_DEEP_CLEANING    = 'deep_cleaning';    // canonical
-    const TYPE_INSPECTION       = 'inspection';
+    const TYPE_CHECKOUT_CLEAN = 'checkout_clean';
+
+    const TYPE_STAY_CLEAN = 'stay_clean';
+
+    const TYPE_DEEP_CLEAN = 'deep_clean';       // legacy alias
+
+    const TYPE_DEEP_CLEANING = 'deep_cleaning';    // canonical
+
+    const TYPE_INSPECTION = 'inspection';
+
     const TYPE_REGULAR_CLEANING = 'regular_cleaning';
-    const TYPE_TURNDOWN         = 'turndown';         // legacy alias
+
+    const TYPE_TURNDOWN = 'turndown';         // legacy alias
+
     const TYPE_TURNDOWN_SERVICE = 'turndown_service'; // canonical
 
     const TYPES = [
@@ -37,11 +43,15 @@ class HousekeepingTask extends Model
     ];
 
     // Status constants
-    const STATUS_PENDING     = 'pending';
-    const STATUS_ASSIGNED    = 'assigned';
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_ASSIGNED = 'assigned';
+
     const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED   = 'completed';
-    const STATUS_CANCELLED   = 'cancelled';
+
+    const STATUS_COMPLETED = 'completed';
+
+    const STATUS_CANCELLED = 'cancelled';
 
     const STATUSES = [
         self::STATUS_PENDING,
@@ -121,6 +131,7 @@ class HousekeepingTask extends Model
         if ($this->started_at && $this->completed_at) {
             return $this->started_at->diffInMinutes($this->completed_at);
         }
+
         return $this->actual_duration;
     }
 
@@ -129,10 +140,11 @@ class HousekeepingTask extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->scheduled_at) {
+        if (! $this->scheduled_at) {
             return false;
         }
-        return now()->isAfter($this->scheduled_at) && !$this->completed_at;
+
+        return now()->isAfter($this->scheduled_at) && ! $this->completed_at;
     }
 
     /**

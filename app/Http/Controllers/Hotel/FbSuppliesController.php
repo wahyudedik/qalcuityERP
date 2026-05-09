@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
 use App\Models\FbSupply;
-use App\Models\FbSupplyTransaction;
 use Illuminate\Http\Request;
 
 class FbSuppliesController extends Controller
@@ -31,7 +30,7 @@ class FbSuppliesController extends Controller
                 ->count(),
             'total_inventory_value' => FbSupply::where('tenant_id', $this->tenantId())
                 ->get()
-                ->sum(fn($s) => $s->inventory_value),
+                ->sum(fn ($s) => $s->inventory_value),
         ];
 
         return view('hotel.fb.supplies.index', compact('supplies', 'lowStock', 'stats'));

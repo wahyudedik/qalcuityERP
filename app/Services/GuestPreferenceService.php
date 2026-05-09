@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\Guest;
 use App\Models\GuestPreference;
 use App\Models\Reservation;
+use App\Models\Room;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -86,7 +88,7 @@ class GuestPreferenceService
     {
         DB::transaction(function () use ($guest, $preferences) {
             foreach ($preferences as $category => $items) {
-                if (!is_array($items)) {
+                if (! is_array($items)) {
                     continue;
                 }
 
@@ -129,7 +131,7 @@ class GuestPreferenceService
             $preference->markAsUsed();
         }
 
-        if (!empty($appliedPrefs)) {
+        if (! empty($appliedPrefs)) {
             $prefString = implode('; ', $appliedPrefs);
             $reservationData['special_requests'] = trim("$specialRequests\n[Guest Preferences] $prefString");
         }
@@ -144,7 +146,7 @@ class GuestPreferenceService
             $guest->addLoyaltyPoints($points);
 
             // Log the activity
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'loyalty_points_awarded',
                 "Awarded $points points to {$guest->name}: $reason",
                 $guest,
@@ -165,7 +167,7 @@ class GuestPreferenceService
         DB::transaction(function () use ($guest, $points, $reason) {
             $guest->decrement('loyalty_points', $points);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'loyalty_points_redeemed',
                 "{$guest->name} redeemed $points points: $reason",
                 $guest,
@@ -209,7 +211,7 @@ class GuestPreferenceService
             $oldLevel = $guest->vip_level;
             $guest->update(['vip_level' => $newLevel]);
 
-            \App\Models\ActivityLog::record(
+            ActivityLog::record(
                 'vip_level_updated',
                 "{$guest->name} VIP level changed from $oldLevel to $newLevel",
                 $guest,
@@ -264,7 +266,7 @@ class GuestPreferenceService
 
         // This would integrate with your notification system
         // For now, just log it
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'guest_communication',
             "Sent $method to {$guest->name}: $subject",
             $guest,
@@ -337,7 +339,8 @@ class GuestPreferenceService
             return $reservation->checkInOuts->pluck('room_id')
                 ->filter()
                 ->map(function ($roomId) {
-                    $room = \App\Models\Room::find($roomId);
+                    $room = Room::find($roomId);
+
                     return $room ? (int) filter_var($room->number, FILTER_SANITIZE_NUMBER_INT) : null;
                 })
                 ->filter();
@@ -367,6 +370,7 @@ class GuestPreferenceService
                         $found[] = $keyword;
                     }
                 }
+
                 return $found;
             })->countBy()->sortDesc();
 
@@ -393,6 +397,7 @@ class GuestPreferenceService
                 } elseif ($hour >= 17 && $hour < 22) {
                     return 'evening';
                 }
+
                 return 'night';
             })->countBy()->sortDesc();
 
@@ -511,7 +516,7 @@ class GuestPreferenceService
                 ->where('preference_key', $suggestion['preference_key'])
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 $this->setPreference(
                     $guest,
                     $suggestion['category'],

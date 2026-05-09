@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * MRP Accuracy Tracking
- * 
+ *
  * Tracks planned vs actual material usage for continuous improvement
- * 
+ *
  * @property float|null $planned_quantity
  * @property float|null $actual_quantity
  * @property float|null $variance_quantity

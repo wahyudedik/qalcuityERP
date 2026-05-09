@@ -29,7 +29,7 @@ class AiMemoryServiceDecayTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new AiMemoryService();
+        $this->service = new AiMemoryService;
     }
 
     // =========================================================================
@@ -42,19 +42,19 @@ class AiMemoryServiceDecayTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 5)]
-    public function testStaleRecordsGetFiftyPercentConfidenceReduction(): void
+    public function test_stale_records_get_fifty_percent_confidence_reduction(): void
     {
         $this->forAll(
             // confidence_score awal: antara 0.2 dan 1.0 (setelah decay masih >= 0.1)
             Generators::map(
-                fn(int $v) => round($v / 100, 2),
+                fn (int $v) => round($v / 100, 2),
                 Generators::choose(20, 100)
             ),
             // Berapa hari yang lalu last_seen_at: 91 hingga 365 hari
             Generators::choose(91, 365),
         )->then(function (float $initialScore, int $daysAgo) {
             $tenant = $this->createTenant();
-            $user   = $this->createAdminUser($tenant);
+            $user = $this->createAdminUser($tenant);
 
             $expectedNewScore = $initialScore * 0.5;
 
@@ -62,16 +62,17 @@ class AiMemoryServiceDecayTest extends TestCase
             if ($expectedNewScore < 0.1) {
                 // Skip kasus ini — akan diuji di test penghapusan
                 $this->assertTrue(true);
+
                 return;
             }
 
             $memory = AiMemory::create([
-                'tenant_id'        => $tenant->id,
-                'user_id'          => $user->id,
-                'key'              => 'preferred_payment_method',
-                'value'            => 'transfer',
-                'frequency'        => 5,
-                'last_seen_at'     => now()->subDays($daysAgo),
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'key' => 'preferred_payment_method',
+                'value' => 'transfer',
+                'frequency' => 5,
+                'last_seen_at' => now()->subDays($daysAgo),
                 'first_observed_at' => now()->subDays($daysAgo + 10),
                 'confidence_score' => $initialScore,
             ]);
@@ -91,7 +92,7 @@ class AiMemoryServiceDecayTest extends TestCase
                 $updated->confidence_score,
                 0.001,
                 "Confidence harus turun 50% dari {$initialScore} menjadi {$expectedNewScore}, "
-                . "bukan {$updated->confidence_score}"
+                ."bukan {$updated->confidence_score}"
             );
         });
     }
@@ -106,12 +107,12 @@ class AiMemoryServiceDecayTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 5)]
-    public function testStaleRecordsBelowThresholdAreDeleted(): void
+    public function test_stale_records_below_threshold_are_deleted(): void
     {
         $this->forAll(
             // confidence_score awal: antara 0.01 dan 0.19 (setelah decay * 0.5 < 0.1)
             Generators::map(
-                fn(int $v) => round($v / 1000, 3),
+                fn (int $v) => round($v / 1000, 3),
                 Generators::choose(10, 190)
             ),
             // Berapa hari yang lalu: 91 hingga 365
@@ -122,19 +123,20 @@ class AiMemoryServiceDecayTest extends TestCase
             // Hanya uji kasus di mana hasil decay < 0.1
             if ($expectedNewScore >= 0.1) {
                 $this->assertTrue(true);
+
                 return;
             }
 
             $tenant = $this->createTenant();
-            $user   = $this->createAdminUser($tenant);
+            $user = $this->createAdminUser($tenant);
 
             $memory = AiMemory::create([
-                'tenant_id'        => $tenant->id,
-                'user_id'          => $user->id,
-                'key'              => 'default_warehouse',
-                'value'            => 'gudang_utama',
-                'frequency'        => 1,
-                'last_seen_at'     => now()->subDays($daysAgo),
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'key' => 'default_warehouse',
+                'value' => 'gudang_utama',
+                'frequency' => 1,
+                'last_seen_at' => now()->subDays($daysAgo),
                 'first_observed_at' => now()->subDays($daysAgo + 5),
                 'confidence_score' => $initialScore,
             ]);
@@ -160,27 +162,27 @@ class AiMemoryServiceDecayTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 5)]
-    public function testRecentRecordsAreNotAffectedByPrune(): void
+    public function test_recent_records_are_not_affected_by_prune(): void
     {
         $this->forAll(
             // confidence_score awal: antara 0.1 dan 1.0
             Generators::map(
-                fn(int $v) => round($v / 100, 2),
+                fn (int $v) => round($v / 100, 2),
                 Generators::choose(10, 100)
             ),
             // Berapa hari yang lalu: 0 hingga 90 hari (tidak stale)
             Generators::choose(0, 90),
         )->then(function (float $initialScore, int $daysAgo) {
             $tenant = $this->createTenant();
-            $user   = $this->createAdminUser($tenant);
+            $user = $this->createAdminUser($tenant);
 
             $memory = AiMemory::create([
-                'tenant_id'        => $tenant->id,
-                'user_id'          => $user->id,
-                'key'              => 'preferred_currency',
-                'value'            => 'IDR',
-                'frequency'        => 3,
-                'last_seen_at'     => now()->subDays($daysAgo),
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'key' => 'preferred_currency',
+                'value' => 'IDR',
+                'frequency' => 3,
+                'last_seen_at' => now()->subDays($daysAgo),
                 'first_observed_at' => now()->subDays($daysAgo + 5),
                 'confidence_score' => $initialScore,
             ]);
@@ -197,7 +199,7 @@ class AiMemoryServiceDecayTest extends TestCase
                 $initialScore,
                 $unchanged->confidence_score,
                 0.001,
-                "Confidence record yang belum stale tidak boleh berubah"
+                'Confidence record yang belum stale tidak boleh berubah'
             );
         });
     }
@@ -210,34 +212,34 @@ class AiMemoryServiceDecayTest extends TestCase
     // Validates: Requirements 5.5, 5.4
     // =========================================================================
 
-    public function testPruneOnlyAffectsSpecifiedTenant(): void
+    public function test_prune_only_affects_specified_tenant(): void
     {
-        $tenantA = $this->createTenant(['name' => 'Tenant A ' . uniqid()]);
-        $tenantB = $this->createTenant(['name' => 'Tenant B ' . uniqid()]);
+        $tenantA = $this->createTenant(['name' => 'Tenant A '.uniqid()]);
+        $tenantB = $this->createTenant(['name' => 'Tenant B '.uniqid()]);
 
         $userA = $this->createAdminUser($tenantA);
         $userB = $this->createAdminUser($tenantB);
 
         // Record stale untuk tenant A (akan terdampak)
         $memoryA = AiMemory::create([
-            'tenant_id'        => $tenantA->id,
-            'user_id'          => $userA->id,
-            'key'              => 'preferred_payment_method',
-            'value'            => 'transfer',
-            'frequency'        => 2,
-            'last_seen_at'     => now()->subDays(100),
+            'tenant_id' => $tenantA->id,
+            'user_id' => $userA->id,
+            'key' => 'preferred_payment_method',
+            'value' => 'transfer',
+            'frequency' => 2,
+            'last_seen_at' => now()->subDays(100),
             'first_observed_at' => now()->subDays(110),
             'confidence_score' => 0.6,
         ]);
 
         // Record stale untuk tenant B (tidak boleh terdampak)
         $memoryB = AiMemory::create([
-            'tenant_id'        => $tenantB->id,
-            'user_id'          => $userB->id,
-            'key'              => 'preferred_payment_method',
-            'value'            => 'cash',
-            'frequency'        => 3,
-            'last_seen_at'     => now()->subDays(120),
+            'tenant_id' => $tenantB->id,
+            'user_id' => $userB->id,
+            'key' => 'preferred_payment_method',
+            'value' => 'cash',
+            'frequency' => 3,
+            'last_seen_at' => now()->subDays(120),
             'first_observed_at' => now()->subDays(130),
             'confidence_score' => 0.8,
         ]);
@@ -267,19 +269,19 @@ class AiMemoryServiceDecayTest extends TestCase
     // Validates: Requirements 5.5
     // =========================================================================
 
-    public function testRecordWithDecayedScoreExactlyAtThresholdIsKept(): void
+    public function test_record_with_decayed_score_exactly_at_threshold_is_kept(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         // 0.2 * 0.5 = 0.1 — tepat di batas, tidak boleh dihapus
         $memory = AiMemory::create([
-            'tenant_id'        => $tenant->id,
-            'user_id'          => $user->id,
-            'key'              => 'preferred_payment_method',
-            'value'            => 'transfer',
-            'frequency'        => 1,
-            'last_seen_at'     => now()->subDays(100),
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'key' => 'preferred_payment_method',
+            'value' => 'transfer',
+            'frequency' => 1,
+            'last_seen_at' => now()->subDays(100),
             'first_observed_at' => now()->subDays(110),
             'confidence_score' => 0.2,
         ]);
@@ -298,19 +300,19 @@ class AiMemoryServiceDecayTest extends TestCase
     // Validates: Requirements 5.5
     // =========================================================================
 
-    public function testRecordWithDecayedScoreJustBelowThresholdIsDeleted(): void
+    public function test_record_with_decayed_score_just_below_threshold_is_deleted(): void
     {
         $tenant = $this->createTenant();
-        $user   = $this->createAdminUser($tenant);
+        $user = $this->createAdminUser($tenant);
 
         // 0.19 * 0.5 = 0.095 < 0.1 — harus dihapus
         $memory = AiMemory::create([
-            'tenant_id'        => $tenant->id,
-            'user_id'          => $user->id,
-            'key'              => 'default_warehouse',
-            'value'            => 'gudang_utama',
-            'frequency'        => 1,
-            'last_seen_at'     => now()->subDays(95),
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'key' => 'default_warehouse',
+            'value' => 'gudang_utama',
+            'frequency' => 1,
+            'last_seen_at' => now()->subDays(95),
             'first_observed_at' => now()->subDays(100),
             'confidence_score' => 0.19,
         ]);

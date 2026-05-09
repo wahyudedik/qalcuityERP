@@ -7,7 +7,6 @@ use App\Models\AiModelSwitchLog;
 use Eris\Attributes\ErisRepeat;
 use Eris\Generators;
 use Eris\TestTrait;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -52,7 +51,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testSwitchLogCompleteness(): void
+    public function test_switch_log_completeness(): void
     {
         $this
             ->forAll(
@@ -62,7 +61,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
             )
             ->when(
                 // Ensure from_model and to_model are different (a real switch)
-                fn(string $from, string $to, string $reason) => $from !== $to
+                fn (string $from, string $to, string $reason) => $from !== $to
             )
             ->then(function (string $fromModel, string $toModel, string $reason) {
                 $countBefore = AiModelSwitchLog::count();
@@ -84,15 +83,15 @@ class LogModelSwitchJobPropertyTest extends TestCase
                 $this->assertSame(
                     $countBefore + 1,
                     $countAfter,
-                    "Dispatching LogModelSwitchJob must insert exactly one new record in ai_model_switch_logs. " .
+                    'Dispatching LogModelSwitchJob must insert exactly one new record in ai_model_switch_logs. '.
                     "from={$fromModel}, to={$toModel}, reason={$reason}"
                 );
 
                 // ── Assert: the record has the correct field values ──
                 $this->assertDatabaseHas('ai_model_switch_logs', [
                     'from_model' => $fromModel,
-                    'to_model'   => $toModel,
-                    'reason'     => $reason,
+                    'to_model' => $toModel,
+                    'reason' => $reason,
                 ]);
 
                 // ── Assert: switched_at is non-null ──
@@ -100,25 +99,25 @@ class LogModelSwitchJobPropertyTest extends TestCase
 
                 $this->assertNotNull(
                     $log->switched_at,
-                    "switched_at must be non-null after LogModelSwitchJob is processed."
+                    'switched_at must be non-null after LogModelSwitchJob is processed.'
                 );
 
                 $this->assertSame(
                     $fromModel,
                     $log->from_model,
-                    "from_model in DB must match the dispatched value."
+                    'from_model in DB must match the dispatched value.'
                 );
 
                 $this->assertSame(
                     $toModel,
                     $log->to_model,
-                    "to_model in DB must match the dispatched value."
+                    'to_model in DB must match the dispatched value.'
                 );
 
                 $this->assertSame(
                     $reason,
                     $log->reason,
-                    "reason in DB must match the dispatched value."
+                    'reason in DB must match the dispatched value.'
                 );
             });
     }
@@ -134,7 +133,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testSwitchLogCompletenessWithOptionalFields(): void
+    public function test_switch_log_completeness_with_optional_fields(): void
     {
         $this
             ->forAll(
@@ -145,7 +144,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
                 Generators::oneOf(
                     Generators::constant(null),
                     Generators::map(
-                        fn(int $len) => 'Error: ' . str_repeat('x', $len),
+                        fn (int $len) => 'Error: '.str_repeat('x', $len),
                         Generators::choose(1, 30)
                     )
                 ),
@@ -156,7 +155,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
                 )
             )
             ->when(
-                fn(string $from, string $to) => $from !== $to
+                fn (string $from, string $to) => $from !== $to
             )
             ->then(function (
                 string $fromModel,
@@ -182,7 +181,7 @@ class LogModelSwitchJobPropertyTest extends TestCase
                 $this->assertSame(
                     $countBefore + 1,
                     $countAfter,
-                    "LogModelSwitchJob must insert exactly one record regardless of optional fields."
+                    'LogModelSwitchJob must insert exactly one record regardless of optional fields.'
                 );
 
                 $log = AiModelSwitchLog::latest('id')->first();
@@ -201,13 +200,13 @@ class LogModelSwitchJobPropertyTest extends TestCase
                 $this->assertSame(
                     $errorMessage,
                     $log->error_message,
-                    "error_message must be stored exactly as dispatched (including null)."
+                    'error_message must be stored exactly as dispatched (including null).'
                 );
 
                 $this->assertSame(
                     $requestContext,
                     $log->request_context,
-                    "request_context must be stored exactly as dispatched (including null)."
+                    'request_context must be stored exactly as dispatched (including null).'
                 );
             });
     }

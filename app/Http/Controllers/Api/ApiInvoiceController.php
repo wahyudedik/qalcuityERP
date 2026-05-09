@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Invoice;
-use App\Services\WebhookService;
 use Illuminate\Http\Request;
 
 class ApiInvoiceController extends ApiBaseController
@@ -12,8 +11,8 @@ class ApiInvoiceController extends ApiBaseController
     {
         $invoices = Invoice::where('tenant_id', $this->tenantId())
             ->with('customer')
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->overdue, fn($q) => $q->where('due_date', '<', today())->whereIn('status', ['unpaid', 'partial']))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->overdue, fn ($q) => $q->where('due_date', '<', today())->whereIn('status', ['unpaid', 'partial']))
             ->latest()
             ->paginate(50);
 

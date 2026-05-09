@@ -67,9 +67,9 @@ class QueueManagement extends Model
     public static function generateQueueNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'Q-' . $date;
+        $prefix = 'Q-'.$date;
 
-        $lastQueue = static::where('queue_number', 'like', $prefix . '%')
+        $lastQueue = static::where('queue_number', 'like', $prefix.'%')
             ->orderBy('queue_number', 'desc')
             ->first();
 
@@ -80,7 +80,7 @@ class QueueManagement extends Model
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -101,9 +101,9 @@ class QueueManagement extends Model
 
         $prefix = $typePrefixes[$queueType] ?? 'Z';
         $date = now()->format('Ymd');
-        $fullPrefix = $prefix . '-' . $date;
+        $fullPrefix = $prefix.'-'.$date;
 
-        $lastQueue = static::where('token_number', 'like', $fullPrefix . '%')
+        $lastQueue = static::where('token_number', 'like', $fullPrefix.'%')
             ->orderBy('token_number', 'desc')
             ->first();
 
@@ -114,7 +114,7 @@ class QueueManagement extends Model
             $newNumber = '001';
         }
 
-        return $prefix . $newNumber;
+        return $prefix.$newNumber;
     }
 
     /**
@@ -275,7 +275,7 @@ class QueueManagement extends Model
             'position' => $this->queue_position,
             'patient_name' => $this->patient?->full_name,
             'doctor_name' => $this->doctor?->full_name,
-            'wait_time' => $this->actual_wait_minutes ? $this->actual_wait_minutes . ' min' : 'Waiting',
+            'wait_time' => $this->actual_wait_minutes ? $this->actual_wait_minutes.' min' : 'Waiting',
         ];
     }
 }

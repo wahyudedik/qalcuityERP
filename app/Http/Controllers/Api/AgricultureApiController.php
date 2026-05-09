@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Crop;
-use App\Models\Harvest;
 use App\Models\Field;
+use App\Models\Harvest;
 use App\Models\PlantingCycle;
 use Illuminate\Http\Request;
 
@@ -21,6 +20,7 @@ class AgricultureApiController extends ApiBaseController
         }
 
         $crops = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($crops);
     }
 
@@ -29,6 +29,7 @@ class AgricultureApiController extends ApiBaseController
         $crop = Crop::where('tenant_id', $this->getTenantId())
             ->with(['field', 'plantingCycle', 'harvests'])
             ->findOrFail($id);
+
         return $this->success($crop);
     }
 
@@ -61,6 +62,7 @@ class AgricultureApiController extends ApiBaseController
         }
 
         $harvests = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($harvests);
     }
 
@@ -92,6 +94,7 @@ class AgricultureApiController extends ApiBaseController
         }
 
         $fields = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($fields);
     }
 
@@ -119,6 +122,7 @@ class AgricultureApiController extends ApiBaseController
             ->with(['crop', 'field']);
 
         $cycles = $query->latest()->paginate($request->get('per_page', 20));
+
         return $this->success($cycles);
     }
 

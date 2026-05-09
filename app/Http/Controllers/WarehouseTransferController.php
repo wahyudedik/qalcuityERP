@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class WarehouseTransferController extends Controller
             ->where('type', 'transfer');
 
         if ($request->filled('warehouse_id')) {
-            $query->where(fn($q) => $q->where('warehouse_id', $request->warehouse_id)
+            $query->where(fn ($q) => $q->where('warehouse_id', $request->warehouse_id)
                 ->orWhere('to_warehouse_id', $request->warehouse_id));
         }
         if ($request->filled('date_from')) {
@@ -62,7 +63,7 @@ class WarehouseTransferController extends Controller
         $fromWarehouse = Warehouse::where('id', $data['from_warehouse_id'])->where('tenant_id', $tid)->firstOrFail();
         $toWarehouse = Warehouse::where('id', $data['to_warehouse_id'])->where('tenant_id', $tid)->firstOrFail();
 
-        $refNumber = 'TRF-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+        $refNumber = 'TRF-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
         // BUG-INV-003 FIX: Wrap entire operation in transaction with locking
         try {
@@ -76,10 +77,10 @@ class WarehouseTransferController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$fromStock || $fromStock->quantity < $item['quantity']) {
+                    if (! $fromStock || $fromStock->quantity < $item['quantity']) {
                         $available = $fromStock ? $fromStock->quantity : 0;
                         throw new \Exception(
-                            "Stok {$product->name} di gudang {$fromWarehouse->name} tidak cukup. " .
+                            "Stok {$product->name} di gudang {$fromWarehouse->name} tidak cukup. ".
                             "Tersedia: {$available} {$product->unit}, Dibutuhkan: {$item['quantity']}."
                         );
                     }
@@ -90,7 +91,7 @@ class WarehouseTransferController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$toStock) {
+                    if (! $toStock) {
                         // Create destination stock if doesn't exist
                         $toStock = ProductStock::create([
                             'product_id' => $item['product_id'],
@@ -107,7 +108,7 @@ class WarehouseTransferController extends Controller
                         ->where('quantity', '>=', $item['quantity'])
                         ->decrement('quantity', $item['quantity']);
 
-                    if (!$decremented) {
+                    if (! $decremented) {
                         throw new \Exception("Gagal mengurangi stok di gudang {$fromWarehouse->name}. Silakan coba lagi.");
                     }
 
@@ -116,11 +117,11 @@ class WarehouseTransferController extends Controller
                         ->where('quantity', '=', $beforeTo)  // Ensure no concurrent modification
                         ->increment('quantity', $item['quantity']);
 
-                    if (!$incremented) {
+                    if (! $incremented) {
                         // CRITICAL: Rollback source decrement if destination increment fails
                         throw new \Exception(
-                            "Gagal menambah stok di gudang {$toWarehouse->name}. " .
-                            "Transfer dibatalkan untuk menghindari kehilangan stok."
+                            "Gagal menambah stok di gudang {$toWarehouse->name}. ".
+                            'Transfer dibatalkan untuk menghindari kehilangan stok.'
                         );
                     }
 
@@ -142,13 +143,13 @@ class WarehouseTransferController extends Controller
 
                 ActivityLog::record(
                     'warehouse_transfer',
-                    "Transfer stok {$refNumber}: {$fromWarehouse->name} → {$toWarehouse->name} (" . count($data['items']) . " produk)",
+                    "Transfer stok {$refNumber}: {$fromWarehouse->name} → {$toWarehouse->name} (".count($data['items']).' produk)',
                     null
                 );
             });
 
             return back()->with('success', "Transfer {$refNumber} berhasil. Stok dipindahkan dari {$fromWarehouse->name} ke {$toWarehouse->name}.");
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Database-level errors (lock timeout, deadlock, etc.)
             \Log::error('Warehouse transfer database error', [
                 'error' => $e->getMessage(),
@@ -158,12 +159,12 @@ class WarehouseTransferController extends Controller
             ]);
 
             return back()->withErrors([
-                'error' => 'Gagal memproses transfer karena error database. Silakan coba lagi.'
+                'error' => 'Gagal memproses transfer karena error database. Silakan coba lagi.',
             ])->withInput();
         } catch (\Exception $e) {
             // Business logic errors (insufficient stock, etc.)
             return back()->withErrors([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * ClearSettingsCache Listener
- * 
+ *
  * Listens for SettingsUpdated events and clears appropriate cache
  * based on the settings type and scope.
  */
@@ -26,9 +26,6 @@ class ClearSettingsCache
 
     /**
      * Handle the event.
-     * 
-     * @param SettingsUpdated $event
-     * @return void
      */
     public function handle(SettingsUpdated $event): void
     {
@@ -41,13 +38,13 @@ class ClearSettingsCache
                 default => Log::warning("Unknown settings type: {$event->type}"),
             };
 
-            Log::info("Settings cache cleared successfully", [
+            Log::info('Settings cache cleared successfully', [
                 'type' => $event->type,
                 'tenant_id' => $event->tenantId,
                 'module' => $event->module,
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to clear settings cache: " . $e->getMessage(), [
+            Log::error('Failed to clear settings cache: '.$e->getMessage(), [
                 'type' => $event->type,
                 'exception' => $e,
             ]);
@@ -62,7 +59,7 @@ class ClearSettingsCache
         if ($event->tenantId) {
             $this->cacheService->clearTenantCache($event->tenantId);
         } else {
-            Log::warning("Tenant settings update without tenant_id");
+            Log::warning('Tenant settings update without tenant_id');
         }
     }
 

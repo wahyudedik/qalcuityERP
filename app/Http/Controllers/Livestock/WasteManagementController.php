@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Livestock;
 
 use App\Http\Controllers\Controller;
-use App\Models\WasteManagementLog;
+use App\Models\CompostingBatch;
 use App\Models\LivestockHerd;
+use App\Models\WasteManagementLog;
 use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class WasteManagementController extends Controller
 {
@@ -75,7 +77,7 @@ class WasteManagementController extends Controller
         ]);
 
         try {
-            $log = new WasteManagementLog();
+            $log = new WasteManagementLog;
             $log->tenant_id = auth()->user()->tenant_id;
             $log->fill($validated);
             $log->recorded_by = auth()->id();
@@ -89,7 +91,7 @@ class WasteManagementController extends Controller
                     $log
                 );
                 if ($result->isFailed()) {
-                    \Illuminate\Support\Facades\Log::warning("Livestock waste revenue journal failed: " . $result->reason);
+                    Log::warning('Livestock waste revenue journal failed: '.$result->reason);
                 }
             }
 
@@ -105,18 +107,18 @@ class WasteManagementController extends Controller
     public function composting(Request $request)
     {
         $stats = [
-            'active_batches' => \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+            'active_batches' => CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
                 ->where('status', 'active')->count(),
-            'total_compost_kg' => \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+            'total_compost_kg' => CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
                 ->where('status', 'completed')
                 ->sum('final_weight_kg'),
-            'avg_quality_score' => \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+            'avg_quality_score' => CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
                 ->where('status', 'completed')
                 ->whereNotNull('quality_score')
                 ->avg('quality_score') ?? 0,
         ];
 
-        $batches = \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+        $batches = CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
             ->orderByDesc('start_date')
             ->paginate(20);
 
@@ -141,9 +143,9 @@ class WasteManagementController extends Controller
         ]);
 
         try {
-            $batch = new \App\Models\CompostingBatch();
+            $batch = new CompostingBatch;
             $batch->tenant_id = auth()->user()->tenant_id;
-            $batch->batch_code = 'COMP-' . now()->format('Y') . '-' . str_pad(\App\Models\CompostingBatch::count() + 1, 4, '0', STR_PAD_LEFT);
+            $batch->batch_code = 'COMP-'.now()->format('Y').'-'.str_pad(CompostingBatch::count() + 1, 4, '0', STR_PAD_LEFT);
             $batch->fill($validated);
             $batch->status = 'active';
             $batch->managed_by = auth()->id();
@@ -174,11 +176,11 @@ class WasteManagementController extends Controller
         ]);
 
         try {
-            $batch = \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+            $batch = CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
                 ->findOrFail($id);
             $batch->fill($validated);
 
-            if (isset($validated['status']) && $validated['status'] === 'completed' && !$batch->actual_end_date) {
+            if (isset($validated['status']) && $validated['status'] === 'completed' && ! $batch->actual_end_date) {
                 $batch->actual_end_date = now();
             }
 

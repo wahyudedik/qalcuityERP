@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Cosmetic;
 
 use App\Http\Controllers\Controller;
-use App\Models\CosmeticBatchRecord;
-use App\Models\QCTestResult;
-use App\Models\CosmeticFormula;
 use App\Models\BatchRecall;
+use App\Models\CosmeticBatchRecord;
+use App\Models\CosmeticFormula;
 use App\Models\ExpiryAlert;
+use App\Models\ProductRegistration;
+use App\Models\QCTestResult;
 use App\Models\Supplier;
 use App\Models\SupplierIncident;
-use App\Models\BatchQualityCheck;
-use App\Models\ProductRegistration;
-use App\Models\QcTestTemplate;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class CosmeticAnalyticsController extends Controller
 {
@@ -130,7 +127,7 @@ class CosmeticAnalyticsController extends Controller
         // Trend by date
         $trendByDate = QCTestResult::where('tenant_id', $tenantId)
             ->whereBetween('test_date', [$dateFrom, $dateTo])
-            ->when($category, fn($q) => $q->where('test_category', $category))
+            ->when($category, fn ($q) => $q->where('test_category', $category))
             ->selectRaw('
                 DATE(test_date) as date,
                 COUNT(*) as total_tests,
@@ -243,6 +240,7 @@ class CosmeticAnalyticsController extends Controller
             $ingredientCosts = collect($ingredients)->map(function ($ingredient) use (&$totalCost) {
                 $cost = ($ingredient['quantity'] ?? 0) * ($ingredient['unit_cost'] ?? 0);
                 $totalCost += $cost;
+
                 return array_merge($ingredient, ['calculated_cost' => $cost]);
             });
 
@@ -263,6 +261,7 @@ class CosmeticAnalyticsController extends Controller
                 $totalCost = collect($formula->ingredients ?? [])->sum(function ($ing) {
                     return ($ing['quantity'] ?? 0) * ($ing['unit_cost'] ?? 0);
                 });
+
                 return [
                     'formula' => $formula,
                     'total_cost' => $totalCost,
@@ -337,7 +336,7 @@ class CosmeticAnalyticsController extends Controller
 
         // Products by lifecycle stage
         $products = CosmeticFormula::where('tenant_id', $tenantId)
-            ->when($status, fn($q) => $q->where('status', $status))
+            ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['registrations', 'batches'])
             ->withCount(['batches', 'registrations'])
             ->orderByDesc('created_at')
@@ -505,8 +504,9 @@ class CosmeticAnalyticsController extends Controller
         $total = QCTestResult::where('tenant_id', $tenantId)
             ->where('test_date', '>=', $startDate)->count();
 
-        if ($total === 0)
+        if ($total === 0) {
             return 0;
+        }
 
         $passed = QCTestResult::where('tenant_id', $tenantId)
             ->where('test_date', '>=', $startDate)
@@ -539,12 +539,16 @@ class CosmeticAnalyticsController extends Controller
      */
     private function calculateQualityRating(float $score, int $incidents): string
     {
-        if ($score >= 90 && $incidents === 0)
+        if ($score >= 90 && $incidents === 0) {
             return 'Excellent';
-        if ($score >= 75 && $incidents <= 2)
+        }
+        if ($score >= 75 && $incidents <= 2) {
             return 'Good';
-        if ($score >= 60 && $incidents <= 5)
+        }
+        if ($score >= 60 && $incidents <= 5) {
             return 'Fair';
+        }
+
         return 'Poor';
     }
 }

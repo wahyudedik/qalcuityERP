@@ -4,24 +4,24 @@ namespace App\Exports;
 
 use App\Models\Budget;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BudgetReportExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths, WithEvents
+class BudgetReportExport implements FromQuery, WithColumnWidths, WithEvents, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected int $rowCount = 0;
 
     public function __construct(
-        protected int    $tenantId,
+        protected int $tenantId,
         protected string $period,
     ) {}
 
@@ -52,11 +52,11 @@ class BudgetReportExport implements FromQuery, WithHeadings, WithMapping, WithSt
     {
         $this->rowCount++;
         $variance = $row->amount - $row->realized;
-        $pct      = $row->amount > 0 ? round($row->realized / $row->amount * 100, 1) : 0;
-        $status   = match(true) {
+        $pct = $row->amount > 0 ? round($row->realized / $row->amount * 100, 1) : 0;
+        $status = match (true) {
             $row->realized > $row->amount => 'OVER BUDGET',
-            $pct >= 90                   => 'HAMPIR HABIS',
-            default                      => 'NORMAL',
+            $pct >= 90 => 'HAMPIR HABIS',
+            default => 'NORMAL',
         };
 
         return [
@@ -66,12 +66,15 @@ class BudgetReportExport implements FromQuery, WithHeadings, WithMapping, WithSt
             round($row->amount, 2),
             round($row->realized, 2),
             round($variance, 2),
-            $pct . '%',
+            $pct.'%',
             $status,
         ];
     }
 
-    public function title(): string { return 'Budget vs Aktual'; }
+    public function title(): string
+    {
+        return 'Budget vs Aktual';
+    }
 
     public function columnWidths(): array
     {
@@ -84,6 +87,7 @@ class BudgetReportExport implements FromQuery, WithHeadings, WithMapping, WithSt
         $sheet->getStyle('A1:H1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1E40AF');
         $sheet->getStyle('A1:H1')->getFont()->getColor()->setRGB('FFFFFF');
         $sheet->getStyle('D1:F1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
         return [];
     }
 
@@ -95,10 +99,10 @@ class BudgetReportExport implements FromQuery, WithHeadings, WithMapping, WithSt
                 // Color-code status column
                 for ($i = 2; $i <= $this->rowCount + 1; $i++) {
                     $status = $sheet->getCell("H{$i}")->getValue();
-                    $color  = match($status) {
-                        'OVER BUDGET'  => 'FEE2E2', // red
+                    $color = match ($status) {
+                        'OVER BUDGET' => 'FEE2E2', // red
                         'HAMPIR HABIS' => 'FEF3C7', // yellow
-                        default        => 'D1FAE5', // green
+                        default => 'D1FAE5', // green
                     };
                     $sheet->getStyle("H{$i}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)

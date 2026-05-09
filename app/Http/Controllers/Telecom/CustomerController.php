@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Telecom;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\TelecomSubscription;
+use App\Models\UsageTracking;
+use App\Services\Telecom\RouterAdapterFactory;
 use App\Services\Telecom\UsageTrackingService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -15,7 +18,7 @@ class CustomerController extends Controller
 
     public function __construct()
     {
-        $this->usageService = new UsageTrackingService();
+        $this->usageService = new UsageTrackingService;
     }
 
     /**
@@ -34,7 +37,7 @@ class CustomerController extends Controller
                 'telecomSubscriptions' => function ($q) {
                     $q->where('status', 'active')
                         ->with(['package', 'device']);
-                }
+                },
             ])
             ->orderBy('name')
             ->paginate(20);
@@ -60,7 +63,7 @@ class CustomerController extends Controller
             ->latest()
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return redirect()->route('telecom.customers.usage')
                 ->withErrors(['error' => 'Customer tidak memiliki subscription aktif.']);
         }
@@ -69,7 +72,7 @@ class CustomerController extends Controller
         $usageSummary = $this->usageService->getUsageSummary($subscription, $period);
 
         // Get usage history (last 30 days)
-        $usageHistory = \App\Models\UsageTracking::where('subscription_id', $subscription->id)
+        $usageHistory = UsageTracking::where('subscription_id', $subscription->id)
             ->where('period_start', '>=', now()->subDays(30))
             ->orderBy('period_start', 'desc')
             ->limit(30)
@@ -97,7 +100,7 @@ class CustomerController extends Controller
             return now()->subDays(6 - $i)->format('Y-m-d');
         });
 
-        $usage = \App\Models\UsageTracking::where('subscription_id', $subscription->id)
+        $usage = UsageTracking::where('subscription_id', $subscription->id)
             ->where('period_start', '>=', now()->subDays($days))
             ->selectRaw('
                 DATE(period_start) as date,
@@ -120,7 +123,7 @@ class CustomerController extends Controller
 
         return [
             'labels' => $dates->map(function ($date) {
-                return \Carbon\Carbon::parse($date)->format('d M');
+                return Carbon::parse($date)->format('d M');
             })->toArray(),
             'downloads' => $downloads,
             'uploads' => $uploads,
@@ -141,13 +144,13 @@ class CustomerController extends Controller
             ->latest()
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return back()->withErrors(['error' => 'Tidak ada subscription aktif.']);
         }
 
         $subscription->resetQuota();
 
-        return back()->with('success', 'Quota berhasil direset untuk ' . $customer->name);
+        return back()->with('success', 'Quota berhasil direset untuk '.$customer->name);
     }
 
     /**
@@ -164,7 +167,7 @@ class CustomerController extends Controller
             ->latest()
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return back()->withErrors(['error' => 'Tidak ada subscription aktif.']);
         }
 
@@ -173,14 +176,14 @@ class CustomerController extends Controller
         // Disconnect from router if has hotspot username
         if ($subscription->hotspot_username) {
             try {
-                $adapter = \App\Services\Telecom\RouterAdapterFactory::create($subscription->device);
+                $adapter = RouterAdapterFactory::create($subscription->device);
                 $adapter->disconnectUser($subscription->hotspot_username);
             } catch (\Exception $e) {
-                Log::warning("Failed to disconnect user: " . $e->getMessage());
+                Log::warning('Failed to disconnect user: '.$e->getMessage());
             }
         }
 
-        return back()->with('success', 'Subscription disuspend untuk ' . $customer->name);
+        return back()->with('success', 'Subscription disuspend untuk '.$customer->name);
     }
 
     /**
@@ -197,12 +200,12 @@ class CustomerController extends Controller
             ->latest()
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return back()->withErrors(['error' => 'Tidak ada subscription yang bisa diaktifkan.']);
         }
 
         $subscription->update(['status' => 'active']);
 
-        return back()->with('success', 'Subscription diaktifkan kembali untuk ' . $customer->name);
+        return back()->with('success', 'Subscription diaktifkan kembali untuk '.$customer->name);
     }
 }

@@ -2,21 +2,22 @@
 
 namespace App\Jobs\Telecom;
 
-use App\Models\TelecomSubscription;
 use App\Models\HotspotUser;
 use App\Models\NetworkAlert;
+use App\Models\TelecomSubscription;
+use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\Telecom\RouterAdapterFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Scheduled job to check quota expiry and reset quotas.
- * 
+ *
  * Run daily at midnight.
  */
 class CheckQuotaExpiryJob implements ShouldQueue
@@ -30,13 +31,13 @@ class CheckQuotaExpiryJob implements ShouldQueue
 
     public function handle(): void
     {
-        Log::info("Starting quota expiry check");
+        Log::info('Starting quota expiry check');
 
         $this->checkSubscriptionQuotas();
         $this->checkHotspotUserQuotas();
         $this->resetExpiredQuotas();
 
-        Log::info("Quota expiry check completed");
+        Log::info('Quota expiry check completed');
     }
 
     /**
@@ -51,9 +52,9 @@ class CheckQuotaExpiryJob implements ShouldQueue
         foreach ($subscriptions as $subscription) {
             // Check if quota period has ended
             if (now()->greaterThanOrEqualTo($subscription->quota_period_end)) {
-                Log::info("Quota period ended for subscription", [
+                Log::info('Quota period ended for subscription', [
                     'subscription_id' => $subscription->id,
-                    'customer' => $subscription->customer?->name
+                    'customer' => $subscription->customer?->name,
                 ]);
 
                 // Create alert
@@ -63,15 +64,15 @@ class CheckQuotaExpiryJob implements ShouldQueue
                     'alert_type' => 'quota_period_ended',
                     'severity' => 'medium',
                     'title' => "Quota Period Ended: {$subscription->customer?->name}",
-                    'message' => "Quota period has ended. Waiting for reset or renewal.",
+                    'message' => 'Quota period has ended. Waiting for reset or renewal.',
                 ]);
             }
 
             // Check if quota exceeded
-            if ($subscription->package && !$subscription->package->isUnlimited()) {
+            if ($subscription->package && ! $subscription->package->isUnlimited()) {
                 $quotaUsedPercent = ($subscription->quota_used_bytes / $subscription->package->quota_bytes) * 100;
 
-                if ($quotaUsedPercent >= 90 && !$subscription->quota_exceeded) {
+                if ($quotaUsedPercent >= 90 && ! $subscription->quota_exceeded) {
                     // Mark as exceeded
                     $subscription->update(['quota_exceeded' => true]);
 
@@ -93,7 +94,7 @@ class CheckQuotaExpiryJob implements ShouldQueue
 
         foreach ($hotspotUsers as $user) {
             if ($user->isQuotaExceeded()) {
-                Log::info("Hotspot user quota exceeded", [
+                Log::info('Hotspot user quota exceeded', [
                     'username' => $user->username,
                     'quota_used' => $user->quota_used_bytes,
                     'quota_limit' => $user->quota_bytes,
@@ -101,14 +102,14 @@ class CheckQuotaExpiryJob implements ShouldQueue
 
                 // Disconnect user from router
                 try {
-                    $adapter = \App\Services\Telecom\RouterAdapterFactory::create($user->device);
+                    $adapter = RouterAdapterFactory::create($user->device);
                     $adapter->disconnectUser($user->username);
 
                     $user->markAsOffline(0);
                 } catch (\Exception $e) {
-                    Log::error("Failed to disconnect user", [
+                    Log::error('Failed to disconnect user', [
                         'username' => $user->username,
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
                     ]);
                 }
 
@@ -119,7 +120,7 @@ class CheckQuotaExpiryJob implements ShouldQueue
                     'alert_type' => 'user_quota_exceeded',
                     'severity' => 'low',
                     'title' => "User Quota Exceeded: {$user->username}",
-                    'message' => "User has exceeded their quota limit and has been disconnected.",
+                    'message' => 'User has exceeded their quota limit and has been disconnected.',
                 ]);
             }
         }
@@ -138,9 +139,9 @@ class CheckQuotaExpiryJob implements ShouldQueue
         foreach ($subscriptions as $subscription) {
             $subscription->resetQuota();
 
-            Log::info("Quota reset for subscription", [
+            Log::info('Quota reset for subscription', [
                 'subscription_id' => $subscription->id,
-                'customer' => $subscription->customer?->name
+                'customer' => $subscription->customer?->name,
             ]);
         }
 
@@ -153,8 +154,8 @@ class CheckQuotaExpiryJob implements ShouldQueue
         foreach ($hotspotUsers as $user) {
             $user->resetQuota();
 
-            Log::info("Quota reset for hotspot user", [
-                'username' => $user->username
+            Log::info('Quota reset for hotspot user', [
+                'username' => $user->username,
             ]);
         }
     }
@@ -168,14 +169,14 @@ class CheckQuotaExpiryJob implements ShouldQueue
             $notificationService = app(NotificationService::class);
 
             // Notify admin
-            $adminUsers = \App\Models\User::where('tenant_id', $subscription->tenant_id)
+            $adminUsers = User::where('tenant_id', $subscription->tenant_id)
                 ->where('role', 'admin')
                 ->get();
 
             foreach ($adminUsers as $admin) {
                 $notificationService->sendToUser($admin, [
                     'title' => "Kuota Hampir Habis: {$subscription->customer?->name}",
-                    'message' => "Penggunaan kuota sudah mencapai " . round($usedPercent, 2) . "%",
+                    'message' => 'Penggunaan kuota sudah mencapai '.round($usedPercent, 2).'%',
                     'type' => 'warning',
                     'action_url' => route('telecom.subscriptions.show', $subscription->id),
                 ]);
@@ -185,8 +186,8 @@ class CheckQuotaExpiryJob implements ShouldQueue
             if ($subscription->customer?->email) {
                 // Send email notification
                 \Mail::raw(
-                    "Penggunaan kuota internet Anda sudah mencapai " . round($usedPercent, 2) . "%. " .
-                    "Silakan upgrade paket atau beli tambahan kuota.",
+                    'Penggunaan kuota internet Anda sudah mencapai '.round($usedPercent, 2).'%. '.
+                    'Silakan upgrade paket atau beli tambahan kuota.',
                     function ($message) use ($subscription) {
                         $message->to($subscription->customer->email)
                             ->subject('Peringatan Kuota Internet');
@@ -195,9 +196,9 @@ class CheckQuotaExpiryJob implements ShouldQueue
             }
 
         } catch (\Exception $e) {
-            Log::error("Failed to send quota warning", [
+            Log::error('Failed to send quota warning', [
                 'subscription_id' => $subscription->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }

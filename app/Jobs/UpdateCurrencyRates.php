@@ -7,6 +7,7 @@ use App\Models\CurrencyRateHistory;
 use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\CurrencyService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,6 +21,7 @@ class UpdateCurrencyRates implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 60;
 
     public function handle(): void
@@ -29,12 +31,13 @@ class UpdateCurrencyRates implements ShouldQueue
             ->where('is_active', true)
             ->distinct()
             ->pluck('code')
-            ->filter(fn($c) => $c !== 'IDR')
+            ->filter(fn ($c) => $c !== 'IDR')
             ->unique()
             ->values();
 
-        if ($codes->isEmpty())
+        if ($codes->isEmpty()) {
             return;
+        }
 
         // Gunakan exchangerate-api.com (free tier, no key needed for basic)
         // Fallback: frankfurter.app (open source, no key)
@@ -45,6 +48,7 @@ class UpdateCurrencyRates implements ShouldQueue
 
             // BUG-FIN-003 FIX: Send notification if rate update fails
             $this->notifyRateUpdateFailure($codes);
+
             return;
         }
 
@@ -59,8 +63,9 @@ class UpdateCurrencyRates implements ShouldQueue
             ->get()
             ->each(function (Currency $currency) use ($rates, $today, &$updated, &$updatedCodes) {
                 $newRate = $rates[$currency->code] ?? null;
-                if (!$newRate || $newRate <= 0)
+                if (! $newRate || $newRate <= 0) {
                     return;
+                }
 
                 $oldRate = $currency->rate_to_idr;
 
@@ -93,11 +98,11 @@ class UpdateCurrencyRates implements ShouldQueue
             });
 
         // BUG-FIN-003 FIX: Bust cache for updated currencies
-        if (!empty($updatedCodes)) {
-            $currencyService = new \App\Services\CurrencyService();
+        if (! empty($updatedCodes)) {
+            $currencyService = new CurrencyService;
             $currencyService->bustAllCaches($updatedCodes);
 
-            Log::info("UpdateCurrencyRates: Cache busted for updated currencies", [
+            Log::info('UpdateCurrencyRates: Cache busted for updated currencies', [
                 'currencies' => $updatedCodes,
                 'count' => count($updatedCodes),
             ]);
@@ -128,8 +133,9 @@ class UpdateCurrencyRates implements ShouldQueue
                     'to' => $symbols,
                 ]);
 
-            if (!$response->successful()) {
-                Log::warning('Frankfurter API error: ' . $response->status());
+            if (! $response->successful()) {
+                Log::warning('Frankfurter API error: '.$response->status());
+
                 return [];
             }
 
@@ -146,7 +152,8 @@ class UpdateCurrencyRates implements ShouldQueue
             return $rates;
 
         } catch (\Throwable $e) {
-            Log::error('UpdateCurrencyRates fetch error: ' . $e->getMessage());
+            Log::error('UpdateCurrencyRates fetch error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -208,8 +215,8 @@ class UpdateCurrencyRates implements ShouldQueue
                     'user_id' => $user->id,
                     'type' => 'currency_rate_update_failed',
                     'title' => '⚠️ Gagal Update Kurs Mata Uang',
-                    'message' => "Gagal memperbarui kurs mata uang. Kurs saat ini mungkin sudah tidak akurat. " .
-                        "Silakan update manual di Settings → Currency.",
+                    'message' => 'Gagal memperbarui kurs mata uang. Kurs saat ini mungkin sudah tidak akurat. '.
+                        'Silakan update manual di Settings → Currency.',
                     'data' => [
                         'affected_currencies' => $currencyCodes,
                         'failed_at' => now()->format('Y-m-d H:i:s'),

@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Models\NotificationPreference;
 use App\Models\ProjectTask;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class DeadlineApproachingNotification extends Notification implements ShouldQueue
@@ -21,17 +22,17 @@ class DeadlineApproachingNotification extends Notification implements ShouldQueu
     public function via(object $notifiable): array
     {
         $channels = [];
-        
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'in_app')) {
+
+        if (NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'in_app')) {
             $channels[] = 'database';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'email')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'email')) {
             $channels[] = 'mail';
         }
-        if (\App\Models\NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'push')) {
+        if (NotificationPreference::isEnabled($notifiable->id, 'deadline_approaching', 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels ?: ['database'];
     }
 
@@ -46,7 +47,7 @@ class DeadlineApproachingNotification extends Notification implements ShouldQueu
             ->line("Deadline tugas **{$this->task->name}** akan tiba dalam **{$this->daysRemaining} hari**.")
             ->line("**Proyek:** {$this->task->project->name}")
             ->line("**Deadline:** {$dueDate}")
-            ->line("**Status:** " . ucfirst($this->task->status))
+            ->line('**Status:** '.ucfirst($this->task->status))
             ->line("**Progress:** {$this->task->progress}%")
             ->action('Lihat Tugas', url("/projects/tasks/{$this->task->id}"))
             ->line('Segera selesaikan tugas ini sebelum deadline!')

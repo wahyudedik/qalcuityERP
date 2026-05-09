@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OosInvestigation extends Model
 {
@@ -133,6 +132,7 @@ class OosInvestigation extends Model
     public function getDaysOpenAttribute(): int
     {
         $endDate = $this->completion_date ?? now();
+
         return $this->discovery_date->diffInDays($endDate);
     }
 
@@ -183,6 +183,7 @@ class OosInvestigation extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'OOS-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'OOS-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 }

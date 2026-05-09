@@ -26,11 +26,9 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
     /** @var array<string> */
     private array $fallbackChain;
 
-    /** @var \ReflectionMethod */
     private \ReflectionMethod $callWithFallback;
 
-    /** @var \ReflectionClass */
-    private \ReflectionClass $reflection;
+    private ReflectionClass $reflection;
 
     protected function setUp(): void
     {
@@ -43,11 +41,11 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
         ];
 
         config([
-            'gemini.model'               => 'gemini-2.5-flash',
-            'gemini.fallback_models'     => $this->fallbackChain,
+            'gemini.model' => 'gemini-2.5-flash',
+            'gemini.fallback_models' => $this->fallbackChain,
             'gemini.rate_limit_cooldown' => 60,
-            'gemini.quota_cooldown'      => 3600,
-            'gemini.api_key'             => 'test-key',
+            'gemini.quota_cooldown' => 3600,
+            'gemini.api_key' => 'test-key',
         ]);
 
         Cache::flush();
@@ -106,7 +104,7 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testResponseFormatInvarianceAfterFallback(): void
+    public function test_response_format_invariance_after_fallback(): void
     {
         // Required keys that must always be present in a chat() response
         $requiredKeys = ['text', 'model'];
@@ -117,7 +115,7 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
                 Generators::choose(1, count($this->fallbackChain) - 1),
                 // Generate a random non-empty response text (1–50 chars)
                 Generators::map(
-                    fn(int $len) => str_repeat('a', $len),
+                    fn (int $len) => str_repeat('a', $len),
                     Generators::choose(1, 50)
                 )
             )
@@ -133,6 +131,7 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
                     if ($callCount <= $failCount) {
                         throw new \RuntimeException('Too Many Requests', 429);
                     }
+
                     return $responseText;
                 };
 
@@ -141,7 +140,7 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
                 // ── Assert: response is an array ──
                 $this->assertIsArray(
                     $response,
-                    "callWithFallback() must always return an array, even after fallback."
+                    'callWithFallback() must always return an array, even after fallback.'
                 );
 
                 // ── Assert: all required keys are present ──
@@ -149,8 +148,8 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
                     $this->assertArrayHasKey(
                         $key,
                         $response,
-                        "Response after fallback must contain required key '{$key}'. " .
-                        "Got keys: " . implode(', ', array_keys($response))
+                        "Response after fallback must contain required key '{$key}'. ".
+                        'Got keys: '.implode(', ', array_keys($response))
                     );
                 }
 
@@ -206,14 +205,14 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
     // =========================================================================
 
     #[ErisRepeat(repeat: 100)]
-    public function testResponseFormatInvarianceWithoutFallback(): void
+    public function test_response_format_invariance_without_fallback(): void
     {
         $requiredKeys = ['text', 'model'];
 
         $this
             ->forAll(
                 Generators::map(
-                    fn(int $len) => str_repeat('x', $len),
+                    fn (int $len) => str_repeat('x', $len),
                     Generators::choose(1, 80)
                 )
             )
@@ -222,7 +221,7 @@ class GeminiServiceResponseFormatPropertyTest extends TestCase
                 $service = $this->makeService();
 
                 // Client always succeeds on first call — no fallback needed
-                $apiCall = fn(string $model) => $responseText;
+                $apiCall = fn (string $model) => $responseText;
 
                 $response = $this->invokeCallWithFallback($service, $apiCall);
 

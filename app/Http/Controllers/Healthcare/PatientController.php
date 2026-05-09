@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\Patient;
-use App\Models\PatientVisit;
-use App\Models\PatientMedicalRecord;
+use App\Models\Admission;
 use App\Models\Appointment;
 use App\Models\LabResult;
+use App\Models\Patient;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PatientController extends Controller
@@ -63,7 +61,7 @@ class PatientController extends Controller
                 ->whereDate('appointment_date', today())
                 ->count();
 
-            $admittedPatients = \App\Models\Admission::where('tenant_id', $tenantId)
+            $admittedPatients = Admission::where('tenant_id', $tenantId)
                 ->where('status', 'admitted')
                 ->count();
 
@@ -124,13 +122,13 @@ class PatientController extends Controller
         ]);
 
         // Convert comma-separated strings to arrays for JSON columns
-        if (!empty($validated['known_allergies'])) {
+        if (! empty($validated['known_allergies'])) {
             $validated['known_allergies'] = array_map('trim', explode(',', $validated['known_allergies']));
         }
-        if (!empty($validated['chronic_diseases'])) {
+        if (! empty($validated['chronic_diseases'])) {
             $validated['chronic_diseases'] = array_map('trim', explode(',', $validated['chronic_diseases']));
         }
-        if (!empty($validated['current_medications'])) {
+        if (! empty($validated['current_medications'])) {
             $validated['current_medications'] = array_map('trim', explode(',', $validated['current_medications']));
         }
 
@@ -142,7 +140,7 @@ class PatientController extends Controller
         DashboardCacheService::clearStats("stats:patients:{$tenantId}");
 
         return redirect()->route('healthcare.patients.show', $patient)
-            ->with('success', 'Pasien berhasil didaftarkan: ' . $patient->medical_record_number);
+            ->with('success', 'Pasien berhasil didaftarkan: '.$patient->medical_record_number);
     }
 
     /**
@@ -188,7 +186,7 @@ class PatientController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nik' => 'nullable|string|max:16|unique:patients,nik,' . $patient->id,
+            'nik' => 'nullable|string|max:16|unique:patients,nik,'.$patient->id,
             'birth_date' => 'required|date',
             'birth_place' => 'nullable|string|max:100',
             'gender' => 'required|in:male,female',
@@ -217,13 +215,13 @@ class PatientController extends Controller
         ]);
 
         // Convert comma-separated strings to arrays for JSON columns
-        if (isset($validated['known_allergies']) && !empty($validated['known_allergies'])) {
+        if (isset($validated['known_allergies']) && ! empty($validated['known_allergies'])) {
             $validated['known_allergies'] = array_map('trim', explode(',', $validated['known_allergies']));
         }
-        if (isset($validated['chronic_diseases']) && !empty($validated['chronic_diseases'])) {
+        if (isset($validated['chronic_diseases']) && ! empty($validated['chronic_diseases'])) {
             $validated['chronic_diseases'] = array_map('trim', explode(',', $validated['chronic_diseases']));
         }
-        if (isset($validated['current_medications']) && !empty($validated['current_medications'])) {
+        if (isset($validated['current_medications']) && ! empty($validated['current_medications'])) {
             $validated['current_medications'] = array_map('trim', explode(',', $validated['current_medications']));
         }
 
@@ -357,7 +355,7 @@ class PatientController extends Controller
                 'date' => $visit->visit_date,
                 'type' => 'visit',
                 'title' => 'Patient Visit',
-                'description' => $visit->visit_type . ' - ' . $visit->chief_complaint,
+                'description' => $visit->visit_type.' - '.$visit->chief_complaint,
                 'icon' => 'stethoscope',
             ]);
         });
@@ -396,7 +394,7 @@ class PatientController extends Controller
     {
         $patient = Patient::where('qr_code', $qrCode)->first();
 
-        if (!$patient) {
+        if (! $patient) {
             return redirect()->route('healthcare.patients.index')
                 ->with('error', 'Patient not found');
         }

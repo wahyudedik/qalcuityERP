@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\TenantPaymentGateway;
-use App\Models\PaymentTransaction;
 use App\Models\PaymentCallback;
+use App\Models\PaymentTransaction;
 use App\Models\SalesOrder;
+use App\Models\TenantPaymentGateway;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class PaymentGatewayService
 {
@@ -16,8 +15,11 @@ class PaymentGatewayService
 
     // Gateway providers
     const PROVIDER_MIDTRANS = 'midtrans';
+
     const PROVIDER_XENDIT = 'xendit';
+
     const PROVIDER_DUITKU = 'duitku';
+
     const PROVIDER_TRIPAY = 'tripay';
 
     public function __construct(int $tenantId)
@@ -34,7 +36,7 @@ class PaymentGatewayService
             // Get gateway configuration
             $gateway = $this->getGateway($provider);
 
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'No payment gateway configured',
@@ -114,7 +116,7 @@ class PaymentGatewayService
                 ->where('transaction_number', $transactionNumber)
                 ->first();
 
-            if (!$paymentTransaction) {
+            if (! $paymentTransaction) {
                 return [
                     'success' => false,
                     'error' => 'Transaction not found',
@@ -136,7 +138,7 @@ class PaymentGatewayService
                 ->where('provider', $paymentTransaction->gateway_provider)
                 ->first();
 
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'Gateway configuration not found',
@@ -147,7 +149,7 @@ class PaymentGatewayService
                 self::PROVIDER_MIDTRANS => $this->checkMidtransStatus($gateway, $paymentTransaction),
                 self::PROVIDER_XENDIT => $this->checkXenditStatus($gateway, $paymentTransaction),
                 self::PROVIDER_DUITKU => $this->checkDuitkuStatus($gateway, $paymentTransaction),
-                default => throw new \Exception("Unsupported provider"),
+                default => throw new \Exception('Unsupported provider'),
             };
 
             return $result;
@@ -181,7 +183,7 @@ class PaymentGatewayService
             $verified = $this->verifyWebhookSignature($provider, $payload, $signature);
             $callback->update(['verified' => $verified]);
 
-            if (!$verified) {
+            if (! $verified) {
                 $callback->update([
                     'processed' => true,
                     'error_message' => 'Invalid signature',
@@ -228,7 +230,7 @@ class PaymentGatewayService
                 ->where('provider', $provider)
                 ->first();
 
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'Gateway not configured',
@@ -275,7 +277,7 @@ class PaymentGatewayService
                 'email' => $order->customer?->email ?? $order->customer_email ?? 'customer@example.com',
                 'phone' => $order->customer?->phone ?? $order->customer_phone ?? '08123456789',
             ],
-            'item_details' => $order->items->map(fn($item) => [
+            'item_details' => $order->items->map(fn ($item) => [
                 'id' => (string) $item->product_id,
                 'price' => (int) $item->price,
                 'quantity' => (int) $item->quantity,
@@ -361,7 +363,7 @@ class PaymentGatewayService
         // Find payment transaction
         $paymentTransaction = PaymentTransaction::where('transaction_number', $orderId)->first();
 
-        if (!$paymentTransaction) {
+        if (! $paymentTransaction) {
             return [
                 'success' => false,
                 'error' => 'Transaction not found',
@@ -401,7 +403,7 @@ class PaymentGatewayService
     {
         $serverKey = $credentials['server_key'] ?? null;
 
-        if (!$serverKey) {
+        if (! $serverKey) {
             return [
                 'success' => false,
                 'error' => 'Server key is required',
@@ -526,7 +528,7 @@ class PaymentGatewayService
 
         $paymentTransaction = PaymentTransaction::where('transaction_number', $externalId)->first();
 
-        if (!$paymentTransaction) {
+        if (! $paymentTransaction) {
             return [
                 'success' => false,
                 'error' => 'Transaction not found',
@@ -563,7 +565,7 @@ class PaymentGatewayService
     {
         $apiKey = $credentials['api_key'] ?? null;
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return [
                 'success' => false,
                 'error' => 'API key is required',
@@ -609,7 +611,7 @@ class PaymentGatewayService
         $datetime = now()->format('Y-m-d H:i:s');
 
         // Duitku signature: MD5(merchantCode + merchantOrderId + amount + merchantKey)
-        $signature = md5($merchantCode . $merchantOrderId . $amount . $merchantKey);
+        $signature = md5($merchantCode.$merchantOrderId.$amount.$merchantKey);
 
         $payload = [
             'merchantCode' => $merchantCode,
@@ -622,13 +624,13 @@ class PaymentGatewayService
             'customerVaName' => $order->customer?->name ?? 'Customer',
             'email' => $order->customer?->email ?? 'customer@example.com',
             'phoneNumber' => $order->customer?->phone ?? '08123456789',
-            'itemDetails' => $order->items->map(fn($item) => [
+            'itemDetails' => $order->items->map(fn ($item) => [
                 'name' => substr($item->product?->name ?? 'Item', 0, 50),
                 'price' => (int) $item->price,
                 'quantity' => (int) $item->quantity,
             ])->toArray(),
             'callbackUrl' => route('payment.webhook', ['provider' => 'duitku']),
-            'returnUrl' => config('app.url') . '/pos',
+            'returnUrl' => config('app.url').'/pos',
             'signature' => $signature,
             'expiryPeriod' => 15, // 15 minutes
             'datetime' => $datetime,
@@ -674,7 +676,7 @@ class PaymentGatewayService
 
         $merchantOrderId = $paymentTransaction->transaction_number;
         $datetime = now()->format('Y-m-d H:i:s');
-        $signature = md5($merchantCode . $merchantOrderId . $merchantKey);
+        $signature = md5($merchantCode.$merchantOrderId.$merchantKey);
 
         $response = Http::post($baseUrl, [
             'merchantCode' => $merchantCode,
@@ -731,7 +733,7 @@ class PaymentGatewayService
         $merchantCode = $credentials['merchant_code'] ?? null;
         $merchantKey = $credentials['merchant_key'] ?? null;
 
-        if (!$merchantCode || !$merchantKey) {
+        if (! $merchantCode || ! $merchantKey) {
             return [
                 'success' => false,
                 'error' => 'Merchant code dan merchant key wajib diisi',
@@ -740,11 +742,11 @@ class PaymentGatewayService
 
         // Test with a simple status check
         $datetime = now()->format('Y-m-d H:i:s');
-        $signature = md5($merchantCode . 'TEST-' . time() . $merchantKey);
+        $signature = md5($merchantCode.'TEST-'.time().$merchantKey);
 
         $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/transactionStatus', [
             'merchantCode' => $merchantCode,
-            'merchantOrderId' => 'TEST-' . time(),
+            'merchantOrderId' => 'TEST-'.time(),
             'signature' => $signature,
             'datetime' => $datetime,
         ]);
@@ -754,7 +756,6 @@ class PaymentGatewayService
             'success' => $response->successful() || in_array($response->status(), [400, 404]),
         ];
     }
-
 
     private function getGateway(?string $provider = null): ?TenantPaymentGateway
     {
@@ -793,7 +794,7 @@ class PaymentGatewayService
             ->where('provider', $provider)
             ->first();
 
-        if (!$gateway || !$gateway->webhook_secret) {
+        if (! $gateway || ! $gateway->webhook_secret) {
             return true; // Skip verification if no secret configured
         }
 

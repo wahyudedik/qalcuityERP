@@ -12,23 +12,23 @@ class BulkTools
     {
         return [
             [
-                'name'        => 'bulk_update_products',
+                'name' => 'bulk_update_products',
                 'description' => 'Update massal produk sekaligus. Gunakan untuk: '
-                    . '"naikkan harga semua produk kategori minuman 10%", '
-                    . '"nonaktifkan semua produk stok 0", '
-                    . '"turunkan harga semua produk 5%", '
-                    . '"aktifkan semua produk kategori makanan", '
-                    . '"set harga minimum stok semua produk jadi 5".',
+                    .'"naikkan harga semua produk kategori minuman 10%", '
+                    .'"nonaktifkan semua produk stok 0", '
+                    .'"turunkan harga semua produk 5%", '
+                    .'"aktifkan semua produk kategori makanan", '
+                    .'"set harga minimum stok semua produk jadi 5".',
                 'parameters' => [
-                    'type'       => 'object',
+                    'type' => 'object',
                     'properties' => [
-                        'action'         => [
-                            'type'        => 'string',
+                        'action' => [
+                            'type' => 'string',
                             'description' => 'Aksi: price_increase (naik %), price_decrease (turun %), deactivate_zero_stock, activate_all, set_stock_min',
                         ],
-                        'value'          => ['type' => 'number', 'description' => 'Nilai: persentase untuk price_increase/decrease, atau angka untuk set_stock_min'],
-                        'category_filter'=> ['type' => 'string', 'description' => 'Filter kategori produk (opsional, kosong = semua)'],
-                        'dry_run'        => ['type' => 'boolean', 'description' => 'true = preview saja tanpa eksekusi (default: false)'],
+                        'value' => ['type' => 'number', 'description' => 'Nilai: persentase untuk price_increase/decrease, atau angka untuk set_stock_min'],
+                        'category_filter' => ['type' => 'string', 'description' => 'Filter kategori produk (opsional, kosong = semua)'],
+                        'dry_run' => ['type' => 'boolean', 'description' => 'true = preview saja tanpa eksekusi (default: false)'],
                     ],
                     'required' => ['action'],
                 ],
@@ -38,10 +38,10 @@ class BulkTools
 
     public function bulkUpdateProducts(array $args): array
     {
-        $action   = $args['action'];
-        $value    = (float) ($args['value'] ?? 0);
+        $action = $args['action'];
+        $value = (float) ($args['value'] ?? 0);
         $category = $args['category_filter'] ?? null;
-        $dryRun   = (bool) ($args['dry_run'] ?? false);
+        $dryRun = (bool) ($args['dry_run'] ?? false);
 
         $query = Product::where('tenant_id', $this->tenantId)->where('is_active', true);
         if ($category) {
@@ -63,13 +63,13 @@ class BulkTools
                 case 'price_increase':
                     $newPrice = round($product->price_sell * (1 + $value / 100));
                     $changes = ['price_sell' => $newPrice];
-                    $preview[] = ['produk' => $product->name, 'harga_lama' => 'Rp ' . number_format($product->price_sell, 0, ',', '.'), 'harga_baru' => 'Rp ' . number_format($newPrice, 0, ',', '.')];
+                    $preview[] = ['produk' => $product->name, 'harga_lama' => 'Rp '.number_format($product->price_sell, 0, ',', '.'), 'harga_baru' => 'Rp '.number_format($newPrice, 0, ',', '.')];
                     break;
 
                 case 'price_decrease':
                     $newPrice = round($product->price_sell * (1 - $value / 100));
                     $changes = ['price_sell' => max(0, $newPrice)];
-                    $preview[] = ['produk' => $product->name, 'harga_lama' => 'Rp ' . number_format($product->price_sell, 0, ',', '.'), 'harga_baru' => 'Rp ' . number_format($newPrice, 0, ',', '.')];
+                    $preview[] = ['produk' => $product->name, 'harga_lama' => 'Rp '.number_format($product->price_sell, 0, ',', '.'), 'harga_baru' => 'Rp '.number_format($newPrice, 0, ',', '.')];
                     break;
 
                 case 'deactivate_zero_stock':
@@ -91,31 +91,31 @@ class BulkTools
                     break;
             }
 
-            if (!empty($changes) && !$dryRun) {
+            if (! empty($changes) && ! $dryRun) {
                 $product->update($changes);
                 $updated++;
-            } elseif (!empty($changes)) {
+            } elseif (! empty($changes)) {
                 $updated++;
             }
         }
 
         $label = match ($action) {
-            'price_increase'       => "Harga dinaikkan {$value}%",
-            'price_decrease'       => "Harga diturunkan {$value}%",
-            'deactivate_zero_stock'=> "Produk stok 0 dinonaktifkan",
-            'activate_all'         => "Semua produk diaktifkan",
-            'set_stock_min'        => "Stok minimum diset ke {$value}",
-            default                => $action,
+            'price_increase' => "Harga dinaikkan {$value}%",
+            'price_decrease' => "Harga diturunkan {$value}%",
+            'deactivate_zero_stock' => 'Produk stok 0 dinonaktifkan',
+            'activate_all' => 'Semua produk diaktifkan',
+            'set_stock_min' => "Stok minimum diset ke {$value}",
+            default => $action,
         };
 
         return [
-            'status'   => 'success',
-            'dry_run'  => $dryRun,
-            'message'  => $dryRun
+            'status' => 'success',
+            'dry_run' => $dryRun,
+            'message' => $dryRun
                 ? "Preview: {$updated} produk akan diupdate ({$label})."
                 : "{$updated} produk berhasil diupdate ({$label}).",
-            'total'    => $updated,
-            'preview'  => array_slice($preview, 0, 20),
+            'total' => $updated,
+            'preview' => array_slice($preview, 0, 20),
         ];
     }
 }

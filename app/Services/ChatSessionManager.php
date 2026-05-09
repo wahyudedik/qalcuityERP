@@ -6,8 +6,7 @@ use App\Enums\AiUseCase;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
-use App\Services\AiMemoryService;
-use App\Services\GeminiService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -22,10 +21,13 @@ class ChatSessionManager
 {
     // Batas history yang dikirim ke Gemini (hemat token)
     const MAX_HISTORY_MESSAGES = 20;
+
     // Threshold untuk trigger summarization
     const SUMMARIZATION_THRESHOLD = 15;
+
     // Batas maksimum messages yang disimpan per session (hard limit)
     const MAX_MESSAGES_PER_SESSION = 100;
+
     // Estimasi token per karakter (rough estimate)
     const CHARS_PER_TOKEN = 4;
 
@@ -44,8 +46,9 @@ class ChatSessionManager
                 ->where('is_active', true)
                 ->first();
 
-            if ($session)
+            if ($session) {
                 return $session;
+            }
         }
 
         return ChatSession::create([
@@ -100,7 +103,7 @@ class ChatSessionManager
                 ->values();
         }
 
-        return $messages->map(fn($m) => ['role' => $m->role, 'text' => $m->content])->toArray();
+        return $messages->map(fn ($m) => ['role' => $m->role, 'text' => $m->content])->toArray();
     }
 
     /**
@@ -110,7 +113,6 @@ class ChatSessionManager
      * are summarized into a single context message to preserve meaning
      * while reducing token usage.
      *
-     * @param ChatSession $session
      * @return array Modified history with summary
      */
     public function getHistoryWithSummarization(ChatSession $session): array
@@ -140,7 +142,7 @@ class ChatSessionManager
             ->get(['id', 'role', 'content']);
 
         // If no existing summary and we have messages to summarize, create one
-        if (!$existingSummary && $messagesToSummarize->count() > 5) {
+        if (! $existingSummary && $messagesToSummarize->count() > 5) {
             $existingSummary = $this->summarizeMessages($messagesToSummarize);
 
             // Save summary to session metadata
@@ -167,12 +169,12 @@ class ChatSessionManager
         if ($existingSummary) {
             $history[] = [
                 'role' => 'system',
-                'text' => "[RINGKASAN PERCAKAPAN SEBELUMNYA]\n{$existingSummary}\n\n[LANJUTAN PERCAKAPAN TERKINI]"
+                'text' => "[RINGKASAN PERCAKAPAN SEBELUMNYA]\n{$existingSummary}\n\n[LANJUTAN PERCAKAPAN TERKINI]",
             ];
         }
 
         // Add first message for initial context (if not already summarized)
-        if (!$existingSummary) {
+        if (! $existingSummary) {
             $firstMessage = $messagesToSummarize->first();
             if ($firstMessage) {
                 $history[] = ['role' => $firstMessage->role, 'text' => $firstMessage->content];
@@ -190,7 +192,7 @@ class ChatSessionManager
     /**
      * TASK-020: Use Gemini to summarize a collection of messages.
      *
-     * @param \Illuminate\Support\Collection $messages
+     * @param  Collection  $messages
      * @return string|null Summary text
      */
     protected function summarizeMessages($messages): ?string
@@ -199,6 +201,7 @@ class ChatSessionManager
             // Build conversation text for summarization
             $conversationText = $messages->map(function ($msg) {
                 $role = $msg->role === 'user' ? 'User' : 'Assistant';
+
                 return "{$role}: {$msg->content}";
             })->join("\n\n");
 
@@ -206,17 +209,17 @@ class ChatSessionManager
             if (strlen($conversationText) > 8000) {
                 // Keep first 2000 and last 6000 chars
                 $conversationText = substr($conversationText, 0, 2000)
-                    . "\n\n... [conversation continues] ...\n\n"
-                    . substr($conversationText, -6000);
+                    ."\n\n... [conversation continues] ...\n\n"
+                    .substr($conversationText, -6000);
             }
 
             // Ask Gemini to summarize
             $summaryPrompt = "Ringkas percakapan berikut dalam 3-5 kalimat bahasa Indonesia. Fokus pada:\n"
-                . "1. Topik utama yang dibahas\n"
-                . "2. Keputusan atau tindakan yang diambil\n"
-                . "3. Informasi penting yang perlu diingat\n\n"
-                . "Percakapan:\n{$conversationText}\n\n"
-                . "Ringkasan:";
+                ."1. Topik utama yang dibahas\n"
+                ."2. Keputusan atau tindakan yang diambil\n"
+                ."3. Informasi penting yang perlu diingat\n\n"
+                ."Percakapan:\n{$conversationText}\n\n"
+                .'Ringkasan:';
 
             $response = $this->gemini->chat($summaryPrompt, [], [], AiUseCase::CHATBOT->value);
             $summary = trim($response['text'] ?? '');
@@ -227,6 +230,7 @@ class ChatSessionManager
                 'error' => $e->getMessage(),
                 'message_count' => $messages->count(),
             ]);
+
             return null;
         }
     }
@@ -253,7 +257,7 @@ class ChatSessionManager
             'content' => $content,
             'model_used' => $model,
             'token_count' => $tokens,
-            'function_calls' => !empty($functionCalls) ? $functionCalls : null,
+            'function_calls' => ! empty($functionCalls) ? $functionCalls : null,
         ]);
 
         // Update total token di session (single query)
@@ -262,7 +266,7 @@ class ChatSessionManager
         $session->save();
 
         // Auto-set judul session dari pesan pertama user jika belum ada
-        if (!$session->title) {
+        if (! $session->title) {
             $firstUserMsg = $session->messages()->where('role', 'user')->value('content');
             if ($firstUserMsg) {
                 // Bersihkan context prefix [KONTEKS SISTEM: ...] sebelum dijadikan judul
@@ -277,7 +281,7 @@ class ChatSessionManager
         $this->purgeOldMessagesIfNeeded($session);
 
         // Rekam pola aksi ke AI memory (Task 52)
-        if (!empty($functionCalls) && $session->user_id && $session->tenant_id) {
+        if (! empty($functionCalls) && $session->user_id && $session->tenant_id) {
             $this->recordActionsToMemory($session->tenant_id, $session->user_id, $functionCalls);
         }
 
@@ -296,23 +300,23 @@ class ChatSessionManager
                 $args = $call['args'] ?? [];
 
                 // Rekam metode pembayaran
-                if (!empty($args['payment_method'])) {
+                if (! empty($args['payment_method'])) {
                     $memoryService->recordAction($tenantId, $userId, 'payment_method', ['value' => $args['payment_method']]);
                 }
                 // Rekam gudang default
-                if (!empty($args['warehouse_name'])) {
+                if (! empty($args['warehouse_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'warehouse', ['value' => $args['warehouse_name']]);
                 }
                 // Rekam customer yang sering digunakan
-                if (!empty($args['customer_name'])) {
+                if (! empty($args['customer_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'customer', ['value' => $args['customer_name']]);
                 }
                 // Rekam produk yang sering digunakan
-                if (!empty($args['product_name'])) {
+                if (! empty($args['product_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'product', ['value' => $args['product_name']]);
                 }
                 // Rekam supplier yang sering digunakan
-                if (!empty($args['supplier_name'])) {
+                if (! empty($args['supplier_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'frequent_suppliers', [
                         'value' => $args['supplier_name'],
                         'product_name' => $args['product_name'] ?? null,

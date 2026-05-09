@@ -3,19 +3,18 @@
 namespace App\Services;
 
 use App\Models\OccupancyForecast;
-use App\Models\RevenueSnapshot;
 use App\Models\Reservation;
+use App\Models\RevenueSnapshot;
+use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\SpecialEvent;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * OccupancyForecastingService - Predicts future occupancy and demand
- * 
+ *
  * Features:
  * - Historical data analysis
  * - Seasonal pattern recognition
@@ -26,6 +25,7 @@ use Illuminate\Support\Facades\Log;
 class OccupancyForecastingService
 {
     private int $tenantId;
+
     private array $config;
 
     public function __construct(int $tenantId, array $config = [])
@@ -121,6 +121,7 @@ class OccupancyForecastingService
 
         if ($existing) {
             $existing->update($forecastData);
+
             return $existing->fresh();
         }
 
@@ -358,13 +359,13 @@ class OccupancyForecastingService
     private function getTotalRooms(?int $roomTypeId = null): int
     {
         if ($roomTypeId) {
-            return \App\Models\Room::where('tenant_id', $this->tenantId)
+            return Room::where('tenant_id', $this->tenantId)
                 ->where('room_type_id', $roomTypeId)
                 ->where('status', '!=', 'out_of_order')
                 ->count();
         }
 
-        return \App\Models\Room::where('tenant_id', $this->tenantId)
+        return Room::where('tenant_id', $this->tenantId)
             ->where('status', '!=', 'out_of_order')
             ->count();
     }
@@ -415,8 +416,8 @@ class OccupancyForecastingService
     {
         $forecasts = $this->generateForecast($startDate, $endDate);
 
-        $highDemand = $forecasts->filter(fn($f) => $f->projected_occupancy_rate >= 80);
-        $lowDemand = $forecasts->filter(fn($f) => $f->projected_occupancy_rate <= 40);
+        $highDemand = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate >= 80);
+        $lowDemand = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate <= 40);
 
         return [
             'total_days' => $forecasts->count(),
@@ -436,8 +437,8 @@ class OccupancyForecastingService
     {
         $recommendations = [];
 
-        $highDemandDays = $forecasts->filter(fn($f) => $f->projected_occupancy_rate >= 85);
-        $lowDemandDays = $forecasts->filter(fn($f) => $f->projected_occupancy_rate <= 40);
+        $highDemandDays = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate >= 85);
+        $lowDemandDays = $forecasts->filter(fn ($f) => $f->projected_occupancy_rate <= 40);
 
         if ($highDemandDays->count() >= 3) {
             $recommendations[] = [

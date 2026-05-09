@@ -17,7 +17,7 @@ class PopupAdDismissController extends Controller
         PopupAdView::updateOrCreate(
             [
                 'popup_ad_id' => $ad->id,
-                'user_id'     => $request->user()->id,
+                'user_id' => $request->user()->id,
             ],
             ['viewed_at' => now()]
         );

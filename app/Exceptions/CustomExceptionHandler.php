@@ -5,9 +5,6 @@ namespace App\Exceptions;
 use App\Models\ErrorLog;
 use App\Services\ErrorAlertingService;
 use App\Services\ErrorContextEnricher;
-use App\Exceptions\AllModelsUnavailableException;
-use App\Exceptions\AllProvidersUnavailableException;
-use App\Exceptions\InsufficientPlanException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -23,7 +20,7 @@ class CustomExceptionHandler extends ExceptionHandler
     /**
      * A list of exception types with their corresponding custom messages.
      *
-     * @var array<int, class-string<\Throwable>, string>
+     * @var array<int, class-string<Throwable>, string>
      */
     protected $internalExceptions = [
         AuthenticationException::class => 'Unauthenticated.',
@@ -114,7 +111,7 @@ class CustomExceptionHandler extends ExceptionHandler
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-            if ($errorLog && !$errorLog->notified) {
+            if ($errorLog && ! $errorLog->notified) {
                 $alertingService = app(ErrorAlertingService::class);
                 $alertingService->sendAlert($errorLog);
             }
@@ -136,7 +133,7 @@ class CustomExceptionHandler extends ExceptionHandler
             \ParseError::class,
             \TypeError::class,
             \ErrorException::class,
-            \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface::class,
+            HttpExceptionInterface::class,
         ];
 
         foreach ($criticalExceptions as $criticalClass) {
@@ -148,6 +145,7 @@ class CustomExceptionHandler extends ExceptionHandler
         // Check if it's a 5xx HTTP error
         if ($e instanceof HttpExceptionInterface) {
             $statusCode = $e->getStatusCode();
+
             return $statusCode >= 500;
         }
 
@@ -226,10 +224,10 @@ class CustomExceptionHandler extends ExceptionHandler
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'       => $message,
+                'message' => $message,
                 'required_plan' => $e->requiredPlan,
-                'current_plan'  => $e->currentPlan,
-                'use_case'      => $e->useCase,
+                'current_plan' => $e->currentPlan,
+                'use_case' => $e->useCase,
             ], 403);
         }
 

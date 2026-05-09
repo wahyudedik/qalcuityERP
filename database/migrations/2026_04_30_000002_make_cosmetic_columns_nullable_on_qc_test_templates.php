@@ -16,13 +16,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('qc_test_templates', function (Blueprint $table) {
-            if (!Schema::hasColumn('qc_test_templates', 'template_name')) {
+            if (! Schema::hasColumn('qc_test_templates', 'template_name')) {
                 $table->string('template_name')->nullable()->change();
             }
-            if (!Schema::hasColumn('qc_test_templates', 'template_code')) {
+            if (! Schema::hasColumn('qc_test_templates', 'template_code')) {
                 $table->string('template_code')->nullable()->change();
             }
-            if (!Schema::hasColumn('qc_test_templates', 'test_category')) {
+            if (! Schema::hasColumn('qc_test_templates', 'test_category')) {
                 $table->string('test_category')->nullable()->change();
             }
         });

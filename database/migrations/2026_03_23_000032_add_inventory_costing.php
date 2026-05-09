@@ -10,37 +10,37 @@ return new class extends Migration
     {
         // 1. Costing method per tenant (opt-in, default = simple)
         Schema::table('tenants', function (Blueprint $table) {
-            if (!Schema::hasColumn('tenants', 'costing_method')) {
+            if (! Schema::hasColumn('tenants', 'costing_method')) {
                 $table->enum('costing_method', ['simple', 'avco', 'fifo'])->default('simple')->after('business_description');
             }
         });
 
         // 2. Track cost_price on every stock movement (in/out)
         Schema::table('stock_movements', function (Blueprint $table) {
-            if (!Schema::hasColumn('stock_movements', 'cost_price')) {
+            if (! Schema::hasColumn('stock_movements', 'cost_price')) {
                 $table->decimal('cost_price', 15, 4)->default(0)->after('quantity');
             }
-            if (!Schema::hasColumn('stock_movements', 'cost_total')) {
+            if (! Schema::hasColumn('stock_movements', 'cost_total')) {
                 $table->decimal('cost_total', 15, 4)->default(0)->after('cost_price');
             }
             // to_warehouse_id may not exist yet — add if missing
-            if (!Schema::hasColumn('stock_movements', 'to_warehouse_id')) {
+            if (! Schema::hasColumn('stock_movements', 'to_warehouse_id')) {
                 $table->foreignId('to_warehouse_id')->nullable()->after('warehouse_id');
             }
         });
 
         // 3. Track cost_price on product batches
         Schema::table('product_batches', function (Blueprint $table) {
-            if (!Schema::hasColumn('product_batches', 'cost_price')) {
+            if (! Schema::hasColumn('product_batches', 'cost_price')) {
                 $table->decimal('cost_price', 15, 4)->default(0)->after('quantity');
             }
-            if (!Schema::hasColumn('product_batches', 'quantity_remaining')) {
+            if (! Schema::hasColumn('product_batches', 'quantity_remaining')) {
                 $table->decimal('quantity_remaining', 10, 4)->nullable()->after('cost_price');
             }
         });
 
         // 4. Running average cost per product per warehouse (for AVCO)
-        if (!Schema::hasTable('product_avg_costs')) {
+        if (! Schema::hasTable('product_avg_costs')) {
             Schema::create('product_avg_costs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
@@ -55,7 +55,7 @@ return new class extends Migration
         }
 
         // 5. COGS ledger — one row per sale/out movement
-        if (!Schema::hasTable('cogs_entries')) {
+        if (! Schema::hasTable('cogs_entries')) {
             Schema::create('cogs_entries', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

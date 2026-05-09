@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
+use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Invoice;
 use App\Models\KpiTarget;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
-use App\Models\Invoice;
-use App\Models\Customer;
-use App\Models\Employee;
-use App\Models\Attendance;
-use App\Models\Payable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -20,14 +19,14 @@ class KpiController extends Controller
     public static function availableMetrics(): array
     {
         return [
-            'revenue'        => ['label' => 'Pendapatan',          'unit' => 'currency'],
-            'orders'         => ['label' => 'Jumlah Order',        'unit' => 'number'],
-            'profit'         => ['label' => 'Laba Bersih',         'unit' => 'currency'],
-            'new_customers'  => ['label' => 'Pelanggan Baru',      'unit' => 'number'],
-            'expense'        => ['label' => 'Total Pengeluaran',   'unit' => 'currency'],
-            'overdue_ar'     => ['label' => 'AR Jatuh Tempo',      'unit' => 'currency'],
-            'attendance_rate'=> ['label' => 'Tingkat Kehadiran',   'unit' => 'percent'],
-            'avg_order_value'=> ['label' => 'Rata-rata Nilai Order','unit' => 'currency'],
+            'revenue' => ['label' => 'Pendapatan',          'unit' => 'currency'],
+            'orders' => ['label' => 'Jumlah Order',        'unit' => 'number'],
+            'profit' => ['label' => 'Laba Bersih',         'unit' => 'currency'],
+            'new_customers' => ['label' => 'Pelanggan Baru',      'unit' => 'number'],
+            'expense' => ['label' => 'Total Pengeluaran',   'unit' => 'currency'],
+            'overdue_ar' => ['label' => 'AR Jatuh Tempo',      'unit' => 'currency'],
+            'attendance_rate' => ['label' => 'Tingkat Kehadiran',   'unit' => 'percent'],
+            'avg_order_value' => ['label' => 'Rata-rata Nilai Order', 'unit' => 'currency'],
         ];
     }
 
@@ -36,11 +35,11 @@ class KpiController extends Controller
     public function index(Request $request)
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $period = $request->get('period', now()->format('Y-m'));
 
-        $kpis    = $this->buildKpiData($tenantId, $period);
+        $kpis = $this->buildKpiData($tenantId, $period);
         $targets = KpiTarget::where('tenant_id', $tenantId)
             ->where('period', $period)
             ->where('is_active', true)
@@ -71,18 +70,18 @@ class KpiController extends Controller
     public function drilldown(Request $request, string $metric)
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $period = $request->get('period', now()->format('Y-m'));
         [$year, $month] = explode('-', $period);
 
         $data = match ($metric) {
-            'revenue', 'orders', 'avg_order_value' => $this->drillRevenue($tenantId, (int)$year, (int)$month),
-            'profit', 'expense'                    => $this->drillFinance($tenantId, (int)$year, (int)$month),
-            'new_customers'                        => $this->drillCustomers($tenantId, (int)$year, (int)$month),
-            'overdue_ar'                           => $this->drillOverdueAr($tenantId),
-            'attendance_rate'                      => $this->drillAttendance($tenantId, (int)$year, (int)$month),
-            default                                => [],
+            'revenue', 'orders', 'avg_order_value' => $this->drillRevenue($tenantId, (int) $year, (int) $month),
+            'profit', 'expense' => $this->drillFinance($tenantId, (int) $year, (int) $month),
+            'new_customers' => $this->drillCustomers($tenantId, (int) $year, (int) $month),
+            'overdue_ar' => $this->drillOverdueAr($tenantId),
+            'attendance_rate' => $this->drillAttendance($tenantId, (int) $year, (int) $month),
+            default => [],
         };
 
         return response()->json($data);
@@ -93,27 +92,27 @@ class KpiController extends Controller
     public function store(Request $request)
     {
         $tenantId = $request->user()->tenant_id;
-        abort_if(!$tenantId, 403);
+        abort_if(! $tenantId, 403);
 
         $validated = $request->validate([
-            'metric' => 'required|string|in:' . implode(',', array_keys(self::availableMetrics())),
+            'metric' => 'required|string|in:'.implode(',', array_keys(self::availableMetrics())),
             'period' => 'required|string|regex:/^\d{4}-\d{2}$/',
             'target' => 'required|numeric|min:0',
-            'color'  => 'nullable|string|max:20',
+            'color' => 'nullable|string|max:20',
         ]);
 
         $metrics = self::availableMetrics();
-        $kpis    = $this->buildKpiData($tenantId, $validated['period']);
-        $actual  = $kpis[$validated['metric']]['actual'] ?? 0;
+        $kpis = $this->buildKpiData($tenantId, $validated['period']);
+        $actual = $kpis[$validated['metric']]['actual'] ?? 0;
 
         KpiTarget::updateOrCreate(
             ['tenant_id' => $tenantId, 'metric' => $validated['metric'], 'period' => $validated['period']],
             [
-                'label'     => $metrics[$validated['metric']]['label'],
-                'unit'      => $metrics[$validated['metric']]['unit'],
-                'target'    => $validated['target'],
-                'actual'    => $actual,
-                'color'     => $validated['color'] ?? '#3b82f6',
+                'label' => $metrics[$validated['metric']]['label'],
+                'unit' => $metrics[$validated['metric']]['unit'],
+                'target' => $validated['target'],
+                'actual' => $actual,
+                'color' => $validated['color'] ?? '#3b82f6',
                 'is_active' => true,
             ]
         );
@@ -125,6 +124,7 @@ class KpiController extends Controller
     {
         abort_if($kpiTarget->tenant_id !== $request->user()->tenant_id, 403);
         $kpiTarget->delete();
+
         return back()->with('success', 'Target KPI dihapus.');
     }
 
@@ -133,8 +133,8 @@ class KpiController extends Controller
     private function buildKpiData(int $tenantId, string $period): array
     {
         [$year, $month] = explode('-', $period);
-        $y = (int)$year;
-        $m = (int)$month;
+        $y = (int) $year;
+        $m = (int) $month;
 
         $revenue = SalesOrder::where('tenant_id', $tenantId)
             ->whereNotIn('status', ['cancelled'])
@@ -161,22 +161,22 @@ class KpiController extends Controller
             ->sum('remaining_amount');
 
         $totalEmployees = Employee::where('tenant_id', $tenantId)->where('status', 'active')->count();
-        $presentDays    = Attendance::where('tenant_id', $tenantId)
+        $presentDays = Attendance::where('tenant_id', $tenantId)
             ->whereYear('date', $y)->whereMonth('date', $m)
             ->where('status', 'present')->count();
-        $workingDays    = Attendance::where('tenant_id', $tenantId)
+        $workingDays = Attendance::where('tenant_id', $tenantId)
             ->whereYear('date', $y)->whereMonth('date', $m)->count();
         $attendanceRate = $workingDays > 0 ? round($presentDays / $workingDays * 100, 1) : 0;
 
         $avgOrderValue = $orders > 0 ? round($revenue / $orders, 2) : 0;
 
         return [
-            'revenue'         => ['actual' => $revenue,        'label' => 'Pendapatan',           'unit' => 'currency'],
-            'orders'          => ['actual' => $orders,         'label' => 'Jumlah Order',          'unit' => 'number'],
-            'profit'          => ['actual' => $income - $expense, 'label' => 'Laba Bersih',        'unit' => 'currency'],
-            'new_customers'   => ['actual' => $newCustomers,   'label' => 'Pelanggan Baru',        'unit' => 'number'],
-            'expense'         => ['actual' => $expense,        'label' => 'Total Pengeluaran',     'unit' => 'currency'],
-            'overdue_ar'      => ['actual' => $overdueAr,      'label' => 'AR Jatuh Tempo',        'unit' => 'currency'],
+            'revenue' => ['actual' => $revenue,        'label' => 'Pendapatan',           'unit' => 'currency'],
+            'orders' => ['actual' => $orders,         'label' => 'Jumlah Order',          'unit' => 'number'],
+            'profit' => ['actual' => $income - $expense, 'label' => 'Laba Bersih',        'unit' => 'currency'],
+            'new_customers' => ['actual' => $newCustomers,   'label' => 'Pelanggan Baru',        'unit' => 'number'],
+            'expense' => ['actual' => $expense,        'label' => 'Total Pengeluaran',     'unit' => 'currency'],
+            'overdue_ar' => ['actual' => $overdueAr,      'label' => 'AR Jatuh Tempo',        'unit' => 'currency'],
             'attendance_rate' => ['actual' => $attendanceRate, 'label' => 'Tingkat Kehadiran',     'unit' => 'percent'],
             'avg_order_value' => ['actual' => $avgOrderValue,  'label' => 'Rata-rata Nilai Order', 'unit' => 'currency'],
         ];
@@ -187,33 +187,34 @@ class KpiController extends Controller
         $trend = [];
         for ($i = 5; $i >= 0; $i--) {
             $d = now()->subMonths($i);
-            $y = (int)$d->year;
-            $m = (int)$d->month;
+            $y = (int) $d->year;
+            $m = (int) $d->month;
 
             $revenue = SalesOrder::where('tenant_id', $tenantId)
                 ->whereNotIn('status', ['cancelled'])
                 ->whereYear('date', $y)->whereMonth('date', $m)->sum('total');
 
-            $income  = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
+            $income = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
                 ->whereYear('date', $y)->whereMonth('date', $m)->sum('amount');
             $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
                 ->whereYear('date', $y)->whereMonth('date', $m)->sum('amount');
 
             $trend[] = [
-                'month'   => $d->format('M Y'),
+                'month' => $d->format('M Y'),
                 'revenue' => $revenue,
-                'profit'  => $income - $expense,
+                'profit' => $income - $expense,
                 'expense' => $expense,
             ];
         }
+
         return $trend;
     }
 
     private function buildDrilldown(int $tenantId, string $period): array
     {
         [$year, $month] = explode('-', $period);
-        $y = (int)$year;
-        $m = (int)$month;
+        $y = (int) $year;
+        $m = (int) $month;
 
         // Top 5 customers by revenue this period
         $topCustomers = SalesOrder::where('tenant_id', $tenantId)
@@ -252,11 +253,12 @@ class KpiController extends Controller
         $labels = $data = [];
         for ($d = 1; $d <= $daysInMonth; $d++) {
             $labels[] = $d;
-            $data[]   = (float) SalesOrder::where('tenant_id', $tenantId)
+            $data[] = (float) SalesOrder::where('tenant_id', $tenantId)
                 ->whereNotIn('status', ['cancelled'])
                 ->whereYear('date', $y)->whereMonth('date', $m)->whereDay('date', $d)
                 ->sum('total');
         }
+
         return ['labels' => $labels, 'data' => $data, 'type' => 'bar', 'label' => 'Pendapatan Harian'];
     }
 
@@ -270,9 +272,9 @@ class KpiController extends Controller
 
         return [
             'labels' => $categories->pluck('cat')->toArray(),
-            'data'   => $categories->pluck('total')->map(fn($v) => (float)$v)->toArray(),
-            'type'   => 'doughnut',
-            'label'  => 'Pengeluaran per Kategori',
+            'data' => $categories->pluck('total')->map(fn ($v) => (float) $v)->toArray(),
+            'type' => 'doughnut',
+            'label' => 'Pengeluaran per Kategori',
         ];
     }
 
@@ -288,6 +290,7 @@ class KpiController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $labels[] = Carbon::create($y, $m)->subMonths($i)->format('M Y');
         }
+
         return ['labels' => $labels, 'data' => $data, 'type' => 'line', 'label' => 'Pelanggan Baru'];
     }
 
@@ -296,29 +299,31 @@ class KpiController extends Controller
         $buckets = ['current' => 0, '1-30' => 0, '31-60' => 0, '61-90' => 0, '90+' => 0];
         Invoice::where('tenant_id', $tenantId)->whereIn('status', ['unpaid', 'partial'])->get()
             ->each(function ($inv) use (&$buckets) {
-                $buckets[$inv->agingBucket()] = ($buckets[$inv->agingBucket()] ?? 0) + (float)$inv->remaining_amount;
+                $buckets[$inv->agingBucket()] = ($buckets[$inv->agingBucket()] ?? 0) + (float) $inv->remaining_amount;
             });
+
         return [
             'labels' => array_keys($buckets),
-            'data'   => array_values($buckets),
-            'type'   => 'bar',
-            'label'  => 'AR Aging (Rp)',
+            'data' => array_values($buckets),
+            'type' => 'bar',
+            'label' => 'AR Aging (Rp)',
         ];
     }
 
     private function drillAttendance(int $tenantId, int $y, int $m): array
     {
         $statuses = ['present', 'late', 'absent', 'leave', 'sick'];
-        $data     = [];
+        $data = [];
         foreach ($statuses as $s) {
             $data[] = Attendance::where('tenant_id', $tenantId)
                 ->whereYear('date', $y)->whereMonth('date', $m)->where('status', $s)->count();
         }
+
         return [
             'labels' => ['Hadir', 'Terlambat', 'Absen', 'Cuti', 'Sakit'],
-            'data'   => $data,
-            'type'   => 'doughnut',
-            'label'  => 'Kehadiran',
+            'data' => $data,
+            'type' => 'doughnut',
+            'label' => 'Kehadiran',
         ];
     }
 }

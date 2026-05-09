@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AiTourSession extends Model
 {
-use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -64,7 +64,7 @@ use HasFactory, BelongsToTenant;
     {
         $completedSteps = $this->completed_steps ?? [];
 
-        if (!in_array($step, $completedSteps)) {
+        if (! in_array($step, $completedSteps)) {
             $completedSteps[] = $step;
             $this->update([
                 'completed_steps' => $completedSteps,

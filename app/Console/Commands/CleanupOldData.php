@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Services\AutomatedBackupService;
-use App\Services\UndoRollbackService;
 use App\Services\RestorePointService;
+use App\Services\UndoRollbackService;
 use Illuminate\Console\Command;
 
 class CleanupOldData extends Command
@@ -20,7 +20,9 @@ class CleanupOldData extends Command
     protected $description = 'Cleanup old backups, restore points, and action logs';
 
     protected $backupService;
+
     protected $undoService;
+
     protected $restorePointService;
 
     public function __construct(

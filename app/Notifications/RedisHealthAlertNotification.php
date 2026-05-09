@@ -6,7 +6,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\DatabaseMessage;
 
 /**
  * Redis Health Alert Notification
@@ -20,15 +19,11 @@ class RedisHealthAlertNotification extends Notification implements ShouldQueue
 
     /**
      * Alert title
-     *
-     * @var string
      */
     private string $title;
 
     /**
      * Alert details
-     *
-     * @var array
      */
     private array $details;
 
@@ -73,7 +68,7 @@ class RedisHealthAlertNotification extends Notification implements ShouldQueue
             ->subject($subject)
             ->greeting("Redis Health Alert - {$severity}")
             ->line($this->title)
-            ->line('Environment: ' . app()->environment());
+            ->line('Environment: '.app()->environment());
 
         // Add specific details based on alert type
         if (isset($this->details['unhealthy_connections'])) {
@@ -108,7 +103,7 @@ class RedisHealthAlertNotification extends Notification implements ShouldQueue
         }
 
         $mailMessage->line('Please check the Redis configuration and server status.')
-            ->line('Timestamp: ' . now()->toDateTimeString());
+            ->line('Timestamp: '.now()->toDateTimeString());
 
         return $mailMessage;
     }

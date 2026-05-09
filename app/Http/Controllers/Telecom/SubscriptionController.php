@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Telecom;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\NetworkDevice;
 use App\Models\InternetPackage;
+use App\Models\NetworkDevice;
 use App\Models\TelecomSubscription;
+use App\Services\Telecom\RouterAdapterFactory;
+use App\Services\Telecom\UsageTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -53,8 +55,9 @@ class SubscriptionController extends Controller
             'active' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'active')->count(),
             'suspended' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'suspended')->count(),
             'expired' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'expired')->count(),
-            'monthly_revenue' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)
-                ->where('status', 'active')
+            'monthly_revenue' => TelecomSubscription::withoutGlobalScopes()
+                ->where('telecom_subscriptions.tenant_id', auth()->user()->tenant_id)
+                ->where('telecom_subscriptions.status', 'active')
                 ->join('internet_packages', 'telecom_subscriptions.package_id', '=', 'internet_packages.id')
                 ->sum('internet_packages.price'),
         ];
@@ -137,7 +140,6 @@ class SubscriptionController extends Controller
 
             return redirect()->route('telecom.subscriptions.show', $subscription)
                 ->with('success', 'Subscription berhasil dibuat.');
-
         } catch (\Exception $e) {
             return back()->withInput()
                 ->withErrors(['error' => 'Gagal membuat subscription: ' . $e->getMessage()]);
@@ -156,7 +158,7 @@ class SubscriptionController extends Controller
         $subscription->load(['customer', 'package', 'device']);
 
         // Get usage summary
-        $usageService = new \App\Services\Telecom\UsageTrackingService();
+        $usageService = new UsageTrackingService;
         $usageSummary = $usageService->getUsageSummary($subscription, 'monthly');
 
         return view('telecom.subscriptions.show', compact('subscription', 'usageSummary'));
@@ -199,7 +201,6 @@ class SubscriptionController extends Controller
 
             return redirect()->route('telecom.subscriptions.show', $subscription)
                 ->with('success', 'Subscription berhasil diupdate.');
-
         } catch (\Exception $e) {
             return back()->withInput()
                 ->withErrors(['error' => 'Gagal mengupdate subscription: ' . $e->getMessage()]);
@@ -220,10 +221,10 @@ class SubscriptionController extends Controller
         // Optionally disconnect user from router
         if ($subscription->hotspot_username) {
             try {
-                $adapter = \App\Services\Telecom\RouterAdapterFactory::create($subscription->device);
+                $adapter = RouterAdapterFactory::create($subscription->device);
                 $adapter->disconnectUser($subscription->hotspot_username);
             } catch (\Exception $e) {
-                \Log::warning("Failed to disconnect user on suspend: " . $e->getMessage());
+                \Log::warning('Failed to disconnect user on suspend: ' . $e->getMessage());
             }
         }
 
@@ -257,6 +258,7 @@ class SubscriptionController extends Controller
 
         return back()->with('success', 'Quota berhasil direset.');
     }
+
     /**
      * Remove the specified subscription.
      */

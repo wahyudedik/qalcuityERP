@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - QC Laboratory Module.
      */
     public function up(): void
     {
         // 1. QC Test Templates - Standard test procedures (MUST BE FIRST)
-        if (!Schema::hasTable('qc_test_templates')) {
+        if (! Schema::hasTable('qc_test_templates')) {
             Schema::create('qc_test_templates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -24,13 +25,13 @@ return new class extends Migration {
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'test_category']);
             });
         }
 
         // 2. QC Test Results - Individual test results
-        if (!Schema::hasTable('qc_test_results')) {
+        if (! Schema::hasTable('qc_test_results')) {
             Schema::create('qc_test_results', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -51,7 +52,7 @@ return new class extends Migration {
                 $table->string('status')->default('draft'); // draft, completed, approved, rejected
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'test_category']);
                 $table->index(['tenant_id', 'result']);
                 $table->index(['tenant_id', 'test_date']);
@@ -59,7 +60,7 @@ return new class extends Migration {
         }
 
         // 3. COA Certificates - Certificate of Analysis
-        if (!Schema::hasTable('coa_certificates')) {
+        if (! Schema::hasTable('coa_certificates')) {
             Schema::create('coa_certificates', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -74,14 +75,14 @@ return new class extends Migration {
                 $table->string('status')->default('draft'); // draft, issued, approved, revoked
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'issue_date']);
             });
         }
 
         // 4. OOS Investigations - Out of Specification
-        if (!Schema::hasTable('oos_investigations')) {
+        if (! Schema::hasTable('oos_investigations')) {
             Schema::create('oos_investigations', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -101,7 +102,7 @@ return new class extends Migration {
                 $table->timestamp('completion_date')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'severity']);
             });

@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations - Cosmetic Formula Management Tables
      */
     public function up(): void
     {
         // 1. Cosmetic Formulas - Master formula records
-        if (!Schema::hasTable('cosmetic_formulas')) {
+        if (! Schema::hasTable('cosmetic_formulas')) {
             Schema::create('cosmetic_formulas', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -41,7 +42,7 @@ return new class extends Migration {
         }
 
         // 2. Formula Ingredients - INCI ingredient tracking
-        if (!Schema::hasTable('formula_ingredients')) {
+        if (! Schema::hasTable('formula_ingredients')) {
             Schema::create('formula_ingredients', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -66,7 +67,7 @@ return new class extends Migration {
         }
 
         // 3. Formula Versions - Track formula revisions
-        if (!Schema::hasTable('formula_versions')) {
+        if (! Schema::hasTable('formula_versions')) {
             Schema::create('formula_versions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -84,7 +85,7 @@ return new class extends Migration {
         }
 
         // 4. Stability Tests - Accelerated & real-time stability testing
-        if (!Schema::hasTable('stability_tests')) {
+        if (! Schema::hasTable('stability_tests')) {
             Schema::create('stability_tests', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');

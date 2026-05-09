@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // 1. Action Logs (for undo/rollback)
-        if (!Schema::hasTable('action_logs')) {
+        if (! Schema::hasTable('action_logs')) {
             Schema::create('action_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -28,7 +29,7 @@ return new class extends Migration {
                 $table->foreignId('undone_by_user_id')->nullable()->constrained('users')->onDelete('set null');
                 $table->timestamp('expires_at')->nullable(); // Auto-expire old logs
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'user_id']);
                 $table->index(['tenant_id', 'action_type']);
                 $table->index(['tenant_id', 'model_type', 'model_id']);
@@ -37,7 +38,7 @@ return new class extends Migration {
         }
 
         // 2. Automated Backups
-        if (!Schema::hasTable('automated_backups')) {
+        if (! Schema::hasTable('automated_backups')) {
             Schema::create('automated_backups', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -52,7 +53,7 @@ return new class extends Migration {
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamp('expires_at')->nullable(); // Auto-delete old backups
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'backup_type']);
                 $table->index(['tenant_id', 'status']);
                 $table->index('created_at');
@@ -60,7 +61,7 @@ return new class extends Migration {
         }
 
         // 3. Restore Points (Before major changes)
-        if (!Schema::hasTable('restore_points')) {
+        if (! Schema::hasTable('restore_points')) {
             Schema::create('restore_points', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -75,14 +76,14 @@ return new class extends Migration {
                 $table->timestamp('used_at')->nullable();
                 $table->timestamp('expires_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'is_active']);
                 $table->index('created_at');
             });
         }
 
         // 4. Conflict Resolution (Multi-user edits)
-        if (!Schema::hasTable('edit_conflicts')) {
+        if (! Schema::hasTable('edit_conflicts')) {
             Schema::create('edit_conflicts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -101,14 +102,14 @@ return new class extends Migration {
                 $table->timestamp('detected_at');
                 $table->timestamp('resolved_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['model_type', 'model_id']);
             });
         }
 
         // 5. Error Logs with Actionable Solutions
-        if (!Schema::hasTable('error_logs_enhanced')) {
+        if (! Schema::hasTable('error_logs_enhanced')) {
             Schema::create('error_logs_enhanced', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->nullable()->constrained()->onDelete('set null');
@@ -126,7 +127,7 @@ return new class extends Migration {
                 $table->text('resolution_notes')->nullable();
                 $table->timestamp('resolved_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'error_type']);
                 $table->index(['tenant_id', 'severity']);
                 $table->index('created_at');
@@ -134,7 +135,7 @@ return new class extends Migration {
         }
 
         // 6. Recovery Queue (Failed operations to retry)
-        if (!Schema::hasTable('recovery_queue')) {
+        if (! Schema::hasTable('recovery_queue')) {
             Schema::create('recovery_queue', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -149,7 +150,7 @@ return new class extends Migration {
                 $table->timestamp('next_retry_at')->nullable();
                 $table->timestamp('completed_at')->nullable();
                 $table->timestamps();
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index('next_retry_at');
             });

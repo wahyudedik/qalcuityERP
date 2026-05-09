@@ -3,6 +3,7 @@
 namespace App\Services\Agent;
 
 use App\DTOs\Agent\AgentPlan;
+use App\DTOs\Agent\ErpContext;
 use App\DTOs\Agent\ExecutionContext;
 use App\Models\ChatSession;
 use App\Models\User;
@@ -25,12 +26,12 @@ use Illuminate\Support\Facades\Log;
 class AgentOrchestrator
 {
     public function __construct(
-        private readonly AgentPlanner        $planner,
-        private readonly AgentExecutor       $executor,
+        private readonly AgentPlanner $planner,
+        private readonly AgentExecutor $executor,
         private readonly AgentContextBuilder $contextBuilder,
-        private readonly SkillRouter         $skillRouter,
-        private readonly AiMemoryService     $memory,
-        private readonly GeminiService       $gemini,
+        private readonly SkillRouter $skillRouter,
+        private readonly AiMemoryService $memory,
+        private readonly GeminiService $gemini,
     ) {}
 
     /**
@@ -63,7 +64,7 @@ class AgentOrchestrator
 
             // ── 2. Build ErpContext ───────────────────────────────────────────
             $activeModules = $this->resolveActiveModules($session);
-            $erpContext    = $this->contextBuilder->build($tenantId, $activeModules);
+            $erpContext = $this->contextBuilder->build($tenantId, $activeModules);
 
             // Simpan snapshot ke session
             $session->erp_context_snapshot = $erpContext->kpiSummary;
@@ -73,15 +74,16 @@ class AgentOrchestrator
             $memoryContext = $this->memory->buildMemoryContext($tenantId, $user->id);
 
             // ── 4. Detect skills ──────────────────────────────────────────────
-            $skills      = $this->skillRouter->detectSkills($message, $activeModules);
+            $skills = $this->skillRouter->detectSkills($message, $activeModules);
             $skillPrompt = $this->skillRouter->buildSkillPrompt($skills, $erpContext);
 
             // ── 5. Cek apakah perlu planning ──────────────────────────────────
             $requiresPlanning = $this->planner->requiresPlanning($message);
 
-            if (!$requiresPlanning) {
+            if (! $requiresPlanning) {
                 // Single-turn: langsung jawab via GeminiService
                 yield from $this->handleSingleTurn($message, $erpContext, $memoryContext, $skillPrompt, $session);
+
                 return;
             }
 
@@ -89,7 +91,7 @@ class AgentOrchestrator
             $session->execution_status = 'planning';
             $session->save();
 
-            $toolRegistry  = new ToolRegistry($tenantId, $user->id);
+            $toolRegistry = new ToolRegistry($tenantId, $user->id);
             $availableTools = $toolRegistry->getDeclarations();
 
             $plan = $this->planner->plan(
@@ -106,20 +108,20 @@ class AgentOrchestrator
             // Yield plan_summary
             yield [
                 'event' => 'plan_summary',
-                'data'  => [
-                    'plan'          => $this->serializePlan($plan),
+                'data' => [
+                    'plan' => $this->serializePlan($plan),
                     'has_write_ops' => $plan->hasWriteOps,
                 ],
             ];
 
             // ── 7. Approval Gate ──────────────────────────────────────────────
-            if ($plan->hasWriteOps && !$confirmed) {
+            if ($plan->hasWriteOps && ! $confirmed) {
                 $session->execution_status = 'awaiting_approval';
                 $session->save();
 
                 yield [
                     'event' => 'approval_required',
-                    'data'  => ['plan' => $this->serializePlan($plan)],
+                    'data' => ['plan' => $this->serializePlan($plan)],
                 ];
 
                 return; // STOP — tunggu konfirmasi user
@@ -131,10 +133,10 @@ class AgentOrchestrator
 
             $this->executor->setUser($user, $tenantId, $session->id);
 
-            $executionContext = new ExecutionContext();
-            $completedSteps  = [];
-            $failedStep      = null;
-            $allSucceeded    = true;
+            $executionContext = new ExecutionContext;
+            $completedSteps = [];
+            $failedStep = null;
+            $allSucceeded = true;
 
             foreach ($plan->steps as $step) {
                 // Cek flag is_cancelled sebelum setiap langkah
@@ -146,7 +148,7 @@ class AgentOrchestrator
                 // Yield step_started
                 yield [
                     'event' => 'step_started',
-                    'data'  => [
+                    'data' => [
                         'step' => $step->order,
                         'name' => $step->name,
                     ],
@@ -157,33 +159,33 @@ class AgentOrchestrator
 
                 if ($stepResult->isSuccess()) {
                     $completedSteps[] = [
-                        'step'   => $step->order,
-                        'name'   => $step->name,
+                        'step' => $step->order,
+                        'name' => $step->name,
                         'status' => 'success',
                         'output' => $stepResult->output,
                     ];
 
                     yield [
                         'event' => 'step_completed',
-                        'data'  => [
-                            'step'   => $step->order,
-                            'name'   => $step->name,
+                        'data' => [
+                            'step' => $step->order,
+                            'name' => $step->name,
                             'output' => $stepResult->output,
                         ],
                     ];
                 } else {
                     $allSucceeded = false;
-                    $failedStep   = [
-                        'step'  => $step->order,
-                        'name'  => $step->name,
+                    $failedStep = [
+                        'step' => $step->order,
+                        'name' => $step->name,
                         'error' => $stepResult->errorMessage,
                     ];
 
                     yield [
                         'event' => 'step_failed',
-                        'data'  => [
-                            'step'  => $step->order,
-                            'name'  => $step->name,
+                        'data' => [
+                            'step' => $step->order,
+                            'name' => $step->name,
                             'error' => $stepResult->errorMessage,
                         ],
                     ];
@@ -194,7 +196,7 @@ class AgentOrchestrator
             }
 
             // ── 9. Update memory jika semua langkah berhasil ─────────────────
-            if ($allSucceeded && !$session->is_cancelled) {
+            if ($allSucceeded && ! $session->is_cancelled) {
                 try {
                     $this->saveTaskPattern($tenantId, $user->id, $plan);
                 } catch (\Throwable $e) {
@@ -209,45 +211,45 @@ class AgentOrchestrator
             $session->save();
 
             // ── 10. Yield task_summary ────────────────────────────────────────
-            $actions = array_map(fn($s) => [
-                'step'   => $s['step'],
-                'name'   => $s['name'],
+            $actions = array_map(fn ($s) => [
+                'step' => $s['step'],
+                'name' => $s['name'],
                 'status' => $s['status'],
             ], $completedSteps);
 
             yield [
                 'event' => 'task_summary',
-                'data'  => [
+                'data' => [
                     'completed' => count($completedSteps),
-                    'failed'    => $failedStep !== null ? 1 : 0,
+                    'failed' => $failedStep !== null ? 1 : 0,
                     'cancelled' => $session->is_cancelled,
-                    'actions'   => $actions,
+                    'actions' => $actions,
                     'failed_step' => $failedStep,
                 ],
             ];
 
         } catch (\Throwable $e) {
             Log::error('AgentOrchestrator: error tidak terduga', [
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'session_id' => $session->id,
-                'user_id'    => $user->id,
+                'user_id' => $user->id,
             ]);
 
             yield [
                 'event' => 'step_failed',
-                'data'  => [
-                    'step'  => 0,
-                    'error' => 'Terjadi kesalahan tidak terduga: ' . $e->getMessage(),
+                'data' => [
+                    'step' => 0,
+                    'error' => 'Terjadi kesalahan tidak terduga: '.$e->getMessage(),
                 ],
             ];
 
             yield [
                 'event' => 'task_summary',
-                'data'  => [
-                    'completed'   => 0,
-                    'failed'      => 1,
-                    'cancelled'   => false,
-                    'actions'     => [],
+                'data' => [
+                    'completed' => 0,
+                    'failed' => 1,
+                    'cancelled' => false,
+                    'actions' => [],
                     'failed_step' => ['error' => $e->getMessage()],
                 ],
             ];
@@ -263,7 +265,7 @@ class AgentOrchestrator
      */
     public function cancel(ChatSession $session): void
     {
-        $session->is_cancelled     = true;
+        $session->is_cancelled = true;
         $session->execution_status = 'cancelled';
         $session->save();
 
@@ -280,7 +282,7 @@ class AgentOrchestrator
      */
     private function handleSingleTurn(
         string $message,
-        \App\DTOs\Agent\ErpContext $erpContext,
+        ErpContext $erpContext,
         string $memoryContext,
         string $skillPrompt,
         ChatSession $session,
@@ -290,7 +292,7 @@ class AgentOrchestrator
 
         try {
             $contextPrompt = $erpContext->toSystemPrompt();
-            $fullContext   = implode("\n\n", array_filter([
+            $fullContext = implode("\n\n", array_filter([
                 $contextPrompt,
                 $memoryContext,
                 $skillPrompt,
@@ -304,12 +306,12 @@ class AgentOrchestrator
 
             yield [
                 'event' => 'task_summary',
-                'data'  => [
-                    'completed'   => 1,
-                    'failed'      => 0,
-                    'cancelled'   => false,
-                    'actions'     => [],
-                    'response'    => $text,
+                'data' => [
+                    'completed' => 1,
+                    'failed' => 0,
+                    'cancelled' => false,
+                    'actions' => [],
+                    'response' => $text,
                     'single_turn' => true,
                 ],
             ];
@@ -320,12 +322,12 @@ class AgentOrchestrator
 
             yield [
                 'event' => 'task_summary',
-                'data'  => [
-                    'completed'   => 0,
-                    'failed'      => 1,
-                    'cancelled'   => false,
-                    'actions'     => [],
-                    'error'       => $e->getMessage(),
+                'data' => [
+                    'completed' => 0,
+                    'failed' => 1,
+                    'cancelled' => false,
+                    'actions' => [],
+                    'error' => $e->getMessage(),
                     'single_turn' => true,
                 ],
             ];
@@ -355,16 +357,16 @@ class AgentOrchestrator
     private function serializePlan(AgentPlan $plan): array
     {
         return [
-            'goal'          => $plan->goal,
-            'summary'       => $plan->summary,
+            'goal' => $plan->goal,
+            'summary' => $plan->summary,
             'has_write_ops' => $plan->hasWriteOps,
-            'language'      => $plan->language,
-            'steps'         => array_map(fn($step) => [
-                'order'          => $step->order,
-                'name'           => $step->name,
-                'tool_name'      => $step->toolName,
-                'args'           => $step->args,
-                'is_write_op'    => $step->isWriteOp,
+            'language' => $plan->language,
+            'steps' => array_map(fn ($step) => [
+                'order' => $step->order,
+                'name' => $step->name,
+                'tool_name' => $step->toolName,
+                'args' => $step->args,
+                'is_write_op' => $step->isWriteOp,
                 'depends_on_step' => $step->dependsOnStep,
             ], $plan->steps),
         ];
@@ -380,10 +382,10 @@ class AgentOrchestrator
         $this->memory->recordAction(
             tenantId: $tenantId,
             userId: $userId,
-            action: 'task_pattern_' . md5($plan->goal),
+            action: 'task_pattern_'.md5($plan->goal),
             context: [
                 'value' => $plan->goal,
-                'name'  => $plan->summary,
+                'name' => $plan->summary,
             ],
         );
     }

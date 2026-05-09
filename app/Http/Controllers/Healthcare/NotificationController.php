@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\NotificationRule;
 use App\Models\Notification;
+use App\Models\NotificationRule;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -92,7 +92,7 @@ class NotificationController extends Controller
 
     public function toggle(NotificationRule $rule)
     {
-        $rule->update(['is_active' => !$rule->is_active]);
+        $rule->update(['is_active' => ! $rule->is_active]);
 
         return response()->json(['success' => true, 'message' => 'Rule toggled']);
     }
@@ -105,6 +105,7 @@ class NotificationController extends Controller
     public function destroy(NotificationRule $rule)
     {
         $rule->delete();
+
         return response()->json(['success' => true, 'message' => 'Rule deleted']);
     }
 }

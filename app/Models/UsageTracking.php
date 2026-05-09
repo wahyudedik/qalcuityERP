@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UsageTracking extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'subscription_id',
@@ -130,7 +130,7 @@ class UsageTracking extends Model
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**

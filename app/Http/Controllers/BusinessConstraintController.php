@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BusinessConstraint;
 use App\Models\ActivityLog;
+use App\Models\BusinessConstraint;
 use App\Services\BusinessConstraintService;
 use Illuminate\Http\Request;
 
@@ -11,7 +11,10 @@ class BusinessConstraintController extends Controller
 {
     public function __construct(private BusinessConstraintService $service) {}
 
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index()
     {
@@ -32,12 +35,12 @@ class BusinessConstraintController extends Controller
         abort_if($businessConstraint->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'value'     => 'required|string|max:100',
+            'value' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
 
         $businessConstraint->update([
-            'value'     => $data['value'],
+            'value' => $data['value'],
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -52,17 +55,17 @@ class BusinessConstraintController extends Controller
     {
         $tid = $this->tid();
         $data = $request->validate([
-            'constraints'           => 'required|array',
-            'constraints.*.id'      => 'required|exists:business_constraints,id',
-            'constraints.*.value'   => 'required|string|max:100',
-            'constraints.*.active'  => 'nullable|boolean',
+            'constraints' => 'required|array',
+            'constraints.*.id' => 'required|exists:business_constraints,id',
+            'constraints.*.value' => 'required|string|max:100',
+            'constraints.*.active' => 'nullable|boolean',
         ]);
 
         foreach ($data['constraints'] as $item) {
             $constraint = BusinessConstraint::where('tenant_id', $tid)->find($item['id']);
             if ($constraint) {
                 $constraint->update([
-                    'value'     => $item['value'],
+                    'value' => $item['value'],
                     'is_active' => isset($item['active']) ? (bool) $item['active'] : $constraint->is_active,
                 ]);
             }

@@ -23,8 +23,11 @@ class SecurityExportOwnershipTest extends TestCase
     use DatabaseTransactions;
 
     private Tenant $tenantA;
+
     private Tenant $tenantB;
+
     private User $userA;
+
     private User $userB;
 
     protected function setUp(): void
@@ -79,9 +82,9 @@ class SecurityExportOwnershipTest extends TestCase
         // Test ini AKAN GAGAL karena ExportService tidak memvalidasi tenant_id
         $this->assertNull(
             $result,
-            "Bug 1.26: ExportService mengizinkan download file export milik tenant A " .
-            "oleh user dari tenant B. Tidak ada validasi tenant_id di downloadExport(). " .
-            "Ini adalah kebocoran data antar tenant yang serius."
+            'Bug 1.26: ExportService mengizinkan download file export milik tenant A '.
+            'oleh user dari tenant B. Tidak ada validasi tenant_id di downloadExport(). '.
+            'Ini adalah kebocoran data antar tenant yang serius.'
         );
     }
 
@@ -95,8 +98,8 @@ class SecurityExportOwnershipTest extends TestCase
     {
         $exportServiceFile = 'app/Services/ExportService.php';
 
-        if (!file_exists($exportServiceFile)) {
-            $this->markTestSkipped("ExportService tidak ditemukan");
+        if (! file_exists($exportServiceFile)) {
+            $this->markTestSkipped('ExportService tidak ditemukan');
         }
 
         $content = file_get_contents($exportServiceFile);
@@ -119,9 +122,9 @@ class SecurityExportOwnershipTest extends TestCase
         // Test ini AKAN GAGAL karena downloadExport tidak memvalidasi tenant_id
         $this->assertTrue(
             $hasTenantValidation,
-            "Bug 1.26: ExportService.downloadExport() tidak memvalidasi tenant_id. " .
-            "Siapapun yang mengetahui job_id bisa mendownload file export tenant lain. " .
-            "Kode downloadExport yang ditemukan: " . substr($methodCode, 0, 300)
+            'Bug 1.26: ExportService.downloadExport() tidak memvalidasi tenant_id. '.
+            'Siapapun yang mengetahui job_id bisa mendownload file export tenant lain. '.
+            'Kode downloadExport yang ditemukan: '.substr($methodCode, 0, 300)
         );
     }
 
@@ -143,14 +146,14 @@ class SecurityExportOwnershipTest extends TestCase
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
             $jobId1,
-            "job_id seharusnya menggunakan UUID format"
+            'job_id seharusnya menggunakan UUID format'
         );
 
         // Verifikasi bahwa dua UUID berbeda (tidak sequential)
         $this->assertNotEquals(
             $jobId1,
             $jobId2,
-            "Bug 1.26: job_id seharusnya unik dan tidak bisa ditebak"
+            'Bug 1.26: job_id seharusnya unik dan tidak bisa ditebak'
         );
 
         // Verifikasi bahwa ExportService menggunakan Str::uuid()
@@ -160,7 +163,7 @@ class SecurityExportOwnershipTest extends TestCase
             $this->assertStringContainsString(
                 'Str::uuid()',
                 $content,
-                "Bug 1.26: ExportService seharusnya menggunakan Str::uuid() untuk job_id"
+                'Bug 1.26: ExportService seharusnya menggunakan Str::uuid() untuk job_id'
             );
         }
     }

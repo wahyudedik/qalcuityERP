@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CoaCertificate extends Model
 {
@@ -47,7 +46,7 @@ class CoaCertificate extends Model
     // Check if COA is valid
     public function isValid(): bool
     {
-        return $this->status === 'approved' && (!$this->expiry_date || $this->expiry_date->isFuture());
+        return $this->status === 'approved' && (! $this->expiry_date || $this->expiry_date->isFuture());
     }
 
     // Check if expired
@@ -76,7 +75,7 @@ class CoaCertificate extends Model
     public function revoke(string $reason = ''): void
     {
         $this->status = 'revoked';
-        $this->conclusion = ($this->conclusion ? $this->conclusion . "\n\n" : '') . 'Revoked: ' . $reason;
+        $this->conclusion = ($this->conclusion ? $this->conclusion."\n\n" : '').'Revoked: '.$reason;
         $this->save();
     }
 
@@ -98,6 +97,7 @@ class CoaCertificate extends Model
         }
 
         $passed = collect($results)->where('result', 'pass')->count();
+
         return round(($passed / count($results)) * 100, 2);
     }
 
@@ -137,7 +137,8 @@ class CoaCertificate extends Model
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
-        return 'COA-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'COA-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     // Generate COA from batch

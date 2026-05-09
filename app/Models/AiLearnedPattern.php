@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AiLearnedPattern extends Model
 {
     use BelongsToTenant;
+
     protected $fillable = [
         'tenant_id',
         'user_id',
@@ -23,8 +23,8 @@ class AiLearnedPattern extends Model
 
     protected $casts = [
         'pattern_data' => 'array',
-        'confidence'   => 'float',
-        'analyzed_at'  => 'datetime',
+        'confidence' => 'float',
+        'analyzed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

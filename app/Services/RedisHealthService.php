@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use App\Models\User;
+use App\Notifications\RedisHealthAlertNotification;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Redis;
 use RedisException;
 
 /**
@@ -35,7 +37,7 @@ class RedisHealthService
     /**
      * Test Redis connection and authentication
      *
-     * @param string $connection Redis connection name (default, cache, session, queue)
+     * @param  string  $connection  Redis connection name (default, cache, session, queue)
      * @return array Health check result with status and details
      */
     public function checkConnection(string $connection = 'default'): array
@@ -44,7 +46,7 @@ class RedisHealthService
 
         try {
             // Check if Redis is enabled
-            if (!$this->isRedisEnabled()) {
+            if (! $this->isRedisEnabled()) {
                 return [
                     'status' => 'disabled',
                     'healthy' => false,
@@ -54,7 +56,7 @@ class RedisHealthService
                     'details' => [
                         'redis_enabled' => false,
                         'fallback_available' => true,
-                    ]
+                    ],
                 ];
             }
 
@@ -65,8 +67,8 @@ class RedisHealthService
             $pingResult = $redis->ping();
 
             // Test authentication by attempting a simple operation
-            $testKey = 'health_check_' . time();
-            $testValue = 'test_value_' . uniqid();
+            $testKey = 'health_check_'.time();
+            $testValue = 'test_value_'.uniqid();
 
             // Set and get test value to verify full functionality
             $redis->setex($testKey, 10, $testValue);
@@ -86,7 +88,7 @@ class RedisHealthService
                         'ping_result' => $pingResult,
                         'auth_test' => 'passed',
                         'read_write_test' => 'passed',
-                    ]
+                    ],
                 ];
             } else {
                 throw new Exception('Redis read/write test failed');
@@ -113,7 +115,7 @@ class RedisHealthService
                 'details' => [
                     'error_type' => $isAuthError ? 'authentication' : 'connection',
                     'fallback_recommended' => true,
-                ]
+                ],
             ];
         } catch (Exception $e) {
             $responseTime = round((microtime(true) - $startTime) * 1000, 2);
@@ -133,7 +135,7 @@ class RedisHealthService
                 'details' => [
                     'error_type' => 'general',
                     'fallback_recommended' => true,
-                ]
+                ],
             ];
         }
     }
@@ -153,7 +155,7 @@ class RedisHealthService
             $result = $this->checkConnection($connection);
             $results[$connection] = $result;
 
-            if (!$result['healthy']) {
+            if (! $result['healthy']) {
                 $overallHealthy = false;
             }
         }
@@ -174,8 +176,9 @@ class RedisHealthService
     public function validateConfiguration(): bool
     {
         // If Redis is disabled, configuration is valid
-        if (!$this->isRedisEnabled()) {
+        if (! $this->isRedisEnabled()) {
             Log::info('Redis is disabled, using database fallback drivers');
+
             return true;
         }
 
@@ -187,7 +190,7 @@ class RedisHealthService
             'your_actual_redis_password_here',
             'null',
             null,
-            ''
+            '',
         ], true);
 
         if ($isPlaceholderPassword && app()->environment('production')) {
@@ -217,7 +220,7 @@ class RedisHealthService
             $healthCheck = $this->checkConnection($connection);
             $validationResults[$connection] = $healthCheck;
 
-            if (!$healthCheck['healthy']) {
+            if (! $healthCheck['healthy']) {
                 $overallValid = false;
 
                 Log::warning('Redis startup validation failed for connection', [
@@ -229,9 +232,9 @@ class RedisHealthService
             }
         }
 
-        if (!$overallValid) {
+        if (! $overallValid) {
             Log::error('Redis startup validation failed', [
-                'failed_connections' => array_keys(array_filter($validationResults, fn($r) => !$r['healthy'])),
+                'failed_connections' => array_keys(array_filter($validationResults, fn ($r) => ! $r['healthy'])),
                 'environment' => app()->environment(),
                 'startup_validation' => true,
             ]);
@@ -256,16 +259,12 @@ class RedisHealthService
 
     /**
      * Get cached health status or perform fresh check
-     *
-     * @param string $connection
-     * @param bool $forceRefresh
-     * @return array
      */
     public function getCachedHealthStatus(string $connection = 'default', bool $forceRefresh = false): array
     {
-        $cacheKey = self::HEALTH_CACHE_KEY . '_' . $connection;
+        $cacheKey = self::HEALTH_CACHE_KEY.'_'.$connection;
 
-        if (!$forceRefresh) {
+        if (! $forceRefresh) {
             $cached = Cache::get($cacheKey);
             if ($cached !== null) {
                 return $cached;
@@ -288,7 +287,7 @@ class RedisHealthService
     public function shouldFallbackToDatabase(): bool
     {
         // If Redis is disabled, always use database
-        if (!$this->isRedisEnabled()) {
+        if (! $this->isRedisEnabled()) {
             return true;
         }
 
@@ -297,7 +296,7 @@ class RedisHealthService
         $sessionHealth = $this->getCachedHealthStatus('session');
 
         // Recommend fallback if both cache and session are unhealthy
-        return !$cacheHealth['healthy'] && !$sessionHealth['healthy'];
+        return ! $cacheHealth['healthy'] && ! $sessionHealth['healthy'];
     }
 
     /**
@@ -305,12 +304,12 @@ class RedisHealthService
      *
      * Returns a simplified status array suitable for lightweight health probes.
      *
-     * @param string $connection Redis connection name
+     * @param  string  $connection  Redis connection name
      * @return array{status: string, healthy: bool, message: string, response_time: float}
      */
     public function ping(string $connection = 'default'): array
     {
-        if (!$this->isRedisEnabled()) {
+        if (! $this->isRedisEnabled()) {
             return [
                 'status' => 'disabled',
                 'healthy' => false,
@@ -370,12 +369,11 @@ class RedisHealthService
      *
      * Returns one of: 'connected', 'auth_failed', 'unavailable', 'disabled'
      *
-     * @param string $connection Redis connection name
-     * @return string
+     * @param  string  $connection  Redis connection name
      */
     public function getStatus(string $connection = 'default'): string
     {
-        if (!$this->isRedisEnabled()) {
+        if (! $this->isRedisEnabled()) {
             return 'disabled';
         }
 
@@ -395,9 +393,6 @@ class RedisHealthService
 
     /**
      * Check if the given password value is a known placeholder
-     *
-     * @param mixed $password
-     * @return bool
      */
     private function isPlaceholderPassword(mixed $password): bool
     {
@@ -411,8 +406,6 @@ class RedisHealthService
 
     /**
      * Check if Redis is enabled via environment configuration
-     *
-     * @return bool
      */
     private function isRedisEnabled(): bool
     {
@@ -421,9 +414,6 @@ class RedisHealthService
 
     /**
      * Determine if the exception is related to authentication
-     *
-     * @param Exception $exception
-     * @return bool
      */
     private function isAuthenticationError(Exception $exception): bool
     {
@@ -437,16 +427,13 @@ class RedisHealthService
 
     /**
      * Generate recommendations based on health check results
-     *
-     * @param array $results
-     * @return array
      */
     private function generateRecommendations(array $results): array
     {
         $recommendations = [];
 
         foreach ($results as $connection => $result) {
-            if (!$result['healthy']) {
+            if (! $result['healthy']) {
                 switch ($result['status']) {
                     case 'disabled':
                         $recommendations[] = "Redis is disabled. Using database fallback for {$connection}.";
@@ -467,7 +454,7 @@ class RedisHealthService
         }
 
         if (empty($recommendations)) {
-            $recommendations[] = "All Redis connections are healthy.";
+            $recommendations[] = 'All Redis connections are healthy.';
         }
 
         return $recommendations;
@@ -476,27 +463,22 @@ class RedisHealthService
     /**
      * Clear health status cache
      *
-     * @param string|null $connection Specific connection or null for all
-     * @return void
+     * @param  string|null  $connection  Specific connection or null for all
      */
     public function clearHealthCache(?string $connection = null): void
     {
         if ($connection) {
-            Cache::forget(self::HEALTH_CACHE_KEY . '_' . $connection);
+            Cache::forget(self::HEALTH_CACHE_KEY.'_'.$connection);
         } else {
             $connections = ['default', 'cache', 'session', 'queue'];
             foreach ($connections as $conn) {
-                Cache::forget(self::HEALTH_CACHE_KEY . '_' . $conn);
+                Cache::forget(self::HEALTH_CACHE_KEY.'_'.$conn);
             }
         }
     }
 
     /**
      * Send startup alert for critical Redis configuration issues
-     *
-     * @param string $title
-     * @param array $details
-     * @return void
      */
     private function sendStartupAlert(string $title, array $details): void
     {
@@ -504,14 +486,14 @@ class RedisHealthService
             // Dispatch alert job to avoid blocking application startup
             dispatch(function () use ($title, $details) {
                 try {
-                    $superAdmins = \App\Models\User::where('is_super_admin', true)
+                    $superAdmins = User::where('is_super_admin', true)
                         ->where('is_active', true)
                         ->get();
 
                     if ($superAdmins->isNotEmpty()) {
-                        \Illuminate\Support\Facades\Notification::send(
+                        Notification::send(
                             $superAdmins,
-                            new \App\Notifications\RedisHealthAlertNotification($title, $details)
+                            new RedisHealthAlertNotification($title, $details)
                         );
 
                         Log::info('Redis startup alert sent', [
@@ -520,7 +502,7 @@ class RedisHealthService
                             'severity' => $details['severity'] ?? 'info',
                         ]);
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error('Failed to send Redis startup alert', [
                         'title' => $title,
                         'error' => $e->getMessage(),
@@ -528,7 +510,7 @@ class RedisHealthService
                 }
             })->onQueue('database'); // Use database queue to avoid Redis dependency
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to dispatch Redis startup alert', [
                 'title' => $title,
                 'error' => $e->getMessage(),

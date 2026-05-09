@@ -26,7 +26,7 @@ class NotifyAllModelsUnavailableTest extends TestCase
 
         Http::fake();
 
-        $this->listener = new NotifyAllModelsUnavailable();
+        $this->listener = new NotifyAllModelsUnavailable;
     }
 
     // ── Helper ────────────────────────────────────────────────────
@@ -60,10 +60,11 @@ class NotifyAllModelsUnavailableTest extends TestCase
         $models = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'];
         $this->listener->handle($this->makeEvent($models));
 
-        Http::assertSent(function ($request) use ($models) {
+        Http::assertSent(function ($request) {
             $body = $request->data();
             $attachments = $body['attachments'][0]['fields'] ?? [];
             $modelField = collect($attachments)->firstWhere('title', 'Unavailable Models');
+
             return $modelField && str_contains($modelField['value'], 'gemini-1.5-pro')
                 && str_contains($modelField['value'], 'gemini-1.5-flash');
         });
@@ -79,6 +80,7 @@ class NotifyAllModelsUnavailableTest extends TestCase
 
         Http::assertSent(function ($request) {
             $body = $request->data();
+
             return str_contains($body['text'] ?? '', 'tenant #42');
         });
     }
@@ -93,7 +95,8 @@ class NotifyAllModelsUnavailableTest extends TestCase
 
         Http::assertSent(function ($request) {
             $body = $request->data();
-            return !str_contains($body['text'] ?? '', 'tenant #');
+
+            return ! str_contains($body['text'] ?? '', 'tenant #');
         });
     }
 
@@ -195,6 +198,7 @@ class NotifyAllModelsUnavailableTest extends TestCase
             $body = $request->data();
             $attachments = $body['attachments'][0]['fields'] ?? [];
             $modelField = collect($attachments)->firstWhere('title', 'Unavailable Models');
+
             return $modelField && str_contains($modelField['value'], 'gemini-1.5-pro');
         });
     }
@@ -212,6 +216,7 @@ class NotifyAllModelsUnavailableTest extends TestCase
             $body = $request->data();
             $attachments = $body['attachments'][0]['fields'] ?? [];
             $modelField = collect($attachments)->firstWhere('title', 'Unavailable Models');
+
             return $modelField && ($modelField['value'] === 'N/A' || $modelField['value'] === '');
         });
     }
@@ -231,6 +236,7 @@ class NotifyAllModelsUnavailableTest extends TestCase
 
             Http::assertSent(function ($request) use ($tenantId) {
                 $body = $request->data();
+
                 return str_contains($body['text'] ?? '', "tenant #{$tenantId}");
             });
         }

@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
+use App\Services\PermissionService;
+use App\Services\PlanModuleMap;
+use App\Services\UnifiedPermissionService;
 use App\Traits\AuditsChanges;
-use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Services\PermissionService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, AuditsChanges;
+    use AuditsChanges, HasFactory, Notifiable;
 
     protected $fillable = [
         'tenant_id',
@@ -69,14 +71,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Tenant::class);
     }
 
-    public function affiliate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function affiliate(): HasOne
     {
-        return $this->hasOne(\App\Models\Affiliate::class);
+        return $this->hasOne(Affiliate::class);
     }
 
-    public function customer(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function customer(): HasOne
     {
-        return $this->hasOne(\App\Models\Customer::class, 'user_id');
+        return $this->hasOne(Customer::class, 'user_id');
     }
 
     public function userPermissions(): HasMany
@@ -114,12 +116,18 @@ class User extends Authenticatable implements MustVerifyEmail
     // ─── Role Helpers ─────────────────────────────────────────────
 
     const ROLE_SUPER_ADMIN = 'super_admin';
-    const ROLE_ADMIN       = 'admin';
-    const ROLE_MANAGER     = 'manager';
-    const ROLE_STAFF       = 'staff';
-    const ROLE_KASIR       = 'kasir';
-    const ROLE_GUDANG      = 'gudang';
-    const ROLE_AFFILIATE   = 'affiliate';
+
+    const ROLE_ADMIN = 'admin';
+
+    const ROLE_MANAGER = 'manager';
+
+    const ROLE_STAFF = 'staff';
+
+    const ROLE_KASIR = 'kasir';
+
+    const ROLE_GUDANG = 'gudang';
+
+    const ROLE_AFFILIATE = 'affiliate';
 
     const ROLES = [
         self::ROLE_SUPER_ADMIN,
@@ -135,26 +143,32 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'super_admin';
     }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
+
     public function isManager(): bool
     {
         return $this->role === 'manager';
     }
+
     public function isStaff(): bool
     {
         return $this->role === 'staff';
     }
+
     public function isKasir(): bool
     {
         return $this->role === 'kasir';
     }
+
     public function isGudang(): bool
     {
         return $this->role === 'gudang';
     }
+
     public function isAffiliate(): bool
     {
         return $this->role === 'affiliate';
@@ -163,6 +177,51 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasRole(string|array $roles): bool
     {
         return in_array($this->role, (array) $roles);
+    }
+
+    /**
+     * Cek apakah user menggunakan custom role.
+     */
+    public function isCustomRole(): bool
+    {
+        return str_starts_with($this->role, 'custom:');
+    }
+
+    /**
+     * Ambil instance CustomRole jika user menggunakan custom role.
+     */
+    public function customRole(): ?CustomRole
+    {
+        if (! $this->isCustomRole()) {
+            return null;
+        }
+
+        $roleId = (int) substr($this->role, strlen('custom:'));
+
+        return CustomRole::find($roleId);
+    }
+
+    /**
+     * Nama tampilan role — custom role name atau label hardcoded.
+     */
+    public function roleDisplayName(): string
+    {
+        if ($this->isCustomRole()) {
+            $customRole = $this->customRole();
+
+            return $customRole ? $customRole->name : 'Unknown Role';
+        }
+
+        return match ($this->role) {
+            'super_admin' => 'Super Admin',
+            'admin' => 'Admin',
+            'manager' => 'Manager',
+            'staff' => 'Staff',
+            'kasir' => 'Kasir',
+            'gudang' => 'Gudang',
+            'affiliate' => 'Affiliate',
+            default => ucfirst($this->role),
+        };
     }
 
     /**
@@ -286,11 +345,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Granular permission check — delegates to PermissionService.
+     * Granular permission check — delegates to UnifiedPermissionService.
      */
     public function hasPermission(string $module, string $action = 'view'): bool
     {
-        return app(PermissionService::class)->check($this, $module, $action);
+        return app(UnifiedPermissionService::class)->check($this, $module, $action);
     }
 
     /**
@@ -299,7 +358,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * 2. Tenant module settings (enabled_modules)
      * 3. User role permissions (via PermissionService)
      *
-     * @param string $moduleKey Module key from ModuleRecommendationService::ALL_MODULES
+     * @param  string  $moduleKey  Module key from ModuleRecommendationService::ALL_MODULES
      * @return bool True if user can access the module
      */
     public function canAccessModule(string $moduleKey): bool
@@ -310,25 +369,25 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         // Check if tenant exists
-        if (!$this->tenant) {
+        if (! $this->tenant) {
             return false;
         }
 
         // 1. Check subscription plan allows this module
         $planSlug = $this->tenant->subscriptionPlan->slug ?? $this->tenant->plan ?? null;
-        if (!\App\Services\PlanModuleMap::isModuleAllowedForPlan($moduleKey, $planSlug)) {
+        if (! PlanModuleMap::isModuleAllowedForPlan($moduleKey, $planSlug)) {
             return false;
         }
 
         // 2. Check tenant has enabled this module
-        if (!$this->tenant->isModuleEnabled($moduleKey)) {
+        if (! $this->tenant->isModuleEnabled($moduleKey)) {
             return false;
         }
 
         // 3. Check user role has permission to view this module
         // Map module keys to permission module names (some differ)
         $permissionModule = $this->mapModuleKeyToPermission($moduleKey);
-        if ($permissionModule && !$this->hasPermission($permissionModule, 'view')) {
+        if ($permissionModule && ! $this->hasPermission($permissionModule, 'view')) {
             return false;
         }
 
@@ -364,6 +423,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->avatar) {
             return asset('storage/' . $this->avatar);
         }
+
         // UI Avatars fallback
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name)
             . '&background=3b82f6&color=fff&size=128&bold=true';
@@ -374,7 +434,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get notification channels based on user preferences.
      *
-     * @param string $notificationClass Fully qualified notification class name
+     * @param  string  $notificationClass  Fully qualified notification class name
      * @return array Array of channels: 'database', 'mail', 'broadcast'
      */
     public function getNotificationChannels(string $notificationClass): array
@@ -407,6 +467,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $className = class_basename($notificationClass);
         // Remove "Notification" suffix and convert to snake_case
         $type = str_replace('Notification', '', $className);
+
         return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $type));
     }
 }

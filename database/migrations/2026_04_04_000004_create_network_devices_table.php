@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('network_devices')) {
+        if (! Schema::hasTable('network_devices')) {
             Schema::create('network_devices', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('tenant_id');
@@ -34,10 +35,10 @@ return new class extends Migration {
                 $table->unsignedBigInteger('parent_device_id')->nullable(); // For hierarchical networks
                 $table->timestamps();
                 $table->softDeletes();
-    
+
                 $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
                 $table->foreign('parent_device_id')->references('id')->on('network_devices')->onDelete('set null');
-    
+
                 $table->index(['tenant_id', 'status']);
                 $table->index(['tenant_id', 'device_type']);
                 $table->unique(['tenant_id', 'ip_address', 'port']);

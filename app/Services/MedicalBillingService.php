@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\MedicalBill;
 use App\Models\BillItem;
-use App\Models\InsuranceClaim;
-use App\Models\InsuranceAdjudication;
 use App\Models\Copayment;
+use App\Models\InsuranceAdjudication;
+use App\Models\InsuranceClaim;
+use App\Models\MedicalBill;
 use App\Models\PaymentPlan;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,7 +39,7 @@ class MedicalBillingService
             ]);
 
             // Add bill items
-            if (!empty($billData['items'])) {
+            if (! empty($billData['items'])) {
                 foreach ($billData['items'] as $item) {
                     $this->addBillItem($bill->id, $item);
                 }
@@ -48,7 +49,7 @@ class MedicalBillingService
             $bill->load('items');
             $bill->calculateTotals();
 
-            Log::info("Medical bill generated", [
+            Log::info('Medical bill generated', [
                 'bill_number' => $bill->bill_number,
                 'total_amount' => $bill->total_amount,
                 'patient_payable' => $bill->patient_payable,
@@ -160,7 +161,7 @@ class MedicalBillingService
                 'billing_status' => 'submitted',
             ]);
 
-            Log::info("Insurance claim submitted", [
+            Log::info('Insurance claim submitted', [
                 'claim_number' => $claim->claim_number,
                 'method' => $method,
                 'amount' => $claim->claim_amount,
@@ -213,7 +214,7 @@ class MedicalBillingService
                 'billing_status' => 'approved',
             ]);
 
-            Log::info("Insurance claim adjudicated", [
+            Log::info('Insurance claim adjudicated', [
                 'claim_number' => $claim->claim_number,
                 'approved' => $adjudication->approved_amount,
                 'rejected' => $adjudication->rejected_amount,
@@ -305,7 +306,7 @@ class MedicalBillingService
                 $bill->decrement('balance_due', $planData['down_payment']);
             }
 
-            Log::info("Payment plan created", [
+            Log::info('Payment plan created', [
                 'plan_number' => $paymentPlan->plan_number,
                 'installments' => $planData['installment_count'],
                 'amount' => $installmentAmount,
@@ -367,9 +368,9 @@ class MedicalBillingService
     protected function generateBillNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'BILL-' . $date;
+        $prefix = 'BILL-'.$date;
 
-        $lastBill = MedicalBill::where('bill_number', 'like', $prefix . '%')
+        $lastBill = MedicalBill::where('bill_number', 'like', $prefix.'%')
             ->orderBy('bill_number', 'desc')
             ->first();
 
@@ -380,7 +381,7 @@ class MedicalBillingService
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -389,9 +390,9 @@ class MedicalBillingService
     protected function generateClaimNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'CLAIM-' . $date;
+        $prefix = 'CLAIM-'.$date;
 
-        $lastClaim = InsuranceClaim::where('claim_number', 'like', $prefix . '%')
+        $lastClaim = InsuranceClaim::where('claim_number', 'like', $prefix.'%')
             ->orderBy('claim_number', 'desc')
             ->first();
 
@@ -402,7 +403,7 @@ class MedicalBillingService
             $newNumber = '0001';
         }
 
-        return $prefix . '-' . $newNumber;
+        return $prefix.'-'.$newNumber;
     }
 
     /**
@@ -411,13 +412,13 @@ class MedicalBillingService
     protected function generateCopayNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'COPAY-' . $date;
+        $prefix = 'COPAY-'.$date;
 
-        $lastCopay = Copayment::where('copay_number', 'like', $prefix . '%')
+        $lastCopay = Copayment::where('copay_number', 'like', $prefix.'%')
             ->orderBy('copay_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $lastCopay ? (int) substr($lastCopay->copay_number, -4) + 1 : 1,
             4,
             '0',
@@ -431,13 +432,13 @@ class MedicalBillingService
     protected function generatePlanNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'PLAN-' . $date;
+        $prefix = 'PLAN-'.$date;
 
-        $lastPlan = PaymentPlan::where('plan_number', 'like', $prefix . '%')
+        $lastPlan = PaymentPlan::where('plan_number', 'like', $prefix.'%')
             ->orderBy('plan_number', 'desc')
             ->first();
 
-        return $prefix . '-' . str_pad(
+        return $prefix.'-'.str_pad(
             $lastPlan ? (int) substr($lastPlan->plan_number, -4) + 1 : 1,
             4,
             '0',
@@ -503,7 +504,7 @@ class MedicalBillingService
             'status' => 'submitted',
             'method' => $method,
             'submitted_at' => now(),
-            'reference_number' => 'REF-' . time(),
+            'reference_number' => 'REF-'.time(),
         ];
     }
 
@@ -513,7 +514,7 @@ class MedicalBillingService
     protected function generatePaymentSchedule($startDate, $count, $frequency, $amount): array
     {
         $schedule = [];
-        $date = \Carbon\Carbon::parse($startDate);
+        $date = Carbon::parse($startDate);
 
         for ($i = 0; $i < $count; $i++) {
             $schedule[] = [

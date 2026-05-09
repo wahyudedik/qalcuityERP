@@ -20,12 +20,12 @@ class WebhookTestController extends Controller
         $payload = [
             'transaction_time' => now()->toIso8601String(),
             'transaction_status' => 'settlement',
-            'transaction_id' => 'test-' . uniqid(),
+            'transaction_id' => 'test-'.uniqid(),
             'status_message' => 'Success, transaction is found',
             'status_code' => '200',
             'signature_key' => hash('sha512', 'test'),
             'payment_type' => 'gopay',
-            'order_id' => $request->input('order_id', 'PAY-TEST-' . date('YmdHis')),
+            'order_id' => $request->input('order_id', 'PAY-TEST-'.date('YmdHis')),
             'merchant_id' => 'G123456789',
             'gross_amount' => $request->input('amount', 150000),
             'fraud_status' => 'accept',
@@ -34,7 +34,7 @@ class WebhookTestController extends Controller
 
         // Generate signature for testing
         $secret = $request->input('webhook_secret', 'test-secret');
-        $hashInput = $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . $secret;
+        $hashInput = $payload['order_id'].$payload['status_code'].$payload['gross_amount'].$secret;
         $signature = hash('sha512', $hashInput);
 
         $service = new WebhookHandlerService($tenantId);
@@ -57,8 +57,8 @@ class WebhookTestController extends Controller
 
         // Sample Xendit paid payload
         $payload = [
-            'id' => 'test-' . uniqid(),
-            'external_id' => $request->input('order_id', 'PAY-TEST-' . date('YmdHis')),
+            'id' => 'test-'.uniqid(),
+            'external_id' => $request->input('order_id', 'PAY-TEST-'.date('YmdHis')),
             'user_id' => 'test-user-id',
             'is_high' => false,
             'payment_method' => 'QRIS',

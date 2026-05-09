@@ -47,14 +47,14 @@ class CheckExpiringDocuments extends Command
             ->get();
 
         $this->newLine();
-        $this->info("📊 Summary:");
+        $this->info('📊 Summary:');
         $this->line("  • Expiring soon: {$expiringDocuments->count()} documents");
         $this->line("  • Already expired: {$expiredDocuments->count()} documents");
 
         // Send notifications for expiring documents
         if ($notify && $expiringDocuments->isNotEmpty()) {
             $this->newLine();
-            $this->info("📧 Sending notifications for expiring documents...");
+            $this->info('📧 Sending notifications for expiring documents...');
 
             $notificationCount = 0;
             foreach ($expiringDocuments as $document) {
@@ -73,7 +73,7 @@ class CheckExpiringDocuments extends Command
         // Send notifications for expired documents
         if ($notify && $expiredDocuments->isNotEmpty()) {
             $this->newLine();
-            $this->warn("⚠️ Sending notifications for expired documents...");
+            $this->warn('⚠️ Sending notifications for expired documents...');
 
             $notificationCount = 0;
             foreach ($expiredDocuments as $document) {
@@ -92,7 +92,7 @@ class CheckExpiringDocuments extends Command
         // Generate report
         if ($report) {
             $this->newLine();
-            $this->info("📋 Document Expiry Report:");
+            $this->info('📋 Document Expiry Report:');
             $this->newLine();
 
             if ($expiringDocuments->isNotEmpty()) {
@@ -113,7 +113,7 @@ class CheckExpiringDocuments extends Command
             }
 
             if ($expiredDocuments->isNotEmpty()) {
-                $this->error("Expired Documents:");
+                $this->error('Expired Documents:');
                 $this->table(
                     ['ID', 'Title', 'Category', 'Expired On', 'Days Expired', 'Owner'],
                     $expiredDocuments->map(function ($doc) {
@@ -138,7 +138,7 @@ class CheckExpiringDocuments extends Command
         ]);
 
         $this->newLine();
-        $this->info("✅ Document expiry check completed successfully!");
+        $this->info('✅ Document expiry check completed successfully!');
 
         return Command::SUCCESS;
     }

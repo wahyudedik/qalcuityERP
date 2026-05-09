@@ -15,22 +15,25 @@ class PosReceiptMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public SalesOrder $order;
+
     public string $storeName;
+
     public string $storeAddress;
+
     public string $footerText;
 
     public function __construct(SalesOrder $order)
     {
-        $this->order       = $order->load(['items.product', 'customer', 'user']);
-        $this->storeName   = $order->tenant?->name ?? config('app.name', 'Qalcuity ERP');
+        $this->order = $order->load(['items.product', 'customer', 'user']);
+        $this->storeName = $order->tenant?->name ?? config('app.name', 'Qalcuity ERP');
         $this->storeAddress = '';
-        $this->footerText  = 'Terima kasih atas kunjungan Anda!';
+        $this->footerText = 'Terima kasih atas kunjungan Anda!';
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Struk Pembelian #' . $this->order->number . ' — ' . $this->storeName,
+            subject: 'Struk Pembelian #'.$this->order->number.' — '.$this->storeName,
         );
     }
 

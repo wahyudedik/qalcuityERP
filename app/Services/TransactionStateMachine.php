@@ -70,7 +70,7 @@ class TransactionStateMachine
      */
     /**
      * Cancel invoice: draft → cancelled
-     * 
+     *
      * BUG-FIX Task 9.3: Cancel invoice harus mengembalikan stok jika dari SO
      */
     public function cancelInvoice(Invoice $invoice, int $userId, string $reason): void
@@ -99,7 +99,7 @@ class TransactionStateMachine
                     $stock = ProductStock::firstOrCreate(
                         [
                             'product_id' => $item->product_id,
-                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id
+                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id,
                         ],
                         ['quantity' => 0]
                     );
@@ -133,7 +133,7 @@ class TransactionStateMachine
     /**
      * Void invoice: posted → voided
      * Berbeda dari cancel — void membuat jurnal pembalik otomatis.
-     * 
+     *
      * BUG-FIX Task 9.3: Void/cancel invoice harus membuat jurnal pembalik dan update stok/piutang
      */
     public function voidInvoice(Invoice $invoice, int $userId, string $reason): void
@@ -180,7 +180,7 @@ class TransactionStateMachine
                     $stock = ProductStock::firstOrCreate(
                         [
                             'product_id' => $item->product_id,
-                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id
+                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id,
                         ],
                         ['quantity' => 0]
                     );
@@ -233,9 +233,9 @@ class TransactionStateMachine
     public function postPurchaseOrder(PurchaseOrder $po, int $userId): void
     {
         // BUG-PO-001 FIX: Check if approval is required and obtained
-        $approvalCheck = app(\App\Services\PoApprovalService::class)->canPost($po);
+        $approvalCheck = app(PoApprovalService::class)->canPost($po);
 
-        if (!$approvalCheck['can_post']) {
+        if (! $approvalCheck['can_post']) {
             throw new \RuntimeException("Cannot post PO: {$approvalCheck['reason']}");
         }
 
@@ -249,7 +249,7 @@ class TransactionStateMachine
 
         ActivityLog::record(
             'po_posted',
-            "PO {$po->number} diposting oleh user #{$userId}" . (isset($approvalCheck['approval']) ? ' (Approved)' : ''),
+            "PO {$po->number} diposting oleh user #{$userId}".(isset($approvalCheck['approval']) ? ' (Approved)' : ''),
             $po
         );
     }
@@ -334,8 +334,8 @@ class TransactionStateMachine
 
         if (in_array($postingStatus, ['posted', 'cancelled', 'voided'])) {
             throw new \RuntimeException(
-                "{$label} sudah diposting dan tidak bisa diedit langsung. " .
-                "Gunakan fitur Revisi untuk membuat perubahan."
+                "{$label} sudah diposting dan tidak bisa diedit langsung. ".
+                'Gunakan fitur Revisi untuk membuat perubahan.'
             );
         }
     }
@@ -391,10 +391,10 @@ class TransactionStateMachine
     ): void {
         $allowed = $transitions[$currentStatus] ?? [];
 
-        if (!in_array($targetStatus, $allowed)) {
+        if (! in_array($targetStatus, $allowed)) {
             throw new \RuntimeException(
-                "{$label} tidak bisa berpindah dari status '{$currentStatus}' ke '{$targetStatus}'. " .
-                "Transisi yang diizinkan: " . implode(', ', $allowed ?: ['tidak ada'])
+                "{$label} tidak bisa berpindah dari status '{$currentStatus}' ke '{$targetStatus}'. ".
+                'Transisi yang diizinkan: '.implode(', ', $allowed ?: ['tidak ada'])
             );
         }
     }

@@ -2,17 +2,17 @@
 
 namespace App\Services\Telecom;
 
-use App\Models\NetworkDevice;
-use App\Models\HotspotUser;
-use App\Models\UsageTracking;
 use App\Models\BandwidthAllocation;
+use App\Models\HotspotUser;
 use App\Models\NetworkAlert;
+use App\Models\NetworkDevice;
+use App\Models\UsageTracking;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Orchestrator service for router operations.
- * 
+ *
  * This service provides a high-level interface for common router operations,
  * handling error recovery, logging, and database synchronization.
  */
@@ -20,8 +20,7 @@ class RouterIntegrationService
 {
     /**
      * Test connection to a device and update status.
-     * 
-     * @param NetworkDevice $device
+     *
      * @return array Test result with details
      */
     public function testDeviceConnection(NetworkDevice $device): array
@@ -66,11 +65,8 @@ class RouterIntegrationService
 
     /**
      * Create hotspot user on router and database.
-     * 
-     * @param NetworkDevice $device
-     * @param string $username
-     * @param string $password
-     * @param array $options Additional options
+     *
+     * @param  array  $options  Additional options
      * @return array Result with success status
      */
     public function createHotspotUser(NetworkDevice $device, string $username, string $password, array $options = []): array
@@ -83,11 +79,11 @@ class RouterIntegrationService
             // Prepare profile
             $profile = [];
 
-            if (!empty($options['bandwidth_profile'])) {
+            if (! empty($options['bandwidth_profile'])) {
                 $profile['profile'] = $options['bandwidth_profile'];
             } else {
                 // Create bandwidth profile if speeds provided
-                if (!empty($options['download_speed_kbps']) && !empty($options['upload_speed_kbps'])) {
+                if (! empty($options['download_speed_kbps']) && ! empty($options['upload_speed_kbps'])) {
                     $profileName = "user_{$username}";
                     $adapter->setBandwidthProfile(
                         $profileName,
@@ -99,13 +95,13 @@ class RouterIntegrationService
                 }
             }
 
-            $profile['comment'] = $options['comment'] ?? "Created by Qalcuity ERP";
+            $profile['comment'] = $options['comment'] ?? 'Created by Qalcuity ERP';
 
             // Create on router
             $routerSuccess = $adapter->createHotspotUser($username, $password, $profile);
 
-            if (!$routerSuccess) {
-                throw new Exception("Failed to create user on router");
+            if (! $routerSuccess) {
+                throw new Exception('Failed to create user on router');
             }
 
             // Create in database
@@ -144,8 +140,7 @@ class RouterIntegrationService
 
     /**
      * Remove hotspot user from router and database.
-     * 
-     * @param HotspotUser $hotspotUser
+     *
      * @return array Result
      */
     public function removeHotspotUser(HotspotUser $hotspotUser): array
@@ -175,8 +170,7 @@ class RouterIntegrationService
 
     /**
      * Sync usage data from router to database.
-     * 
-     * @param NetworkDevice $device
+     *
      * @return int Number of records synced
      */
     public function syncUsageData(NetworkDevice $device): int
@@ -189,7 +183,7 @@ class RouterIntegrationService
             foreach ($activeUsers as $activeUser) {
                 $username = $activeUser['user'] ?? $activeUser['name'] ?? null;
 
-                if (!$username) {
+                if (! $username) {
                     continue;
                 }
 
@@ -207,7 +201,7 @@ class RouterIntegrationService
 
                 if ($hotspotUser) {
                     // Update online status
-                    if (!empty($usage['is_online'])) {
+                    if (! empty($usage['is_online'])) {
                         $hotspotUser->markAsOnline($usage['ip_address'] ?? '');
                     } else {
                         $hotspotUser->markAsOffline($usage['uptime_seconds'] ?? 0);
@@ -244,18 +238,18 @@ class RouterIntegrationService
             return $syncedCount;
 
         } catch (Exception $e) {
-            \Log::error("Failed to sync usage data", [
+            \Log::error('Failed to sync usage data', [
                 'device_id' => $device->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }
 
     /**
      * Apply bandwidth allocation to router.
-     * 
-     * @param BandwidthAllocation $allocation
+     *
      * @return bool Success status
      */
     public function applyBandwidthAllocation(BandwidthAllocation $allocation): bool
@@ -284,25 +278,25 @@ class RouterIntegrationService
             return $success;
 
         } catch (Exception $e) {
-            \Log::error("Failed to apply bandwidth allocation", [
+            \Log::error('Failed to apply bandwidth allocation', [
                 'allocation_id' => $allocation->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Check device health and create alerts if needed.
-     * 
-     * @param NetworkDevice $device
+     *
      * @return array Health check result
      */
     public function checkDeviceHealth(NetworkDevice $device): array
     {
         $result = $this->testDeviceConnection($device);
 
-        if (!$result['connected']) {
+        if (! $result['connected']) {
             // Create alert for offline device
             $this->createAlert($device, 'device_offline', 'high', [
                 'title' => "Device Offline: {$device->name}",
@@ -330,7 +324,7 @@ class RouterIntegrationService
                 if ($memoryUsagePercent > 85) {
                     $this->createAlert($device, 'high_memory', 'medium', [
                         'title' => "High Memory Usage: {$device->name}",
-                        'message' => "Memory usage is at " . round($memoryUsagePercent, 2) . "%",
+                        'message' => 'Memory usage is at '.round($memoryUsagePercent, 2).'%',
                         'current_metrics' => [
                             'memory_usage_percent' => round($memoryUsagePercent, 2),
                             'free_memory' => $freeMemory,
@@ -346,11 +340,6 @@ class RouterIntegrationService
 
     /**
      * Create network alert.
-     * 
-     * @param NetworkDevice $device
-     * @param string $type
-     * @param string $severity
-     * @param array $data
      */
     protected function createAlert(NetworkDevice $device, string $type, string $severity, array $data): void
     {
@@ -361,7 +350,7 @@ class RouterIntegrationService
             ->where('created_at', '>', now()->subHours(1)) // Don't duplicate within 1 hour
             ->first();
 
-        if (!$existingAlert) {
+        if (! $existingAlert) {
             NetworkAlert::create([
                 'tenant_id' => $device->tenant_id,
                 'device_id' => $device->id,
@@ -376,8 +365,8 @@ class RouterIntegrationService
 
     /**
      * Parse uptime string to seconds.
-     * 
-     * @param string $uptime Uptime string (e.g., "1d02:30:45")
+     *
+     * @param  string  $uptime  Uptime string (e.g., "1d02:30:45")
      * @return int Seconds
      */
     protected function parseUptime(string $uptime): int
@@ -386,7 +375,7 @@ class RouterIntegrationService
         preg_match('/(?:(\d+)d)?(?:(\d+):)?(\d+):(\d+)/', $uptime, $matches);
 
         $days = isset($matches[1]) ? (int) $matches[1] : 0;
-        $hours = isset($matches[2]) && !empty($matches[2]) ? (int) $matches[2] : 0;
+        $hours = isset($matches[2]) && ! empty($matches[2]) ? (int) $matches[2] : 0;
         $minutes = isset($matches[3]) ? (int) $matches[3] : 0;
         $seconds = isset($matches[4]) ? (int) $matches[4] : 0;
 
