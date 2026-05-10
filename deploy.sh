@@ -3,6 +3,13 @@
 #  Qalcuity ERP — Production Deployment Script (Ubuntu)
 #  Jalankan via SSH setiap kali ada update code ke production
 #  Path: /www/wwwroot/qalcuity.com
+
+# cd /www/wwwroot/qalcuity.com
+# git checkout -- deploy.sh
+# git pull origin main
+# chmod +x deploy.sh
+# ./deploy.sh
+
 # ═══════════════════════════════════════════════════════════════
 
 set -e
@@ -23,8 +30,10 @@ echo ""
 
 # ── 2. Pull latest code dari Git ─────────────────────────────
 echo "[2/10] Pull latest code dari repository..."
+git stash --include-untracked 2>/dev/null || true
 git fetch origin main
 git reset --hard origin/main
+git clean -fd 2>/dev/null || true
 echo ""
 
 # ── 3. Install/update Composer dependencies ──────────────────
