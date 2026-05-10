@@ -23,7 +23,8 @@ echo ""
 
 # ── 2. Pull latest code dari Git ─────────────────────────────
 echo "[2/10] Pull latest code dari repository..."
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 echo ""
 
 # ── 3. Install/update Composer dependencies ──────────────────

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\BugExploration;
 
-use App\Models\Tenant;
-use App\Models\User;
 use Eris\Generators;
 use Eris\TestTrait;
 use Tests\TestCase;
@@ -30,20 +28,6 @@ use Tests\TestCase;
 class SurgeryScheduleViewsBugConditionTest extends TestCase
 {
     use TestTrait;
-
-    private Tenant $tenant;
-
-    private User $user;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->tenant = $this->createTenant();
-        $this->user = $this->createAdminUser($this->tenant);
-
-        $this->actingAs($this->user);
-    }
 
     /**
      * @test

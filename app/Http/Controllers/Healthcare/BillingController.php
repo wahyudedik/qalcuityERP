@@ -18,10 +18,9 @@ class BillingController extends Controller
     {
         $statistics = [
             'total_invoices' => MedicalBill::count(),
-            'pending_payment' => MedicalBill::where('payment_status', 'pending')->count(),
+            'pending_payment' => MedicalBill::where('payment_status', 'unpaid')->count(),
             'paid' => MedicalBill::where('payment_status', 'paid')->count(),
-            'overdue' => MedicalBill::where('payment_status', 'pending')
-                ->where('due_date', '<', now())->count(),
+            'overdue' => MedicalBill::where('payment_status', 'overdue')->count(),
             'total_revenue' => MedicalBill::where('payment_status', 'paid')->sum('total_amount'),
             'pending_claims' => InsuranceClaim::where('status', 'submitted')->count(),
         ];
@@ -251,10 +250,9 @@ class BillingController extends Controller
     {
         $statistics = [
             'total_invoices' => MedicalBill::count(),
-            'pending_payment' => MedicalBill::where('payment_status', 'pending')->count(),
+            'pending_payment' => MedicalBill::where('payment_status', 'unpaid')->count(),
             'paid' => MedicalBill::where('payment_status', 'paid')->count(),
-            'overdue' => MedicalBill::where('payment_status', 'pending')
-                ->where('due_date', '<', now())->count(),
+            'overdue' => MedicalBill::where('payment_status', 'overdue')->count(),
             'total_revenue' => MedicalBill::where('payment_status', 'paid')->sum('total_amount'),
             'pending_claims' => InsuranceClaim::where('status', 'submitted')->count(),
             'approved_claims' => InsuranceClaim::where('status', 'approved')->count(),
@@ -266,8 +264,7 @@ class BillingController extends Controller
             ->get();
 
         $overdueInvoices = MedicalBill::with('patient')
-            ->where('payment_status', 'pending')
-            ->where('due_date', '<', now())
+            ->where('payment_status', 'overdue')
             ->orderBy('due_date')
             ->limit(10)
             ->get();
@@ -291,15 +288,15 @@ class BillingController extends Controller
                 ->whereDate('bill_date', '>=', $dateFrom)
                 ->whereDate('bill_date', '<=', $dateTo)
                 ->sum('amount_paid'),
-            'total_pending' => MedicalBill::where('payment_status', 'pending')
+            'total_pending' => MedicalBill::where('payment_status', 'unpaid')
                 ->whereDate('bill_date', '>=', $dateFrom)
                 ->whereDate('bill_date', '<=', $dateTo)
                 ->sum('total_amount'),
             'collection_rate' => 0,
             'by_type' => MedicalBill::whereDate('bill_date', '>=', $dateFrom)
                 ->whereDate('bill_date', '<=', $dateTo)
-                ->selectRaw('bill_type, COUNT(*) as count, SUM(total_amount) as total')
-                ->groupBy('bill_type')
+                ->selectRaw('financial_class, COUNT(*) as count, SUM(total_amount) as total')
+                ->groupBy('financial_class')
                 ->get(),
         ];
 

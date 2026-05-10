@@ -217,7 +217,7 @@ class CustomRoleService
     /**
      * Get permissions for a custom role (cached).
      *
-     * @return array ['module.action' => bool]
+     * @return array ['module' => ['action' => bool]]
      */
     public function getRolePermissions(CustomRole $role): array
     {
@@ -349,6 +349,8 @@ class CustomRoleService
 
     /**
      * Load role permissions directly from database.
+     *
+     * @return array ['module' => ['action' => bool]]
      */
     private function loadRolePermissionsFromDb(CustomRole $role): array
     {
@@ -358,7 +360,7 @@ class CustomRoleService
             ->where('granted', true)
             ->get(['module', 'action', 'granted'])
             ->each(function ($perm) use (&$permissions) {
-                $permissions["{$perm->module}.{$perm->action}"] = (bool) $perm->granted;
+                $permissions[$perm->module][$perm->action] = (bool) $perm->granted;
             });
 
         return $permissions;

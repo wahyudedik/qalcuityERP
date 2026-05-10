@@ -270,6 +270,7 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
     */
     Route::prefix('radiology')->name('radiology.')->group(function () {
         Route::get('/', [RadiologyController::class, 'index'])->name('index');
+        Route::get('/create', [RadiologyController::class, 'create'])->name('create');
         Route::post('/exams', [RadiologyController::class, 'storeExam'])->name('exams.store');
         Route::get('/exams', [RadiologyController::class, 'exams'])->name('exams');
         Route::get('/exams/{id}', [RadiologyController::class, 'showExam'])->name('exams.show');

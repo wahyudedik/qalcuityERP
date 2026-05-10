@@ -5,39 +5,27 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\BPJSClaim;
 use App\Models\Patient;
-use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 
 class BPJSClaimController extends Controller
 {
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-
-        $query = BPJSClaim::with(['patient'])->where('tenant_id', $tenantId);
+        $query = BPJSClaim::with(['patient']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $claims = $query->orderBy('submission_date', 'desc')->paginate(20)->withQueryString();
+        $claims = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
-        // Optimized stats with single query + caching
-        $cacheKey = "stats:bpjs_claims:{$tenantId}";
-        $statistics = DashboardCacheService::getStats($cacheKey, function () use ($tenantId) {
-            $stats = BPJSClaim::where('tenant_id', $tenantId)
-                ->selectRaw('status, COUNT(*) as count, SUM(claim_amount) as total_amount')
-                ->groupBy('status')
-                ->get();
-
-            return [
-                'total' => $stats->sum('count'),
-                'pending' => $stats->firstWhere('status', 'pending')->count ?? 0,
-                'approved' => $stats->firstWhere('status', 'approved')->count ?? 0,
-                'rejected' => $stats->firstWhere('status', 'rejected')->count ?? 0,
-                'total_amount' => $stats->sum('total_amount'),
-            ];
-        }, 300); // 5 minutes TTL
+        $statistics = [
+            'total' => BPJSClaim::count(),
+            'pending' => BPJSClaim::where('status', 'submitted')->count(),
+            'approved' => BPJSClaim::where('status', 'approved')->count(),
+            'rejected' => BPJSClaim::where('status', 'rejected')->count(),
+            'total_amount' => BPJSClaim::sum('claimed_amount'),
+        ];
 
         return view('healthcare.bpjs-claims.index', compact('claims', 'statistics'));
     }
@@ -51,25 +39,20 @@ class BPJSClaimController extends Controller
 
     public function store(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'claim_amount' => 'required|numeric|min:0',
+            'bpjs_number' => 'required|string|max:255',
+            'claimed_amount' => 'required|numeric|min:0',
             'diagnosis_code' => 'required|string|max:50',
             'procedure_code' => 'nullable|string|max:50',
-            'submission_date' => 'required|date',
+            'admission_date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
 
-        $validated['claim_number'] = 'BPJS-'.now()->format('Ymd').'-'.str_pad(BPJSClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
-        $validated['status'] = 'pending';
-        $validated['tenant_id'] = $tenantId;
+        $validated['claim_number'] = 'BPJS-' . now()->format('Ymd') . '-' . str_pad(BPJSClaim::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['status'] = 'draft';
 
         $claim = BPJSClaim::create($validated);
-
-        // Clear cache
-        DashboardCacheService::clearStats("stats:bpjs_claims:{$tenantId}");
 
         return redirect()->route('healthcare.bpjs-claims.show', $claim)
             ->with('success', 'BPJS claim created');
@@ -94,8 +77,6 @@ class BPJSClaimController extends Controller
 
     public function updateStatus(Request $request, BPJSClaim $claim)
     {
-        $tenantId = auth()->user()->tenant_id;
-
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
             'approved_amount' => 'nullable|numeric|min:0',
@@ -109,20 +90,12 @@ class BPJSClaimController extends Controller
             'adjudication_date' => now(),
         ]);
 
-        // Clear cache
-        DashboardCacheService::clearStats("stats:bpjs_claims:{$tenantId}");
-
         return response()->json(['success' => true, 'message' => 'Claim status updated']);
     }
 
     public function destroy(BPJSClaim $claim)
     {
-        $tenantId = auth()->user()->tenant_id;
-
         $claim->delete();
-
-        // Clear cache
-        DashboardCacheService::clearStats("stats:bpjs_claims:{$tenantId}");
 
         return response()->json(['success' => true, 'message' => 'Claim deleted']);
     }

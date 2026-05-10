@@ -216,7 +216,6 @@ use App\Http\Controllers\Telecom\PackageController as TelecomPackageController;
 use App\Http\Controllers\Telecom\ReportsController as TelecomReportsController;
 use App\Http\Controllers\Telecom\SubscriptionController as TelecomSubscriptionController;
 use App\Http\Controllers\Telecom\VoucherController as TelecomVoucherController;
-use App\Http\Controllers\TenantAiRoutingController;
 use App\Http\Controllers\TenantIntegrationSettingsController;
 use App\Http\Controllers\CustomRoleController;
 use App\Http\Controllers\TenantUserController;
@@ -870,19 +869,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/test-fonnte', [TenantIntegrationSettingsController::class, 'testFonnte'])->name('test-fonnte');
     });
 
-    // Tenant AI Provider Settings (Requirements 5.1–5.8)
-    Route::prefix('settings/ai-provider')->name('settings.ai-provider.')->middleware('role:admin')->group(function () {
-        Route::post('/', [TenantIntegrationSettingsController::class, 'saveAiProviderSettings'])->name('save');
-        Route::get('/status', [TenantIntegrationSettingsController::class, 'getAiProviderStatus'])->name('status');
-        Route::post('/test-connection', [TenantIntegrationSettingsController::class, 'testAiProviderConnection'])->name('test-connection');
-    });
-
-    // Tenant AI Routing Settings (Requirements 5.1–5.8, Task 13)
-    Route::prefix('settings/ai-routing')->name('settings.ai-routing.')->middleware('role:admin')->group(function () {
-        Route::get('/', [TenantAiRoutingController::class, 'index'])->name('index');
-        Route::post('/', [TenantAiRoutingController::class, 'store'])->name('store');
-        Route::delete('/{route}', [TenantAiRoutingController::class, 'destroy'])->name('destroy');
-    });
 
     // Tax Management (admin only)
     Route::prefix('settings/taxes')->name('taxes.')->middleware('role:admin')->group(function () {

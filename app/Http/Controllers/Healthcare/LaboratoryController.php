@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\LabOrder;
 use App\Models\LabResult;
 use App\Models\LabTestCatalog;
-use App\Models\MedicalEquipment;
 use Illuminate\Http\Request;
 
 class LaboratoryController extends Controller
@@ -21,7 +20,7 @@ class LaboratoryController extends Controller
             'samples_collected' => LabOrder::where('status', 'sample_collected')->count(),
             'in_analysis' => LabOrder::where('status', 'in_analysis')->count(),
             'completed_today' => LabOrder::where('status', 'completed')->whereDate('completed_at', today())->count(),
-            'critical_results' => LabResult::where('is_critical', true)->where('is_verified', false)->count(),
+            'critical_results' => LabResult::where('is_critical', true)->whereNull('verified_at')->count(),
         ];
 
         $recentOrders = LabOrder::with(['patient', 'labTest', 'doctor'])
@@ -29,7 +28,7 @@ class LaboratoryController extends Controller
             ->limit(10)
             ->get();
 
-        return view('healthcare.laboratory.index', compact('statistics', 'recentOrders'));
+        return view('healthcare.laboratory.dashboard', compact('statistics', 'recentOrders'));
     }
 
     /**
@@ -81,7 +80,7 @@ class LaboratoryController extends Controller
         }
 
         if ($request->filled('date')) {
-            $query->whereDate('order_date', $request->date);
+            $query->whereDate('created_at', $request->date);
         }
 
         if ($request->filled('search')) {
@@ -163,7 +162,7 @@ class LaboratoryController extends Controller
             'performed_by' => $validated['performed_by'],
             'result_data' => $validated['results'],
             'notes' => $validated['notes'],
-            'is_verified' => false,
+            'status' => 'preliminary',
         ]);
 
         // Update order status
@@ -195,10 +194,9 @@ class LaboratoryController extends Controller
         }
 
         $result->update([
-            'is_verified' => true,
+            'status' => 'final',
             'verified_by' => $validated['validated_by'],
             'verified_at' => now(),
-            'validation_notes' => $validated['validation_notes'],
         ]);
 
         return back()->with('success', 'Lab results validated successfully');
@@ -209,10 +207,14 @@ class LaboratoryController extends Controller
      */
     public function results(Request $request)
     {
-        $query = LabResult::with(['labOrder', 'patient', 'doctor']);
+        $query = LabResult::with(['order', 'patient']);
 
         if ($request->filled('verified')) {
-            $query->where('is_verified', $request->verified === 'true');
+            if ($request->verified === 'true') {
+                $query->whereNotNull('verified_at');
+            } else {
+                $query->whereNull('verified_at');
+            }
         }
 
         if ($request->filled('critical')) {
@@ -229,7 +231,7 @@ class LaboratoryController extends Controller
      */
     public function showResult(LabResult $result)
     {
-        $result->load(['labOrder', 'patient', 'doctor']);
+        $result->load(['order', 'patient']);
 
         return view('healthcare.laboratory.result-show', compact('result'));
     }
@@ -245,8 +247,7 @@ class LaboratoryController extends Controller
             'in_analysis' => LabOrder::where('status', 'in_analysis')->count(),
             'completed_today' => LabOrder::where('status', 'completed')->whereDate('completed_at', today())->count(),
             'avg_turnaround_time' => LabOrder::whereNotNull('completed_at')
-                ->whereNotNull('order_date')
-                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, order_date, completed_at)) as avg')
+                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, completed_at)) as avg')
                 ->value('avg'),
         ];
 
@@ -258,9 +259,7 @@ class LaboratoryController extends Controller
      */
     public function equipment()
     {
-        // This would integrate with medical_equipment table
-        $equipment = MedicalEquipment::where('equipment_type', 'laboratory')
-            ->get();
+        $equipment = \App\Models\LabEquipment::where('is_active', true)->get();
 
         return view('healthcare.laboratory.equipment', compact('equipment'));
     }

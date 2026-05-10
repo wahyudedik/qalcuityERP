@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Dashboard Farmasi</x-slot>
 
     {{-- Breadcrumbs --}}
@@ -80,22 +80,22 @@
                     <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
                         <div class="flex items-center justify-between mb-2">
                             <div>
-                                <p class="font-bold text-gray-900">{{ $item->name }}</p>
+                                <p class="font-bold text-gray-900">{{ $item->item_name }}</p>
                                 <p class="text-xs text-gray-500">{{ $item->generic_name ?? '-' }} |
                                     {{ $item->category ?? '-' }}</p>
                             </div>
                             <span class="px-2 py-1 text-xs font-bold bg-amber-500 text-white rounded-lg">
-                                {{ $item->stock_quantity }} {{ $item->unit ?? '' }}
+                                {{ $item->stock_quantity }} {{ $item->unit_of_measure ?? '' }}
                             </span>
                         </div>
-                        @if($item->reorder_level > 0)
+                        @if ($item->minimum_stock > 0)
                             <div class="w-full bg-gray-200 rounded-full h-2">
                                 <div class="bg-amber-500 h-2 rounded-full"
-                                    style="width: {{ min(100, ($item->stock_quantity / $item->reorder_level) * 100) }}%">
+                                    style="width: {{ min(100, ($item->stock_quantity / $item->minimum_stock) * 100) }}%">
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Minimum: {{ $item->reorder_level }}
-                                {{ $item->unit ?? '' }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Minimum: {{ $item->minimum_stock }}
+                                {{ $item->unit_of_measure ?? '' }}</p>
                         @endif
                     </div>
                 @empty
@@ -128,8 +128,9 @@
                                 {{ $activity->created_at?->format('d M Y H:i') ?? '-' }}
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg
-                                    @if(($activity->type ?? '') === 'dispensed') bg-green-100 text-green-700
+                                <span
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg
+                                    @if (($activity->type ?? '') === 'dispensed') bg-green-100 text-green-700
                                     @elseif(($activity->type ?? '') === 'received') bg-blue-100 text-blue-700
                                     @elseif(($activity->type ?? '') === 'returned') bg-amber-100 text-amber-700
                                     @else bg-gray-100 text-gray-700 @endif">

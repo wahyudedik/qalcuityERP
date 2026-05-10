@@ -10,6 +10,8 @@ class BPJSClaim extends Model
 {
     use HasFactory;
 
+    protected $table = 'bpjs_claims';
+
     protected $fillable = [
         'claim_number',
         'patient_id',

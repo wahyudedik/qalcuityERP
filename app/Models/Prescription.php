@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Prescription extends Model
 {
-    use BelongsToTenant, HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'visit_id',
@@ -51,9 +50,9 @@ class Prescription extends Model
     public static function generatePrescriptionNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'RX-'.$date;
+        $prefix = 'RX-' . $date;
 
-        $lastPrescription = static::where('prescription_number', 'like', $prefix.'%')
+        $lastPrescription = static::where('prescription_number', 'like', $prefix . '%')
             ->orderBy('prescription_number', 'desc')
             ->first();
 
@@ -64,7 +63,7 @@ class Prescription extends Model
             $newNumber = '0001';
         }
 
-        return $prefix.'-'.$newNumber;
+        return $prefix . '-' . $newNumber;
     }
 
     /**

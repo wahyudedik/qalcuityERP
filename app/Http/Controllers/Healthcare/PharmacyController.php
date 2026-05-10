@@ -14,29 +14,7 @@ class PharmacyController extends Controller
      */
     public function index()
     {
-        $statistics = [
-            'total_items' => PharmacyInventory::count(),
-            'low_stock' => PharmacyInventory::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
-            'out_of_stock' => PharmacyInventory::where('stock_quantity', 0)->count(),
-            'expiring_soon' => PharmacyInventory::where('has_expiry', true)
-                ->where('expiry_date', '<=', now()->addDays(30))
-                ->count(),
-            'total_value' => PharmacyInventory::sumRaw('stock_quantity * unit_cost'),
-        ];
-
-        $lowStockItems = PharmacyInventory::whereColumn('stock_quantity', '<=', 'reorder_level')
-            ->orderBy('stock_quantity')
-            ->limit(10)
-            ->get();
-
-        $expiringSoon = PharmacyInventory::where('has_expiry', true)
-            ->where('expiry_date', '<=', now()->addDays(30))
-            ->where('expiry_date', '>', now())
-            ->orderBy('expiry_date')
-            ->limit(10)
-            ->get();
-
-        return view('healthcare.pharmacy.index', compact('statistics', 'lowStockItems', 'expiringSoon'));
+        return $this->dashboard();
     }
 
     /**
@@ -65,7 +43,7 @@ class PharmacyController extends Controller
 
         if ($request->filled('stock_status')) {
             if ($request->stock_status === 'low') {
-                $query->whereColumn('stock_quantity', '<=', 'reorder_level');
+                $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
             } elseif ($request->stock_status === 'out') {
                 $query->where('stock_quantity', 0);
             } elseif ($request->stock_status === 'expiring') {
@@ -92,10 +70,10 @@ class PharmacyController extends Controller
             'medication_type' => 'nullable|in:tablet,capsule,syrup,injection,cream,ointment,drop,spray,patch,gel',
             'category' => 'nullable|string|max:255',
             'manufacturer' => 'nullable|string|max:255',
-            'unit_cost' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'reorder_level' => 'required|integer|min:0',
+            'minimum_stock' => 'required|integer|min:0',
             'max_stock_level' => 'nullable|integer|min:0',
             'unit_of_measure' => 'required|string|max:50',
             'storage_requirement' => 'nullable|in:room_temp,refrigerated,frozen,controlled_substance',
@@ -201,7 +179,7 @@ class PharmacyController extends Controller
      */
     public function stockAlerts()
     {
-        $lowStock = PharmacyInventory::whereColumn('stock_quantity', '<=', 'reorder_level')
+        $lowStock = PharmacyInventory::whereColumn('stock_quantity', '<=', 'minimum_stock')
             ->orderBy('stock_quantity')
             ->get();
 
@@ -256,7 +234,7 @@ class PharmacyController extends Controller
             }
         }
 
-        return back()->with('success', 'Stock opname completed. '.count($adjustments).' adjustments made');
+        return back()->with('success', 'Stock opname completed. ' . count($adjustments) . ' adjustments made');
     }
 
     /**
@@ -266,7 +244,7 @@ class PharmacyController extends Controller
     {
         $statistics = [
             'total_items' => PharmacyInventory::count(),
-            'low_stock' => PharmacyInventory::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
+            'low_stock' => PharmacyInventory::whereColumn('stock_quantity', '<=', 'minimum_stock')->count(),
             'pending_prescriptions' => Prescription::where('status', 'pending')->count(),
             'verified_prescriptions' => Prescription::where('status', 'verified')->count(),
             'today_dispensed' => Prescription::whereDate('dispensed_at', today())->count(),

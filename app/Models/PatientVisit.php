@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PatientVisit extends Model
 {
-    use BelongsToTenant, HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'patient_id',
@@ -80,9 +79,9 @@ class PatientVisit extends Model
     public static function generateVisitNumber()
     {
         $date = now()->format('Ymd');
-        $prefix = 'VIS-'.$date;
+        $prefix = 'VIS-' . $date;
 
-        $lastVisit = static::where('visit_number', 'like', $prefix.'%')
+        $lastVisit = static::where('visit_number', 'like', $prefix . '%')
             ->orderBy('visit_number', 'desc')
             ->first();
 
@@ -93,7 +92,7 @@ class PatientVisit extends Model
             $newNumber = '0001';
         }
 
-        return $prefix.'-'.$newNumber;
+        return $prefix . '-' . $newNumber;
     }
 
     /**

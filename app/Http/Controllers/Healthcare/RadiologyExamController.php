@@ -11,28 +11,30 @@ use Illuminate\Support\Facades\Auth;
 class RadiologyExamController extends Controller
 {
     /**
-     * Display a listing of radiology exams.
+     * Display a listing of radiology orders.
      */
     public function index(Request $request)
     {
-        $query = RadiologyExam::query()->with(['radiologyOrder.patient', 'radiologist']);
+        $query = RadiologyOrder::with(['patient', 'doctor', 'exam']);
 
         if ($request->filled('exam_type')) {
-            $query->where('exam_type', $request->exam_type);
+            $query->whereHas('exam', function ($q) use ($request) {
+                $q->where('modality', $request->exam_type);
+            });
         }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $exams = $query->orderBy('exam_date', 'desc')->paginate(20);
+        $exams = $query->orderBy('scheduled_date', 'desc')->paginate(20);
 
         $statistics = [
-            'total_exams' => RadiologyExam::count(),
-            'scheduled' => RadiologyExam::where('status', 'scheduled')->count(),
-            'in_progress' => RadiologyExam::where('status', 'in_progress')->count(),
-            'completed' => RadiologyExam::where('status', 'completed')->count(),
-            'reports_pending' => RadiologyExam::where('status', 'completed')->whereNull('report')->count(),
+            'total_exams' => RadiologyOrder::count(),
+            'scheduled' => RadiologyOrder::where('status', 'scheduled')->count(),
+            'in_progress' => RadiologyOrder::where('status', 'in_progress')->count(),
+            'completed' => RadiologyOrder::where('status', 'completed')->count(),
+            'reports_pending' => RadiologyOrder::where('status', 'completed')->whereNull('reported_at')->count(),
         ];
 
         return view('healthcare.radiology-exams.index', compact('exams', 'statistics'));
@@ -41,71 +43,86 @@ class RadiologyExamController extends Controller
     /**
      * Show the form for creating a new radiology exam.
      */
-    public function create(RadiologyOrder $order)
+    public function create(Request $request)
     {
-        $order->load('patient');
+        $order = null;
+        if ($request->filled('order_id')) {
+            $order = RadiologyOrder::with('patient')->findOrFail($request->order_id);
+        }
 
-        return view('healthcare.radiology-exams.create', compact('order'));
+        $examCatalog = RadiologyExam::where('is_active', true)->orderBy('exam_name')->get();
+
+        return view('healthcare.radiology-exams.create', compact('order', 'examCatalog'));
     }
 
     /**
-     * Store a newly created radiology exam.
+     * Store a newly created radiology order.
      */
-    public function store(Request $request, RadiologyOrder $order)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'exam_type' => 'required|in:xray,mri,ct_scan,ultrasound,mammography,fluoroscopy',
-            'body_part' => 'required|string|max:255',
-            'exam_date' => 'required|date',
-            'technician_id' => 'required|exists:users,id',
-            'radiologist_id' => 'nullable|exists:users,id',
+            'patient_id' => 'required|exists:patients,id',
+            'exam_id' => 'required|exists:radiology_exams,id',
+            'scheduled_date' => 'required|date',
+            'priority' => 'required|in:routine,urgent,stat',
+            'clinical_indication' => 'required|string',
             'clinical_history' => 'nullable|string',
-            'contrast_used' => 'boolean',
             'notes' => 'nullable|string',
         ]);
 
-        $validated['radiology_order_id'] = $order->id;
-        $validated['status'] = 'scheduled';
-        $validated['contrast_used'] = $request->has('contrast_used');
+        $order = RadiologyOrder::create([
+            'patient_id' => $validated['patient_id'],
+            'exam_id' => $validated['exam_id'],
+            'ordered_by' => Auth::id(),
+            'order_number' => 'RAD-ORD-' . now()->format('Ymd') . '-' . str_pad(RadiologyOrder::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT),
+            'order_date' => now(),
+            'scheduled_date' => $validated['scheduled_date'],
+            'priority' => $validated['priority'],
+            'clinical_indication' => $validated['clinical_indication'],
+            'clinical_history' => $validated['clinical_history'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'scheduled',
+        ]);
 
-        $exam = RadiologyExam::create($validated);
-
-        $order->update(['status' => 'in_progress']);
-
-        return redirect()->route('healthcare.radiology-exams.show', $exam)
+        return redirect()->route('healthcare.radiology-exams.show', $order)
             ->with('success', 'Radiology exam scheduled successfully');
     }
 
     /**
-     * Display the specified radiology exam.
+     * Display the specified radiology order.
      */
-    public function show(RadiologyExam $exam)
+    public function show(RadiologyOrder $radiology_exam)
     {
-        $exam->load(['radiologyOrder.patient', 'technician', 'radiologist']);
+        $radiology_exam->load(['patient', 'doctor', 'exam', 'results']);
 
-        return view('healthcare.radiology-exams.show', compact('exam'));
+        return view('healthcare.radiology-exams.show', compact('radiology_exam'));
     }
 
     /**
      * Enter exam results and report.
      */
-    public function enterReport(Request $request, RadiologyExam $exam)
+    public function enterReport(Request $request, RadiologyOrder $exam)
     {
         $validated = $request->validate([
             'findings' => 'required|string',
             'impression' => 'required|string',
             'recommendations' => 'nullable|string',
-            'image_urls' => 'nullable|array',
         ]);
 
         $exam->update([
+            'reported_at' => now(),
+            'reported_by' => Auth::id(),
+            'status' => 'reported',
+        ]);
+
+        $exam->results()->create([
+            'patient_id' => $exam->patient_id,
+            'reported_by' => Auth::id(),
             'findings' => $validated['findings'],
             'impression' => $validated['impression'],
             'recommendations' => $validated['recommendations'] ?? null,
-            'image_urls' => $validated['image_urls'] ?? [],
-            'status' => 'completed',
             'report_date' => now(),
-            'radiologist_id' => Auth::id(),
+            'status' => 'final',
         ]);
 
         return redirect()->route('healthcare.radiology-exams.show', $exam)
@@ -115,10 +132,10 @@ class RadiologyExamController extends Controller
     /**
      * Update exam status.
      */
-    public function updateStatus(Request $request, RadiologyExam $exam)
+    public function updateStatus(Request $request, RadiologyOrder $exam)
     {
         $validated = $request->validate([
-            'status' => 'required|in:scheduled,in_progress,completed,cancelled',
+            'status' => 'required|in:ordered,scheduled,in_progress,completed,reported,cancelled',
         ]);
 
         $exam->update($validated);
@@ -132,76 +149,71 @@ class RadiologyExamController extends Controller
     /**
      * Print radiology report.
      */
-    public function print(RadiologyExam $exam)
+    public function print(RadiologyOrder $radiology_exam)
     {
-        $exam->load(['radiologyOrder.patient', 'radiologist']);
+        $radiology_exam->load(['patient', 'doctor', 'exam', 'results']);
 
-        return view('healthcare.radiology-exams.print', compact('exam'));
+        return view('healthcare.radiology-exams.print', compact('radiology_exam'));
     }
 
     /**
-     * Remove the specified radiology exam.
+     * Remove the specified radiology order.
      */
-    public function destroy(RadiologyExam $exam)
+    public function destroy(RadiologyOrder $radiology_exam)
     {
-        if ($exam->status === 'completed') {
+        if ($radiology_exam->status === 'completed' || $radiology_exam->status === 'reported') {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete a completed exam with report',
+                'message' => 'Cannot delete a completed or reported exam',
             ], 400);
         }
 
-        $exam->delete();
+        $radiology_exam->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Radiology exam deleted successfully',
+            'message' => 'Radiology order deleted successfully',
         ]);
     }
 
     /**
      * Show the form for editing.
-     * Route: healthcare/radiology-exams/{radiology_exam}/edit
      */
-    public function edit($model)
+    public function edit(RadiologyOrder $radiology_exam)
     {
-        $this->authorize('update', $model);
+        $examCatalog = RadiologyExam::where('is_active', true)->orderBy('exam_name')->get();
 
-        return view('healthcare.radiology-exam.edit', compact('model'));
+        return view('healthcare.radiology-exams.edit', compact('radiology_exam', 'examCatalog'));
     }
 
     /**
      * Update the specified resource.
-     * Route: healthcare/radiology-exams/{radiology_exam}
      */
-    public function update(Request $request, $model)
+    public function update(Request $request, RadiologyOrder $radiology_exam)
     {
-        $this->authorize('update', $model);
-
         $validated = $request->validate([
-            // TODO: Add validation rules
+            'scheduled_date' => 'nullable|date',
+            'priority' => 'nullable|in:routine,urgent,stat',
+            'clinical_indication' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
-        $model->update($validated);
+        $radiology_exam->update($validated);
 
-        return redirect()->route('healthcare.radiology-exams.update')
+        return redirect()->route('healthcare.radiology-exams.show', $radiology_exam)
             ->with('success', 'Updated successfully.');
     }
 
     /**
-     * Complete.
-     * Route: healthcare/radiology-exams/{exam}/complete
+     * Complete an exam.
      */
-    public function complete(Request $request, $model)
+    public function complete(Request $request, RadiologyOrder $exam)
     {
-        $this->authorize('update', $model);
-
-        $validated = $request->validate([
-            // TODO: Add validation rules
+        $exam->update([
+            'status' => 'completed',
+            'completed_at' => now(),
         ]);
 
-        // TODO: Implement Complete logic
-
-        return back()->with('success', 'Complete completed successfully.');
+        return back()->with('success', 'Exam marked as completed.');
     }
 }

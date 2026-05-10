@@ -4,8 +4,8 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.ministry-reports.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"><i
-                    class="fas fa-plus mr-2"></i>New Report</a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"><i
+                class="fas fa-plus mr-2"></i>New Report</a>
     </div>
 
     <div class="py-12">
@@ -137,7 +137,7 @@
     <script>
         function submitReport(id) {
             if (confirm('Submit this report to Ministry of Health?')) {
-                fetch(`{{ route('healthcare.ministry-reports.submit', '') }}/${id}`, {
+                fetch(`/healthcare/ministry-reports/${id}/submit`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -155,7 +155,7 @@
 
         function deleteReport(id) {
             if (confirm('Are you sure you want to delete this report?')) {
-                fetch(`{{ route('healthcare.ministry-reports.destroy', '') }}/${id}`, {
+                fetch(`/healthcare/ministry-reports/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',

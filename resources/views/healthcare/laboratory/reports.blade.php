@@ -46,10 +46,10 @@
             @php
                 $query = \App\Models\LabOrder::where('tenant_id', $tid);
                 if (request('start_date')) {
-                    $query->whereDate('order_date', '>=', request('start_date'));
+                    $query->whereDate('created_at', '>=', request('start_date'));
                 }
                 if (request('end_date')) {
-                    $query->whereDate('order_date', '<=', request('end_date'));
+                    $query->whereDate('created_at', '<=', request('end_date'));
                 }
                 if (request('test_type')) {
                     $query->where('test_type', request('test_type'));
@@ -57,7 +57,7 @@
                 if (request('status')) {
                     $query->where('status', request('status'));
                 }
-                $reports = $query->orderBy('order_date', 'desc')->get();
+                $reports = $query->orderBy('created_at', 'desc')->get();
 
                 $totalTests = $reports->count();
                 $completedTests = $reports->where('status', 'completed')->count();
@@ -88,8 +88,7 @@
         </div>
 
         {{-- Reports Table --}}
-        <div
-            class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-gray-900">Hasil Laporan</h3>
                 <div class="flex items-center gap-2">
@@ -136,7 +135,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                    {{ $report->order_date ? \Carbon\Carbon::parse($report->order_date)->format('d M Y') : '-' }}
+                                    {{ $report->created_at ? $report->created_at->format('d M Y') : '-' }}
                                 </td>
                                 <td class="px-4 py-3 text-center hidden sm:table-cell">
                                     @if ($report->status === 'completed' && isset($report->results['abnormal']))
@@ -175,8 +174,7 @@
                                             </svg>
                                         </a>
                                         <button onclick="printReport({{ $report->id }})"
-                                            class="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg"
-                                            title="Print">
+                                            class="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg" title="Print">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"

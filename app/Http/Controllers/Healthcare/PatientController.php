@@ -140,7 +140,7 @@ class PatientController extends Controller
         DashboardCacheService::clearStats("stats:patients:{$tenantId}");
 
         return redirect()->route('healthcare.patients.show', $patient)
-            ->with('success', 'Pasien berhasil didaftarkan: '.$patient->medical_record_number);
+            ->with('success', 'Pasien berhasil didaftarkan: ' . $patient->medical_record_number);
     }
 
     /**
@@ -186,7 +186,7 @@ class PatientController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nik' => 'nullable|string|max:16|unique:patients,nik,'.$patient->id,
+            'nik' => 'nullable|string|max:16|unique:patients,nik,' . $patient->id,
             'birth_date' => 'required|date',
             'birth_place' => 'nullable|string|max:100',
             'gender' => 'required|in:male,female',
@@ -355,7 +355,7 @@ class PatientController extends Controller
                 'date' => $visit->visit_date,
                 'type' => 'visit',
                 'title' => 'Patient Visit',
-                'description' => $visit->visit_type.' - '.$visit->chief_complaint,
+                'description' => $visit->visit_type . ' - ' . $visit->chief_complaint,
                 'icon' => 'stethoscope',
             ]);
         });
@@ -374,7 +374,7 @@ class PatientController extends Controller
         // Add lab orders
         $patient->labOrders()->get()->each(function ($labOrder) use ($timeline) {
             $timeline->push([
-                'date' => $labOrder->order_date,
+                'date' => $labOrder->created_at,
                 'type' => 'lab',
                 'title' => 'Lab Order',
                 'description' => $labOrder->lab_test?->test_name,

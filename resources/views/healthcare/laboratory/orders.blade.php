@@ -91,17 +91,17 @@
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700">
-                                    {{ $order->labTest?->test_name ?? $order->labTest?->category ?? '-' }}
+                                    {{ $order->labTest?->test_name ?? ($order->labTest?->category ?? '-') }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 {{ $order->doctor ? $order->doctor?->name : '-' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">
                                 <p class="text-gray-900">
-                                    {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('d M Y') : '-' }}
+                                    {{ $order->created_at ? $order->created_at->format('d M Y') : '-' }}
                                 </p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('H:i') : '-' }}
+                                    {{ $order->created_at ? $order->created_at->format('H:i') : '-' }}
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
@@ -135,8 +135,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.laboratory.orders.enter-results', $order) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                        title="Input Hasil">
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Input Hasil">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -144,8 +143,7 @@
                                         </svg>
                                     </a>
                                     <a href="{{ route('healthcare.laboratory.orders.show', $order) }}"
-                                        class="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg"
-                                        title="Detail">
+                                        class="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg" title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -221,7 +219,7 @@
                         <div>
                             <p class="text-gray-500">Tanggal</p>
                             <p class="font-medium text-gray-900">
-                                {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('d M Y') : '-' }}
+                                {{ $order->created_at ? $order->created_at->format('d M Y') : '-' }}
                             </p>
                         </div>
                         <div class="col-span-2">
@@ -244,8 +242,8 @@
                 </div>
             @empty
                 <div class="p-8 text-center text-gray-500">
-                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                         </path>

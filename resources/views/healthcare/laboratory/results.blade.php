@@ -14,8 +14,7 @@
     @if (!isset($order))
         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6">
             <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-amber-600 mt-0.5" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                <svg class="w-6 h-6 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
                     </path>
@@ -31,10 +30,8 @@
 
     {{-- Order Info --}}
     @if (isset($order))
-        <div
-            class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
-            <div
-                class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">Order:
@@ -63,7 +60,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Tanggal Order</p>
                     <p class="text-sm font-semibold text-gray-900 mt-1">
-                        {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('d M Y H:i') : '-' }}
+                        {{ $order->created_at ? $order->created_at->format('d M Y H:i') : '-' }}
                     </p>
                 </div>
             </div>
@@ -74,8 +71,7 @@
             @csrf
 
             {{-- Test Results --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900">Hasil Test</h3>
                 </div>
@@ -83,16 +79,14 @@
                     @if ($order->test_type === 'blood_test')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-700 mb-2">Hemoglobin
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Hemoglobin
                                     (g/dL)</label>
                                 <input type="number" step="0.1" name="results[hb]" value="{{ old('results.hb') }}"
                                     class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <p class="text-xs text-gray-500 mt-1">Normal: 12-16 g/dL</p>
                             </div>
                             <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-700 mb-2">Hematocrit
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Hematocrit
                                     (%)</label>
                                 <input type="number" step="0.1" name="results[hct]"
                                     value="{{ old('results.hct') }}"
@@ -164,8 +158,7 @@
             </div>
 
             {{-- Notes & Interpretation --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900">Catatan & Interpretasi</h3>
                 </div>

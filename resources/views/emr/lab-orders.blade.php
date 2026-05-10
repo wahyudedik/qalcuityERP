@@ -1,19 +1,21 @@
 <x-app-layout>
     <x-slot name="header">
 
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold mb-0">
-                <i class="fas fa-flask text-blue-600"></i> Laboratory Orders
-            </h1>
-            <p class="text-gray-500">Manage lab test orders and track results</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold mb-0">
+                    <i class="fas fa-flask text-blue-600"></i> Laboratory Orders
+                </h1>
+                <p class="text-gray-500">Manage lab test orders and track results</p>
+            </div>
+            <div>
+                <button
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition"
+                    data-bs-toggle="modal" data-bs-target="#addOrderModal">
+                    <i class="fas fa-plus"></i> New Lab Order
+                </button>
+            </div>
         </div>
-        <div>
-            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addOrderModal">
-                <i class="fas fa-plus"></i> New Lab Order
-            </button>
-        </div>
-    </div>
     </x-slot>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -73,7 +75,7 @@
                                 @forelse($orders as $order)
                                     <tr>
                                         <td><code>{{ $order->order_number }}</code></td>
-                                        <td>{{ $order->order_date?->format('d/m/Y H:i') ?? '-' }}</td>
+                                        <td>{{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
                                         <td>
                                             <a href="{{ route('healthcare.patients.show', $order->patient) }}">
                                                 {{ $order->patient?->name ?? '-' }}
@@ -82,11 +84,14 @@
                                         <td>{{ $order->test_type ?? '-' }}</td>
                                         <td>
                                             @if ($order->priority == 'stat')
-                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">STAT</span>
+                                                <span
+                                                    class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">STAT</span>
                                             @elseif($order->priority == 'urgent')
-                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Urgent</span>
+                                                <span
+                                                    class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Urgent</span>
                                             @else
-                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Routine</span>
+                                                <span
+                                                    class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Routine</span>
                                             @endif
                                         </td>
                                         <td>{{ $order->ordered_by?->name ?? '-' }}</td>
@@ -99,7 +104,7 @@
                                                     'cancelled' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary'  }}">
+                                            <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary' }}">
                                                 {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                             </span>
                                         </td>
@@ -110,7 +115,8 @@
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @if ($order->status == 'pending')
-                                                    <button class="px-3 py-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition"
+                                                    <button
+                                                        class="px-3 py-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition"
                                                         onclick="processOrder({{ $order->id }})">
                                                         <i class="fas fa-play"></i>
                                                     </button>
@@ -120,7 +126,8 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-6 text-gray-400">No lab orders found</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No lab orders found
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -140,7 +147,8 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">New Laboratory Order</h5>
-                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600"
+                            data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,7 +178,9 @@
                             </div>
                             <div class="w-full md:w-1/2">
                                 <label class="form-label">Order Date</label>
-                                <input type="datetime-local" name="order_date" class="form-control" required>
+                                <input type="datetime-local" name="order_date" class="form-control"
+                                    value="{{ now()->format('Y-m-d\TH:i') }}" disabled>
+                                <small class="text-gray-500">Otomatis diisi saat order dibuat</small>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -179,8 +189,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Create Order</button>
+                        <button type="button"
+                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Create
+                            Order</button>
                     </div>
                 </form>
             </div>

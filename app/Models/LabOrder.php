@@ -23,13 +23,11 @@ class LabOrder extends Model
         'priority',
         'status',
         'clinical_notes',
-        'order_date',
         'completed_at',
         'notes',
     ];
 
     protected $casts = [
-        'order_date' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
@@ -57,9 +55,6 @@ class LabOrder extends Model
             if (empty($order->order_number)) {
                 $order->order_number = static::generateOrderNumber();
             }
-            if (empty($order->order_date)) {
-                $order->order_date = now();
-            }
             if (empty($order->status)) {
                 $order->status = self::STATUS_PENDING;
             }
@@ -68,14 +63,14 @@ class LabOrder extends Model
 
     public static function generateOrderNumber(): string
     {
-        $prefix = 'LAB-'.now()->format('Ymd');
-        $last = static::where('order_number', 'like', $prefix.'%')
+        $prefix = 'LAB-' . now()->format('Ymd');
+        $last = static::where('order_number', 'like', $prefix . '%')
             ->orderByDesc('order_number')
             ->value('order_number');
 
         $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 
-        return $prefix.'-'.str_pad($seq, 4, '0', STR_PAD_LEFT);
+        return $prefix . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
     public function patient(): BelongsTo

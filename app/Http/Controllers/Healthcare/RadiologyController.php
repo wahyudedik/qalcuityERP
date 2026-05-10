@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Healthcare;
 use App\Http\Controllers\Controller;
 use App\Models\PACSStudy;
 use App\Models\RadiologyExam;
+use App\Models\RadiologyOrder;
 use Illuminate\Http\Request;
 
 class RadiologyController extends Controller
@@ -14,22 +15,31 @@ class RadiologyController extends Controller
      */
     public function index()
     {
-        $tenantId = auth()->user()->tenant_id;
-
         $statistics = [
-            'pending_exams' => RadiologyExam::where('tenant_id', $tenantId)->where('status', 'scheduled')->count(),
-            'in_progress' => RadiologyExam::where('tenant_id', $tenantId)->where('status', 'in_progress')->count(),
-            'completed_today' => RadiologyExam::where('tenant_id', $tenantId)->where('status', 'completed')->whereDate('exam_date', today())->count(),
-            'pending_reports' => RadiologyExam::where('tenant_id', $tenantId)->where('status', 'completed')->whereNull('report_text')->count(),
+            'pending_exams' => RadiologyOrder::where('status', 'scheduled')->count(),
+            'in_progress' => RadiologyOrder::where('status', 'in_progress')->count(),
+            'completed_today' => RadiologyOrder::where('status', 'completed')->whereDate('completed_at', today())->count(),
+            'pending_reports' => RadiologyOrder::where('status', 'completed')->whereNull('reported_at')->count(),
         ];
 
-        $recentExams = RadiologyExam::with(['patient', 'doctor'])
-            ->where('tenant_id', $tenantId)
+        $radiologyOrders = RadiologyOrder::with(['patient', 'doctor'])
             ->latest()
-            ->limit(10)
+            ->paginate(20);
+
+        return view('healthcare.radiology.index', compact('statistics', 'radiologyOrders'));
+    }
+
+    /**
+     * Show form to create a new radiology order.
+     */
+    public function create()
+    {
+        $visits = \App\Models\PatientVisit::with('patient')
+            ->where('visit_status', 'in_consultation')
+            ->latest()
             ->get();
 
-        return view('healthcare.radiology.index', compact('statistics', 'recentExams'));
+        return view('healthcare.radiology.create', compact('visits'));
     }
 
     /**
@@ -40,17 +50,26 @@ class RadiologyController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'doctor_id' => 'required|exists:doctors,id',
-            'exam_type' => 'required|string|max:255',
+            'exam_id' => 'required|exists:radiology_exams,id',
             'body_part' => 'required|string|max:255',
-            'exam_date' => 'required|date',
+            'scheduled_date' => 'required|date',
             'priority' => 'required|in:routine,urgent,stat',
             'clinical_indication' => 'nullable|string',
-            'medical_record_id' => 'nullable|exists:patient_medical_records,id',
         ]);
 
-        $exam = RadiologyExam::create($validated);
+        $order = RadiologyOrder::create([
+            'patient_id' => $validated['patient_id'],
+            'ordered_by' => $validated['doctor_id'],
+            'exam_id' => $validated['exam_id'],
+            'scheduled_date' => $validated['scheduled_date'],
+            'priority' => $validated['priority'],
+            'clinical_indication' => $validated['clinical_indication'] ?? '',
+            'order_date' => now(),
+            'order_number' => 'RAD-ORD-' . now()->format('Ymd') . '-' . str_pad(RadiologyOrder::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT),
+            'status' => 'scheduled',
+        ]);
 
-        return redirect()->route('healthcare.radiology.exams.show', $exam)
+        return redirect()->route('healthcare.radiology.exams.show', $order)
             ->with('success', 'Radiology exam scheduled successfully');
     }
 
@@ -59,29 +78,28 @@ class RadiologyController extends Controller
      */
     public function exams(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-
-        $query = RadiologyExam::with(['patient', 'doctor'])
-            ->where('tenant_id', $tenantId);
+        $query = RadiologyOrder::with(['patient', 'doctor']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         if ($request->filled('exam_type')) {
-            $query->where('exam_type', $request->exam_type);
+            $query->whereHas('exam', function ($q) use ($request) {
+                $q->where('modality', $request->exam_type);
+            });
         }
 
         if ($request->filled('date')) {
-            $query->whereDate('exam_date', $request->date);
+            $query->whereDate('scheduled_date', $request->date);
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('exam_date', '>=', $request->date_from);
+            $query->whereDate('scheduled_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('exam_date', '<=', $request->date_to);
+            $query->whereDate('scheduled_date', '<=', $request->date_to);
         }
 
         if ($request->filled('priority')) {
@@ -90,22 +108,17 @@ class RadiologyController extends Controller
 
         $exams = $query->latest()->paginate(20)->withQueryString();
 
-        // Stats - with tenant isolation
+        // Stats
         $statistics = [
-            'total_exams' => RadiologyExam::where('tenant_id', $tenantId)->count(),
-            'scheduled_today' => RadiologyExam::where('tenant_id', $tenantId)
-                ->whereDate('exam_date', today())
+            'total_exams' => RadiologyOrder::count(),
+            'scheduled_today' => RadiologyOrder::whereDate('scheduled_date', today())->count(),
+            'completed_today' => RadiologyOrder::where('status', 'completed')
+                ->whereDate('completed_at', today())
                 ->count(),
-            'completed_today' => RadiologyExam::where('tenant_id', $tenantId)
-                ->where('status', 'completed')
-                ->whereDate('exam_date', today())
+            'pending_reports' => RadiologyOrder::where('status', 'completed')
+                ->whereNull('reported_at')
                 ->count(),
-            'pending_reports' => RadiologyExam::where('tenant_id', $tenantId)
-                ->where('status', 'completed')
-                ->whereNull('report_text')
-                ->count(),
-            'urgent_exams' => RadiologyExam::where('tenant_id', $tenantId)
-                ->where('priority', 'stat')
+            'urgent_exams' => RadiologyOrder::where('priority', 'stat')
                 ->whereIn('status', ['scheduled', 'in_progress'])
                 ->count(),
         ];
@@ -116,9 +129,9 @@ class RadiologyController extends Controller
     /**
      * Display radiology exam details.
      */
-    public function showExam(RadiologyExam $exam)
+    public function showExam(RadiologyOrder $exam)
     {
-        $exam->load(['patient', 'doctor', 'images', 'pacsStudy']);
+        $exam->load(['patient', 'doctor', 'images']);
 
         return view('healthcare.radiology.exam-show', compact('exam'));
     }
@@ -126,7 +139,7 @@ class RadiologyController extends Controller
     /**
      * Upload images for radiology exam.
      */
-    public function uploadImages(RadiologyExam $exam, Request $request)
+    public function uploadImages(RadiologyOrder $exam, Request $request)
     {
         $validated = $request->validate([
             'images' => 'required|array',
@@ -136,7 +149,7 @@ class RadiologyController extends Controller
         $uploadedImages = [];
 
         foreach ($request->file('images') as $image) {
-            $path = $image->store('radiology/'.$exam->id, 'public');
+            $path = $image->store('radiology/' . $exam->id, 'public');
 
             $radiologyImage = $exam->images()->create([
                 'patient_id' => $exam->patient_id,
@@ -149,7 +162,7 @@ class RadiologyController extends Controller
             $uploadedImages[] = $radiologyImage;
         }
 
-        return back()->with('success', count($uploadedImages).' images uploaded successfully');
+        return back()->with('success', count($uploadedImages) . ' images uploaded successfully');
     }
 
     /**
@@ -166,24 +179,30 @@ class RadiologyController extends Controller
     /**
      * Add report to radiology exam.
      */
-    public function addReport(RadiologyExam $exam, Request $request)
+    public function addReport(RadiologyOrder $exam, Request $request)
     {
         $validated = $request->validate([
-            'report_text' => 'required|string',
-            'findings' => 'nullable|string',
+            'findings' => 'required|string',
             'impression' => 'nullable|string',
             'recommendations' => 'nullable|string',
             'radiologist_id' => 'required|exists:doctors,id',
         ]);
 
         $exam->update([
-            'report_text' => $validated['report_text'],
-            'findings' => $validated['findings'],
-            'impression' => $validated['impression'],
-            'recommendations' => $validated['recommendations'],
             'reported_by' => $validated['radiologist_id'],
             'reported_at' => now(),
             'status' => 'reported',
+        ]);
+
+        // Store detailed report in radiology_results
+        $exam->results()->create([
+            'patient_id' => $exam->patient_id,
+            'reported_by' => $validated['radiologist_id'],
+            'findings' => $validated['findings'],
+            'impression' => $validated['impression'] ?? null,
+            'recommendations' => $validated['recommendations'] ?? null,
+            'report_date' => now(),
+            'status' => 'final',
         ]);
 
         return back()->with('success', 'Radiology report added successfully');
@@ -195,13 +214,17 @@ class RadiologyController extends Controller
     public function dashboard()
     {
         $statistics = [
-            'pending_exams' => RadiologyExam::where('status', 'scheduled')->count(),
-            'in_progress' => RadiologyExam::where('status', 'in_progress')->count(),
-            'completed_today' => RadiologyExam::where('status', 'completed')->whereDate('exam_date', today())->count(),
-            'pending_reports' => RadiologyExam::where('status', 'completed')->whereNull('report_text')->count(),
+            'pending_exams' => RadiologyOrder::where('status', 'scheduled')->count(),
+            'in_progress' => RadiologyOrder::where('status', 'in_progress')->count(),
+            'completed_today' => RadiologyOrder::where('status', 'completed')->whereDate('completed_at', today())->count(),
+            'pending_reports' => RadiologyOrder::where('status', 'completed')->whereNull('reported_at')->count(),
         ];
 
-        return view('healthcare.radiology.dashboard', compact('statistics'));
+        $radiologyOrders = RadiologyOrder::with(['patient', 'doctor'])
+            ->latest()
+            ->paginate(20);
+
+        return view('healthcare.radiology.index', compact('statistics', 'radiologyOrders'));
     }
 
     /**
@@ -211,9 +234,9 @@ class RadiologyController extends Controller
     {
         $date = $request->get('date', today());
 
-        $exams = RadiologyExam::with(['patient', 'doctor'])
-            ->whereDate('exam_date', $date)
-            ->orderBy('exam_date')
+        $exams = RadiologyOrder::with(['patient', 'doctor'])
+            ->whereDate('scheduled_date', $date)
+            ->orderBy('scheduled_date')
             ->get();
 
         return view('healthcare.radiology.schedule', compact('exams', 'date'));
@@ -224,15 +247,15 @@ class RadiologyController extends Controller
      */
     public function reports(Request $request)
     {
-        $query = RadiologyExam::whereNotNull('report_text')
+        $query = RadiologyOrder::whereNotNull('reported_at')
             ->with(['patient', 'doctor']);
 
         if ($request->filled('date_from')) {
-            $query->whereDate('exam_date', '>=', $request->date_from);
+            $query->whereDate('reported_at', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('exam_date', '<=', $request->date_to);
+            $query->whereDate('reported_at', '<=', $request->date_to);
         }
 
         $exams = $query->latest()->paginate(20);

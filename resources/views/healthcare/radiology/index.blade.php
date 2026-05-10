@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.radiology.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>New Radiology Order
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>New Radiology Order
+        </a>
     </div>
 
     <div class="py-12">
@@ -20,7 +20,8 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-500">Pending</p>
-                            <p class="text-2xl font-semibold text-yellow-600">{{ $statistics['pending'] ?? 0 }}</p>
+                            <p class="text-2xl font-semibold text-yellow-600">{{ $statistics['pending_exams'] ?? 0 }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -44,7 +45,8 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-500">Completed</p>
-                            <p class="text-2xl font-semibold text-green-600">{{ $statistics['completed'] ?? 0 }}</p>
+                            <p class="text-2xl font-semibold text-green-600">{{ $statistics['completed_today'] ?? 0 }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -56,7 +58,8 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-500">Total Orders</p>
-                            <p class="text-2xl font-semibold text-purple-600">{{ $statistics['total'] ?? 0 }}</p>
+                            <p class="text-2xl font-semibold text-purple-600">{{ $statistics['pending_reports'] ?? 0 }}
+                            </p>
                         </div>
                     </div>
                 </div>

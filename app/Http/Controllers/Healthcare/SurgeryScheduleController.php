@@ -56,10 +56,11 @@ class SurgeryScheduleController extends Controller
 
     public function create()
     {
-        // ✅ OPTIMIZED: Added tenant_id filter to prevent cross-tenant data leakage
-        $patients = Patient::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
-        $doctors = Doctor::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
-        $operatingRooms = OperatingRoom::where('tenant_id', auth()->user()->tenant_id)->where('is_active', true)->get();
+        $tenantId = auth()->user()->tenant_id;
+
+        $patients = Patient::where('tenant_id', $tenantId)->active()->get();
+        $doctors = Doctor::where('tenant_id', $tenantId)->active()->get();
+        $operatingRooms = OperatingRoom::where('is_active', true)->get();
 
         return view('healthcare.surgery-schedules.create', compact('patients', 'doctors', 'operatingRooms'));
     }
@@ -81,7 +82,7 @@ class SurgeryScheduleController extends Controller
         ]);
 
         $validated['tenant_id'] = $tenantId;
-        $validated['surgery_number'] = 'SRG-'.now()->format('Ymd').'-'.str_pad(SurgerySchedule::where('tenant_id', $tenantId)->whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $validated['surgery_number'] = 'SRG-' . now()->format('Ymd') . '-' . str_pad(SurgerySchedule::where('tenant_id', $tenantId)->whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
         $validated['status'] = 'scheduled';
 
         $schedule = SurgerySchedule::create($validated);

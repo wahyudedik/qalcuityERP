@@ -225,10 +225,10 @@ class EMRController extends Controller
         // Lab results
         $patient->labOrders()->with('results')->get()->each(function ($labOrder) use ($timeline) {
             $timeline->push([
-                'date' => $labOrder->order_date,
+                'date' => $labOrder->created_at,
                 'type' => 'lab',
-                'title' => 'Lab Test: '.$labOrder->labTest?->test_name,
-                'description' => 'Status: '.$labOrder->status,
+                'title' => 'Lab Test: ' . $labOrder->labTest?->test_name,
+                'description' => 'Status: ' . $labOrder->status,
             ]);
         });
 
@@ -409,8 +409,8 @@ class EMRController extends Controller
         $visit = PatientVisit::with(['patient', 'doctor'])->findOrFail($visitId);
 
         $pharmacyItems = PharmacyInventory::where('stock_quantity', '>', 0)
-            ->orderBy('name')
-            ->get(['id', 'name', 'generic_name', 'unit', 'stock_quantity']);
+            ->orderBy('item_name')
+            ->get(['id', 'item_name', 'generic_name', 'unit_of_measure', 'stock_quantity']);
 
         return view('healthcare.emr.prescribe', compact('visit', 'pharmacyItems'));
     }

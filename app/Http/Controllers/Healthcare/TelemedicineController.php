@@ -292,7 +292,7 @@ class TelemedicineController extends Controller
             'avg_rating' => 0,
         ];
 
-        return view('healthcare.telemedicine.dashboard', compact('statistics'));
+        return view('healthcare.telemedicine.index', compact('statistics'));
     }
 
     /**
@@ -435,7 +435,7 @@ class TelemedicineController extends Controller
             return back()->with('success', 'Refund processed successfully.');
         }
 
-        return back()->with('error', 'Refund failed: '.$result['error']);
+        return back()->with('error', 'Refund failed: ' . $result['error']);
     }
 
     // ========================================
