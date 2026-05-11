@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToTenant;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PopupAd extends Model
 {
-    use BelongsToTenant;
 
     protected $fillable = [
         'title',
