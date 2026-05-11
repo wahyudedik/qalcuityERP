@@ -214,7 +214,7 @@
         <div
             class="fixed bottom-0 left-0 right-0 z-30 bg-gray-900/95 backdrop-blur border-t border-white/10 p-4 safe-area-bottom">
             <form method="POST" action="{{ route('mobile.opname.complete', $s) }}"
-                onsubmit="return confirm('Selesaikan opname ini? Stok bin akan diperbarui sesuai hasil hitung.')">
+                data-confirm="Selesaikan opname ini? Stok bin akan diperbarui sesuai hasil hitung.">
                 @csrf
                 @method('PATCH')
                 <button type="submit"
@@ -326,7 +326,7 @@
                 } else {
                     // Not found feedback
                     if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-                    alert('Produk dengan barcode "' + trimmed + '" tidak ditemukan di sesi ini.');
+                    Dialog.warning('Produk dengan barcode "' + trimmed + '" tidak ditemukan di sesi ini.');
                 }
             }
 

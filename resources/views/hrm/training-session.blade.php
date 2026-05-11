@@ -128,7 +128,7 @@
                                         <form method="POST"
                                             action="{{ route('hrm.training.participants.remove', $p) }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Hapus peserta ini?')"
+                                            <button type="submit" data-confirm="Hapus peserta ini?" data-confirm-type="danger"
                                                 class="text-xs text-red-400 hover:text-red-300">Hapus</button>
                                         </form>
                                     </td>

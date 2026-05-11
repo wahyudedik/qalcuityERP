@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">{{ $companyGroup->name }}</x-slot>
 
     @if(session('success'))
@@ -15,9 +15,9 @@
         </form>
         <a href="{{ route('company-groups.export', [$companyGroup, 'period' => $period]) }}"
            class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">
-            📥 Export CSV
+            ?? Export CSV
         </a>
-        <a href="{{ route('company-groups.index') }}" class="text-sm text-gray-400 hover:text-gray-600 ml-auto">← Kembali</a>
+        <a href="{{ route('company-groups.index') }}" class="text-sm text-gray-400 hover:text-gray-600 ml-auto">? Kembali</a>
     </div>
 
     {{-- Consolidated KPIs --}}
@@ -47,7 +47,7 @@
         {{-- P&L per Company --}}
         <div class="xl:col-span-2 bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
-                <h3 class="font-semibold text-gray-900 text-sm">📊 Laba Rugi per Perusahaan</h3>
+                <h3 class="font-semibold text-gray-900 text-sm">?? Laba Rugi per Perusahaan</h3>
             </div>
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
@@ -77,7 +77,7 @@
 
         {{-- Cash Flow Summary --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 class="font-semibold text-gray-900 text-sm mb-4">💧 Arus Kas Konsolidasi</h3>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">?? Arus Kas Konsolidasi</h3>
             <div class="space-y-3">
                 @foreach($cashFlow['per_member'] ?? [] as $cf)
                 <div class="p-3 rounded-xl bg-gray-50">
@@ -103,7 +103,7 @@
     @if(!empty($report['balance_sheet']))
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900 text-sm">🏦 Neraca Konsolidasi</h3>
+            <h3 class="font-semibold text-gray-900 text-sm">?? Neraca Konsolidasi</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             @foreach($report['balance_sheet'] as $type => $data)
@@ -127,7 +127,7 @@
     {{-- Trend Chart --}}
     @if(!empty($trend))
     <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
-        <h3 class="font-semibold text-gray-900 text-sm mb-4">📈 Tren 6 Bulan Terakhir</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-4">?? Tren 6 Bulan Terakhir</h3>
         <div class="space-y-2">
             @php $maxRev = collect($trend)->max('revenue') ?: 1; @endphp
             @foreach($trend ?? [] as $t)
@@ -147,16 +147,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Members --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 class="font-semibold text-gray-900 text-sm mb-4">🏢 Anggota Grup ({{ $companyGroup->members->count() }})</h3>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">?? Anggota Grup ({{ $companyGroup->members->count() }})</h3>
             <div class="space-y-2 mb-4">
                 @foreach($companyGroup->members as $member)
                 <div class="flex items-center justify-between py-2 border-b border-gray-100">
                     <div>
                         <p class="text-sm font-medium text-gray-900">{{ $member->tenant?->name ?? 'Unknown' }}</p>
-                        <p class="text-xs text-gray-400">{{ ucfirst($member->role) }} · ID #{{ $member->tenant_id }}</p>
+                        <p class="text-xs text-gray-400">{{ ucfirst($member->role) }} � ID #{{ $member->tenant_id }}</p>
                     </div>
                     @if($member->role !== 'owner')
-                    <form method="POST" action="{{ route('company-groups.members.remove', [$companyGroup, $member->tenant]) }}" onsubmit="return confirm('Hapus dari grup?')">
+                    <form method="POST" action="{{ route('company-groups.members.remove', [$companyGroup, $member->tenant]) }}" data-confirm="Hapus dari grup?" data-confirm-type="danger">
                         @csrf @method('DELETE')
                         <button class="text-xs text-red-400 hover:text-red-600">Hapus</button>
                     </form>
@@ -169,7 +169,7 @@
             <form method="POST" action="{{ route('company-groups.members.add', $companyGroup) }}" class="space-y-2">
                 @csrf
                 <select name="tenant_id" required class="w-full rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 px-3 py-2">
-                    <option value="">— Pilih perusahaan —</option>
+                    <option value="">� Pilih perusahaan �</option>
                     @foreach($availableTenants ?? [] as $t)
                     <option value="{{ $t->id }}">{{ $t->name }} (#{{ $t->id }})</option>
                     @endforeach
@@ -180,7 +180,7 @@
 
         {{-- New Transaction Form --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 class="font-semibold text-gray-900 text-sm mb-4">🔄 Catat Transaksi Intercompany</h3>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">?? Catat Transaksi Intercompany</h3>
             <form method="POST" action="{{ route('company-groups.transactions.store', $companyGroup) }}" class="space-y-4">
                 @csrf
                 @php $cls = 'w-full rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 px-3 py-2'; @endphp
@@ -206,11 +206,11 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tipe *</label>
                         <select name="type" required class="{{ $cls }}">
-                            <option value="sale">🛒 Penjualan Antar Entitas</option>
-                            <option value="loan">💰 Pinjaman Antar Entitas</option>
-                            <option value="expense_allocation">📊 Alokasi Biaya</option>
-                            <option value="dividend">💵 Dividen</option>
-                            <option value="management_fee">🏢 Management Fee</option>
+                            <option value="sale">?? Penjualan Antar Entitas</option>
+                            <option value="loan">?? Pinjaman Antar Entitas</option>
+                            <option value="expense_allocation">?? Alokasi Biaya</option>
+                            <option value="dividend">?? Dividen</option>
+                            <option value="management_fee">?? Management Fee</option>
                         </select>
                     </div>
                     <div>
@@ -245,7 +245,7 @@
                 <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Tanggal</th>
-                        <th class="px-4 py-3 text-left">Dari → Ke</th>
+                        <th class="px-4 py-3 text-left">Dari ? Ke</th>
                         <th class="px-4 py-3 text-left">Tipe</th>
                         <th class="px-4 py-3 text-left">Ref</th>
                         <th class="px-4 py-3 text-right">Jumlah</th>
@@ -255,12 +255,12 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($transactions as $tx)
-                    @php $typeLabels = ['sale'=>'🛒 Penjualan','loan'=>'💰 Pinjaman','expense_allocation'=>'📊 Alokasi','dividend'=>'💵 Dividen','management_fee'=>'🏢 Mgmt Fee']; @endphp
+                    @php $typeLabels = ['sale'=>'?? Penjualan','loan'=>'?? Pinjaman','expense_allocation'=>'?? Alokasi','dividend'=>'?? Dividen','management_fee'=>'?? Mgmt Fee']; @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ $tx->date->format('d M Y') }}</td>
                         <td class="px-4 py-3 text-xs">
                             <span class="font-medium text-gray-900">{{ $tx->fromTenant?->name ?? '#'.$tx->from_tenant_id }}</span>
-                            <span class="text-gray-400 mx-1">→</span>
+                            <span class="text-gray-400 mx-1">?</span>
                             <span class="font-medium text-gray-900">{{ $tx->toTenant?->name ?? '#'.$tx->to_tenant_id }}</span>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-500">{{ $typeLabels[$tx->type] ?? $tx->type }}</td>
@@ -277,14 +277,14 @@
                                 <form method="POST" action="{{ route('company-groups.transactions.post', $tx) }}">@csrf
                                     <button class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700">Post</button>
                                 </form>
-                                <form method="POST" action="{{ route('company-groups.transactions.void', $tx) }}" onsubmit="return confirm('Void?')">@csrf
+                                <form method="POST" action="{{ route('company-groups.transactions.void', $tx) }}" data-confirm="Void?">@csrf
                                     <button class="text-xs px-2 py-1 text-red-400 hover:text-red-600">Void</button>
                                 </form>
                             </div>
                             @elseif($tx->status === 'posted')
-                            <span class="text-xs text-green-500">✓</span>
+                            <span class="text-xs text-green-500">?</span>
                             @else
-                            <span class="text-xs text-gray-400">—</span>
+                            <span class="text-xs text-gray-400">�</span>
                             @endif
                         </td>
                     </tr>

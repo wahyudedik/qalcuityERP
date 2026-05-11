@@ -3,21 +3,20 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <a href="{{ route('printing.dashboard') }}"
-                    class="text-gray-500 hover:text-gray-700 transition text-sm">
-                    ← Back
-                </a>
+        <a href="{{ route('printing.dashboard') }}" class="text-gray-500 hover:text-gray-700 transition text-sm">
+            ← Back
+        </a>
         <form action="{{ route('printing.status', $job) }}" method="POST" class="inline">
-                        @csrf
-                        <input type="hidden" name="status" value="prepress">
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
-                            Start Pre-Press
-                        </button>
-        <a href="{{ route('printing.finishing', $job) }}"
-                        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm font-medium whitespace-nowrap">
-                        Manage Finishing
-                    </a>
+            @csrf
+            <input type="hidden" name="status" value="prepress">
+            <button type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
+                Start Pre-Press
+            </button>
+            <a href="{{ route('printing.finishing', $job) }}"
+                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm font-medium whitespace-nowrap">
+                Manage Finishing
+            </a>
     </div>
 
     {{-- Job Header Info --}}
@@ -42,7 +41,7 @@
                     $color = $statusColors[$job->status] ?? 'gray';
                 @endphp
                 <span
-                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400 font-medium">
+                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400 font-medium">
                     {{ ucfirst(str_replace('_', ' ', $job->status)) }}
                 </span>
             </div>
@@ -53,7 +52,7 @@
                     $pColor = $priorityColors[$job->priority] ?? 'blue';
                 @endphp
                 <span
-                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $pColor  }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400 font-medium">
+                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $pColor }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400 font-medium">
                     {{ ucfirst($job->priority) }}
                 </span>
             </div>
@@ -61,11 +60,9 @@
                 <p class="text-xs text-gray-500 mb-1">Due Date</p>
                 @if ($job->due_date)
                     @if ($job->due_date->isPast() && !$job->completed_at)
-                        <span
-                            class="text-red-600 font-semibold">{{ $job->due_date->format('d M Y') }}</span>
+                        <span class="text-red-600 font-semibold">{{ $job->due_date->format('d M Y') }}</span>
                     @else
-                        <span
-                            class="text-gray-900 font-semibold">{{ $job->due_date->format('d M Y') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ $job->due_date->format('d M Y') }}</span>
                     @endif
                 @else
                     <span class="text-gray-400">Not set</span>
@@ -289,10 +286,7 @@
                     @endif
 
                     @if ($job->status === 'platemaking')
-                        <a href="#"
-                            class="block w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium text-center">
-                            Start Press Run
-                        </a>
+                        <x-disabled-button label="Start Press Run" class="w-full" />
                     @endif
 
                     @if ($job->status !== 'completed')
@@ -308,16 +302,12 @@
                         </form>
                     @endif
 
-                    <a href="#"
-                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition text-sm font-medium text-center">
-                        Print Job Ticket
-                    </a>
+                    <x-disabled-button label="Print Job Ticket" class="w-full" />
                 </div>
             </div>
 
             {{-- Notes --}}
-            <div
-                class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                 <h4 class="text-sm font-semibold text-yellow-800 mb-2">Notes</h4>
                 <textarea placeholder="Add notes about this job..."
                     class="w-full px-3 py-2 border border-yellow-300 rounded-lg bg-white text-gray-900 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent"

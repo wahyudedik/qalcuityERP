@@ -102,7 +102,7 @@
                     </button>
                 </form>
                 <form method="POST" action="{{ route('super-admin.tenants.destroy', $tenant) }}"
-                    onsubmit="return confirm('Hapus tenant {{ $tenant->name }} beserta semua datanya?')">
+                    data-confirm="Hapus tenant {{ $tenant->name }} beserta semua datanya?" data-confirm-type="danger">
                     @csrf @method('DELETE')
                     <button type="submit"
                         class="text-sm px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition font-medium">

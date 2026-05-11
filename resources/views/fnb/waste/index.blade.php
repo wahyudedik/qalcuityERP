@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Pelacakan Pemborosan Bahan')
 @section('content')
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -92,15 +92,15 @@
         <div class="flex flex-wrap gap-3 mb-6">
             <a href="{{ route('fnb.waste.by-item') }}"
                 class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors">
-                Laporan per Item →
+                Laporan per Item ?
             </a>
             <a href="{{ route('fnb.waste.reasons') }}"
                 class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors">
-                Analisis Penyebab →
+                Analisis Penyebab ?
             </a>
             <a href="{{ route('fnb.waste.export', request()->query()) }}"
                 class="text-sm text-green-600 hover:text-green-800 underline transition-colors">
-                Export Laporan →
+                Export Laporan ?
             </a>
         </div>
 
@@ -149,8 +149,7 @@
                                     @endswitch
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <form action="{{ route('fnb.waste.destroy', $waste) }}" method="POST" class="inline"
-                                        onsubmit="return confirm('Hapus catatan pemborosan ini?')">
+                                    <form action="{{ route('fnb.waste.destroy', $waste) }}" method="POST" class="inline" data-confirm="Hapus catatan pemborosan ini?" data-confirm-type="danger">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

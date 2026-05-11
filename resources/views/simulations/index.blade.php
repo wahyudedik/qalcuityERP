@@ -68,7 +68,7 @@
                                 <a href="{{ route('simulations.show', $sim) }}"
                                    class="text-xs text-indigo-600 hover:underline">Detail</a>
                                 <form method="POST" action="{{ route('simulations.destroy', $sim) }}"
-                                      onsubmit="return confirm('Hapus simulasi ini?')">
+                                      data-confirm="Hapus simulasi ini?" data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button class="text-xs text-red-500 hover:underline">Hapus</button>
                                 </form>

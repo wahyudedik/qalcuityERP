@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.lab-results.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>Enter Result
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>Enter Result
+        </a>
     </div>
 
     <div class="py-12">
@@ -117,7 +117,8 @@
                         @forelse($results as $result)
                             <tr class="{{ $result->is_critical ? 'bg-red-50' : '' }}">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $result->patient?->name ?? 'N/A' }}
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ $result->patient?->name ?? 'N/A' }}
                                     </div>
                                     <div class="text-sm text-gray-500">{{ $result->order?->order_number ?? '' }}</div>
                                 </td>
@@ -209,10 +210,10 @@
 
     @push('scripts')
         <script>
-            function deleteResult(id) {
-                if (confirm('Are you sure you want to delete this result?')) {
-                    document.getElementById(`delete-result-${id}`).submit();
-                }
+            async function deleteResult(id) {
+                const confirmed = await Dialog.danger('Are you sure you want to delete this result?');
+                if (!confirmed) return;
+                document.getElementById(`delete-result-${id}`).submit();
             }
         </script>
     @endpush

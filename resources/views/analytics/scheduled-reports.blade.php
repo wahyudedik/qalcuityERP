@@ -144,15 +144,12 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button onclick="toggleSchedule({{ $schedule->id }})"
-                                                class="px-3 py-1 text-xs {{ $schedule->is_active ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200' }} rounded transition">
-                                                <i class="fas fa-{{ $schedule->is_active ? 'pause' : 'play' }}"></i>
-                                                {{ $schedule->is_active ? 'Pause' : 'Resume' }}
-                                            </button>
-                                            <button onclick="deleteSchedule({{ $schedule->id }})"
-                                                class="px-3 py-1 text-xs bg-red-100 text-red-800 hover:bg-red-200 rounded transition">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <x-disabled-button :label="$schedule->is_active ? 'Pause' : 'Resume'"
+                                                tooltip="Fitur toggle schedule akan segera tersedia"
+                                                class="px-3 py-1 text-xs" />
+                                            <x-disabled-button label="Delete"
+                                                tooltip="Fitur delete schedule akan segera tersedia"
+                                                class="px-3 py-1 text-xs" />
                                         </div>
                                     </td>
                                 </tr>
@@ -306,20 +303,6 @@
 
         function closeCreateModal() {
             document.getElementById('createModal').classList.add('hidden');
-        }
-
-        function toggleSchedule(id) {
-            if (confirm('Are you sure you want to toggle this schedule?')) {
-                // TODO: Implement toggle endpoint
-                alert('Toggle functionality will be implemented');
-            }
-        }
-
-        function deleteSchedule(id) {
-            if (confirm('Are you sure you want to delete this schedule? This action cannot be undone.')) {
-                // TODO: Implement delete endpoint
-                alert('Delete functionality will be implemented');
-            }
         }
 
         // Close modal on outside click

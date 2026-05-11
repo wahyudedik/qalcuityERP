@@ -330,7 +330,7 @@
                                             @endif
                                             <form method="POST"
                                                 action="{{ route('super-admin.monitoring.delete-error', $err) }}"
-                                                onsubmit="return confirm('Hapus error log ini?')" @click.stop>
+                                                data-confirm="Hapus error log ini?" data-confirm-type="danger" @click.stop>
                                                 @csrf @method('DELETE')
                                                 <button
                                                     class="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition"

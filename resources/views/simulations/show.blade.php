@@ -227,7 +227,7 @@
 
         <div class="flex justify-between">
             <a href="{{ route('simulations.index') }}" class="text-sm text-gray-400 hover:text-gray-600">← Kembali ke daftar</a>
-            <form method="POST" action="{{ route('simulations.destroy', $simulation) }}" onsubmit="return confirm('Hapus simulasi ini?')">
+            <form method="POST" action="{{ route('simulations.destroy', $simulation) }}" data-confirm="Hapus simulasi ini?" data-confirm-type="danger">
                 @csrf @method('DELETE')
                 <button class="text-sm text-red-400 hover:text-red-600">Hapus simulasi</button>
             </form>

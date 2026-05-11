@@ -686,7 +686,8 @@
             }
 
             async function resetWidgets() {
-                if (!confirm('Reset dashboard ke layout default untuk role Anda?')) return;
+                const confirmed = await Dialog.danger('Reset dashboard ke layout default untuk role Anda?');
+                if (!confirmed) return;
                 try {
                     await fetch(RESET_URL, {
                         method: 'POST',
@@ -815,7 +816,7 @@
             async function saveCustomWidget() {
                 const titleVal = document.getElementById('builder-title-input')?.value?.trim();
                 if (!titleVal) {
-                    alert('Nama widget wajib diisi.');
+                    Dialog.warning('Nama widget wajib diisi.');
                     return;
                 }
 
@@ -852,7 +853,7 @@
 
                     if (!res.ok) {
                         const err = await res.json().catch(() => ({}));
-                        alert(err.message ?? 'Gagal menyimpan widget.');
+                        Dialog.warning(err.message ?? 'Gagal menyimpan widget.');
                         saveBtn.disabled = false;
                         saveBtn.textContent = 'Simpan';
                         return;
@@ -860,7 +861,7 @@
 
                     window.location.reload();
                 } catch (e) {
-                    alert('Gagal menyimpan widget. Periksa koneksi.');
+                    Dialog.warning('Gagal menyimpan widget. Periksa koneksi.');
                     saveBtn.disabled = false;
                     saveBtn.textContent = 'Simpan';
                 }
@@ -868,7 +869,9 @@
 
             async function deleteCustomWidget() {
                 const id = document.getElementById('builder-id')?.value;
-                if (!id || !confirm('Hapus widget ini? Tindakan tidak dapat dibatalkan.')) return;
+                if (!id) return;
+                const confirmed = await Dialog.danger('Hapus widget ini? Tindakan tidak dapat dibatalkan.');
+                if (!confirmed) return;
 
                 try {
                     const res = await fetch(`${CUSTOM_UPDATE_BASE}/${id}`, {
@@ -881,7 +884,7 @@
                     if (!res.ok) throw new Error('Delete failed');
                     window.location.reload();
                 } catch (e) {
-                    alert('Gagal menghapus widget.');
+                    Dialog.warning('Gagal menghapus widget.');
                 }
             }
 

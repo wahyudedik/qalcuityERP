@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="space-y-6">
@@ -88,8 +88,7 @@
                             </form>
                             @endif
                             @if($do->status === 'delivered')
-                            <form method="POST" action="{{ route('delivery-orders.invoice', $do) }}" class="inline"
-                                  onsubmit="return confirm('Buat invoice dari surat jalan ini?')">
+                            <form method="POST" action="{{ route('delivery-orders.invoice', $do) }}" class="inline" data-confirm="Buat invoice dari surat jalan ini?">
                                 @csrf
                                 <button type="submit" class="text-xs px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded">Buat Invoice</button>
                             </form>

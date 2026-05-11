@@ -422,14 +422,14 @@
                         const result = await response.json();
 
                         if (result.success) {
-                            alert(`Status: ${result.status}\nPaid at: ${result.paid_at || 'N/A'}`);
+                            Dialog.alert(`Status: ${result.status}\nPaid at: ${result.paid_at || 'N/A'}`);
                             this.refreshData();
                         } else {
-                            alert('Failed to check status');
+                            Dialog.warning('Failed to check status');
                         }
 
                     } catch (error) {
-                        alert('Error checking status');
+                        Dialog.warning('Error checking status');
                     }
                 }
             }

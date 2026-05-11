@@ -54,7 +54,7 @@
                                     </div>
                                 </div>
                                 <form method="POST" action="{{ route('cosmetic.variants.attributes.destroy', $attr->id) }}"
-                                    onsubmit="return confirm('Delete this attribute?')">
+                                    data-confirm="Delete this attribute?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">
@@ -87,7 +87,7 @@
                                     <div class="text-xs text-gray-500">{{ $attr->usage_count }} variants</div>
                                 </div>
                                 <form method="POST" action="{{ route('cosmetic.variants.attributes.destroy', $attr->id) }}"
-                                    onsubmit="return confirm('Delete this attribute?')">
+                                    data-confirm="Delete this attribute?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">
@@ -121,7 +121,7 @@
                                 </div>
                                 <form method="POST"
                                     action="{{ route('cosmetic.variants.attributes.destroy', $attr->id) }}"
-                                    onsubmit="return confirm('Delete this attribute?')">
+                                    data-confirm="Delete this attribute?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">
@@ -155,7 +155,7 @@
                                 </div>
                                 <form method="POST"
                                     action="{{ route('cosmetic.variants.attributes.destroy', $attr->id) }}"
-                                    onsubmit="return confirm('Delete this attribute?')">
+                                    data-confirm="Delete this attribute?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">

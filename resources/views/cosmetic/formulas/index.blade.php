@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">{{ __('Cosmetic Formulas') }}</x-slot>
 
     {{-- Toolbar --}}
@@ -168,8 +168,7 @@
                                             </a>
                                             <form method="POST"
                                                 action="{{ route('cosmetic.formulas.destroy', $formula) }}"
-                                                class="inline"
-                                                onsubmit="return confirm('Are you sure you want to delete this formula?')">
+                                                class="inline" data-confirm="Are you sure you want to delete this formula?" data-confirm-type="danger">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900">

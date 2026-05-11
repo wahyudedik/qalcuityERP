@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.wards.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>Add Ward
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>Add Ward
+        </a>
     </div>
 
     <div class="py-12">
@@ -128,7 +128,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ward->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     @if ($ward->ward_type === 'icu') bg-red-100 text-red-800
                                     @elseif($ward->ward_type === 'emergency') bg-orange-100 text-orange-800
                                     @elseif($ward->ward_type === 'maternity') bg-pink-100 text-pink-800
@@ -155,7 +155,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     @if ($ward->is_active) bg-green-100 text-green-800
                                     @else bg-red-100 text-red-800 @endif">
                                         {{ $ward->is_active ? 'Active' : 'Inactive' }}
@@ -201,10 +201,10 @@
 
     @push('scripts')
         <script>
-            function deleteWard(id) {
-                if (confirm('Are you sure you want to delete this ward?')) {
-                    document.getElementById(`delete-ward-${id}`).submit();
-                }
+            async function deleteWard(id) {
+                const confirmed = await Dialog.danger('Are you sure you want to delete this ward?');
+                if (!confirmed) return;
+                document.getElementById(`delete-ward-${id}`).submit();
             }
         </script>
     @endpush

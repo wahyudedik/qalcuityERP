@@ -133,10 +133,8 @@
                     <tbody class="divide-y divide-gray-100">
                         {{-- Room Type Rows --}}
                         @forelse ($roomTypes as $rt)
-                            <tr class="hover:bg-gray-50 room-type-row"
-                                data-room-type-id="{{ $rt->id }}">
-                                <td
-                                    class="sticky left-0 z-10 bg-white px-3 py-2 border-r border-gray-200">
+                            <tr class="hover:bg-gray-50 room-type-row" data-room-type-id="{{ $rt->id }}">
+                                <td class="sticky left-0 z-10 bg-white px-3 py-2 border-r border-gray-200">
                                     <div class="font-medium text-gray-900">{{ $rt->name }}</div>
                                     <div class="text-gray-400">{{ $rt->rooms_count }} rooms</div>
                                 </td>
@@ -152,8 +150,7 @@
                                         $rate = $rtData['occupancy_rate'] ?? 0;
                                         $isToday = $dateStr === $today;
                                     @endphp
-                                    <td
-                                        class="px-0.5 py-1 text-center {{ $isToday ? 'bg-blue-50' : '' }}">
+                                    <td class="px-0.5 py-1 text-center {{ $isToday ? 'bg-blue-50' : '' }}">
                                         @php
                                             // Determine color based on availability
                                             if ($occupied >= $total) {
@@ -183,8 +180,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $daysInMonth + 1 }}"
-                                    class="px-4 py-12 text-center text-gray-400">
+                                <td colspan="{{ $daysInMonth + 1 }}" class="px-4 py-12 text-center text-gray-400">
                                     No room types defined. <a href="{{ route('hotel.room-types.index') }}"
                                         class="text-blue-500 hover:underline">Create room types first</a>
                                 </td>
@@ -200,12 +196,10 @@
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-            <div @click.away="showDayDetail = false"
-                class="bg-white rounded-2xl w-full max-w-md shadow-xl">
+            <div @click.away="showDayDetail = false" class="bg-white rounded-2xl w-full max-w-md shadow-xl">
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h3 class="font-semibold text-gray-900" x-text="dayDetailTitle"></h3>
-                    <button @click="showDayDetail = false"
-                        class="text-gray-400 hover:text-gray-600">
+                    <button @click="showDayDetail = false" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -236,7 +230,7 @@
                         </template>
                     </div>
                     <div class="mt-4 pt-4 border-t border-gray-100">
-                        <a href="#"
+                        <a href="{{ route('hotel.reservations.create') }}"
                             class="block w-full py-2 text-center text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
                             New Reservation
                         </a>

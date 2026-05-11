@@ -84,7 +84,8 @@
                     <select name="from_bin_id" required class="mob-select from-bin-select">
                         <option value="">-- Pilih Bin Asal --</option>
                         @foreach ($bins as $bin)
-                            <option value="{{ $bin->id }}">{{ $bin->code }} ({{ $bin->warehouse?->name ?? '-' }})
+                            <option value="{{ $bin->id }}">{{ $bin->code }}
+                                ({{ $bin->warehouse?->name ?? '-' }})
                             </option>
                         @endforeach
                     </select>
@@ -97,7 +98,8 @@
                         <option value="">-- Pilih Bin Tujuan --</option>
                         @foreach ($bins as $bin)
                             <option value="{{ $bin->id }}">{{ $bin->code }}
-                                ({{ $bin->warehouse?->name ?? '-' }})</option>
+                                ({{ $bin->warehouse?->name ?? '-' }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -131,7 +133,7 @@
                     const from = document.querySelector('.from-bin-select').value;
                     const to = document.querySelector('.to-bin-select').value;
                     if (from && to && from === to) {
-                        alert('Bin asal dan tujuan harus berbeda!');
+                        Dialog.warning('Bin asal dan tujuan harus berbeda!');
                         this.value = '';
                     }
                 });

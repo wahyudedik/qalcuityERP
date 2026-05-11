@@ -81,7 +81,7 @@
                             }
                         } catch (err) {
                             console.error('Offline queue error:', err);
-                            alert('Gagal menyimpan data offline. Silakan coba lagi.');
+                            Dialog.warning('Gagal menyimpan data offline. Silakan coba lagi.');
                         }
                     });
                 });

@@ -4,7 +4,7 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.ministry-reports.index') }}" class="text-blue-600 hover:text-blue-900"><i
-                    class="fas fa-arrow-left mr-2"></i>Back to List</a>
+                class="fas fa-arrow-left mr-2"></i>Back to List</a>
     </div>
 
     <div class="py-12">
@@ -76,22 +76,22 @@
     </div>
 
     <script>
-        function submitReport(id) {
-            if (confirm('Submit this report to Ministry of Health?')) {
-                fetch(`{{ route('healthcare.ministry-reports.submit', '') }}/${id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        Toast.success(data.message);
-                        setTimeout(() => location.reload(), 1500);
-                    })
-                    .catch(error => Toast.error('Submit failed'));
-            }
+        async function submitReport(id) {
+            const confirmed = await Dialog.confirm('Submit this report to Ministry of Health?');
+            if (!confirmed) return;
+            fetch(`{{ route('healthcare.ministry-reports.submit', '') }}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Toast.success(data.message);
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(error => Toast.error('Submit failed'));
         }
     </script>
 </x-app-layout>

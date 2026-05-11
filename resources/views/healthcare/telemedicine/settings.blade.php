@@ -26,8 +26,7 @@
                 @csrf
 
                 {{-- Jitsi Configuration --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-server text-blue-600 mr-2"></i>Konfigurasi Jitsi Meet
                     </h3>
@@ -83,8 +82,7 @@
                 </div>
 
                 {{-- Features --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-toggle-on text-green-600 mr-2"></i>Fitur
                     </h3>
@@ -154,8 +152,7 @@
                 </div>
 
                 {{-- Appointment Reminders --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-bell text-yellow-600 mr-2"></i>Pengingat Jadwal
                     </h3>
@@ -187,8 +184,7 @@
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                                 <p class="mt-1 text-xs text-gray-500">Default: 30 menit</p>
                             </div>
-                            <div
-                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div>
                                     <p class="font-medium text-gray-900">Pengingat Email</p>
                                 </div>
@@ -206,8 +202,7 @@
                 </div>
 
                 {{-- Feedback Settings --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-star text-purple-600 mr-2"></i>Feedback & Rating
                     </h3>
@@ -248,8 +243,7 @@
                 </div>
 
                 {{-- Consultation Limits --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fas fa-clock text-red-600 mr-2"></i>Batas Konsultasi
                     </h3>
@@ -277,8 +271,7 @@
                 </div>
 
                 {{-- Submit --}}
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border border-gray-200">
                     <div class="flex items-center justify-end gap-3">
                         <a href="{{ route('healthcare.telemedicine.index') }}"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
@@ -301,7 +294,7 @@
                 const resultDiv = document.getElementById('connection-test-result');
 
                 if (!url) {
-                    alert('Masukkan URL server Jitsi terlebih dahulu');
+                    Dialog.warning('Masukkan URL server Jitsi terlebih dahulu');
                     return;
                 }
 
@@ -335,19 +328,19 @@
                     });
             }
 
-            function resetToDefault() {
-                if (confirm('Apakah Anda yakin ingin mereset semua pengaturan ke default?')) {
-                    fetch('{{ route('healthcare.telemedicine.settings.reset') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => {
-                            window.location.reload();
-                        });
-                }
+            async function resetToDefault() {
+                const confirmed = await Dialog.danger('Apakah Anda yakin ingin mereset semua pengaturan ke default?');
+                if (!confirmed) return;
+                fetch('{{ route('healthcare.telemedicine.settings.reset') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        window.location.reload();
+                    });
             }
         </script>
     @endpush

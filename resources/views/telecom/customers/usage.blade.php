@@ -20,15 +20,13 @@
             </div>
 
             @if (session('success'))
-                <div
-                    class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div
-                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -109,7 +107,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                                 {{ $subscription->status === 'active'
                                                     ? 'bg-green-100 text-green-800'
                                                     : ($subscription->status === 'suspended'
@@ -129,23 +127,20 @@
                                                 @endphp
                                                 <div class="w-32">
                                                     <div class="flex justify-between text-xs mb-1">
-                                                        <span
-                                                            class="text-gray-900">{{ round($used / 1073741824, 2) }}
+                                                        <span class="text-gray-900">{{ round($used / 1073741824, 2) }}
                                                             GB</span>
-                                                        <span
-                                                            class="text-gray-900">{{ round($total / 1073741824, 2) }}
+                                                        <span class="text-gray-900">{{ round($total / 1073741824, 2) }}
                                                             GB</span>
                                                     </div>
                                                     <div class="w-full bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-{{ $color  }}-600 h-2 rounded-full"
+                                                        <div class="bg-{{ $color }}-600 h-2 rounded-full"
                                                             style="width: {{ $percent }}%"></div>
                                                     </div>
                                                     <div class="text-xs text-gray-500 mt-1">
                                                         {{ $percent }}% {{ __('used') }}</div>
                                                 </div>
                                             @else
-                                                <span
-                                                    class="text-xs text-gray-500">{{ __('Unlimited') }}</span>
+                                                <span class="text-xs text-gray-500">{{ __('Unlimited') }}</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -156,9 +151,8 @@
                                                 <form action="{{ route('telecom.customers.suspend', $customer) }}"
                                                     method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit"
-                                                        class="text-yellow-600 hover:text-yellow-900"
-                                                        onclick="return confirm('{{ __('Suspend subscription?') }}')">{{ __('Suspend') }}</button>
+                                                    <button type="submit" class="text-yellow-600 hover:text-yellow-900"
+                                                        data-confirm="{{ __('Suspend subscription?') }}">{{ __('Suspend') }}</button>
                                                 </form>
                                             @elseif($subscription->status === 'suspended')
                                                 <form action="{{ route('telecom.customers.reactivate', $customer) }}"
@@ -172,9 +166,8 @@
                                             <form action="{{ route('telecom.customers.reset-quota', $customer) }}"
                                                 method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit"
-                                                    class="text-purple-600 hover:text-purple-900"
-                                                    onclick="return confirm('{{ __('Reset quota for this customer?') }}')">{{ __('Reset Quota') }}</button>
+                                                <button type="submit" class="text-purple-600 hover:text-purple-900"
+                                                    data-confirm="{{ __('Reset quota for this customer?') }}">{{ __('Reset Quota') }}</button>
                                             </form>
                                         </td>
                                     </tr>

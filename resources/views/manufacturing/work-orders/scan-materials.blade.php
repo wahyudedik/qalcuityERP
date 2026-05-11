@@ -26,7 +26,7 @@
                 </div>
                 @php $sc = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green','cancelled'=>'gray'][$workOrder->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst($workOrder->status) }}
                 </span>
             </div>
@@ -70,9 +70,7 @@
                 @foreach ($requiredMaterials as $productId => $material)
                     @php
                         $isComplete = $material['quantity_scanned'] >= $material['quantity_required'];
-                        $borderCls = $isComplete
-                            ? 'border-green-300 bg-green-50'
-                            : 'border-gray-200 bg-white';
+                        $borderCls = $isComplete ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white';
                     @endphp
                     <div id="material-row-{{ $productId }}"
                         class="rounded-2xl border {{ $borderCls }} p-4 transition-all duration-300"
@@ -88,14 +86,12 @@
                                         {{ $material['product']->sku ?? '-' }}
                                     </span>
                                     @if ($material['barcode'])
-                                        <span
-                                            class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
+                                        <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
                                             Barcode: {{ $material['barcode'] }}
                                         </span>
                                     @endif
                                     @if ($isComplete)
-                                        <span
-                                            class="px-1.5 py-0.5 rounded text-[10px] bg-green-100 text-green-700">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-green-100 text-green-700">
                                             ✓ Complete
                                         </span>
                                     @endif
@@ -139,8 +135,7 @@
             <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <h3 class="font-semibold text-gray-900 text-sm">Scan Barcode Material</h3>
-                    <button onclick="closeBarcodeScanner()"
-                        class="text-gray-400 hover:text-gray-600">
+                    <button onclick="closeBarcodeScanner()" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -294,7 +289,7 @@
 
             function startScanner() {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
+                    Dialog.warning('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
                     return;
                 }
 
@@ -314,20 +309,20 @@
                     });
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
-                    alert('Gagal menginisialisasi scanner: ' + error.message);
+                    Dialog.warning('Gagal menginisialisasi scanner: ' + error.message);
                     stopScanner();
                 }
             }
 
             function handleCameraError(error) {
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                    Dialog.warning('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
                 } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                    alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                    Dialog.warning('Tidak ada kamera yang ditemukan di perangkat Anda.');
                 } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                    alert('Kamera sedang digunakan oleh aplikasi lain.');
+                    Dialog.warning('Kamera sedang digunakan oleh aplikasi lain.');
                 } else {
-                    alert('Gagal mengakses kamera: ' + error.message);
+                    Dialog.warning('Gagal mengakses kamera: ' + error.message);
                 }
             }
 

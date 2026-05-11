@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Batch Production Records')
 
@@ -157,7 +157,7 @@
                                             class="text-xs {{ $batch->isExpired() ? 'text-red-600 font-medium' : 'text-gray-400' }}">
                                             Exp: {{ $batch->expiry_date->format('d M Y') }}
                                             @if ($batch->isExpired())
-                                                ⚠️ Expired
+                                                ?? Expired
                                             @endif
                                         </div>
                                     @endif
@@ -167,8 +167,7 @@
                                         <a href="{{ route('cosmetic.batches.show', $batch) }}"
                                             class="text-blue-600 hover:text-blue-900">View</a>
                                         <form method="POST" action="{{ route('cosmetic.batches.destroy', $batch) }}"
-                                            class="inline"
-                                            onsubmit="return confirm('Are you sure you want to delete this batch?')">
+                                            class="inline" data-confirm="Are you sure you want to delete this batch?" data-confirm-type="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
@@ -188,7 +187,7 @@
                                         <p class="mt-2 text-sm">No batch records found</p>
                                         <a href="{{ route('cosmetic.batches.create') }}"
                                             class="mt-2 inline-block text-blue-600 hover:text-blue-900">
-                                            Create your first batch →
+                                            Create your first batch ?
                                         </a>
                                     </div>
                                 </td>

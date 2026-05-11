@@ -90,7 +90,7 @@
                                 <form method="POST" action="{{ route('quotations.convert', $qt) }}" class="inline">
                                     @csrf
                                     <button type="submit" class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                        onclick="return confirm('Konversi ke Sales Order?')">
+                                        data-confirm="Konversi ke Sales Order?">
                                         → SO
                                     </button>
                                 </form>
@@ -99,7 +99,7 @@
                                 <form method="POST" action="{{ route('quotations.destroy', $qt) }}" class="inline">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-xs px-2 py-1 text-red-500 hover:text-red-700"
-                                        onclick="return confirm('Hapus penawaran ini?')">✕</button>
+                                        data-confirm="Hapus penawaran ini?" data-confirm-type="danger">✕</button>
                                 </form>
                                 @endif
                             </div>

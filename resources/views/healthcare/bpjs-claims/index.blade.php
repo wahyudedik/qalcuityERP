@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Claim BPJS</x-slot>
 
     {{-- Breadcrumbs --}}
@@ -99,8 +99,7 @@
                                                 </svg>
                                             </a>
                                             <form action="{{ route('healthcare.bpjs-claims.destroy', $claim) }}"
-                                                method="POST" class="inline"
-                                                onsubmit="return confirm('Yakin ingin menghapus?')">
+                                                method="POST" class="inline" data-confirm="Yakin ingin menghapus?" data-confirm-type="danger">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"
                                                     class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"

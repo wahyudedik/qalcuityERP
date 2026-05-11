@@ -133,7 +133,7 @@
                                             class="px-2.5 py-1 text-xs bg-blue-600/80 text-white rounded-lg hover:bg-blue-600">Peserta</a>
                                         <form method="POST" action="{{ route('hrm.training.sessions.destroy', $s) }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Hapus sesi ini?')"
+                                            <button type="submit" data-confirm="Hapus sesi ini?" data-confirm-type="danger"
                                                 class="px-2.5 py-1 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10">Hapus</button>
                                         </form>
                                     </div>
@@ -278,7 +278,7 @@
                                         @endif
                                         <form method="POST" action="{{ route('hrm.training.certifications.destroy', $cert) }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Hapus sertifikat ini?')"
+                                            <button type="submit" data-confirm="Hapus sertifikat ini?" data-confirm-type="danger"
                                                 class="px-2.5 py-1 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10">Hapus</button>
                                         </form>
                                     </div>
@@ -380,7 +380,7 @@
                                 <td class="px-4 py-3 text-center">
                                     <form method="POST" action="{{ route('hrm.training.programs.destroy', $p) }}">
                                         @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Nonaktifkan program ini?')"
+                                        <button type="submit" data-confirm="Nonaktifkan program ini?"
                                             class="px-2.5 py-1 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10">Nonaktifkan</button>
                                     </form>
                                 </td>

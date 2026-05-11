@@ -1,26 +1,24 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Kategori Produk</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <button onclick="document.getElementById('addModal').classList.remove('hidden')"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
-                + Tambah Kategori
-            </button>
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
+            + Tambah Kategori
+        </button>
     </div>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if (session('success'))
-                <div
-                    class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
                     <p class="text-sm text-green-800">{{ session('success') }}</p>
                 </div>
             @endif
 
             @if (session('error'))
-                <div
-                    class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
                     <p class="text-sm text-red-800">{{ session('error') }}</p>
                 </div>
             @endif
@@ -84,8 +82,8 @@
                                             </button>
                                             @if ($category->products_count == 0)
                                                 <form action="{{ route('categories.destroy', $category) }}"
-                                                    method="POST" class="inline"
-                                                    onsubmit="return confirm('Hapus kategori ini?')">
+                                                    method="POST" class="inline" data-confirm="Hapus kategori ini?"
+                                                    data-confirm-type="danger">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
@@ -164,7 +162,7 @@
     <script>
         function openEditModal(categoryId) {
             // Implementation for edit modal - similar to add modal
-            alert('Edit functionality - categoryId: ' + categoryId);
+            Dialog.alert('Edit functionality - categoryId: ' + categoryId);
         }
     </script>
 </x-app-layout>

@@ -3,9 +3,10 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <a href="{{ route('supplier-performance.dashboard') }}" class="text-gray-400 hover:text-blue-500 transition-colors">
-                Supplier Performance
-            </a>
+        <a href="{{ route('supplier-performance.dashboard') }}"
+            class="text-gray-400 hover:text-blue-500 transition-colors">
+            Supplier Performance
+        </a>
     </div>
 
     <div class="py-6">
@@ -18,10 +19,10 @@
                         {{ $supplier->name }}
                     </h1>
                     <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                        @if($supplier->company)
+                        @if ($supplier->company)
                             <span class="text-sm text-gray-500">{{ $supplier->company }}</span>
                         @endif
-                        @if($supplier->email)
+                        @if ($supplier->email)
                             <span class="text-gray-300">·</span>
                             <span class="text-sm text-gray-400">{{ $supplier->email }}</span>
                         @endif
@@ -38,7 +39,8 @@
                     </form>
                     <a href="{{ route('supplier-performance.dashboard') }}"
                         class="inline-flex items-center gap-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
                         Kembali
@@ -177,7 +179,7 @@
                                     <td class="px-4 py-3">{{ $eval->evaluation_date->format('d M Y') }}</td>
                                     <td class="px-4 py-3">
                                         @if ($eval->purchaseOrder)
-                                            <a href="#"
+                                            <a href="{{ route('purchasing.orders.show', $eval->purchaseOrder) }}"
                                                 class="text-blue-600 hover:underline">{{ $eval->purchaseOrder?->number }}</a>
                                         @else
                                             <span class="text-gray-400">Manual</span>
@@ -199,7 +201,8 @@
                                     </td>
                                     <td class="px-4 py-3 text-right font-bold">
                                         {{ number_format($eval->overall_score, 1) }}</td>
-                                    <td class="px-4 py-3 text-right">{{ number_format($eval->delivery_score, 1) }}</td>
+                                    <td class="px-4 py-3 text-right">{{ number_format($eval->delivery_score, 1) }}
+                                    </td>
                                     <td class="px-4 py-3 text-right">{{ number_format($eval->quality_score, 1) }}</td>
                                     <td class="px-4 py-3 text-right">{{ number_format($eval->cost_score, 1) }}</td>
                                     <td class="px-4 py-3 text-center">

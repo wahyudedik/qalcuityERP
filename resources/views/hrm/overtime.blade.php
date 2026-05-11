@@ -184,7 +184,7 @@
                                             <form method="POST" action="{{ route('hrm.overtime.destroy', $ot) }}">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"
-                                                    onclick="return confirm('Hapus pengajuan ini?')"
+                                                    data-confirm="Hapus pengajuan ini?" data-confirm-type="danger"
                                                     class="text-xs text-gray-400 hover:text-red-400">Hapus</button>
                                             </form>
                                         @else

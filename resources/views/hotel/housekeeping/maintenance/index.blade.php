@@ -39,26 +39,19 @@
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Room</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Title</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Category</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Priority</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Assigned To</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Actions</th>
                         </tr>
                     </thead>
@@ -115,8 +108,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7"
-                                    class="px-4 py-8 text-center text-sm text-gray-500">No
+                                <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">No
                                     maintenance requests found</td>
                             </tr>
                         @endforelse
@@ -167,8 +159,8 @@
 
     @push('scripts')
         <script>
-            function assignRequest(requestId) {
-                const staffId = prompt('Enter technician user ID to assign:');
+            async function assignRequest(requestId) {
+                const staffId = await Dialog.prompt('Enter technician user ID to assign:');
                 if (staffId) {
                     fetch(`/hotel/housekeeping/maintenance/${requestId}/assign`, {
                         method: 'POST',

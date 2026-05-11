@@ -102,7 +102,7 @@
                     Edit
                 </a>
                 <form method="POST" action="{{ route('super-admin.plans.destroy', $plan) }}"
-                      onsubmit="return confirm('Hapus paket {{ $plan->name }}?')">
+                      data-confirm="Hapus paket {{ $plan->name }}?" data-confirm-type="danger">
                     @csrf @method('DELETE')
                     <button type="submit"
                         class="text-xs text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition">

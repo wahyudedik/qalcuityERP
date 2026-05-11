@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Backup Details') }} -
-                #{{ $backup->id }}</x-slot>
+        #{{ $backup->id }}</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.backups.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
-                    class="fas fa-arrow-left mr-2"></i>Back</a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
+                class="fas fa-arrow-left mr-2"></i>Back</a>
     </div>
 
     <div class="py-12">
@@ -128,31 +128,32 @@
     </div>
 
     <script>
-        function restoreBackup() {
-            if (confirm(
-                    'WARNING: This will restore the database to this backup point. All current data will be lost. Are you sure?'
-                    )) {
-                if (confirm('FINAL CONFIRMATION: Type OK to proceed with database restore')) {
-                    fetch('{{ route('healthcare.backups.restore', $backup) }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                confirm: 'OK'
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            alert(data.message);
-                            if (data.success) {
-                                window.location.href = '{{ route('healthcare.backups.index') }}';
-                            }
-                        })
-                        .catch(error => alert('Restore failed'));
-                }
-            }
+        async function restoreBackup() {
+            const confirmed = await Dialog.danger(
+                'WARNING: This will restore the database to this backup point. All current data will be lost. Are you sure?'
+                );
+            if (!confirmed) return;
+            const finalConfirmed = await Dialog.danger(
+                'FINAL CONFIRMATION: This will proceed with database restore. Are you absolutely sure?');
+            if (!finalConfirmed) return;
+            fetch('{{ route('healthcare.backups.restore', $backup) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        confirm: 'OK'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    if (data.success) {
+                        window.location.href = '{{ route('healthcare.backups.index') }}';
+                    }
+                })
+                .catch(error => Dialog.warning('Restore failed'));
         }
     </script>
 </x-app-layout>

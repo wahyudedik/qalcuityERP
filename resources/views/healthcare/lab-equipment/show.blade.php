@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Lab Equipment Details') }} -
-                {{ $equipment->name }}</x-slot>
+        {{ $equipment->name }}</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.lab-equipment.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
-                    class="fas fa-arrow-left mr-2"></i>Back</a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
+                class="fas fa-arrow-left mr-2"></i>Back</a>
     </div>
 
     <div class="py-12">
@@ -150,22 +150,22 @@
 
     @push('scripts')
         <script>
-            function testConnection() {
-                if (confirm('Test connection to {{ $equipment->name }}?')) {
-                    fetch('{{ route('healthcare.lab-equipment.test-connection', $equipment) }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            alert(data.message);
-                            location.reload();
-                        })
-                        .catch(error => alert('Connection test failed'));
-                }
+            async function testConnection() {
+                const confirmed = await Dialog.confirm('Test connection to {{ $equipment->name }}?');
+                if (!confirmed) return;
+                fetch('{{ route('healthcare.lab-equipment.test-connection', $equipment) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Dialog.alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => Dialog.warning('Connection test failed'));
             }
         </script>
     @endpush

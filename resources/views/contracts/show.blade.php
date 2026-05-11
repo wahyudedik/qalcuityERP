@@ -1,5 +1,5 @@
-﻿<x-app-layout>
-    <x-slot name="header">Kontrak — {{ $contract->contract_number }}</x-slot>
+<x-app-layout>
+    <x-slot name="header">Kontrak � {{ $contract->contract_number }}</x-slot>
 
     <div class="space-y-6">
         {{-- Header --}}
@@ -7,7 +7,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">{{ $contract->title }}</h2>
-                    <p class="text-sm text-gray-500">{{ $contract->contract_number }} · {{ $contract->party_type === 'customer' ? '👤' : '🏢' }} {{ $contract->partyName() }}</p>
+                    <p class="text-sm text-gray-500">{{ $contract->contract_number }} � {{ $contract->party_type === 'customer' ? '??' : '??' }} {{ $contract->partyName() }}</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     @php
@@ -22,7 +22,7 @@
                     </form>
                     @endif
                     @if($contract->status === 'active')
-                    <form method="POST" action="{{ route('contracts.terminate', $contract) }}" onsubmit="return confirm('Terminasi kontrak ini?')">@csrf @method('PATCH')
+                    <form method="POST" action="{{ route('contracts.terminate', $contract) }}" data-confirm="Terminasi kontrak ini?">@csrf @method('PATCH')
                         <button type="submit" class="px-3 py-1 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Terminasi</button>
                     </form>
                     @endif
@@ -38,12 +38,12 @@
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                <div><p class="text-xs text-gray-500">Periode</p><p class="text-gray-900">{{ $contract->start_date->format('d/m/Y') }} — {{ $contract->end_date->format('d/m/Y') }}</p></div>
+                <div><p class="text-xs text-gray-500">Periode</p><p class="text-gray-900">{{ $contract->start_date->format('d/m/Y') }} � {{ $contract->end_date->format('d/m/Y') }}</p></div>
                 <div><p class="text-xs text-gray-500">Sisa Hari</p><p class="font-semibold {{ $contract->daysRemaining() < 30 ? 'text-amber-500' : 'text-gray-900' }}">{{ $contract->daysRemaining() }} hari</p></div>
                 <div><p class="text-xs text-gray-500">Nilai Kontrak</p><p class="font-semibold text-gray-900">Rp {{ number_format($contract->value, 0, ',', '.') }}</p></div>
                 <div><p class="text-xs text-gray-500">Billing</p><p class="text-gray-900">Rp {{ number_format($contract->billing_amount, 0, ',', '.') }} / {{ ['monthly'=>'bulan','quarterly'=>'triwulan','semi_annual'=>'semester','annual'=>'tahun','one_time'=>'sekali'][$contract->billing_cycle] ?? $contract->billing_cycle }}</p></div>
                 <div><p class="text-xs text-gray-500">Next Billing</p><p class="text-gray-900">{{ $contract->next_billing_date?->format('d/m/Y') ?? '-' }}</p></div>
-                <div><p class="text-xs text-gray-500">Auto Renew</p><p class="text-gray-900">{{ $contract->auto_renew ? '✅ Ya' : '❌ Tidak' }}</p></div>
+                <div><p class="text-xs text-gray-500">Auto Renew</p><p class="text-gray-900">{{ $contract->auto_renew ? '? Ya' : '? Tidak' }}</p></div>
                 <div><p class="text-xs text-gray-500">Kategori</p><p class="text-gray-900">{{ ['service'=>'Jasa','lease'=>'Sewa','supply'=>'Supply','maintenance'=>'Maintenance','subscription'=>'Langganan'][$contract->category] ?? $contract->category }}</p></div>
                 <div><p class="text-xs text-gray-500">Dibuat oleh</p><p class="text-gray-900">{{ $contract->user?->name ?? '-' }}</p></div>
             </div>
@@ -101,7 +101,7 @@
                         @php $bc = ['pending'=>'amber','invoiced'=>'blue','paid'=>'green','cancelled'=>'gray'][$b->status] ?? 'gray'; @endphp
                         <tr>
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $b->billing_date->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3 text-xs text-gray-700">{{ $b->period_start->format('d/m') }} — {{ $b->period_end->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 text-xs text-gray-700">{{ $b->period_start->format('d/m') }} � {{ $b->period_end->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($b->amount, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $bc  }}-100 text-{{ $bc }}-700 $bc }}-500/20 $bc }}-400">{{ ucfirst($b->status) }}</span></td>
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $b->invoice?->invoice_number ?? '-' }}</td>
@@ -146,9 +146,9 @@
                             <td class="px-4 py-3 text-center text-xs">{{ $log->responseHours() !== null ? $log->responseHours() . 'h' : '-' }}</td>
                             <td class="px-4 py-3 text-center text-xs">{{ $log->resolutionHours() !== null ? $log->resolutionHours() . 'h' : '-' }}</td>
                             <td class="px-4 py-3 text-center">
-                                @if($log->sla_met === true)<span class="text-green-500">✅</span>
-                                @elseif($log->sla_met === false)<span class="text-red-500">❌</span>
-                                @else<span class="text-gray-400">—</span>@endif
+                                @if($log->sla_met === true)<span class="text-green-500">?</span>
+                                @elseif($log->sla_met === false)<span class="text-red-500">?</span>
+                                @else<span class="text-gray-400">�</span>@endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if(!$log->resolved_at)
@@ -173,7 +173,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Catat Insiden SLA</h3>
-                <button onclick="document.getElementById('modal-sla').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-sla').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('contracts.sla.store', $contract) }}" class="p-6 space-y-4">
                 @csrf
@@ -198,7 +198,7 @@
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Resolve Insiden</h3>
-                <button onclick="document.getElementById('modal-resolve').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-resolve').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-resolve" method="POST" class="p-6 space-y-4">
                 @csrf @method('PATCH')

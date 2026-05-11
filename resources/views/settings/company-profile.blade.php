@@ -217,7 +217,7 @@
                 <div class="flex items-center gap-2">
                     <button onclick="editTemplate({{ $tpl->id }}, '{{ addslashes($tpl->name) }}', `{{ addslashes($tpl->html_content) }}`, {{ $tpl->is_default ? 'true' : 'false' }})"
                             class="text-xs text-blue-600 hover:underline">Edit</button>
-                    <form method="POST" action="{{ route('company-profile.templates.destroy', $tpl) }}" onsubmit="return confirm('Hapus template ini?')">
+                    <form method="POST" action="{{ route('company-profile.templates.destroy', $tpl) }}" data-confirm="Hapus template ini?" data-confirm-type="danger">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-xs text-red-500 hover:underline">Hapus</button>
                     </form>

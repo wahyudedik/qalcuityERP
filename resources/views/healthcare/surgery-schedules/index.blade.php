@@ -167,10 +167,10 @@
 
     @push('scripts')
         <script>
-            function deleteSchedule(id) {
-                if (confirm('Apakah Anda yakin ingin menghapus jadwal operasi ini?')) {
-                    document.getElementById(`delete-schedule-${id}`).submit();
-                }
+            async function deleteSchedule(id) {
+                const confirmed = await Dialog.danger('Apakah Anda yakin ingin menghapus jadwal operasi ini?');
+                if (!confirmed) return;
+                document.getElementById(`delete-schedule-${id}`).submit();
             }
         </script>
     @endpush

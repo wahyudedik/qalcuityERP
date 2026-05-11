@@ -252,8 +252,8 @@
                 @endif
             },
 
-            saveAsSearch() {
-                const query = prompt('Nama pencarian yang disimpan:');
+            async saveAsSearch() {
+                const query = await Dialog.prompt('Nama pencarian yang disimpan:');
                 if (!query) return;
 
                 const filterData = this.filters
@@ -281,7 +281,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Pencarian berhasil disimpan!');
+                            Dialog.success('Pencarian berhasil disimpan!');
                         }
                     })
                     .catch(err => {

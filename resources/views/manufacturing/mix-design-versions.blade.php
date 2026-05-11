@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('manufacturing.mix-design') }}"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                ← Back to Mix Design
-            </a>
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+            ← Back to Mix Design
+        </a>
     </div>
 
     <div class="py-12">
@@ -87,8 +87,7 @@
                                 </div>
 
                                 {{-- Change Reason --}}
-                                <div
-                                    class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                                <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
                                     <div class="text-xs text-blue-600 font-semibold mb-1">CHANGE
                                         REASON:</div>
                                     <p class="text-sm text-gray-700">{{ $version->change_reason }}
@@ -159,8 +158,7 @@
 
                                 {{-- Approval Info --}}
                                 @if ($version->isApproved())
-                                    <div
-                                        class="mt-3 pt-3 border-t border-gray-200 text-sm text-gray-500">
+                                    <div class="mt-3 pt-3 border-t border-gray-200 text-sm text-gray-500">
                                         Approved by {{ $version->approvedBy?->name ?? 'Unknown' }} on
                                         {{ $version->approved_at->format('d M Y, H:i') }}
                                     </div>
@@ -175,22 +173,19 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-900 mb-4">🔍 Compare Versions</h3>
                 <div class="flex gap-4 mb-4">
-                    <select id="compareVersion1" class="border rounded px-3 py-2 flex-1">
+                    <select id="compareVersion1" class="border rounded px-3 py-2 flex-1" disabled>
                         <option value="">Select Version 1</option>
                         @foreach ($versions as $v)
                             <option value="{{ $v->id }}">Version {{ $v->version_number }}</option>
                         @endforeach
                     </select>
-                    <select id="compareVersion2" class="border rounded px-3 py-2 flex-1">
+                    <select id="compareVersion2" class="border rounded px-3 py-2 flex-1" disabled>
                         <option value="">Select Version 2</option>
                         @foreach ($versions as $v)
                             <option value="{{ $v->id }}">Version {{ $v->version_number }}</option>
                         @endforeach
                     </select>
-                    <button onclick="compareVersions()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                        Compare
-                    </button>
+                    <x-disabled-button label="Compare" tooltip="Fitur compare versions akan segera tersedia" />
                 </div>
                 <div id="comparisonResult" class="hidden"></div>
             </div>
@@ -198,22 +193,6 @@
     </div>
 
     <script>
-        function compareVersions() {
-            const v1 = document.getElementById('compareVersion1').value;
-            const v2 = document.getElementById('compareVersion2').value;
-
-            if (!v1 || !v2) {
-                alert('Please select both versions to compare');
-                return;
-            }
-
-            if (v1 === v2) {
-                alert('Please select different versions');
-                return;
-            }
-
-            // TODO: Implement AJAX comparison
-            alert('Comparison feature - Will show detailed diff between versions ' + v1 + ' and ' + v2);
-        }
+        // Compare versions feature - coming soon
     </script>
 </x-app-layout>

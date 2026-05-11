@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'KPI Dashboard')
 
 @push('head')
@@ -54,7 +54,7 @@
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ $kpi->label }}</p>
                 <div class="flex items-center gap-1">
                     <span class="text-xs font-bold px-2 py-0.5 rounded-full {{ $colors['badge'] }}">{{ $pct }}%</span>
-                    <form method="POST" action="{{ route('kpi.destroy', $kpi) }}" onsubmit="return confirm('Hapus target ini?')">
+                    <form method="POST" action="{{ route('kpi.destroy', $kpi) }}" data-confirm="Hapus target ini?" data-confirm-type="danger">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-gray-300 hover:text-red-400 transition ml-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -79,7 +79,7 @@
                 <div class="{{ $colors['bar'] }} h-full rounded-full transition-all duration-500"
                      style="width: {{ min($pct, 100) }}%"></div>
             </div>
-            <p class="text-xs text-gray-400 mt-1.5">Klik untuk drill-down →</p>
+            <p class="text-xs text-gray-400 mt-1.5">Klik untuk drill-down ?</p>
         </div>
         @endforeach
     </div>
@@ -88,14 +88,14 @@
         <svg class="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         <p class="text-sm text-gray-500">Belum ada target KPI untuk periode ini.</p>
         <button onclick="document.getElementById('addKpiModal').classList.remove('hidden')"
-                class="mt-3 text-sm text-blue-500 hover:underline">Tambah target pertama →</button>
+                class="mt-3 text-sm text-blue-500 hover:underline">Tambah target pertama ?</button>
     </div>
     @endif
 
     {{-- All KPI Actuals (read-only overview) --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-200">
-            <h2 class="text-sm font-semibold text-gray-700">Semua Metrik — {{ \Carbon\Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') }}</h2>
+            <h2 class="text-sm font-semibold text-gray-700">Semua Metrik � {{ \Carbon\Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') }}</h2>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
             @foreach($kpis ?? [] as $key => $kpi)
@@ -108,7 +108,7 @@
                     @else {{ number_format($kpi['actual'], 0, ',', '.') }}
                     @endif
                 </p>
-                <p class="text-xs text-blue-400 mt-0.5">drill-down →</p>
+                <p class="text-xs text-blue-400 mt-0.5">drill-down ?</p>
             </div>
             @endforeach
         </div>
@@ -196,7 +196,7 @@
     const textColor = isDark ? '#94a3b8' : '#6b7280';
     const period    = '{{ $period }}';
 
-    // ── Trend chart ──────────────────────────────────────────────
+    // -- Trend chart ----------------------------------------------
     const trend = @json($trend);
     new Chart(document.getElementById('trendChart'), {
         type: 'line',
@@ -219,7 +219,7 @@
         },
     });
 
-    // ── Drill-down ───────────────────────────────────────────────
+    // -- Drill-down -----------------------------------------------
     let drillChart = null;
 
     window.loadDrilldown = function (metric, label) {

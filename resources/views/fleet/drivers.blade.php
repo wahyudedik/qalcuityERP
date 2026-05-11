@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Driver / Pengemudi</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
@@ -67,7 +67,7 @@
                                     @endcanmodule
                                     @canmodule('fleet', 'delete')
                                     <form method="POST" action="{{ route('fleet.drivers.destroy', $d) }}"
-                                        class="inline" onsubmit="return confirm('Hapus driver ini?')">
+                                        class="inline" data-confirm="Hapus driver ini?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
@@ -98,7 +98,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Tambah Driver</h3>
                 <button onclick="document.getElementById('modal-add-driver').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('fleet.drivers.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -154,7 +154,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Edit Driver</h3>
                 <button onclick="document.getElementById('modal-edit-driver').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-driver" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')

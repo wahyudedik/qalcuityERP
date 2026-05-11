@@ -1,8 +1,8 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Template Kontrak</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
-        <a href="{{ route('contracts.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">← Daftar Kontrak</a>
+        <a href="{{ route('contracts.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">? Daftar Kontrak</a>
         <div class="flex-1"></div>
         @canmodule('contracts', 'create')
         <button onclick="document.getElementById('modal-add-tpl').classList.remove('hidden')"
@@ -32,7 +32,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @canmodule('contracts', 'delete')
-                            <form method="POST" action="{{ route('contracts.templates.destroy', $t) }}" class="inline" onsubmit="return confirm('Hapus template ini?')">
+                            <form method="POST" action="{{ route('contracts.templates.destroy', $t) }}" class="inline" data-confirm="Hapus template ini?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
                             </form>
@@ -53,7 +53,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Buat Template</h3>
-                <button onclick="document.getElementById('modal-add-tpl').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-tpl').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('contracts.templates.store') }}" class="p-6 space-y-4">
                 @csrf

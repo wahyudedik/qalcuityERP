@@ -132,7 +132,7 @@
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ route('super-admin.popup-ads.destroy', $ad) }}"
-                                        onsubmit="return confirm('Hapus popup iklan ini?')" class="inline">
+                                        data-confirm="Hapus popup iklan ini?" data-confirm-type="danger" class="inline">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"

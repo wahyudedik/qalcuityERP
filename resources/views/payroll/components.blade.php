@@ -56,8 +56,8 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1"
-                            id="amount-label">Nilai Default *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1" id="amount-label">Nilai Default
+                            *</label>
                         <input type="number" name="default_amount" id="f-amount" min="0" step="0.01"
                             required
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -69,8 +69,7 @@
                         <label for="f-taxable" class="text-sm text-gray-700">Kena PPh 21</label>
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
                         <input type="text" name="description" id="f-desc" placeholder="Opsional"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -88,8 +87,7 @@
         <div class="flex-1 space-y-6">
 
             @if (session('success'))
-                <div
-                    class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
                     {{ session('success') }}
                 </div>
             @endif
@@ -97,10 +95,8 @@
             {{-- Tunjangan --}}
             @foreach (['allowance' => 'Tunjangan', 'deduction' => 'Potongan'] as $type => $label)
                 @php $group = $components->where('type', $type); @endphp
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    <div
-                        class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                         <p class="font-semibold text-gray-900">{{ $label }}</p>
                         <span class="text-xs text-gray-400">{{ $group->count() }} komponen</span>
                     </div>
@@ -116,8 +112,7 @@
                                             <p class="text-sm font-medium text-gray-900">
                                                 {{ $comp->name }}</p>
                                             @if ($comp->code)
-                                                <span
-                                                    class="text-xs text-gray-400 font-mono">{{ $comp->code }}</span>
+                                                <span class="text-xs text-gray-400 font-mono">{{ $comp->code }}</span>
                                             @endif
                                             @if (!$comp->is_active)
                                                 <span
@@ -151,7 +146,7 @@
                                         </button>
                                         <form method="POST"
                                             action="{{ route('payroll.components.destroy', $comp) }}"
-                                            onsubmit="return confirm('Hapus komponen ini?')">
+                                            data-confirm="Hapus komponen ini?" data-confirm-type="danger">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                 class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-100">
@@ -172,8 +167,7 @@
             @endforeach
 
             {{-- Assign ke Karyawan --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-3 border-b border-gray-100">
                     <p class="font-semibold text-gray-900">Komponen per Karyawan</p>
                     <p class="text-xs text-gray-400 mt-0.5">Klik karyawan untuk mengatur komponen
@@ -182,8 +176,7 @@
                 <div class="divide-y divide-gray-100">
                     @forelse($employees as $emp)
                         <div class="px-5 py-3 flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                                 <span
                                     class="text-blue-600 text-xs font-bold">{{ strtoupper(substr($emp->name, 0, 1)) }}</span>
                             </div>
@@ -209,8 +202,7 @@
     {{-- Modal: Komponen per Karyawan --}}
     <div id="emp-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEmpModal()"></div>
-        <div
-            class="relative bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-2xl">
+        <div class="relative bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <p class="font-semibold text-gray-900" id="modal-emp-name">Komponen Gaji</p>
                 <button onclick="closeEmpModal()" class="text-gray-400 hover:text-gray-600">

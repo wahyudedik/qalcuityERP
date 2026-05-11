@@ -199,7 +199,8 @@
                         if (action.confirm) {
                             const message = action.confirmMessage ||
                                 'Apakah Anda yakin ingin melakukan aksi ini?';
-                            if (!confirm(message)) return;
+                            const confirmed = await Dialog.confirm(message);
+                            if (!confirmed) return;
                         }
 
                         // GET requests navigate directly
@@ -220,7 +221,7 @@
                                 method: action.method,
                                 headers: {
                                     'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]')?.getAttribute(
+                                        'meta[name="csrf-token"]')?.getAttribute(
                                         'content') || '',
                                     'Accept': 'application/json',
                                     'Content-Type': 'application/json',

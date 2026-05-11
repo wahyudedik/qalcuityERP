@@ -98,8 +98,7 @@
                 class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm">← Kembali</a>
 
             @if ($journal->status === 'draft')
-                <form method="POST" action="{{ route('journals.post', $journal) }}"
-                    onsubmit="return confirm('Post jurnal ini? Tidak bisa diubah setelah diposting.')">
+                <form method="POST" action="{{ route('journals.post', $journal) }}" data-confirm="Post jurnal ini? Tidak bisa diubah setelah diposting.">
                     @csrf @method('PATCH')
                     <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">Post
                         Jurnal</button>

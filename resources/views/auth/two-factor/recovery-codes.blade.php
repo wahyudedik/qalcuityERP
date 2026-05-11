@@ -14,8 +14,9 @@
 
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="grid grid-cols-2 gap-2 mb-5">
-                @foreach($recoveryCodes ?? [] as $code)
-                    <code class="font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg text-center tracking-widest text-gray-900">
+                @foreach ($recoveryCodes ?? [] as $code)
+                    <code
+                        class="font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg text-center tracking-widest text-gray-900">
                         {{ $code }}
                     </code>
                 @endforeach
@@ -23,11 +24,11 @@
 
             <div class="flex gap-3">
                 <button onclick="copyAll()"
-                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
+                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
                     📋 Salin Semua
                 </button>
                 <a href="{{ route('dashboard') }}"
-                   class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm text-center font-medium hover:bg-blue-700">
+                    class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm text-center font-medium hover:bg-blue-700">
                     Selesai
                 </a>
             </div>
@@ -38,7 +39,7 @@
         function copyAll() {
             const codes = @json($recoveryCodes);
             navigator.clipboard.writeText(codes.join('\n'));
-            alert('Recovery codes disalin!');
+            Dialog.success('Recovery codes disalin!');
         }
     </script>
 </x-app-layout>

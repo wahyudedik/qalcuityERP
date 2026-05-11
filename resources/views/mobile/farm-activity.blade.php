@@ -50,20 +50,20 @@
         activityType: null,
         photos: [],
         photoFiles: [],
-    
+
         selectTarget(id) {
             this.selectedTarget = (this.selectedTarget === id) ? null : id;
         },
-    
+
         selectActivity(type) {
             this.activityType = (this.activityType === type) ? null : type;
         },
-    
+
         previewPhoto(event) {
             const file = event.target.files[0];
             if (!file) return;
             if (this.photos.length >= 3) {
-                alert('Maksimal 3 foto yang dapat diunggah.');
+                Dialog.warning('Maksimal 3 foto yang dapat diunggah.');
                 event.target.value = '';
                 return;
             }
@@ -74,15 +74,15 @@
             };
             reader.readAsDataURL(file);
         },
-    
+
         removePhoto(index) {
             this.photos.splice(index, 1);
             this.photoFiles.splice(index, 1);
         },
-    
+
         plotActivities: ['Penyiraman', 'Pemupukan', 'Penyemprotan', 'Penanaman', 'Panen', 'Pemangkasan', 'Inspeksi'],
         livestockActivities: ['Pemberian Pakan', 'Pemeriksaan Kesehatan', 'Vaksinasi', 'Pemindahan', 'Penjualan', 'Pencatatan'],
-    
+
         get currentActivities() {
             return this.targetType === 'plot' ? this.plotActivities : this.livestockActivities;
         }

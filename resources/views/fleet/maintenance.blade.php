@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Maintenance Kendaraan</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
@@ -91,7 +91,7 @@
                                     @endif
                                     @canmodule('fleet', 'delete')
                                     <form method="POST" action="{{ route('fleet.maintenance.destroy', $m) }}"
-                                        class="inline" onsubmit="return confirm('Hapus?')">
+                                        class="inline" data-confirm="Hapus?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
@@ -122,7 +122,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Jadwal Maintenance</h3>
                 <button onclick="document.getElementById('modal-add-maint').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('fleet.maintenance.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -179,7 +179,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Selesaikan Maintenance</h3>
                 <button onclick="document.getElementById('modal-complete-maint').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-complete-maint" method="POST" class="p-6 space-y-4">
                 @csrf @method('PATCH')

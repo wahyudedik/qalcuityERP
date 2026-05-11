@@ -4,12 +4,12 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <button onclick="document.getElementById('createOpportunityModal').classList.remove('hidden')"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                New Opportunity
-            </button>
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Opportunity
+        </button>
     </div>
 
     {{-- Pipeline Metrics --}}
@@ -39,17 +39,16 @@
     </div>
 
     {{-- Identified Opportunities --}}
-    <div
-        class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Identified Opportunities</h2>
-            <a href="#" class="text-sm text-indigo-600 hover:underline">View All →</a>
+            <x-disabled-link class="text-sm" tooltip="Fitur akan segera tersedia">View All →</x-disabled-link>
         </div>
 
         @if (count($opportunities) === 0)
             <div class="p-12 text-center">
-                <svg class="mx-auto w-16 h-16 text-gray-300 mb-3" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mx-auto w-16 h-16 text-gray-300 mb-3" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -80,7 +79,7 @@
                                         $color = $priorityColors[$opportunity->priority] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                         {{ ucfirst($opportunity->priority) }}
                                     </span>
                                 </div>
@@ -151,11 +150,10 @@
         </h2>
 
         <div class="space-y-3">
-            <div
-                class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <svg class="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -179,8 +177,8 @@
 
             <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
@@ -224,8 +222,7 @@
                     </div>
 
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <textarea name="description" rows="3"
                             class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Describe the opportunity..."></textarea>
@@ -233,8 +230,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                             <input type="text" name="category"
                                 class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g., Electronics">
@@ -300,7 +296,7 @@
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert('Failed to update status');
+                        Dialog.warning('Failed to update status');
                     }
                 })
                 .catch(error => console.error('Error:', error));

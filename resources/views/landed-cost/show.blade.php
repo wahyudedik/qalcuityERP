@@ -39,7 +39,7 @@
                     @endif
                     @if ($landedCost->status === 'allocated')
                         <form method="POST" action="{{ route('landed-cost.post', $landedCost) }}"
-                            onsubmit="return confirm('Posting akan update HPP produk. Lanjutkan?')">
+                            data-confirm="Posting akan update HPP produk. Lanjutkan?">
                             @csrf
                             <button type="submit"
                                 class="px-3 py-1 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Posting

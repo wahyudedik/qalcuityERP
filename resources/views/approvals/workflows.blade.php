@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Workflow Persetujuan</x-slot>
 
     <div class="space-y-6">
@@ -87,12 +87,12 @@
                             </div>
                             <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-400">
                                 @if($wf->model_type)
-                                <span>📄 {{ class_basename($wf->model_type) }}</span>
+                                <span>?? {{ class_basename($wf->model_type) }}</span>
                                 @endif
-                                <span>💰 Rp {{ number_format($wf->min_amount, 0, ',', '.') }}
-                                    @if($wf->max_amount) – Rp {{ number_format($wf->max_amount, 0, ',', '.') }} @else + @endif
+                                <span>?? Rp {{ number_format($wf->min_amount, 0, ',', '.') }}
+                                    @if($wf->max_amount) � Rp {{ number_format($wf->max_amount, 0, ',', '.') }} @else + @endif
                                 </span>
-                                <span>👥 {{ implode(', ', $wf->approver_roles ?? []) }}</span>
+                                <span>?? {{ implode(', ', $wf->approver_roles ?? []) }}</span>
                             </div>
                             {{-- Chain visualization --}}
                             <div class="flex items-center gap-1 mt-2 flex-wrap">
@@ -111,8 +111,7 @@
                                 class="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-100 transition">
                                 Edit
                             </button>
-                            <form method="POST" action="{{ route('approvals.workflows.destroy', $wf) }}"
-                                  onsubmit="return confirm('Hapus workflow ini?')">
+                            <form method="POST" action="{{ route('approvals.workflows.destroy', $wf) }}" data-confirm="Hapus workflow ini?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit"
                                     class="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition">

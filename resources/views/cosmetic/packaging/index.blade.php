@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Packaging Materials')
 
@@ -189,7 +189,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if ($material->is_recyclable)
-                                    <span class="text-green-600">✓ Yes</span>
+                                    <span class="text-green-600">? Yes</span>
                                 @else
                                     <span class="text-gray-500">No</span>
                                 @endif
@@ -197,7 +197,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <form method="POST"
                                     action="{{ route('cosmetic.packaging.materials.destroy', $material->id) }}"
-                                    class="inline" onsubmit="return confirm('Delete this material?')">
+                                    class="inline" data-confirm="Delete this material?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">

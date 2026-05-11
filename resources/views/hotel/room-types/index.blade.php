@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Room Types</x-slot>
 
     <div x-data="roomTypeManager()" class="space-y-6">
@@ -98,7 +98,7 @@
                                             </svg>
                                         </button>
                                         <form method="POST" action="{{ route('hotel.room-types.destroy', $rt) }}"
-                                            class="inline" onsubmit="return confirm('Delete this room type?')">
+                                            class="inline" data-confirm="Delete this room type?" data-confirm-type="danger">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                 class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
@@ -338,10 +338,10 @@
                 info: 'bg-blue-600',
             };
             const icons = {
-                success: '✓',
-                error: '✕',
-                warning: '⚠',
-                info: 'ℹ'
+                success: '?',
+                error: '?',
+                warning: '?',
+                info: '?'
             };
             const toast = document.createElement('div');
             toast.className =

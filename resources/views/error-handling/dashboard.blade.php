@@ -185,7 +185,8 @@
 
     <script>
         async function createBackup() {
-            if (!confirm('Create manual backup now?')) return;
+            const confirmed = await Dialog.confirm('Create manual backup now?');
+            if (!confirmed) return;
 
             try {
                 const response = await fetch('{{ route('error-handling.backups.create') }}', {
@@ -202,13 +203,13 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Backup created successfully!');
+                    Dialog.success('Backup created successfully!');
                     location.reload();
                 } else {
-                    alert('Failed: ' + result.error);
+                    Dialog.warning('Failed: ' + result.error);
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                Dialog.warning('Error: ' + error.message);
             }
         }
     </script>

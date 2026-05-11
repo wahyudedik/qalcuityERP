@@ -1,24 +1,45 @@
-# Qalcuity ERP — Product Overview
+# Product Overview
 
-Qalcuity ERP is a multi-tenant, web-based business management system built on Laravel. It serves a wide range of Indonesian SMEs and enterprises through a single unified platform, with an integrated AI assistant powered by Google Gemini.
+Qalcuity ERP is a multi-tenant, web-based business management system built with Laravel. It serves multiple industry verticals from a single platform, with an AI assistant powered by Google Gemini.
 
 ## Core Modules
-- **Accounting & Finance** — journals, ledger, balance sheet, P&L, cash flow, bank reconciliation, multi-currency, tax (PPN/PPh), cost centers, consolidation
-- **Inventory & Warehouse** — multi-warehouse, stock transfers, batch/lot tracking, landed cost, consignment, FIFO/Average costing, barcode/QR, WMS
-- **Sales & Purchasing** — quotations, sales orders, invoices, POs, delivery orders, returns, down payments, price lists, commissions
-- **HRM & Payroll** — employees, attendance, shifts, overtime, recruitment, training, payroll, payslips, ESS, fingerprint integration
-- **Point of Sale** — web-based cashier, barcode scanner, session management, payment gateway integration
-- **Reports & Analytics** — custom dashboard widgets, financial/sales/inventory/HRM reports, advanced analytics, Excel & PDF export
-- **AI Assistant** — Gemini-powered assistant with business context awareness for reports, stock, HR, and data-driven recommendations
+
+- **Accounting & Finance** — General ledger, journals, financial statements, multi-currency, tax (PPN/PPh), cost centers, consolidation
+- **Inventory & Warehouse** — Multi-warehouse, batch/lot tracking, landed cost, consignment, FIFO/Average costing, WMS, barcode/QR
+- **Sales & Purchasing** — Quotations, sales orders, invoices, purchase orders, delivery orders, returns, down payments
+- **HRM & Payroll** — Employees, attendance, shifts, recruitment, training, automated payroll, ESS
+- **Point of Sale** — Web-based cashier with barcode scanner, session management, payment gateway integration
+- **Reporting & Analytics** — Custom dashboard widgets, financial/sales/inventory/HRM reports, Excel & PDF export
+- **AI Assistant** — Google Gemini-based contextual business assistant
 
 ## Industry-Specific Modules
+
 Telecom/ISP, Healthcare, F&B, Hotel, Manufacturing, Construction, Agriculture, Livestock, Fisheries, Cosmetics, Tour & Travel, Printing
 
 ## Platform Features
-Multi-tenant with full data isolation, subscription plans, approval workflows, automation builder, custom fields, document management, audit trail, helpdesk, loyalty program, gamification, KPI tracking, push notifications, affiliate program, GDPR tools
+
+- Multi-tenant with full data isolation and subscription management
+- Multi-level approval workflows
+- Automation builder (trigger & action based)
+- Custom fields on business entities
+- Document management with versioning and digital signatures
+- Audit trail, helpdesk, loyalty program, gamification, KPI tracking
+- Push notifications, affiliate program, GDPR tools
+- Offline-capable POS with sync
 
 ## Integrations
-E-commerce (Shopee, Tokopedia, Lazada), Payment (Midtrans, Xendit, Duitku), Shipping (RajaOngkir, JNE, J&T), Messaging (WhatsApp, Telegram), Accounting (Jurnal.id, Accurate Online), Auth (Google OAuth)
 
-## Target Market & Language
-Indonesian SMEs and enterprises. UI language is **Bahasa Indonesia**; code comments are often in Indonesian. Locale defaults to `id`, timezone to `Asia/Jakarta`.
+- E-Commerce: Shopee, Tokopedia, Lazada
+- Payment: Midtrans, Xendit, Duitku
+- Shipping: RajaOngkir, JNE, J&T, Sicepat
+- Communication: WhatsApp (Fonnte/Business API), Telegram Bot
+- Accounting: Jurnal.id, Accurate Online
+- Auth: Google OAuth
+
+## Multi-Tenancy Model
+
+Each tenant has isolated data. A SuperAdmin manages tenants, subscription plans, and platform-wide settings. Tenants configure their own modules, company profile, fiscal year, and integrations.
+
+## Language
+
+The application UI and documentation are primarily in Bahasa Indonesia. Code (variables, classes, comments) is in English.

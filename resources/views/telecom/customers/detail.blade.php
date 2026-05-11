@@ -45,11 +45,13 @@
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <p class="text-xs text-gray-500 uppercase">{{ __('Paket') }}</p>
-                                <p class="mt-1 font-medium text-gray-900">{{ $subscription->package?->name ?? '-' }}</p>
+                                <p class="mt-1 font-medium text-gray-900">{{ $subscription->package?->name ?? '-' }}
+                                </p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500 uppercase">{{ __('Status') }}</p>
-                                <span class="mt-1 px-2 py-0.5 inline-flex text-xs font-semibold rounded-full
+                                <span
+                                    class="mt-1 px-2 py-0.5 inline-flex text-xs font-semibold rounded-full
                                     {{ $subscription->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                     {{ ucfirst($subscription->status) }}
                                 </span>
@@ -57,7 +59,8 @@
                             <div>
                                 <p class="text-xs text-gray-500 uppercase">{{ __('Kecepatan') }}</p>
                                 <p class="mt-1 font-medium text-gray-900">
-                                    {{ $subscription->package?->download_speed_mbps ?? 0 }}/{{ $subscription->package?->upload_speed_mbps ?? 0 }} Mbps
+                                    {{ $subscription->package?->download_speed_mbps ?? 0 }}/{{ $subscription->package?->upload_speed_mbps ?? 0 }}
+                                    Mbps
                                 </p>
                             </div>
                             <div>
@@ -103,11 +106,14 @@
                         @if ($quotaBytes > 0)
                             <div class="mb-6">
                                 <div class="flex justify-between text-sm mb-2">
-                                    <span class="text-gray-600">{{ round($usedBytes / 1073741824, 2) }} GB {{ __('terpakai') }}</span>
-                                    <span class="text-gray-600">{{ round($quotaBytes / 1073741824, 2) }} GB {{ __('total') }}</span>
+                                    <span class="text-gray-600">{{ round($usedBytes / 1073741824, 2) }} GB
+                                        {{ __('terpakai') }}</span>
+                                    <span class="text-gray-600">{{ round($quotaBytes / 1073741824, 2) }} GB
+                                        {{ __('total') }}</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-4">
-                                    <div class="bg-{{ $color  }}-500 h-4 rounded-full" style="width: {{ $percentage }}%"></div>
+                                    <div class="bg-{{ $color }}-500 h-4 rounded-full"
+                                        style="width: {{ $percentage }}%"></div>
                                 </div>
                                 <p class="text-sm text-gray-500 mt-1">{{ $percentage }}% {{ __('terpakai') }}</p>
                             </div>
@@ -132,7 +138,8 @@
                                 <div class="text-center p-4 bg-purple-50 rounded-lg">
                                     <p class="text-xs text-gray-500 mb-1">{{ __('Total') }}</p>
                                     <p class="text-xl font-bold text-purple-600">
-                                        {{ round((($usageSummary['total_download'] ?? 0) + ($usageSummary['total_upload'] ?? 0)) / 1073741824, 2) }} GB
+                                        {{ round((($usageSummary['total_download'] ?? 0) + ($usageSummary['total_upload'] ?? 0)) / 1073741824, 2) }}
+                                        GB
                                     </p>
                                 </div>
                             </div>
@@ -142,7 +149,8 @@
                     <!-- Usage Chart -->
                     @if (isset($chartData) && count($chartData['labels']) > 0)
                         <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ __('Tren Penggunaan (7 Hari Terakhir)') }}</h2>
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                                {{ __('Tren Penggunaan (7 Hari Terakhir)') }}</h2>
                             <canvas id="usageChart" height="200"></canvas>
                         </div>
                     @endif
@@ -157,10 +165,14 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Periode') }}</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Download') }}</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Upload') }}</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Total') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                {{ __('Periode') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                {{ __('Download') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                {{ __('Upload') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                {{ __('Total') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -176,7 +188,8 @@
                                                     {{ round(($record->bytes_out ?? 0) / 1048576, 2) }} MB
                                                 </td>
                                                 <td class="px-6 py-3 text-sm text-gray-900">
-                                                    {{ round((($record->bytes_in ?? 0) + ($record->bytes_out ?? 0)) / 1048576, 2) }} MB
+                                                    {{ round((($record->bytes_in ?? 0) + ($record->bytes_out ?? 0)) / 1048576, 2) }}
+                                                    MB
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -197,7 +210,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                        onclick="return confirm('{{ __('Suspend subscription pelanggan ini?') }}')">
+                                        data-confirm="{{ __('Suspend subscription pelanggan ini?') }}">
                                         <i class="fas fa-pause mr-2"></i>{{ __('Suspend') }}
                                     </button>
                                 </form>
@@ -215,7 +228,7 @@
                                 @csrf
                                 <button type="submit"
                                     class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                    onclick="return confirm('{{ __('Reset kuota pelanggan ini?') }}')">
+                                    data-confirm="{{ __('Reset kuota pelanggan ini?') }}">
                                     <i class="fas fa-redo mr-2"></i>{{ __('Reset Kuota') }}
                                 </button>
                             </form>
@@ -277,8 +290,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'top' } },
-                        scales: { y: { beginAtZero: true } }
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
                 });
             </script>

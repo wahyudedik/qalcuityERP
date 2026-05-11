@@ -4,16 +4,16 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <form method="POST" action="{{ route('cosmetic.recall.auto-expire') }}" class="inline">
-                    @csrf
-                    <button type="submit"
-                        class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition"
-                        onclick="return confirm('Auto-expire all expired batches?')">
-                        <i class="fas fa-clock mr-2"></i>Auto-Expire Batches
-                    </button>
-        <a href="{{ route('cosmetic.recall.create') }}"
-                    class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition">
-                    <i class="fas fa-plus mr-2"></i>New Recall
-                </a>
+            @csrf
+            <button type="submit"
+                class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition"
+                data-confirm="Auto-expire all expired batches?">
+                <i class="fas fa-clock mr-2"></i>Auto-Expire Batches
+            </button>
+            <a href="{{ route('cosmetic.recall.create') }}"
+                class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition">
+                <i class="fas fa-plus mr-2"></i>New Recall
+            </a>
     </div>
 
     <div class="py-6">
@@ -43,11 +43,9 @@
             @if ($expiryInfo['expiring_count'] > 0 || $expiryInfo['expired_count'] > 0)
                 <div class="space-y-4">
                     @if ($expiryInfo['expiring_count'] > 0)
-                        <div
-                            class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div class="flex items-start">
-                                <i
-                                    class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
                                 <div>
                                     <h3 class="text-sm font-medium text-yellow-800">
                                         {{ $expiryInfo['expiring_count'] }} Batch(es) Expiring Within 90 Days
@@ -58,8 +56,7 @@
                     @endif
 
                     @if ($expiryInfo['expired_count'] > 0)
-                        <div
-                            class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                             <div class="flex items-start">
                                 <i class="fas fa-times-circle text-red-600 mt-1 mr-3"></i>
                                 <div>
@@ -84,26 +81,19 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Recall #</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Product</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Severity</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Type</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Affected Units</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Actions</th>
                                 </tr>
                             </thead>

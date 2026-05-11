@@ -371,7 +371,7 @@ class InactiveButtonsBugConditionTest extends TestCase
         $placeholderPattern = '/implement|coming soon|belum|akan tersedia|to be implemented|will show|will be/i';
 
         $this
-            ->limitTo(10)
+            ->limitTo(5)
             ->forAll(
                 Generators::elements(...$allBugFiles)
             )

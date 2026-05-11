@@ -4,8 +4,8 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.patient-messages.inbox') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
-                    class="fas fa-arrow-left mr-2"></i>Back to Inbox</a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
+                class="fas fa-arrow-left mr-2"></i>Back to Inbox</a>
     </div>
 
     <div class="py-12">
@@ -112,15 +112,15 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Reply sent successfully!');
+                            Dialog.success('Reply sent successfully!');
                             window.location.reload();
                         } else {
-                            alert('Failed to send reply. Please try again.');
+                            Dialog.warning('Failed to send reply. Please try again.');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Failed to send reply. Please try again.');
+                        Dialog.warning('Failed to send reply. Please try again.');
                     });
             });
         </script>

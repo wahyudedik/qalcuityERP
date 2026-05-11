@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">{{ __('HL7 Message Details') }} -
-                #{{ $message->id }}</x-slot>
+        #{{ $message->id }}</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.hl7.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
-                    class="fas fa-arrow-left mr-2"></i>Back</a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
+                class="fas fa-arrow-left mr-2"></i>Back</a>
     </div>
 
     <div class="py-12">
@@ -124,26 +124,26 @@
         function copyMessage() {
             const content = document.getElementById('messageContent').textContent;
             navigator.clipboard.writeText(content).then(() => {
-                alert('Message content copied to clipboard');
-            }).catch(error => alert('Copy failed'));
+                Dialog.success('Message content copied to clipboard');
+            }).catch(error => Dialog.warning('Copy failed'));
         }
 
-        function retryMessage() {
-            if (confirm('Retry sending this message?')) {
-                fetch('{{ route('healthcare.hl7.retry', $message) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Retry failed'));
-            }
+        async function retryMessage() {
+            const confirmed = await Dialog.confirm('Retry sending this message?');
+            if (!confirmed) return;
+            fetch('{{ route('healthcare.hl7.retry', $message) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Retry failed'));
         }
     </script>
 </x-app-layout>

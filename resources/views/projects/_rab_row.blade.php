@@ -10,8 +10,7 @@
 
     {{-- Uraian --}}
     <td class="px-4 py-2.5">
-        <span
-            class="{{ $isGroup ? 'font-semibold text-gray-900' : 'text-gray-700' }} text-sm">
+        <span class="{{ $isGroup ? 'font-semibold text-gray-900' : 'text-gray-700' }} text-sm">
             {!! $indent !!}{{ $item->name }}
         </span>
         @if ($item->category)
@@ -75,8 +74,8 @@
                     class="text-[10px] text-blue-500 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50"
                     title="Catat Realisasi">📝</button>
             @endif
-            <form method="POST" action="{{ route('projects.rab.destroy', $item) }}"
-                onsubmit="return confirm('Hapus item ini?')" class="inline">
+            <form method="POST" action="{{ route('projects.rab.destroy', $item) }}" data-confirm="Hapus item ini?"
+                data-confirm-type="danger" class="inline">
                 @csrf @method('DELETE')
                 <button type="submit"
                     class="text-[10px] text-red-400 hover:text-red-500 px-1.5 py-0.5 rounded hover:bg-red-50"

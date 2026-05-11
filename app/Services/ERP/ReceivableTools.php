@@ -21,9 +21,9 @@ class ReceivableTools
             [
                 'name' => 'record_payment',
                 'description' => 'Catat pembayaran piutang dari customer atau hutang ke supplier. '
-                    .'Gunakan untuk: "customer Budi bayar tagihan 500 ribu", '
-                    .'"bayar hutang supplier PT Maju 2 juta", '
-                    .'"lunasi invoice INV-001", "catat pelunasan piutang Toko A".',
+                    . 'Gunakan untuk: "customer Budi bayar tagihan 500 ribu", '
+                    . '"bayar hutang supplier PT Maju 2 juta", '
+                    . '"lunasi invoice INV-001", "catat pelunasan piutang Toko A".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -40,8 +40,8 @@ class ReceivableTools
             [
                 'name' => 'get_receivables',
                 'description' => 'Tampilkan daftar piutang customer yang belum lunas. '
-                    .'Gunakan untuk: "tagihan yang belum dibayar", "piutang outstanding", '
-                    .'"siapa yang masih hutang ke kita", "daftar invoice belum lunas".',
+                    . 'Gunakan untuk: "tagihan yang belum dibayar", "piutang outstanding", '
+                    . '"siapa yang masih hutang ke kita", "daftar invoice belum lunas".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -53,8 +53,8 @@ class ReceivableTools
             [
                 'name' => 'get_payables',
                 'description' => 'Tampilkan daftar hutang ke supplier yang belum lunas. '
-                    .'Gunakan untuk: "hutang ke supplier", "kewajiban bayar", '
-                    .'"payable outstanding", "tagihan dari supplier yang belum dibayar".',
+                    . 'Gunakan untuk: "hutang ke supplier", "kewajiban bayar", '
+                    . '"payable outstanding", "tagihan dari supplier yang belum dibayar".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
@@ -66,12 +66,27 @@ class ReceivableTools
             [
                 'name' => 'get_aging_report',
                 'description' => 'Laporan aging piutang atau hutang — dikelompokkan berdasarkan keterlambatan. '
-                    .'Gunakan untuk: "laporan aging piutang", "piutang jatuh tempo", '
-                    .'"hutang yang sudah lewat jatuh tempo", "aging report".',
+                    . 'Gunakan untuk: "laporan aging piutang", "piutang jatuh tempo", '
+                    . '"hutang yang sudah lewat jatuh tempo", "aging report".',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
                         'type' => ['type' => 'string', 'description' => 'receivable (piutang) atau payable (hutang). Default: receivable'],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'get_credit_limit_issues',
+                'description' => 'Tampilkan daftar customer yang memiliki masalah credit limit — mendekati atau melampaui batas kredit. '
+                    . 'Gunakan untuk: "customer yang melebihi credit limit", "review credit limit", '
+                    . '"siapa yang over limit", "customer dengan masalah kredit", '
+                    . '"credit limit issues", "limit kredit terlampaui", "customer berisiko".',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'threshold_percent' => ['type' => 'number', 'description' => 'Persentase minimum penggunaan kredit untuk ditampilkan (default: 80, artinya tampilkan customer yang sudah pakai 80%+ dari limit)'],
+                        'exceeded_only' => ['type' => 'boolean', 'description' => 'true = hanya tampilkan yang sudah melampaui limit (>100%)'],
+                        'limit' => ['type' => 'integer', 'description' => 'Jumlah maksimal hasil (default: 20)'],
                     ],
                 ],
             ],
@@ -160,10 +175,10 @@ class ReceivableTools
 
         return [
             'status' => 'success',
-            'message' => "Pembayaran dari **{$customer->name}** sebesar **Rp ".number_format($amount, 0, ',', '.')."** berhasil dicatat.\n"
-                ."Invoice: **{$invoice->number}**\n"
-                .'Sisa tagihan: **Rp '.number_format($invoice->remaining_amount, 0, ',', '.')."**\n"
-                ."Status: **{$statusLabel}**",
+            'message' => "Pembayaran dari **{$customer->name}** sebesar **Rp " . number_format($amount, 0, ',', '.') . "** berhasil dicatat.\n"
+                . "Invoice: **{$invoice->number}**\n"
+                . 'Sisa tagihan: **Rp ' . number_format($invoice->remaining_amount, 0, ',', '.') . "**\n"
+                . "Status: **{$statusLabel}**",
             'data' => [
                 'invoice_number' => $invoice->number,
                 'paid' => $amount,
@@ -235,10 +250,10 @@ class ReceivableTools
 
         return [
             'status' => 'success',
-            'message' => "Pembayaran ke **{$supplier->name}** sebesar **Rp ".number_format($amount, 0, ',', '.')."** berhasil dicatat.\n"
-                ."Hutang: **{$payable->number}**\n"
-                .'Sisa hutang: **Rp '.number_format($payable->remaining_amount, 0, ',', '.')."**\n"
-                ."Status: **{$statusLabel}**",
+            'message' => "Pembayaran ke **{$supplier->name}** sebesar **Rp " . number_format($amount, 0, ',', '.') . "** berhasil dicatat.\n"
+                . "Hutang: **{$payable->number}**\n"
+                . 'Sisa hutang: **Rp ' . number_format($payable->remaining_amount, 0, ',', '.') . "**\n"
+                . "Status: **{$statusLabel}**",
             'data' => [
                 'payable_number' => $payable->number,
                 'paid' => $amount,
@@ -256,7 +271,9 @@ class ReceivableTools
             ->orderBy('due_date');
 
         if (! empty($args['customer_name'])) {
-            $query->whereHas('customer', fn ($q) => $q->where('name', 'like', "%{$args['customer_name']}%")
+            $query->whereHas(
+                'customer',
+                fn($q) => $q->where('name', 'like', "%{$args['customer_name']}%")
             );
         }
 
@@ -274,17 +291,17 @@ class ReceivableTools
 
         return [
             'status' => 'success',
-            'total_outstanding' => 'Rp '.number_format($totalOutstanding, 0, ',', '.'),
+            'total_outstanding' => 'Rp ' . number_format($totalOutstanding, 0, ',', '.'),
             'count' => $invoices->count(),
-            'data' => $invoices->map(fn ($inv) => [
+            'data' => $invoices->map(fn($inv) => [
                 'nomor' => $inv->number,
                 'customer' => $inv->customer->name,
-                'total' => 'Rp '.number_format($inv->total_amount, 0, ',', '.'),
-                'sudah_bayar' => 'Rp '.number_format($inv->paid_amount, 0, ',', '.'),
-                'sisa' => 'Rp '.number_format($inv->remaining_amount, 0, ',', '.'),
+                'total' => 'Rp ' . number_format($inv->total_amount, 0, ',', '.'),
+                'sudah_bayar' => 'Rp ' . number_format($inv->paid_amount, 0, ',', '.'),
+                'sisa' => 'Rp ' . number_format($inv->remaining_amount, 0, ',', '.'),
                 'jatuh_tempo' => $inv->due_date->format('d M Y'),
                 'status' => $inv->status,
-                'terlambat' => $inv->daysOverdue() > 0 ? $inv->daysOverdue().' hari' : 'Belum jatuh tempo',
+                'terlambat' => $inv->daysOverdue() > 0 ? $inv->daysOverdue() . ' hari' : 'Belum jatuh tempo',
             ])->toArray(),
         ];
     }
@@ -297,7 +314,9 @@ class ReceivableTools
             ->orderBy('due_date');
 
         if (! empty($args['supplier_name'])) {
-            $query->whereHas('supplier', fn ($q) => $q->where('name', 'like', "%{$args['supplier_name']}%")
+            $query->whereHas(
+                'supplier',
+                fn($q) => $q->where('name', 'like', "%{$args['supplier_name']}%")
             );
         }
 
@@ -315,17 +334,17 @@ class ReceivableTools
 
         return [
             'status' => 'success',
-            'total_outstanding' => 'Rp '.number_format($totalOutstanding, 0, ',', '.'),
+            'total_outstanding' => 'Rp ' . number_format($totalOutstanding, 0, ',', '.'),
             'count' => $payables->count(),
-            'data' => $payables->map(fn ($p) => [
+            'data' => $payables->map(fn($p) => [
                 'nomor' => $p->number,
                 'supplier' => $p->supplier->name,
-                'total' => 'Rp '.number_format($p->total_amount, 0, ',', '.'),
-                'sudah_bayar' => 'Rp '.number_format($p->paid_amount, 0, ',', '.'),
-                'sisa' => 'Rp '.number_format($p->remaining_amount, 0, ',', '.'),
+                'total' => 'Rp ' . number_format($p->total_amount, 0, ',', '.'),
+                'sudah_bayar' => 'Rp ' . number_format($p->paid_amount, 0, ',', '.'),
+                'sisa' => 'Rp ' . number_format($p->remaining_amount, 0, ',', '.'),
                 'jatuh_tempo' => $p->due_date->format('d M Y'),
                 'status' => $p->status,
-                'terlambat' => $p->daysOverdue() > 0 ? $p->daysOverdue().' hari' : 'Belum jatuh tempo',
+                'terlambat' => $p->daysOverdue() > 0 ? $p->daysOverdue() . ' hari' : 'Belum jatuh tempo',
             ])->toArray(),
         ];
     }
@@ -370,7 +389,7 @@ class ReceivableTools
             $item = [
                 'nomor' => $number,
                 'pihak' => $party,
-                'sisa' => 'Rp '.number_format($remaining, 0, ',', '.'),
+                'sisa' => 'Rp ' . number_format($remaining, 0, ',', '.'),
                 'jatuh_tempo' => $record->due_date->format('d M Y'),
                 'hari' => $days > 0 ? "{$days} hari" : 'Belum jatuh tempo',
             ];
@@ -398,7 +417,7 @@ class ReceivableTools
             $report[] = [
                 'kategori' => $bucket['label'],
                 'jumlah' => count($bucket['items']),
-                'total' => 'Rp '.number_format($bucket['total'], 0, ',', '.'),
+                'total' => 'Rp ' . number_format($bucket['total'], 0, ',', '.'),
                 'items' => $bucket['items'],
             ];
         }
@@ -406,8 +425,87 @@ class ReceivableTools
         return [
             'status' => 'success',
             'type' => $label,
-            'grand_total' => 'Rp '.number_format($grandTotal, 0, ',', '.'),
+            'grand_total' => 'Rp ' . number_format($grandTotal, 0, ',', '.'),
             'data' => $report,
+        ];
+    }
+
+    // ─── Credit Limit Issues ─────────────────────────────────────
+
+    public function getCreditLimitIssues(array $args): array
+    {
+        $threshold = (float) ($args['threshold_percent'] ?? 80);
+        $exceededOnly = (bool) ($args['exceeded_only'] ?? false);
+        $limit = (int) ($args['limit'] ?? 20);
+
+        // Ambil semua customer yang punya credit limit > 0
+        $customers = Customer::where('tenant_id', $this->tenantId)
+            ->where('credit_limit', '>', 0)
+            ->where('is_active', true)
+            ->get();
+
+        if ($customers->isEmpty()) {
+            return ['status' => 'success', 'message' => 'Tidak ada customer yang memiliki credit limit.'];
+        }
+
+        $issues = [];
+
+        foreach ($customers as $customer) {
+            $creditLimit = (float) $customer->credit_limit;
+            $outstanding = $customer->outstandingBalance();
+            $available = $customer->availableCredit();
+            $usagePercent = $creditLimit > 0 ? round(($outstanding / $creditLimit) * 100, 1) : 0;
+
+            // Filter berdasarkan threshold
+            if ($exceededOnly && $usagePercent <= 100) {
+                continue;
+            }
+
+            if (! $exceededOnly && $usagePercent < $threshold) {
+                continue;
+            }
+
+            $status = match (true) {
+                $usagePercent > 100 => '🔴 OVER LIMIT',
+                $usagePercent >= 90 => '🟠 Kritis',
+                $usagePercent >= 80 => '🟡 Mendekati Limit',
+                default => '🟢 Aman',
+            };
+
+            $issues[] = [
+                'customer' => $customer->name,
+                'credit_limit' => 'Rp ' . number_format($creditLimit, 0, ',', '.'),
+                'outstanding' => 'Rp ' . number_format($outstanding, 0, ',', '.'),
+                'sisa_kredit' => 'Rp ' . number_format($available, 0, ',', '.'),
+                'usage_percent' => $usagePercent . '%',
+                'status' => $status,
+            ];
+        }
+
+        // Sort by usage percentage descending (paling kritis di atas)
+        usort($issues, fn($a, $b) => (float) $b['usage_percent'] <=> (float) $a['usage_percent']);
+
+        // Limit hasil
+        $issues = array_slice($issues, 0, $limit);
+
+        if (empty($issues)) {
+            $msg = $exceededOnly
+                ? 'Tidak ada customer yang melampaui credit limit.'
+                : "Tidak ada customer yang penggunaan kreditnya di atas {$threshold}%.";
+
+            return ['status' => 'success', 'message' => $msg];
+        }
+
+        $overLimitCount = count(array_filter($issues, fn($i) => str_contains($i['status'], 'OVER LIMIT')));
+
+        return [
+            'status' => 'success',
+            'summary' => [
+                'total_bermasalah' => count($issues),
+                'over_limit' => $overLimitCount,
+                'threshold' => $threshold . '%',
+            ],
+            'data' => $issues,
         ];
     }
 
@@ -427,7 +525,7 @@ class ReceivableTools
             'tenant_id' => $tenantId,
             'sales_order_id' => $salesOrderId,
             'customer_id' => $customerId,
-            'number' => 'INV-'.strtoupper(Str::random(8)),
+            'number' => 'INV-' . strtoupper(Str::random(8)),
             'total_amount' => $total,
             'paid_amount' => 0,
             'remaining_amount' => $total,
@@ -450,7 +548,7 @@ class ReceivableTools
             'tenant_id' => $tenantId,
             'purchase_order_id' => $purchaseOrderId,
             'supplier_id' => $supplierId,
-            'number' => 'PAY-'.strtoupper(Str::random(8)),
+            'number' => 'PAY-' . strtoupper(Str::random(8)),
             'total_amount' => $total,
             'paid_amount' => 0,
             'remaining_amount' => $total,

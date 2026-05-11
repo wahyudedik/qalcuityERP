@@ -372,15 +372,15 @@
                         const result = await response.json();
 
                         if (result.success) {
-                            alert('Configuration saved successfully!');
+                            Dialog.success('Configuration saved successfully!');
                             window.location.reload();
                         } else {
-                            alert('Error: ' + result.error);
+                            Dialog.warning('Error: ' + result.error);
                         }
 
                     } catch (error) {
                         console.error('Save error:', error);
-                        alert('Failed to save configuration');
+                        Dialog.warning('Failed to save configuration');
                     } finally {
                         this.saving = false;
                     }
@@ -402,13 +402,13 @@
                         const result = await response.json();
 
                         if (result.success) {
-                            alert('✓ Credentials verified successfully!');
+                            Dialog.success('✓ Credentials verified successfully!');
                         } else {
-                            alert('✗ Verification failed: ' + result.error);
+                            Dialog.warning('✗ Verification failed: ' + result.error);
                         }
 
                     } catch (error) {
-                        alert('Test failed: ' + error.message);
+                        Dialog.warning('Test failed: ' + error.message);
                     }
                 },
 
@@ -431,7 +431,7 @@
                         }
 
                     } catch (error) {
-                        alert('Failed to toggle gateway');
+                        Dialog.warning('Failed to toggle gateway');
                     }
                 },
 

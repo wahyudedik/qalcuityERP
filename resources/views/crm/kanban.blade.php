@@ -1,11 +1,11 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">CRM Pipeline</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('crm.index') }}"
                 class="text-xs text-gray-500 hover:text-blue-600">Tampilan
-                Tabel →</a>
+                Tabel ?</a>
     </div>
 
     {{-- Stats --}}
@@ -136,8 +136,7 @@
                                             </svg>
                                         </button>
                                         @canmodule('crm', 'delete')
-                                        <form method="POST" action="{{ route('crm.destroy', $lead) }}"
-                                            onsubmit="return confirm('Hapus lead?')">
+                                        <form method="POST" action="{{ route('crm.destroy', $lead) }}" data-confirm="Hapus lead?" data-confirm-type="danger">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                 class="p-1 rounded text-red-400 hover:bg-red-50">
@@ -203,7 +202,7 @@
                 class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Tambah Lead</h3>
                 <button onclick="document.getElementById('modal-add-lead').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('crm.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -267,7 +266,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Log Aktivitas</h3>
                 <button onclick="document.getElementById('modal-activity').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-activity" method="POST" class="p-6 space-y-4">
                 @csrf

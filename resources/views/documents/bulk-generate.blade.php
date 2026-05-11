@@ -9,8 +9,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <div
-                        class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <h3 class="text-sm font-medium text-blue-800 mb-2">📄 Generate Multiple
                             Documents</h3>
                         <p class="text-sm text-blue-700">Select a template and provide data to
@@ -64,8 +63,7 @@
 ]'></textarea>
                         </div>
 
-                        <div
-                            class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <h4 class="text-sm font-medium text-yellow-800 mb-2">⚠️ Important
                                 Notes:</h4>
                             <ul class="text-sm text-yellow-700 space-y-1 list-disc list-inside">
@@ -78,7 +76,7 @@
 
                         <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                             <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                onclick="return confirm('Generate documents? This may take a while.')">
+                                data-confirm="Generate documents? This may take a while.">
                                 Generate Documents
                             </button>
                         </div>

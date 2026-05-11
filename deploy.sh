@@ -10,12 +10,14 @@
 # chmod +x deploy.sh
 # ./deploy.sh
 
+#cd /www/wwwroot/qalcuity.com && git fetch origin main && git reset --hard origin/main && chmod +x deploy.sh && ./deploy.sh
+
 # ═══════════════════════════════════════════════════════════════
 
 set -e
 
 # Supaya Composer tidak warning soal root
-export COMPOSER_ALLOW_SUPERUSER=1
+export COMPOSER_ALLOW_SUPERUSER=1 
 
 echo ""
 echo "============================================================"

@@ -111,7 +111,7 @@
                                 </button>
                             </form>
                             <form method="POST" action="{{ route('super-admin.tenants.destroy', $tenant) }}" class="inline"
-                                  onsubmit="return confirm('Hapus tenant {{ addslashes($tenant->name) }} beserta semua datanya?')">
+                                  data-confirm="Hapus tenant {{ addslashes($tenant->name) }} beserta semua datanya?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit" title="Hapus"
                                     class="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition">

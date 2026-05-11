@@ -553,7 +553,7 @@
                             </div>
                             <form method="POST"
                                 action="{{ route('super-admin.settings.regenerate-vapid', ['environment' => $env]) }}"
-                                onsubmit="return confirm('Generate ulang VAPID keys {{ $cfg['title'] }}? Semua push subscription untuk environment ini akan tidak valid dan user perlu subscribe ulang.')">
+                                data-confirm="Generate ulang VAPID keys {{ $cfg['title'] }}? Semua push subscription untuk environment ini akan tidak valid dan user perlu subscribe ulang.">
                                 @csrf
                                 <button type="submit"
                                     class="px-5 py-2.5 {{ $grouped['push'][$cfg['public_setting']]['is_set'] ?? false ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-600 hover:bg-purple-700' }} text-white text-sm font-semibold rounded-xl transition">
@@ -1181,12 +1181,12 @@
                         resultDiv.querySelector('div').innerHTML = `
                     <div class="font-semibold mb-1">✓ ${data.message}</div>
                     ${data.details ? `
-                                                <div class="text-xs mt-2 space-y-1 opacity-80">
-                                                    <div>Model: ${data.details.model}</div>
-                                                    <div>API Key: ${data.details.api_key_prefix}</div>
-                                                    <div>Response: ${data.details.response}</div>
-                                                </div>
-                                            ` : ''}
+                                                    <div class="text-xs mt-2 space-y-1 opacity-80">
+                                                        <div>Model: ${data.details.model}</div>
+                                                        <div>API Key: ${data.details.api_key_prefix}</div>
+                                                        <div>Response: ${data.details.response}</div>
+                                                    </div>
+                                                ` : ''}
                 `;
                     } else {
                         // Error
@@ -1195,11 +1195,11 @@
                         resultDiv.querySelector('div').innerHTML = `
                     <div class="font-semibold mb-1">✗ ${data.message}</div>
                     ${data.details ? `
-                                                <div class="text-xs mt-2 opacity-80">
-                                                    Status: ${data.details.status_code || 'N/A'}<br>
-                                                    ${data.details.error ? `Error: ${data.details.error.substring(0, 200)}${data.details.error.length > 200 ? '...' : ''}` : ''}
-                                                </div>
-                                            ` : ''}
+                                                    <div class="text-xs mt-2 opacity-80">
+                                                        Status: ${data.details.status_code || 'N/A'}<br>
+                                                        ${data.details.error ? `Error: ${data.details.error.substring(0, 200)}${data.details.error.length > 200 ? '...' : ''}` : ''}
+                                                    </div>
+                                                ` : ''}
                 `;
                     }
                 })

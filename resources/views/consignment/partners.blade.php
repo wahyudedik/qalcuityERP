@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Partner Konsinyasi</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
@@ -7,7 +7,7 @@
                 class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
-        <a href="{{ route('consignment.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">← Konsinyasi</a>
+        <a href="{{ route('consignment.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">? Konsinyasi</a>
         @canmodule('consignment', 'create')
         <button onclick="document.getElementById('modal-add-partner').classList.remove('hidden')"
             class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Partner</button>
@@ -31,7 +31,7 @@
                     @forelse($partners as $p)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 text-gray-900">{{ $p->name }}</td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500 text-xs">{{ $p->contact_person ?? '-' }} · {{ $p->phone ?? '-' }}</td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500 text-xs">{{ $p->contact_person ?? '-' }} � {{ $p->phone ?? '-' }}</td>
                         <td class="px-4 py-3 text-right text-gray-900">{{ $p->commission_pct }}%</td>
                         <td class="px-4 py-3 text-center text-gray-700">{{ $p->shipments_count }}</td>
                         <td class="px-4 py-3 text-center">
@@ -40,7 +40,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @canmodule('consignment', 'delete')
-                            <form method="POST" action="{{ route('consignment.partners.destroy', $p) }}" class="inline" onsubmit="return confirm('Hapus partner ini?')">
+                            <form method="POST" action="{{ route('consignment.partners.destroy', $p) }}" class="inline" data-confirm="Hapus partner ini?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
                             </form>
@@ -61,7 +61,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Tambah Partner</h3>
-                <button onclick="document.getElementById('modal-add-partner').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-partner').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('consignment.partners.store') }}" class="p-6 space-y-4">
                 @csrf

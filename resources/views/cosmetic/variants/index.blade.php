@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Product Variants')
 
@@ -214,7 +214,7 @@
                                         Edit
                                     </button>
                                     <form method="POST" action="{{ route('cosmetic.variants.destroy', $variant->id) }}"
-                                        class="inline" onsubmit="return confirm('Delete this variant?')">
+                                        class="inline" data-confirm="Delete this variant?" data-confirm-type="danger">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-900">

@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Room Management</x-slot>
 
     <div x-data="roomManager()" class="space-y-6">
@@ -115,7 +115,7 @@
                                 Floor {{ $room->floor }}
                             @endif
                             @if ($room->building)
-                                · {{ $room->building }}
+                                � {{ $room->building }}
                             @endif
                         </p>
 
@@ -149,8 +149,7 @@
                             </button>
 
                             {{-- Delete Button --}}
-                            <form method="POST" action="{{ route('hotel.rooms.destroy', $room) }}" class="inline"
-                                onsubmit="return confirm('Delete this room?')">
+                            <form method="POST" action="{{ route('hotel.rooms.destroy', $room) }}" class="inline" data-confirm="Delete this room?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit"
                                     class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
@@ -386,10 +385,10 @@
                 info: 'bg-blue-600',
             };
             const icons = {
-                success: '✓',
-                error: '✕',
-                warning: '⚠',
-                info: 'ℹ'
+                success: '?',
+                error: '?',
+                warning: '?',
+                info: '?'
             };
             const toast = document.createElement('div');
             toast.className =

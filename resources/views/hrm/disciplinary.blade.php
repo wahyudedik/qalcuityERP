@@ -98,8 +98,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Konsekuensi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Konsekuensi</label>
                         <textarea name="consequences" id="sp-consequences" rows="2"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </div>
@@ -129,8 +128,7 @@
                             <div class="flex items-center gap-2">
                                 <span
                                     class="px-1.5 py-0.5 rounded text-xs font-bold {{ $sp->levelColor() }}">{{ $sp->levelLabel() }}</span>
-                                <span
-                                    class="text-xs text-gray-700 truncate">{{ $sp->employee?->name ?? '-' }}</span>
+                                <span class="text-xs text-gray-700 truncate">{{ $sp->employee?->name ?? '-' }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -160,8 +158,7 @@
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Filter</button>
             </form>
 
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
@@ -196,8 +193,7 @@
                                         <p class="text-xs text-gray-400 truncate max-w-[200px]">
                                             {{ $sp->violation_description }}</p>
                                     </td>
-                                    <td
-                                        class="px-4 py-3 hidden md:table-cell text-center text-xs text-gray-500">
+                                    <td class="px-4 py-3 hidden md:table-cell text-center text-xs text-gray-500">
                                         {{ $sp->issued_date->format('d M Y') }}
                                         @if ($sp->valid_until)
                                             <p
@@ -229,8 +225,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6"
-                                        class="px-4 py-12 text-center text-gray-400">Tidak ada
+                                    <td colspan="6" class="px-4 py-12 text-center text-gray-400">Tidak ada
                                         surat peringatan.</td>
                                 </tr>
                             @endforelse
@@ -247,8 +242,7 @@
     {{-- ── Modal: AI Draft ─────────────────────────────────────── --}}
     <div id="modal-ai-draft"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-2xl">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +316,7 @@
             async function loadAiDraft() {
                 const empId = document.getElementById('ai-employee-select').value;
                 if (!empId) {
-                    alert('Pilih karyawan terlebih dahulu.');
+                    Dialog.warning('Pilih karyawan terlebih dahulu.');
                     return;
                 }
 
@@ -369,7 +363,7 @@
                     document.getElementById('ai-draft-result').classList.remove('hidden');
 
                 } catch (e) {
-                    alert('Gagal menganalisis anomali.');
+                    Dialog.warning('Gagal menganalisis anomali.');
                 } finally {
                     document.getElementById('ai-draft-loading').classList.add('hidden');
                     document.getElementById('btn-ai-analyze').disabled = false;

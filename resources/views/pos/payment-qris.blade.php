@@ -335,21 +335,21 @@
                         if (result.success) {
                             window.location.href = '/pos/orders';
                         } else {
-                            alert('Print failed: ' + result.error);
+                            Dialog.warning('Print failed: ' + result.error);
                         }
 
                     } catch (error) {
                         console.error('Print error:', error);
-                        alert('Failed to print receipt');
+                        Dialog.warning('Failed to print receipt');
                     }
                 },
 
-                cancelPayment() {
-                    if (confirm('Are you sure you want to cancel this payment?')) {
-                        this.stopPolling();
-                        clearInterval(this.countdownInterval);
-                        window.location.href = '/pos/orders';
-                    }
+                async cancelPayment() {
+                    const confirmed = await Dialog.danger('Are you sure you want to cancel this payment?');
+                    if (!confirmed) return;
+                    this.stopPolling();
+                    clearInterval(this.countdownInterval);
+                    window.location.href = '/pos/orders';
                 },
 
                 formatTime(seconds) {

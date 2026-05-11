@@ -70,8 +70,7 @@
     {{-- Modal Catat GR --}}
     <div id="modal-add-gr" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Catat Penerimaan Barang</h3>
                 <button onclick="document.getElementById('modal-add-gr').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
@@ -125,8 +124,7 @@
 
                 {{-- Barcode Scanner Section --}}
                 <div id="gr-scanner-wrap" class="hidden">
-                    <div
-                        class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-sm font-semibold text-blue-900">Scan Barcode Barang Masuk
                             </p>
@@ -347,9 +345,9 @@
             function openGrScanner() {
                 // Check if browser supports getUserMedia
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert(
+                    Dialog.warning(
                         'Browser Anda tidak mendukung akses kamera. Gunakan browser modern (Chrome, Firefox, Safari) dengan HTTPS.'
-                        );
+                    );
                     return;
                 }
 
@@ -371,19 +369,19 @@
                     }).catch((error) => {
                         console.error('Failed to access camera:', error);
                         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                            alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                            Dialog.warning('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
                         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                            alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                            Dialog.warning('Tidak ada kamera yang ditemukan di perangkat Anda.');
                         } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                            alert('Kamera sedang digunakan oleh aplikasi lain.');
+                            Dialog.warning('Kamera sedang digunakan oleh aplikasi lain.');
                         } else {
-                            alert('Gagal mengakses kamera: ' + error.message);
+                            Dialog.warning('Gagal mengakses kamera: ' + error.message);
                         }
                         closeGrScanner();
                     });
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
-                    alert('Gagal menginisialisasi scanner: ' + error.message);
+                    Dialog.warning('Gagal menginisialisasi scanner: ' + error.message);
                     closeGrScanner();
                 }
             }

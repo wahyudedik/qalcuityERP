@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
 
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold mb-0">
-                <i class="fas fa-pills text-blue-600"></i> Medication Dispensing
-            </h1>
-            <p class="text-gray-500">Process and track medication dispensing</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold mb-0">
+                    <i class="fas fa-pills text-blue-600"></i> Medication Dispensing
+                </h1>
+                <p class="text-gray-500">Process and track medication dispensing</p>
+            </div>
         </div>
-    </div>
     </x-slot>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -89,19 +89,21 @@
                                                     'expired' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$rx->status] ?? 'secondary'  }}">
+                                            <span class="badge bg-{{ $statusColors[$rx->status] ?? 'secondary' }}">
                                                 {{ ucfirst(str_replace('_', ' ', $rx->status)) }}
                                             </span>
                                         </td>
                                         <td>{{ $rx->dispensed_by?->name ?? '-' }}</td>
                                         <td>
                                             @if ($rx->status == 'pending' || $rx->status == 'in_progress')
-                                                <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs transition"
+                                                <button
+                                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs transition"
                                                     onclick="dispenseMedication({{ $rx->id }})">
                                                     <i class="fas fa-check"></i> Dispense
                                                 </button>
                                             @else
-                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition"
+                                                <button
+                                                    class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition"
                                                     onclick="viewDetails({{ $rx->id }})">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
@@ -110,7 +112,8 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-6 text-gray-400">No prescriptions to display
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No prescriptions to
+                                            display
                                         </td>
                                     </tr>
                                 @endforelse
@@ -125,11 +128,11 @@
 
     @push('scripts')
         <script>
-            function dispenseMedication(rxId) {
-                if (confirm('Confirm medication dispensing?')) {
-                    // Implement AJAX dispensing
-                    window.location.reload();
-                }
+            async function dispenseMedication(rxId) {
+                const confirmed = await Dialog.confirm('Confirm medication dispensing?');
+                if (!confirmed) return;
+                // Implement AJAX dispensing
+                window.location.reload();
             }
 
             function viewDetails(rxId) {

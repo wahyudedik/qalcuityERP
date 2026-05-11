@@ -3,13 +3,12 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <a href="{{ route('documents.index') }}"
-                    class="text-gray-600 hover:text-gray-900">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                </a>
+        <a href="{{ route('documents.index') }}" class="text-gray-600 hover:text-gray-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+        </a>
     </div>
 
     <div class="py-6">
@@ -48,8 +47,7 @@
                                 <li>
                                     <div class="relative pb-8">
                                         @if (!$loop->last)
-                                            <span
-                                                class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                                            <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
                                                 aria-hidden="true"></span>
                                         @endif
                                         <div class="relative flex space-x-3">
@@ -74,8 +72,7 @@
                                                             class="font-medium">{{ $version['changed_by'] }}</span>
                                                     </p>
                                                 </div>
-                                                <div
-                                                    class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
                                                     <time>{{ $version['created_at'] }}</time>
                                                     <div class="mt-1">{{ $version['file_size_human'] }}</div>
                                                 </div>
@@ -127,8 +124,7 @@
 
                     <!-- Rollback -->
                     @if ($history['total_versions'] > 1)
-                        <div
-                            class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <h4 class="text-sm font-medium text-yellow-800 mb-2">⚠️ Rollback to
                                 Previous Version</h4>
                             <form method="POST"
@@ -143,7 +139,7 @@
                                 </label>
                                 <button type="submit"
                                     class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
-                                    onclick="return confirm('Are you sure you want to rollback?')">
+                                    data-confirm="Are you sure you want to rollback?" data-confirm-type="danger">
                                     Rollback Now
                                 </button>
                             </form>

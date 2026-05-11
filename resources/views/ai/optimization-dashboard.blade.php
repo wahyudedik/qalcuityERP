@@ -313,17 +313,18 @@
 
         // Clear cache
         async function clearCache() {
-            if (!confirm('Are you sure you want to clear the AI response cache?')) {
+            const confirmed = await Dialog.confirm('Are you sure you want to clear the AI response cache?');
+            if (!confirmed) {
                 return;
             }
 
             try {
                 // In production, this would call an API endpoint
-                alert('Cache cleared successfully!');
+                Dialog.success('Cache cleared successfully!');
                 fetchStats();
             } catch (error) {
                 console.error('Failed to clear cache:', error);
-                alert('Failed to clear cache');
+                Dialog.warning('Failed to clear cache');
             }
         }
 

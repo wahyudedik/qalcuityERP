@@ -92,14 +92,10 @@
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-gray-900">Hasil Laporan</h3>
                 <div class="flex items-center gap-2">
-                    <button onclick="exportPDF()"
-                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">
-                        Export PDF
-                    </button>
-                    <button onclick="exportExcel()"
-                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">
-                        Export Excel
-                    </button>
+                    <x-disabled-button label="Export PDF" tooltip="Fitur akan segera tersedia"
+                        class="px-4 py-2 text-sm rounded-xl" />
+                    <x-disabled-button label="Export Excel" tooltip="Fitur akan segera tersedia"
+                        class="px-4 py-2 text-sm rounded-xl" />
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -177,7 +173,8 @@
                                             class="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg" title="Print">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="1.5"
                                                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                                                 </path>
                                             </svg>
@@ -200,14 +197,6 @@
 
     @push('scripts')
         <script>
-            function exportPDF() {
-                alert('Export PDF akan tersedia setelah backend diimplementasikan');
-            }
-
-            function exportExcel() {
-                alert('Export Excel akan tersedia setelah backend diimplementasikan');
-            }
-
             function printReport(id) {
                 window.open(`/healthcare/laboratory/reports/${id}/print`, '_blank');
             }

@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">
             {{ __('Audit Batch') }} - {{ $batch->batch_number }}
@@ -75,7 +75,7 @@
                                 </button>
                             </form>
                         @else
-                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">? Completed</span>
                         @endif
                     </div>
 
@@ -106,7 +106,7 @@
                                 </button>
                             </form>
                         @else
-                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">? Completed</span>
                         @endif
                     </div>
 
@@ -136,7 +136,7 @@
                                 </button>
                             </form>
                         @else
-                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">? Completed</span>
                         @endif
                     </div>
 
@@ -169,7 +169,7 @@
                                 </button>
                             </form>
                         @else
-                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">? Completed</span>
                         @endif
                     </div>
                 </div>
@@ -232,7 +232,7 @@
             @if ($batch->status === 'in_progress')
                 <div class="flex justify-end">
                     <form action="{{ route('hotel.night-audit.complete', $batch->id) }}" method="POST"
-                        onsubmit="return confirm('Are you sure you want to complete this audit batch?')">
+                        data-confirm="Are you sure you want to complete this audit batch?">
                         @csrf
                         <button type="submit"
                             class="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold">

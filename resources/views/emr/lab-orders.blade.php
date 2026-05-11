@@ -203,11 +203,11 @@
 
     @push('scripts')
         <script>
-            function processOrder(orderId) {
-                if (confirm('Process this lab order?')) {
-                    // Implement AJAX order processing
-                    window.location.reload();
-                }
+            async function processOrder(orderId) {
+                const confirmed = await Dialog.confirm('Process this lab order?');
+                if (!confirmed) return;
+                // Implement AJAX order processing
+                window.location.reload();
             }
         </script>
     @endpush

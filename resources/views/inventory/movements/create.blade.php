@@ -10,8 +10,7 @@
                 @csrf
 
                 {{-- Barcode Scanner Section --}}
-                <div
-                    class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                     <label class="block text-sm font-medium text-blue-900 mb-2">
                         📷 Scan Barcode Produk
                     </label>
@@ -45,8 +44,7 @@
                             onchange="loadProductStock()">
                             <option value="">-- Pilih Produk --</option>
                         </select>
-                        <div id="product-info"
-                            class="hidden mt-2 p-3 bg-green-50 rounded-xl border border-green-100">
+                        <div id="product-info" class="hidden mt-2 p-3 bg-green-50 rounded-xl border border-green-100">
                             <p class="text-sm font-medium text-green-900" id="product-name"></p>
                             <p class="text-xs text-green-700" id="product-sku"></p>
                         </div>
@@ -70,13 +68,11 @@
 
                 {{-- Current Stock Display --}}
                 <div class="mb-4 hidden" id="current-stock-card">
-                    <div
-                        class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-xs text-gray-500 mb-1">Stok Saat Ini:</p>
                         <p class="text-2xl font-bold text-blue-600">
                             <span id="current-stock-value">0</span>
-                            <span class="text-sm font-normal text-gray-500 ml-1"
-                                id="stock-unit">pcs</span>
+                            <span class="text-sm font-normal text-gray-500 ml-1" id="stock-unit">pcs</span>
                         </p>
                     </div>
                 </div>
@@ -195,8 +191,7 @@
             {{-- Header --}}
             <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <h4 class="font-semibold text-gray-900">📷 Scan Barcode</h4>
-                <button onclick="closeBarcodeScanner()"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="closeBarcodeScanner()" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
             {{-- Camera Viewfinder --}}
@@ -297,7 +292,7 @@
 
         function startScanner() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
+                Dialog.warning('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
                 return;
             }
 
@@ -321,20 +316,20 @@
                 });
             } catch (error) {
                 console.error('Scanner initialization error:', error);
-                alert('Gagal menginisialisasi scanner: ' + error.message);
+                Dialog.warning('Gagal menginisialisasi scanner: ' + error.message);
                 stopScanner();
             }
         }
 
         function handleCameraError(error) {
             if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                Dialog.warning('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
             } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                Dialog.warning('Tidak ada kamera yang ditemukan di perangkat Anda.');
             } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                alert('Kamera sedang digunakan oleh aplikasi lain.');
+                Dialog.warning('Kamera sedang digunakan oleh aplikasi lain.');
             } else {
-                alert('Gagal mengakses kamera: ' + error.message);
+                Dialog.warning('Gagal mengakses kamera: ' + error.message);
             }
         }
 
@@ -382,14 +377,14 @@
                         // Play success sound
                         playSuccessSound();
                     } else {
-                        alert('Produk tidak ditemukan!');
+                        Dialog.warning('Produk tidak ditemukan!');
                         document.getElementById('barcode-input').value = '';
                         document.getElementById('barcode-input').focus();
                     }
                 })
                 .catch(err => {
                     console.error('Error:', err);
-                    alert('Terjadi kesalahan saat mencari produk');
+                    Dialog.warning('Terjadi kesalahan saat mencari produk');
                 });
         }
 

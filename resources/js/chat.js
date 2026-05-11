@@ -777,7 +777,7 @@ function addFilesToQueue(fileList) {
     Array.from(fileList).forEach(file => {
         if (pendingFiles.length >= maxFiles) return;
         if (file.size > maxSize) {
-            alert(`File "${file.name}" terlalu besar (maks 20MB).`);
+            Dialog.warning(`File "${file.name}" terlalu besar (maks 20MB).`);
             return;
         }
         pendingFiles.push({ file, id: Date.now() + Math.random() });
@@ -940,7 +940,7 @@ function updateSessionTitle(id, title) {
 
 async function renameSession(id, el) {
     const currentTitle = el.querySelector('.session-btn').textContent.trim();
-    const newTitle = prompt('Ganti nama percakapan:', currentTitle);
+    const newTitle = await Dialog.prompt('Ganti nama percakapan:', currentTitle);
     if (!newTitle || newTitle.trim() === currentTitle) return;
     try {
         const res = await fetch(`/chat/${id}/rename`, {
@@ -957,7 +957,8 @@ async function renameSession(id, el) {
 }
 
 async function deleteSession(id, el) {
-    if (!confirm('Hapus percakapan ini?')) return;
+    const confirmed = await Dialog.danger('Hapus percakapan ini?');
+    if (!confirmed) return;
     await fetch(`/chat/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': CSRF } });
     el.remove();
     if (currentSessionId == id) {

@@ -1,6 +1,6 @@
 /**
  * FormWizard - Multi-Step Form Wizard System
- * 
+ *
  * TASK-018: Implements step-by-step form navigation with:
  * - Progress indicator
  * - Step-by-step validation
@@ -8,14 +8,14 @@
  * - Keyboard navigation
  * - Auto-save to localStorage
  * - Mobile responsive
- * 
+ *
  * @version 1.0.0
  */
 
 class FormWizard {
     /**
      * Create FormWizard instance
-     * 
+     *
      * @param {HTMLElement} formElement - Form element
      * @param {Object} options - Configuration options
      */
@@ -471,7 +471,7 @@ class FormWizard {
     /**
      * Load draft from localStorage
      */
-    loadDraft() {
+    async loadDraft() {
         try {
             const saved = localStorage.getItem(this.draftKey);
             if (!saved) return;
@@ -489,7 +489,8 @@ class FormWizard {
                 }
                 message += ' Muat draft?';
 
-                if (!confirm(message)) {
+                const confirmed = await Dialog.confirm(message);
+                if (!confirmed) {
                     this.clearDraft();
                     return;
                 }

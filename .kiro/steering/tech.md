@@ -1,86 +1,109 @@
-# Tech Stack
+# Tech Stack & Build System
+
+## Core Stack
+
+- **PHP 8.3+** with Laravel 13
+- **MySQL 8.0+** (primary database)
+- **Redis** (cache, sessions, queues — required in production)
+- **Vite 8** (frontend build tool)
+- **Tailwind CSS 3** with `@tailwindcss/forms` plugin
+- **Alpine.js 3** (frontend interactivity)
+- **Chart.js 4** (data visualization)
 
 ## Backend
-- **PHP 8.3+** with **Laravel 13**
-- **MySQL 8.0+** — primary database (utf8mb4_unicode_ci)
-- **Redis** — required for production; used for cache, sessions, and queues
-- **Queue** — Laravel queues (Redis driver in production, database driver in dev)
-- **Cache** — Laravel cache (Redis); heavily used for settings, dashboard, AI responses
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Laravel 13 |
+| Auth | Laravel Breeze, Google OAuth (Socialite), 2FA (Google2FA) |
+| Queue | Redis-backed (Supervisor in production) |
+| PDF | barryvdh/laravel-dompdf |
+| Excel | maatwebsite/excel |
+| AI | google-gemini-php/client |
+| Cloud Storage | AWS S3, Google Cloud Storage, Azure Blob |
+| Push Notifications | minishlink/web-push |
+| POS Printing | mike42/escpos-php |
+| Barcode/QR | picqer/php-barcode-generator, bacon/bacon-qr-code |
+| Payment | midtrans/midtrans-php |
 
 ## Frontend
-- **Blade** — server-side templating
-- **Alpine.js 3** — lightweight reactivity (no Vue/React); `@alpinejs/collapse` plugin included
-- **Tailwind CSS 3** (with `@tailwindcss/forms`)
-- **Chart.js 4** — data visualizations
-- **Vite 8** — asset bundling via `laravel-vite-plugin`
-- **Axios** — HTTP client
-- **marked + DOMPurify** — Markdown rendering in AI chat
 
-## Key Libraries
-| Package | Purpose |
-|---|---|
-| `google-gemini-php/client` | AI assistant (Gemini) |
-| `maatwebsite/excel` | Excel import/export |
-| `barryvdh/laravel-dompdf` | PDF generation |
-| `laravel/socialite` | Google OAuth |
-| `midtrans/midtrans-php` | Payment gateway |
-| `bacon/bacon-qr-code` | QR code generation |
-| `picqer/php-barcode-generator` | Barcode generation |
-| `minishlink/web-push` | Browser push notifications |
-| `pragmarx/google2fa-laravel` | Two-factor authentication |
-| `phpoffice/phpword` | Word document generation |
-| `mike42/escpos-php` | ESC/POS thermal printer support |
-| `aws/aws-sdk-php` | AWS S3/cloud storage |
-| `google/cloud-storage` | Google Cloud Storage |
-| `microsoft/azure-storage-blob` | Azure Blob Storage |
-| `giorgiosironi/eris` | Property-based testing (dev) |
-| `laravel/pint` | PHP code style fixer (dev) |
-| `laravel/pail` | Real-time log tailing in terminal (dev) |
-| `laravel/breeze` | Auth scaffolding (dev) |
-| `barryvdh/laravel-debugbar` | Debug toolbar (dev) |
+| Layer | Technology |
+|-------|-----------|
+| Build | Vite 8 + laravel-vite-plugin |
+| CSS | Tailwind CSS 3 + PostCSS + Autoprefixer |
+| JS Framework | Alpine.js 3 (with @alpinejs/collapse) |
+| Charts | Chart.js 4 |
+| Markdown | marked |
+| Sanitization | DOMPurify |
+| HTTP | Axios |
+
+## Vite Entry Points
+
+- `resources/css/app.css` — Main stylesheet
+- `resources/js/app.js` — Main application JS
+- `resources/js/pos-app.js` — POS module
+- `resources/js/chat.js` — AI chat interface
+- `resources/js/offline-manager.js` — Offline/PWA support
+- `resources/js/conflict-resolution.js` — Offline sync conflicts
+- `resources/js/topbar-offline-indicator.js` — Offline status UI
+
+## Testing
+
+| Tool | Purpose |
+|------|---------|
+| PHPUnit 12 | Unit and Feature tests |
+| Eris | Property-based testing |
+| Mockery | Mocking |
+| Laravel Pint | Code style (PSR-12) |
+
+Test database: `qalcuity_erp_test` (MySQL)
 
 ## Common Commands
 
 ```bash
-# Initial setup
+# Full setup (install deps, generate key, migrate, build assets)
 composer run setup
 
-# Development (starts server + queue + logs + vite concurrently)
+# Development (runs server, queue, logs, vite concurrently)
 composer run dev
 
 # Run tests
 composer run test
-# or
+# Or directly:
 php artisan test
 
-# Asset build
-npm run build
+# Run specific test suite
+php artisan test --testsuite=Unit
+php artisan test --testsuite=Feature
 
-# Asset build (if memory issues)
-npm run build:memory
-
-# Code style fix
+# Code formatting
 ./vendor/bin/pint
 
-# Clear config cache
-php artisan config:clear
+# Build frontend for production
+npm run build
+
+# Build with increased memory (large bundles)
+npm run build:memory
+
+# Clear all caches
+php artisan optimize:clear
+
+# Rebuild all caches
+php artisan optimize
 
 # Run migrations
 php artisan migrate
 
-# Seed database
-php artisan db:seed
+# Queue worker (development)
+php artisan queue:listen
+
+# Real-time log viewer
+php artisan pail
 ```
 
-## Environment Notes
-- `APP_ENV=local` enables sourcemaps, disables minification, skips compressed size reporting
-- `APP_DEBUG=true` keeps `console.log` in JS builds
-- `VITE_PORT` — configures Vite dev server port (default 5173)
-- Vite HMR uses `APP_URL` hostname for WebSocket host
-- Redis is **required** for production (cache, sessions, queues); database driver is acceptable for local dev
-- All third-party API keys (Gemini, OAuth, payment gateways, etc.) are managed via the SuperAdmin settings panel, not hardcoded in `.env`
+## Environment
 
-## Build Notes
-- JS chunks are split: `vendor-alpine`, `vendor-charts`, `vendor`, per-module chunks, feature chunks (offline, notifications, POS)
-- Service worker (`sw.js`) is copied to `public/` via `vite-plugin-static-copy`
-- Use `npm run build:analyze` to inspect bundle sizes
+- Development: `APP_ENV=local`, cache/queue/session use `database`
+- Testing: `APP_ENV=testing`, cache uses `array`, queue uses `sync`
+- Production: `APP_ENV=production`, cache/queue/session use `redis`

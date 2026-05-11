@@ -31,7 +31,7 @@
                         Edit Variant
                     </button>
                     <form method="POST" action="{{ route('cosmetic.variants.destroy', $variant->id) }}"
-                        onsubmit="return confirm('Delete this variant?')">
+                        data-confirm="Delete this variant?" data-confirm-type="danger">
                         @csrf
                         @method('DELETE')
                         <button type="submit"

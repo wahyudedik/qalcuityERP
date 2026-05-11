@@ -69,26 +69,19 @@
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Room</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Type</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Priority</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Assigned To</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Scheduled</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Actions</th>
                         </tr>
                     </thead>
@@ -145,8 +138,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7"
-                                    class="px-4 py-8 text-center text-sm text-gray-500">No tasks
+                                <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">No tasks
                                     found</td>
                             </tr>
                         @endforelse
@@ -198,18 +190,18 @@
 
     @push('scripts')
         <script>
-            function startTask(taskId) {
-                if (confirm('Start this task?')) {
-                    fetch(`/hotel/housekeeping/tasks/${taskId}/start`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    }).then(response => {
-                        if (response.ok) location.reload();
-                    });
-                }
+            async function startTask(taskId) {
+                const confirmed = await Dialog.confirm('Start this task?');
+                if (!confirmed) return;
+                fetch(`/hotel/housekeeping/tasks/${taskId}/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                }).then(response => {
+                    if (response.ok) location.reload();
+                });
             }
 
             function openCompleteModal(taskId) {

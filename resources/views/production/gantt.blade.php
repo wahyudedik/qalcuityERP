@@ -4,13 +4,13 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <button onclick="optimizeSchedule()"
-                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-                    <i class="fas fa-magic mr-2"></i>Optimize
-                </button>
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+            <i class="fas fa-magic mr-2"></i>Optimize
+        </button>
         <button onclick="rescheduleOverdue()"
-                    class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-                    <i class="fas fa-clock mr-2"></i>Fix Overdue
-                </button>
+            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
+            <i class="fas fa-clock mr-2"></i>Fix Overdue
+        </button>
     </div>
 
     <div class="py-6">
@@ -25,8 +25,7 @@
                             <p class="text-2xl font-bold text-gray-900">
                                 {{ $analytics['total_scheduled'] }}</p>
                         </div>
-                        <div
-                            class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-calendar text-blue-600"></i>
                         </div>
                     </div>
@@ -38,8 +37,7 @@
                             <p class="text-xs text-gray-500">On-Time Rate</p>
                             <p class="text-2xl font-bold text-green-600">{{ $analytics['on_time_delivery_rate'] }}%</p>
                         </div>
-                        <div
-                            class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-check-circle text-green-600"></i>
                         </div>
                     </div>
@@ -51,8 +49,7 @@
                             <p class="text-xs text-gray-500">Overdue</p>
                             <p class="text-2xl font-bold text-red-600">{{ $analytics['overdue'] }}</p>
                         </div>
-                        <div
-                            class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-exclamation-triangle text-red-600"></i>
                         </div>
                     </div>
@@ -65,8 +62,7 @@
                             <p class="text-2xl font-bold text-gray-900">
                                 {{ $analytics['avg_schedule_variance_days'] }}d</p>
                         </div>
-                        <div
-                            class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-chart-line text-purple-600"></i>
                         </div>
                     </div>
@@ -108,14 +104,12 @@
                             <div class="mb-4">
                                 {{-- Work Order Info --}}
                                 <div class="flex items-center gap-3 mb-2">
-                                    <span
-                                        class="text-sm font-medium text-gray-900 w-32">{{ $wo['number'] }}</span>
-                                    <span
-                                        class="text-xs text-gray-600 flex-1">{{ $wo['product_name'] }}</span>
+                                    <span class="text-sm font-medium text-gray-900 w-32">{{ $wo['number'] }}</span>
+                                    <span class="text-xs text-gray-600 flex-1">{{ $wo['product_name'] }}</span>
 
                                     {{-- Priority Badge --}}
                                     <span
-                                        class="px-2 py-1 text-xs font-semibold rounded 
+                                        class="px-2 py-1 text-xs font-semibold rounded
                             {{ $wo['priority'] == 1 ? 'bg-red-100 text-red-700' : '' }}
                             {{ $wo['priority'] == 2 ? 'bg-orange-100 text-orange-700' : '' }}
                             {{ $wo['priority'] == 3 ? 'bg-blue-100 text-blue-700' : '' }}
@@ -124,8 +118,7 @@
                                     </span>
 
                                     {{-- Progress --}}
-                                    <span
-                                        class="text-xs text-gray-600 w-16 text-right">{{ $wo['progress'] }}%</span>
+                                    <span class="text-xs text-gray-600 w-16 text-right">{{ $wo['progress'] }}%</span>
                                 </div>
 
                                 {{-- Gantt Bar --}}
@@ -230,8 +223,10 @@
 
         @push('scripts')
             <script>
-                function optimizeSchedule() {
-                    if (!confirm('Optimize production schedule? This will analyze all pending work orders.')) return;
+                async function optimizeSchedule() {
+                    const confirmed = await Dialog.confirm(
+                        'Optimize production schedule? This will analyze all pending work orders.');
+                    if (!confirmed) return;
 
                     fetch('{{ route('production.gantt.optimize') }}', {
                             method: 'POST',
@@ -242,17 +237,18 @@
                         })
                         .then(res => res.json())
                         .then(data => {
-                            alert(`Found ${data.total_optimizations} optimization opportunities`);
+                            Dialog.success(`Found ${data.total_optimizations} optimization opportunities`);
                             location.reload();
                         })
                         .catch(err => {
-                            alert('Error optimizing schedule');
+                            Dialog.warning('Error optimizing schedule');
                             console.error(err);
                         });
                 }
 
-                function rescheduleOverdue() {
-                    if (!confirm('Reschedule all overdue work orders?')) return;
+                async function rescheduleOverdue() {
+                    const confirmed = await Dialog.confirm('Reschedule all overdue work orders?');
+                    if (!confirmed) return;
 
                     const form = document.createElement('form');
                     form.method = 'POST';

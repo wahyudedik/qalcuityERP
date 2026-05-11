@@ -1,11 +1,10 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">CRM & Pipeline Penjualan</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <a href="{{ route('crm.kanban') }}"
-                class="text-xs text-gray-500 hover:text-blue-600">Tampilan
-                Kanban →</a>
+        <a href="{{ route('crm.kanban') }}" class="text-xs text-gray-500 hover:text-blue-600">Tampilan
+            Kanban ?</a>
     </div>
 
     {{-- Stats --}}
@@ -57,8 +56,7 @@
         <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / perusahaan..."
                 class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select name="stage"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
+            <select name="stage" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Stage</option>
                 @foreach (['new' => 'Baru', 'contacted' => 'Dihubungi', 'qualified' => 'Qualified', 'proposal' => 'Proposal', 'negotiation' => 'Negosiasi', 'won' => 'Won', 'lost' => 'Lost'] as $v => $l)
                     <option value="{{ $v }}" @selected(request('stage') === $v)>{{ $l }}</option>
@@ -124,7 +122,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                     {{ $stageLabels[$lead->stage] ?? $lead->stage }}
                                 </span>
                             </td>
@@ -152,8 +150,7 @@
                                     </button>
                                     <button
                                         onclick="openActivity({{ $lead->id }}, '{{ addslashes($lead->name) }}')"
-                                        class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50"
-                                        title="Log Aktivitas">
+                                        class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50" title="Log Aktivitas">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -161,8 +158,7 @@
                                     </button>
                                     <button
                                         onclick="openStage({{ $lead->id }}, '{{ addslashes($lead->name) }}', '{{ $lead->stage }}', {{ $lead->probability }})"
-                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
-                                        title="Update Stage">
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100" title="Update Stage">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7" />
@@ -180,8 +176,7 @@
                                             </svg>
                                         </button>
                                     @elseif($lead->converted_to_customer_id)
-                                        <span class="p-1.5 text-green-500"
-                                            title="Sudah dikonversi ke Customer">
+                                        <span class="p-1.5 text-green-500" title="Sudah dikonversi ke Customer">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -191,10 +186,9 @@
                                     @endif
                                     @canmodule('crm', 'delete')
                                     <form method="POST" action="{{ route('crm.destroy', $lead) }}"
-                                        onsubmit="return confirm('Hapus lead ini?')">
+                                        data-confirm="Hapus lead ini?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
+                                        <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -223,8 +217,7 @@
     {{-- Modal AI Score & Follow-up --}}
     <div id="modal-ai" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -233,7 +226,7 @@
                     AI Insight Lead
                 </h3>
                 <button onclick="document.getElementById('modal-ai').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <div id="ai-modal-body" class="p-6">
                 <div class="flex items-center justify-center py-8">
@@ -250,11 +243,10 @@
     {{-- Modal Tambah Lead --}}
     <div id="modal-add-lead" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Tambah Lead</h3>
                 <button onclick="document.getElementById('modal-add-lead').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('crm.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -266,8 +258,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
                         <input type="text" name="company"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -334,7 +325,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Update Stage</h3>
                 <button onclick="document.getElementById('modal-stage').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-stage" method="POST" class="p-6 space-y-4">
                 @csrf @method('PATCH')
@@ -377,11 +368,10 @@
                     Potential Duplicate Detected
                 </h3>
                 <button onclick="document.getElementById('modal-duplicate-warning').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <div class="p-6">
-                <div
-                    class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <p class="text-sm text-amber-800">
                         <strong>Lead: <span id="duplicate-lead-name"></span></strong><br>
                         Ditemukan <span id="duplicate-count" class="font-bold"></span> potential duplicate(s). Pilih
@@ -432,7 +422,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Log Aktivitas</h3>
                 <button onclick="document.getElementById('modal-activity').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-activity" method="POST" class="p-6 space-y-4">
                 @csrf
@@ -541,7 +531,7 @@
                 ).join('');
 
                 const suggestionItems = (follow.suggestions || []).map(s =>
-                    `<li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">•</span><span>${s}</span></li>`
+                    `<li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">�</span><span>${s}</span></li>`
                 ).join('');
 
                 document.getElementById('ai-modal-body').innerHTML = `
@@ -596,7 +586,7 @@
                     const result = await response.json();
 
                     if (!result.success) {
-                        alert('Error checking duplicates');
+                        Dialog.warning('Error checking duplicates');
                         return;
                     }
 
@@ -604,7 +594,7 @@
 
                     // If already converted
                     if (data.already_converted) {
-                        alert(data.suggestion);
+                        Dialog.alert(data.suggestion);
                         return;
                     }
 
@@ -615,13 +605,15 @@
                     }
 
                     // No duplicates - confirm and convert
-                    if (confirm(`No duplicates found. Convert lead "${leadName}" to customer?`)) {
+                    const confirmed = await Dialog.confirm(`No duplicates found. Convert lead "${leadName}" to customer?`);
+                    if (confirmed) {
                         convertLead(leadId);
                     }
                 } catch (error) {
                     console.error('Error checking duplicates:', error);
                     // Fallback to direct conversion if check fails
-                    if (confirm(`Convert lead "${leadName}" to customer?`)) {
+                    const fallbackConfirmed = await Dialog.confirm(`Convert lead "${leadName}" to customer?`);
+                    if (fallbackConfirmed) {
                         convertLead(leadId);
                     }
                 }
@@ -663,13 +655,14 @@
                 modal.classList.remove('hidden');
             }
 
-            function linkToExistingCustomer(leadId, customerId) {
-                if (confirm('Link this lead to the existing customer instead of creating a new one?')) {
-                    const form = document.getElementById('form-link-customer');
-                    form.action = `{{ url('crm') }}/${leadId}/convert-customer`;
-                    document.getElementById('link-customer-id').value = customerId;
-                    form.submit();
-                }
+            async function linkToExistingCustomer(leadId, customerId) {
+                const confirmed = await Dialog.confirm(
+                    'Link this lead to the existing customer instead of creating a new one?');
+                if (!confirmed) return;
+                const form = document.getElementById('form-link-customer');
+                form.action = `{{ url('crm') }}/${leadId}/convert-customer`;
+                document.getElementById('link-customer-id').value = customerId;
+                form.submit();
             }
 
             function convertLead(leadId) {
@@ -687,27 +680,29 @@
                 form.submit();
             }
 
-            function forceCreateCustomer(leadId) {
-                if (confirm('This will create a NEW customer even though duplicates exist. Continue?')) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `{{ url('crm') }}/${leadId}/convert-customer`;
+            async function forceCreateCustomer(leadId) {
+                const confirmed = await Dialog.danger(
+                    'This will create a NEW customer even though duplicates exist. Continue?');
+                if (!confirmed) return;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ url('crm') }}/${leadId}/convert-customer`;
 
-                    const csrf = document.createElement('input');
-                    csrf.type = 'hidden';
-                    csrf.name = '_token';
-                    csrf.value = '{{ csrf_token() }}';
-                    form.appendChild(csrf);
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
 
-                    const forceCreate = document.createElement('input');
-                    forceCreate.type = 'hidden';
-                    forceCreate.name = 'force_create';
-                    forceCreate.value = '1';
-                    form.appendChild(forceCreate);
+                const forceCreate = document.createElement('input');
+                forceCreate.type = 'hidden';
+                forceCreate.name = 'force_create';
+                forceCreate.value = '1';
+                form.appendChild(forceCreate);
 
-                    document.body.appendChild(form);
-                    form.submit();
-                }
+                document.body.appendChild(form);
+                form.submit();
+            }
             }
         </script>
     @endpush

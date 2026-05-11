@@ -50,13 +50,13 @@
                         <td class="px-4 py-3 text-center">
                             <div class="flex justify-center gap-2">
                                 @if($period->status === 'open')
-                                <form method="POST" action="{{ route('accounting.periods.close', $period) }}" onsubmit="return confirm('Tutup periode ini?')">
+                                <form method="POST" action="{{ route('accounting.periods.close', $period) }}" data-confirm="Tutup periode ini?">
                                     @csrf @method('PATCH')
                                     <button class="text-yellow-400 hover:text-yellow-300 text-xs">Tutup</button>
                                 </form>
                                 @endif
                                 @if($period->status === 'closed')
-                                <form method="POST" action="{{ route('accounting.periods.lock', $period) }}" onsubmit="return confirm('Kunci periode ini? Tidak bisa dibuka kembali.')">
+                                <form method="POST" action="{{ route('accounting.periods.lock', $period) }}" data-confirm="Kunci periode ini? Tidak bisa dibuka kembali.">
                                     @csrf @method('PATCH')
                                     <button class="text-red-400 hover:text-red-300 text-xs">🔒 Kunci</button>
                                 </form>

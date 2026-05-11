@@ -29,8 +29,8 @@
                         <!-- Search -->
                         <div>
                             <label for="search" class="sr-only">Cari</label>
-                            <input type="text" name="search" id="search"
-                                placeholder="Cari pelanggan..." value="{{ request('search') }}"
+                            <input type="text" name="search" id="search" placeholder="Cari pelanggan..."
+                                value="{{ request('search') }}"
                                 class="block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
 
@@ -208,8 +208,7 @@
                                                 <div class="flex-shrink-0 h-10 w-10">
                                                     <div
                                                         class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                                        <span
-                                                            class="text-indigo-600 font-semibold">
+                                                        <span class="text-indigo-600 font-semibold">
                                                             {{ substr($sub->customer?->name ?? '?', 0, 2) }}
                                                         </span>
                                                     </div>
@@ -285,8 +284,7 @@
                                         </td>
 
                                         <!-- Next Billing -->
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $sub->next_billing_date ? $sub->next_billing_date->format('d M Y') : '-' }}
                                         </td>
 
@@ -307,7 +305,7 @@
                                                         <button type="submit"
                                                             class="text-yellow-600 hover:text-yellow-900"
                                                             title="{{ __('Suspend') }}"
-                                                            onclick="return confirm('{{ __('Suspend this subscription?') }}')">
+                                                            data-confirm="{{ __('Suspend this subscription?') }}">
                                                             <i class="fas fa-pause-circle"></i>
                                                         </button>
                                                     </form>
@@ -319,7 +317,7 @@
                                                         <button type="submit"
                                                             class="text-green-600 hover:text-green-900"
                                                             title="{{ __('Reactivate') }}"
-                                                            onclick="return confirm('{{ __('Reactivate this subscription?') }}')">
+                                                            data-confirm="{{ __('Reactivate this subscription?') }}">
                                                             <i class="fas fa-play-circle"></i>
                                                         </button>
                                                     </form>
@@ -329,10 +327,10 @@
                                                     method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit"
-                                                        class="text-red-600 hover:text-red-900"
+                                                    <button type="submit" class="text-red-600 hover:text-red-900"
                                                         title="{{ __('Cancel Subscription') }}"
-                                                        onclick="return confirm('{{ __('Are you sure? This will cancel the subscription permanently.') }}')">
+                                                        data-confirm="{{ __('Are you sure? This will cancel the subscription permanently.') }}"
+                                                        data-confirm-type="danger">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -345,8 +343,7 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div
-                        class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                         {{ $subscriptions->links() }}
                     </div>
                 @else

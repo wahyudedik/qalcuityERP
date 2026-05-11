@@ -1,6 +1,6 @@
 /**
  * OfflineStatusIndicator
- * 
+ *
  * Menampilkan indikator status koneksi dan queue sync di UI.
  * Auto-show ketika offline atau ada pending sync.
  */
@@ -78,11 +78,11 @@ class OfflineStatusIndicator {
 
                 <!-- Action Buttons -->
                 <div class="flex space-x-2">
-                    <button id="sync-btn" onclick="window.offlineStatusIndicator.triggerSync()" 
+                    <button id="sync-btn" onclick="window.offlineStatusIndicator.triggerSync()"
                             class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors hidden">
                         🔄 Sync Now
                     </button>
-                    <button onclick="window.offlineStatusIndicator.showDetails()" 
+                    <button onclick="window.offlineStatusIndicator.showDetails()"
                             class="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         📊 Details
                     </button>
@@ -321,7 +321,7 @@ class OfflineStatusIndicator {
                         <dd class="font-medium text-red-600">${stats.failed}</dd>
                     </dl>
                 </div>
-                
+
                 ${posStats ? `
                 <div>
                     <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">POS Transactions</h4>
@@ -335,7 +335,7 @@ class OfflineStatusIndicator {
                     </dl>
                 </div>
                 ` : ''}
-                
+
                 <div>
                     <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">By Module</h4>
                     <ul class="space-y-1 text-sm">
@@ -351,7 +351,7 @@ class OfflineStatusIndicator {
         `;
 
         // Create modal or use existing notification system
-        alert(detailsHtml.replace(/<[^>]*>/g, '\n')); // Simple fallback
+        Dialog.alert(detailsHtml.replace(/<[^>]*>/g, '\n')); // Simple fallback
     }
 }
 

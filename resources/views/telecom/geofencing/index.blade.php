@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('telecom.geofencing.create') }}"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                <i class="fas fa-plus mr-2"></i>Create Zone
-            </a>
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+            <i class="fas fa-plus mr-2"></i>Create Zone
+        </a>
     </div>
 
     <div class="py-12">
@@ -97,7 +97,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                             {{ $zone->zone_type === 'circular' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800' }}">
                                             {{ ucfirst($zone->zone_type) }}
                                         </span>
@@ -110,7 +110,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                             {{ $zone->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                             {{ $zone->is_active ? 'Active' : 'Inactive' }}
                                         </span>
@@ -135,8 +135,8 @@
                                             </button>
                                         </form>
                                         <form action="{{ route('telecom.geofencing.destroy', $zone->id) }}"
-                                            method="POST" class="inline"
-                                            onsubmit="return confirm('Delete this zone?')">
+                                            method="POST" class="inline" data-confirm="Delete this zone?"
+                                            data-confirm-type="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900">

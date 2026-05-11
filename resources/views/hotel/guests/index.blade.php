@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Guests</x-slot>
 
     <x-slot name="pageHeader">
@@ -72,12 +72,12 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell text-gray-600">
-                                {{ $guest->email ?? '—' }}</td>
+                                {{ $guest->email ?? '�' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell text-gray-600">
-                                {{ $guest->phone ?? '—' }}</td>
+                                {{ $guest->phone ?? '�' }}</td>
                             <td class="px-4 py-3 hidden lg:table-cell">
                                 <p class="text-gray-600">
-                                    {{ $guest->id_type ? strtoupper($guest->id_type) : '—' }}</p>
+                                    {{ $guest->id_type ? strtoupper($guest->id_type) : '�' }}</p>
                                 <p class="text-xs text-gray-500">{{ $guest->id_number ?? '' }}</p>
                             </td>
                             <td class="px-4 py-3 text-center">
@@ -89,7 +89,7 @@
                                 <span class="font-medium text-gray-900">{{ $guest->total_stays ?? 0 }}</span>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell text-gray-600">
-                                {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : '—' }}
+                                {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : '�' }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
@@ -110,8 +110,7 @@
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
-                                    <form method="POST" action="{{ route('hotel.guests.destroy', $guest) }}"
-                                        onsubmit="return confirm('Delete this guest?')">
+                                    <form method="POST" action="{{ route('hotel.guests.destroy', $guest) }}" data-confirm="Delete this guest?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Delete">
@@ -148,7 +147,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Add New Guest</h3>
                 <button onclick="document.getElementById('modal-add-guest').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('hotel.guests.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -237,7 +236,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Edit Guest</h3>
                 <button onclick="document.getElementById('modal-edit-guest').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-guest" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
@@ -369,10 +368,10 @@
                     info: 'bg-blue-600'
                 };
                 const icons = {
-                    success: '✓',
-                    error: '✕',
-                    warning: '⚠',
-                    info: 'ℹ'
+                    success: '?',
+                    error: '?',
+                    warning: '?',
+                    info: '?'
                 };
                 const toast = document.createElement('div');
                 toast.className =

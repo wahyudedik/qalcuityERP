@@ -39,8 +39,7 @@
                             <td class="px-4 py-3 text-right text-gray-900">
                                 {{ number_format($bom->batch_size, 0, ',', '.') }} {{ $bom->batch_unit }}</td>
                             <td class="px-4 py-3 text-center">
-                                <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+                                <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
                                     {{ $bom->lines->count() }} item
                                 </span>
                             </td>
@@ -63,14 +62,12 @@
                                     }
                                 @endphp
                                 @if ($hasCircular)
-                                    <span
-                                        class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700"
+                                    <span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700"
                                         title="Circular reference terdeteksi! Perlu diperbaiki.">
                                         ⚠️ Circular
                                     </span>
                                 @else
-                                    <span
-                                        class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">
+                                    <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">
                                         ✓ OK
                                     </span>
                                 @endif
@@ -81,7 +78,7 @@
                                         class="text-xs px-2 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Detail</button>
                                     @canmodule('manufacturing', 'delete')
                                     <form method="POST" action="{{ url('manufacturing/bom') }}/{{ $bom->id }}"
-                                        class="inline" onsubmit="return confirm('Hapus BOM ini?')">
+                                        class="inline" data-confirm="Hapus BOM ini?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>

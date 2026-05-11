@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Komisi Sales</x-slot>
 
     {{-- Stats --}}
@@ -78,10 +78,10 @@
                                 </div>
                                 <span class="text-xs font-medium {{ $ach >= 100 ? 'text-green-500' : 'text-gray-500' }}">{{ $ach }}%</span>
                             </div>
-                            @else <span class="text-gray-400">—</span> @endif
+                            @else <span class="text-gray-400">�</span> @endif
                         </td>
                         <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($c->commission_amount, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-right hidden sm:table-cell {{ $c->bonus_amount > 0 ? 'text-green-500' : 'text-gray-400' }}">{{ $c->bonus_amount > 0 ? 'Rp ' . number_format($c->bonus_amount, 0, ',', '.') : '—' }}</td>
+                        <td class="px-4 py-3 text-right hidden sm:table-cell {{ $c->bonus_amount > 0 ? 'text-green-500' : 'text-gray-400' }}">{{ $c->bonus_amount > 0 ? 'Rp ' . number_format($c->bonus_amount, 0, ',', '.') : '�' }}</td>
                         <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp {{ number_format($c->total_payout, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $cc  }}-100 text-{{ $cc }}-700 $cc }}-500/20 $cc }}-400">{{ $cl }}</span></td>
                         <td class="px-4 py-3 text-center">
@@ -92,7 +92,7 @@
                                     <button type="submit" class="text-xs px-2 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Approve</button>
                                 </form>
                                 @elseif($c->status === 'approved')
-                                <form method="POST" action="{{ url('commission') }}/{{ $c->id }}/pay" onsubmit="return confirm('Bayar komisi?')">@csrf
+                                <form method="POST" action="{{ url('commission') }}/{{ $c->id }}/pay" data-confirm="Bayar komisi?">@csrf
                                     <button type="submit" class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700">Bayar</button>
                                 </form>
                                 @endif
@@ -113,7 +113,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Set Target Sales</h3>
-                <button onclick="document.getElementById('modal-target').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-target').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('commission.targets.store') }}" class="p-6 space-y-4">
                 @csrf

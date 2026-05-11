@@ -56,8 +56,7 @@
                             <div>
                                 <h3 class="font-semibold text-gray-900">{{ $info['name'] }}</h3>
                                 @if ($isConnected)
-                                    <span
-                                        class="inline-flex items-center gap-1 text-xs text-green-600">
+                                    <span class="inline-flex items-center gap-1 text-xs text-green-600">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                         Connected
                                     </span>
@@ -72,8 +71,7 @@
                         <div class="space-y-2 mb-4 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-500">Property ID</span>
-                                <span
-                                    class="text-gray-900 font-mono">{{ $config->property_id ?? '-' }}</span>
+                                <span class="text-gray-900 font-mono">{{ $config->property_id ?? '-' }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">Last Synced</span>
@@ -198,13 +196,13 @@
                         const data = await response.json();
 
                         if (data.success) {
-                            alert(channel + ' synced successfully!');
+                            Dialog.success(channel + ' synced successfully!');
                             window.location.reload();
                         } else {
-                            alert('Sync failed: ' + (data.message || 'Unknown error'));
+                            Dialog.warning('Sync failed: ' + (data.message || 'Unknown error'));
                         }
                     } catch (error) {
-                        alert('Sync failed: ' + error.message);
+                        Dialog.warning('Sync failed: ' + error.message);
                     } finally {
                         this.syncing = null;
                     }

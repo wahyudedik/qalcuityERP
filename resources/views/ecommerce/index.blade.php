@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">E-Commerce</x-slot>
 
     <div class="space-y-6">
@@ -82,8 +82,7 @@
                                     Mapping</a>
                                 <button @click="editing = !editing"
                                     class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-gray-400 text-xs rounded-lg border border-white/10 transition">Edit</button>
-                                <form method="POST" action="{{ route('ecommerce.channels.destroy', $ch) }}"
-                                    onsubmit="return confirm('Hapus channel {{ $ch->shop_name }}?')">
+                                <form method="POST" action="{{ route('ecommerce.channels.destroy', $ch) }}" data-confirm="Hapus channel {{ $ch->shop_name }}?" data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                         class="px-2.5 py-1 bg-red-600/15 hover:bg-red-600/30 text-red-400 text-xs rounded-lg border border-red-500/20 transition">Hapus</button>
@@ -209,7 +208,7 @@
                                     <span
                                         class="px-2 py-0.5 rounded-full text-xs font-medium
                                     {{ $order->channel?->platform === 'shopee' ? 'bg-orange-500/20 text-orange-400' : ($order->channel?->platform === 'tokopedia' ? 'bg-green-500/20 text-green-400' : ($order->channel?->platform === 'tiktok_shop' ? 'bg-gray-500/20 text-gray-300' : 'bg-red-500/20 text-red-400')) }}">
-                                        {{ $order->channel?->platform === 'tiktok_shop' ? 'TikTok Shop' : ucfirst($order->channel?->platform ?? '—') }}
+                                        {{ $order->channel?->platform === 'tiktok_shop' ? 'TikTok Shop' : ucfirst($order->channel?->platform ?? '�') }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-3 font-mono text-xs text-gray-500">

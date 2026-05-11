@@ -14,7 +14,7 @@
                     <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $sub->status)) }}</span>
                     @if(in_array($sub->status, ['active', 'trial']))
                     @canmodule('subscription_billing', 'edit')
-                    <form method="POST" action="{{ route('subscription-billing.cancel', $sub) }}" onsubmit="return confirm('Batalkan subscription ini?')">@csrf @method('PATCH')
+                    <form method="POST" action="{{ route('subscription-billing.cancel', $sub) }}" data-confirm="Batalkan subscription ini?">@csrf @method('PATCH')
                         <button type="submit" class="px-3 py-1 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Cancel</button>
                     </form>
                     @endcanmodule

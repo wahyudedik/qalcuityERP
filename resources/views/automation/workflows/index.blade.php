@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Workflows')
 
@@ -85,7 +85,7 @@
                                     <a href="{{ route('automation.workflows.logs', $workflow) }}"
                                         class="text-green-600 hover:text-green-900 mr-3">Log</a>
                                     <form action="{{ route('automation.workflows.destroy', $workflow) }}" method="POST"
-                                        class="inline" onsubmit="return confirm('Hapus workflow ini?')">
+                                        class="inline" data-confirm="Hapus workflow ini?" data-confirm-type="danger">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

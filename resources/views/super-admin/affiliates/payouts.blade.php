@@ -44,7 +44,7 @@
                                 {{ $p->requested_at?->format('d/m/Y H:i') ?? $p->created_at->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700">{{ ucfirst($p->status) }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ ucfirst($p->status) }}</span>
                                 @if ($p->reject_reason)
                                     <p class="text-xs text-red-500 mt-1">{{ $p->reject_reason }}</p>
                                 @endif
@@ -57,11 +57,11 @@
                                             @csrf @method('PATCH')
                                             <button type="submit"
                                                 class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                                onclick="return confirm('Approve withdraw ini? Saldo affiliate akan dikurangi.')">Approve</button>
+                                                data-confirm="Approve withdraw ini? Saldo affiliate akan dikurangi.">Approve</button>
                                         </form>
                                         <form method="POST"
                                             action="{{ route('super-admin.affiliates.payouts.reject', $p) }}"
-                                            onsubmit="const r=prompt('Alasan reject:'); if(!r) return false; this.querySelector('[name=reason]').value=r;">
+                                            onsubmit="event.preventDefault(); Dialog.prompt('Alasan reject:').then(r => { if(!r) return; this.querySelector('[name=reason]').value=r; this.submit(); })">
                                             @csrf @method('PATCH')
                                             <input type="hidden" name="reason" value="">
                                             <button type="submit"

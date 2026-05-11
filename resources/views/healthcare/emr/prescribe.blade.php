@@ -24,10 +24,8 @@
             @csrf
 
             {{-- Prescription Items --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div
-                    class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900">Daftar Obat</h3>
                     <button type="button" onclick="addMedication()"
                         class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -37,8 +35,7 @@
                 <div class="p-6">
                     <div id="medication-list" class="space-y-6">
                         {{-- Medication Item 1 --}}
-                        <div
-                            class="medication-item p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div class="medication-item p-4 bg-gray-50 rounded-xl border border-gray-200">
                             <div class="flex items-center justify-between mb-4">
                                 <h4 class="text-sm font-semibold text-gray-900">Obat #1</h4>
                                 <button type="button" onclick="removeMedication(this)"
@@ -140,8 +137,7 @@
             </div>
 
             {{-- Prescription Notes --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-900">Catatan Resep</h3>
                 </div>
@@ -239,7 +235,7 @@
                 if (items.length > 1) {
                     button.closest('.medication-item').remove();
                 } else {
-                    alert('Minimal harus ada 1 obat');
+                    Dialog.warning('Minimal harus ada 1 obat');
                 }
             }
         </script>

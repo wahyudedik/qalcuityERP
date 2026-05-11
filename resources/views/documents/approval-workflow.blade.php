@@ -3,13 +3,12 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
-        <a href="{{ route('documents.index') }}"
-                    class="text-gray-600 hover:text-gray-900">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                </a>
+        <a href="{{ route('documents.index') }}" class="text-gray-600 hover:text-gray-900">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+        </a>
     </div>
 
     <div class="py-6">
@@ -99,8 +98,7 @@
                                     <p class="text-sm text-gray-500 mt-1">Approver:
                                         {{ $step['approver'] }}</p>
                                     @if ($step['comments'])
-                                        <p
-                                            class="mt-2 text-sm text-gray-700 bg-white p-2 rounded">
+                                        <p class="mt-2 text-sm text-gray-700 bg-white p-2 rounded">
                                             <strong>Comments:</strong> {{ $step['comments'] }}
                                         </p>
                                     @endif
@@ -134,9 +132,9 @@
                                         action="{{ route('documents.approval.approve', [$document, $step['step_number']]) }}">
                                         @csrf
                                         <div class="mb-4">
-                                            <label
-                                                class="block text-sm font-medium text-gray-700 mb-1">Comments
-                                                (optional)</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Comments
+                                                (optional)
+                                            </label>
                                             <textarea name="comments" rows="3"
                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
                                         </div>
@@ -164,8 +162,7 @@
                                         action="{{ route('documents.approval.reject', [$document, $step['step_number']]) }}">
                                         @csrf
                                         <div class="mb-4">
-                                            <label
-                                                class="block text-sm font-medium text-gray-700 mb-1">Reason
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason
                                                 for rejection *</label>
                                             <textarea name="comments" rows="3" required
                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"></textarea>
@@ -200,7 +197,7 @@
                         @csrf
                         <button type="submit"
                             class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700"
-                            onclick="return confirm('Submit document for approval?')">
+                            data-confirm="Submit document for approval?">
                             Submit for Approval
                         </button>
                     </form>

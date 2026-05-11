@@ -185,8 +185,7 @@
                 </div>
 
                 {{-- Help & Samples --}}
-                <div
-                    class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -205,16 +204,13 @@
                                     class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition text-center">
                                     📄 Mandiri CSV
                                 </a>
-                                <div
-                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
+                                <div class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     📑 PDF Bank
                                 </div>
-                                <div
-                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
+                                <div class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     🖼️ Screenshot
                                 </div>
-                                <div
-                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
+                                <div class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     📸 Foto Mutasi
                                 </div>
                             </div>
@@ -309,8 +305,7 @@
             <div id="auto-generate-progress"
                 class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                 <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
-                    <div
-                        class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                         <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-indigo-500 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -325,10 +320,8 @@
                         {{-- Progress Bar --}}
                         <div>
                             <div class="flex justify-between text-sm mb-2">
-                                <span id="progress-status"
-                                    class="text-gray-600">Initializing...</span>
-                                <span id="progress-percentage"
-                                    class="font-medium text-indigo-600">0%</span>
+                                <span id="progress-status" class="text-gray-600">Initializing...</span>
+                                <span id="progress-percentage" class="font-medium text-indigo-600">0%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-3">
                                 <div id="progress-bar-main"
@@ -371,10 +364,8 @@
         @endif
 
         {{-- Statements Table --}}
-        <div
-            class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div
-                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
                 <h2 class="font-semibold text-gray-900">Mutasi Rekening</h2>
                 <div class="flex gap-2 text-xs">
                     <span
@@ -387,8 +378,7 @@
             </div>
 
             {{-- Bulk Action Toolbar --}}
-            <div id="bulk-toolbar"
-                class="hidden px-6 py-3 bg-blue-50 border-b border-blue-200">
+            <div id="bulk-toolbar" class="hidden px-6 py-3 bg-blue-50 border-b border-blue-200">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <span id="selected-count" class="text-sm font-medium text-blue-700">0
@@ -410,8 +400,7 @@
                             Approve & Post
                         </button>
                     </div>
-                    <button onclick="clearSelection()"
-                        class="text-sm text-gray-600 hover:text-gray-900">
+                    <button onclick="clearSelection()" class="text-sm text-gray-600 hover:text-gray-900">
                         Batal
                     </button>
                 </div>
@@ -445,13 +434,11 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($statements as $stmt)
-                            <tr id="row-{{ $stmt->id }}"
-                                class="hover:bg-gray-50 transition"
+                            <tr id="row-{{ $stmt->id }}" class="hover:bg-gray-50 transition"
                                 data-statement-id="{{ $stmt->id }}" data-status="{{ $stmt->status }}">
                                 <td class="px-4 py-3 text-center">
                                     @if ($stmt->status !== 'journalized')
-                                        <input type="checkbox"
-                                            class="stmt-checkbox rounded border-gray-300"
+                                        <input type="checkbox" class="stmt-checkbox rounded border-gray-300"
                                             value="{{ $stmt->id }}" onchange="updateBulkToolbar()">
                                     @endif
                                 </td>
@@ -553,8 +540,7 @@
     {{-- AI Match Detail Modal --}}
     <div id="modal-ai-match" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -580,15 +566,13 @@
     {{-- Manual Match Modal --}}
     <div id="modal-manual-match" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Manual Match</h3>
                 <button onclick="document.getElementById('modal-manual-match').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div class="p-6">
-                <div
-                    class="mb-4 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                <div class="mb-4 bg-gray-50 rounded-xl p-3 border border-gray-200">
                     <p class="text-xs text-gray-500 mb-1">Mutasi Bank</p>
                     <p class="text-sm font-medium text-gray-900" id="manual-stmt-desc"></p>
                     <p class="text-sm font-bold text-blue-500 mt-1" id="manual-stmt-amount"></p>
@@ -636,8 +620,7 @@
                     </svg>
                     Preview Journal Entry
                 </h3>
-                <button onclick="closeJournalModal()"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="closeJournalModal()" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
             <div id="modal-journal-body" class="p-6">
@@ -682,8 +665,7 @@
                     </div>
 
                     <!-- Warnings -->
-                    <div id="journal-warnings"
-                        class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div id="journal-warnings" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4">
                         <p class="text-xs font-semibold text-amber-600 mb-2">⚠️ Peringatan:</p>
                         <ul id="warning-list" class="space-y-1 text-sm text-amber-700"></ul>
                     </div>
@@ -698,8 +680,7 @@
                     </div>
 
                     <!-- Balance Check -->
-                    <div id="balance-check"
-                        class="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div id="balance-check" class="bg-green-50 border border-green-200 rounded-xl p-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
@@ -721,8 +702,7 @@
             </div>
 
             <!-- Footer Actions -->
-            <div id="journal-footer"
-                class="hidden px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+            <div id="journal-footer" class="hidden px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
                 <div class="flex items-center justify-end gap-3">
                     <button onclick="closeJournalModal()"
                         class="px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
@@ -918,9 +898,9 @@
                         <div class="col-span-2"><p class="text-xs text-gray-400">Deskripsi</p><p class="font-medium text-gray-900">${tx.description ?? '—'}</p></div>
                     </div>
                     ${canApply ? `<button onclick="applyMatch(${id}, ${tx.id})"
-                                                        class="mt-3 w-full py-2 bg-green-600 text-white text-sm rounded-xl hover:bg-green-700 transition font-medium">
-                                                        ✓ Terapkan Match Ini
-                                                    </button>` : ''}
+                                                                        class="mt-3 w-full py-2 bg-green-600 text-white text-sm rounded-xl hover:bg-green-700 transition font-medium">
+                                                                        ✓ Terapkan Match Ini
+                                                                    </button>` : ''}
                 </div>`;
                 }
 
@@ -944,17 +924,17 @@
                 <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Alternatif Lain</p>
                 <div class="space-y-2">
                     ${result.alternatives.map(alt => `
-                                                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
-                                                        <div class="text-sm min-w-0 flex-1 mr-3">
-                                                            <p class="font-medium text-gray-900 truncate">${alt.number ?? alt.description ?? '—'}</p>
-                                                            <p class="text-xs text-gray-400">${alt.date} · Rp ${Number(alt.amount).toLocaleString('id-ID')}</p>
-                                                        </div>
-                                                        <div class="flex items-center gap-2 shrink-0">
-                                                            <span class="text-xs text-amber-400">${alt.score}%</span>
-                                                            <button onclick="applyMatch(${id}, ${alt.id})"
-                                                                class="text-xs px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Pilih</button>
-                                                        </div>
-                                                    </div>`).join('')}
+                                                                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
+                                                                        <div class="text-sm min-w-0 flex-1 mr-3">
+                                                                            <p class="font-medium text-gray-900 truncate">${alt.number ?? alt.description ?? '—'}</p>
+                                                                            <p class="text-xs text-gray-400">${alt.date} · Rp ${Number(alt.amount).toLocaleString('id-ID')}</p>
+                                                                        </div>
+                                                                        <div class="flex items-center gap-2 shrink-0">
+                                                                            <span class="text-xs text-amber-400">${alt.score}%</span>
+                                                                            <button onclick="applyMatch(${id}, ${alt.id})"
+                                                                                class="text-xs px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Pilih</button>
+                                                                        </div>
+                                                                    </div>`).join('')}
                 </div>
             </div>` : '';
 
@@ -1380,9 +1360,10 @@
             async function autoGenerateAllJournals(autoPost = false) {
                 const action = autoPost ? 'Generate & Post' : 'Generate Draft';
 
-                if (!confirm(
-                        `Auto ${action} semua journals?\n\nIni akan memproses semua unmatched/matched statements di background.`
-                    )) {
+                const confirmed = await Dialog.confirm(
+                    `Auto ${action} semua journals?\n\nIni akan memproses semua unmatched/matched statements di background.`
+                );
+                if (!confirmed) {
                     return;
                 }
 
@@ -1512,7 +1493,7 @@
                             }
                         }
 
-                        alert(message);
+                        Dialog.alert(message);
 
                         // Cleanup
                         await fetch(`{{ url('bank/ai/job-cleanup') }}/${currentJobId}`, {

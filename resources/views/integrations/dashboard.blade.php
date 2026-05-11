@@ -410,12 +410,18 @@
         <div class="mt-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
             <h2 class="text-xl font-bold mb-4">⚡ Quick Actions</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button @click="testPaymentGateway()"
-                    class="bg-white/20 hover:bg-white/30 rounded-lg p-4 transition-colors">
-                    <div class="text-2xl mb-2">🧪</div>
-                    <div class="font-semibold">Test Payment Gateway</div>
-                    <div class="text-xs opacity-80">Verify configuration</div>
-                </button>
+                <div class="bg-white/20 rounded-lg p-4 opacity-50 cursor-not-allowed" x-data="{ showTooltip: false }"
+                    @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
+                    <div class="relative">
+                        <div class="text-2xl mb-2">🧪</div>
+                        <div class="font-semibold">Test Payment Gateway</div>
+                        <div class="text-xs opacity-80">Verify configuration</div>
+                        <span x-show="showTooltip" x-transition
+                            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 text-xs text-white bg-gray-800 rounded-lg whitespace-nowrap z-50">
+                            Fitur akan segera tersedia
+                        </span>
+                    </div>
+                </div>
 
                 <button @click="syncAllPlatforms()"
                     class="bg-white/20 hover:bg-white/30 rounded-lg p-4 transition-colors">
@@ -424,12 +430,18 @@
                     <div class="text-xs opacity-80">Pull latest orders</div>
                 </button>
 
-                <button @click="viewIntegrationLogs()"
-                    class="bg-white/20 hover:bg-white/30 rounded-lg p-4 transition-colors">
-                    <div class="text-2xl mb-2">📋</div>
-                    <div class="font-semibold">View Integration Logs</div>
-                    <div class="text-xs opacity-80">Check sync history</div>
-                </button>
+                <div class="bg-white/20 rounded-lg p-4 opacity-50 cursor-not-allowed" x-data="{ showTooltip: false }"
+                    @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
+                    <div class="relative">
+                        <div class="text-2xl mb-2">📋</div>
+                        <div class="font-semibold">View Integration Logs</div>
+                        <div class="text-xs opacity-80">Check sync history</div>
+                        <span x-show="showTooltip" x-transition
+                            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 text-xs text-white bg-gray-800 rounded-lg whitespace-nowrap z-50">
+                            Fitur akan segera tersedia
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -460,10 +472,10 @@
                 },
 
                 async connectWhatsApp() {
-                    const phoneNumber = prompt('Enter WhatsApp Business number (e.g., 6281234567890):');
+                    const phoneNumber = await Dialog.prompt('Enter WhatsApp Business number (e.g., 6281234567890):');
                     if (!phoneNumber) return;
 
-                    const apiKey = prompt('Enter WhatsApp API key:');
+                    const apiKey = await Dialog.prompt('Enter WhatsApp API key:');
                     if (!apiKey) return;
 
                     try {
@@ -481,26 +493,18 @@
 
                         const result = await response.json();
                         if (result.success) {
-                            alert('WhatsApp connected successfully!');
+                            Dialog.success('WhatsApp connected successfully!');
                             this.loadStats();
                         } else {
-                            alert('Failed to connect WhatsApp');
+                            Dialog.warning('Failed to connect WhatsApp');
                         }
                     } catch (error) {
-                        alert('Error: ' + error.message);
+                        Dialog.warning('Error: ' + error.message);
                     }
                 },
 
-                async testPaymentGateway() {
-                    alert('Payment gateway test feature - coming soon!');
-                },
-
                 async syncAllPlatforms() {
-                    alert('Syncing all platforms - this may take a few minutes...');
-                },
-
-                async viewIntegrationLogs() {
-                    alert('Integration logs viewer - coming soon!');
+                    Dialog.alert('Syncing all platforms - this may take a few minutes...');
                 }
             }
         }

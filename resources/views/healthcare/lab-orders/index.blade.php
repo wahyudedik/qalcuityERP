@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.lab-orders.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>New Lab Order
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>New Lab Order
+        </a>
     </div>
 
     <div class="py-12">
@@ -191,10 +191,10 @@
 
     @push('scripts')
         <script>
-            function deleteOrder(id) {
-                if (confirm('Are you sure you want to delete this lab order?')) {
-                    document.getElementById(`delete-order-${id}`).submit();
-                }
+            async function deleteOrder(id) {
+                const confirmed = await Dialog.danger('Are you sure you want to delete this lab order?');
+                if (!confirmed) return;
+                document.getElementById(`delete-order-${id}`).submit();
             }
         </script>
     @endpush

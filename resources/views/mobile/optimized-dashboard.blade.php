@@ -116,7 +116,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                 <h2 class="font-semibold text-gray-900">Aktivitas Terbaru</h2>
-                <a href="#" class="text-blue-600 text-sm font-medium">Lihat Semua</a>
+                <x-disabled-link class="text-sm font-medium">Lihat Semua</x-disabled-link>
             </div>
             <div class="divide-y divide-gray-200">
                 @foreach (range(1, 5) as $i)
@@ -228,12 +228,12 @@
 
             window.cameraScanner.startBarcodeScanning(
                 (result) => {
-                    alert('Barcode scanned: ' + result);
+                    Dialog.alert('Barcode scanned: ' + result);
                     closeCameraScanner();
                 },
                 (error) => {
                     console.error('Scan error:', error);
-                    alert('Scan failed. Please try again.');
+                    Dialog.warning('Scan failed. Please try again.');
                 }
             );
         }
@@ -247,13 +247,13 @@
         // Toggle flashlight
         function toggleFlashlight() {
             // Implementation would go here
-            alert('Flashlight toggled');
+            Dialog.alert('Flashlight toggled');
         }
 
         // Show quick actions menu
         function showQuickActions() {
             // Could show a modal or expandable menu
-            alert('Quick actions menu');
+            Dialog.alert('Quick actions menu');
         }
 
         // Register service worker for PWA

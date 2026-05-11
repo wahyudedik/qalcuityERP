@@ -1,5 +1,5 @@
-﻿<x-app-layout>
-    <x-slot name="title">Manajemen Cuti — Qalcuity ERP</x-slot>
+<x-app-layout>
+    <x-slot name="title">Manajemen Cuti � Qalcuity ERP</x-slot>
     <x-slot name="header">Manajemen Cuti</x-slot>
     <x-slot name="pageHeader">
         <button onclick="document.getElementById('modal-add-leave').classList.remove('hidden')"
@@ -68,7 +68,7 @@
                         </td>
                         <td class="px-4 py-3 text-gray-700">{{ $leave->typeLabel() }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
-                            {{ $leave->start_date->format('d M Y') }} — {{ $leave->end_date->format('d M Y') }}
+                            {{ $leave->start_date->format('d M Y') }} � {{ $leave->end_date->format('d M Y') }}
                         </td>
                         <td class="px-4 py-3 text-center font-semibold text-gray-900">{{ $leave->days }}</td>
                         <td class="px-4 py-3 text-center">
@@ -89,8 +89,7 @@
                                 @if($leave->status === 'pending')
                                 <button onclick="openApprove({{ $leave->id }}, '{{ addslashes($leave->employee?->name) }}')"
                                     class="px-2 py-1 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700">Proses</button>
-                                <form method="POST" action="{{ route('hrm.leave.destroy', $leave) }}"
-                                      onsubmit="return confirm('Hapus pengajuan ini?')">
+                                <form method="POST" action="{{ route('hrm.leave.destroy', $leave) }}" data-confirm="Hapus pengajuan ini?" data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -118,7 +117,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Ajukan Cuti</h3>
-                <button onclick="document.getElementById('modal-add-leave').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-leave').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('hrm.leave.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -169,7 +168,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Proses Pengajuan Cuti</h3>
-                <button onclick="document.getElementById('modal-approve-leave').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-approve-leave').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-approve-leave" method="POST" class="p-6 space-y-4">
                 @csrf @method('PATCH')

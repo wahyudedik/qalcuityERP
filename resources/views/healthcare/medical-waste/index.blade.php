@@ -120,7 +120,7 @@
                                             class="text-yellow-600 hover:text-yellow-900 mr-3"><i
                                                 class="fas fa-edit"></i></a>
                                         <form action="{{ route('healthcare.medical-waste.destroy', $waste) }}"
-                                            method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                                            method="POST" class="inline" data-confirm="Are you sure?">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900"><i
                                                     class="fas fa-trash"></i></button>

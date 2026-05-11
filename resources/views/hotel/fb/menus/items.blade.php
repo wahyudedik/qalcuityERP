@@ -69,7 +69,7 @@
                                     <button onclick="editItem({{ $item->id }})"
                                         class="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
                                     <form action="{{ route('hotel.fb.menu-items.destroy', $item) }}" method="POST"
-                                        class="inline" onsubmit="return confirm('Delete this item?')">
+                                        class="inline" data-confirm="Delete this item?" data-confirm-type="danger">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>

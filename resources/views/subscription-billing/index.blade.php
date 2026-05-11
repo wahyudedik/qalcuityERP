@@ -32,8 +32,7 @@
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Cari subscription / customer..."
                 class="flex-1 min-w-[150px] px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select name="status"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
+            <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
                 @foreach (['trial' => 'Trial', 'active' => 'Aktif', 'past_due' => 'Past Due', 'cancelled' => 'Batal', 'expired' => 'Expired'] as $v => $l)
                     <option value="{{ $v }}" @selected(request('status') === $v)>{{ $l }}</option>
@@ -48,7 +47,7 @@
             @canmodule('subscription_billing', 'create')
             <form method="POST" action="{{ route('subscription-billing.bulk-generate') }}">@csrf
                 <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700"
-                    onclick="return confirm('Generate invoice untuk semua subscription jatuh tempo?')">Bulk
+                    data-confirm="Generate invoice untuk semua subscription jatuh tempo?">Bulk
                     Generate</button>
             </form>
             <button onclick="document.getElementById('modal-add').classList.remove('hidden')"
@@ -107,7 +106,7 @@
                                 class="px-4 py-3 text-center hidden md:table-cell text-xs {{ $s->next_billing_date->isPast() ? 'text-red-500 font-semibold' : 'text-gray-500' }}">
                                 {{ $s->next_billing_date->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-center"><span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">

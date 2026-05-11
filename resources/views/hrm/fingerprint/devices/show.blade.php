@@ -168,15 +168,16 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        alert(data.message);
+                        Dialog.alert(data.message);
                     })
                     .catch(err => {
-                        alert('Error: ' + err.message);
+                        Dialog.warning('Error: ' + err.message);
                     });
             }
 
-            function syncAttendance(deviceId) {
-                if (!confirm('Mulai sinkronisasi data absensi dari perangkat?')) return;
+            async function syncAttendance(deviceId) {
+                const confirmed = await Dialog.confirm('Mulai sinkronisasi data absensi dari perangkat?');
+                if (!confirmed) return;
 
                 fetch(`/api/fingerprint/devices/${deviceId}/sync-attendance`, {
                         method: 'POST',
@@ -187,11 +188,11 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        alert(data.message);
+                        Dialog.alert(data.message);
                         location.reload();
                     })
                     .catch(err => {
-                        alert('Error: ' + err.message);
+                        Dialog.warning('Error: ' + err.message);
                     });
             }
         </script>

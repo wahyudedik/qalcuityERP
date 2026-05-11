@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Knowledge Base</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
@@ -11,7 +11,7 @@
             </select>
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
-        <a href="{{ route('helpdesk.index') }}" class="px-3 py-2 text-sm text-gray-500">← Helpdesk</a>
+        <a href="{{ route('helpdesk.index') }}" class="px-3 py-2 text-sm text-gray-500">? Helpdesk</a>
         @canmodule('helpdesk', 'create')
         <button onclick="document.getElementById('modal-add-kb').classList.remove('hidden')"
             class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Artikel</button>
@@ -24,15 +24,15 @@
             <div class="flex items-start justify-between mb-2">
                 <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">{{ ucfirst($a->category) }}</span>
                 @canmodule('helpdesk', 'delete')
-                <form method="POST" action="{{ route('helpdesk.kb.destroy', $a) }}" onsubmit="return confirm('Hapus?')">
+                <form method="POST" action="{{ route('helpdesk.kb.destroy', $a) }}" data-confirm="Hapus?" data-confirm-type="danger">
                     @csrf @method('DELETE')
-                    <button type="submit" class="text-gray-400 hover:text-red-500 text-xs">✕</button>
+                    <button type="submit" class="text-gray-400 hover:text-red-500 text-xs">?</button>
                 </form>
                 @endcanmodule
             </div>
             <h3 class="font-semibold text-gray-900 mb-2">{{ $a->title }}</h3>
             <p class="text-xs text-gray-500 line-clamp-3">{{ Str::limit(strip_tags($a->body), 150) }}</p>
-            <p class="text-xs text-gray-400 mt-2">{{ $a->views }} views · {{ $a->created_at->format('d/m/Y') }}</p>
+            <p class="text-xs text-gray-400 mt-2">{{ $a->views }} views � {{ $a->created_at->format('d/m/Y') }}</p>
         </div>
         @empty
         <div class="col-span-full text-center py-12 text-gray-400">Belum ada artikel.</div>
@@ -45,7 +45,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Buat Artikel</h3>
-                <button onclick="document.getElementById('modal-add-kb').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-kb').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('helpdesk.kb.store') }}" class="p-6 space-y-4">
                 @csrf

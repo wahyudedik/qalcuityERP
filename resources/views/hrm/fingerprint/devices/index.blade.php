@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Manajemen Perangkat Fingerprint')
 
@@ -100,7 +100,7 @@
                                 <a href="{{ route('hrm.fingerprint.devices.edit', $device) }}"
                                     class="text-yellow-600 hover:text-yellow-900 mr-3">Edit</a>
                                 <form action="{{ route('hrm.fingerprint.devices.destroy', $device) }}" method="POST"
-                                    class="inline" onsubmit="return confirm('Yakin ingin menghapus perangkat ini?')">
+                                    class="inline" data-confirm="Yakin ingin menghapus perangkat ini?" data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"

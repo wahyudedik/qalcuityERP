@@ -179,7 +179,7 @@
                                     @endcanmodule
                                     @canmodule('products', 'delete')
                                     <form method="POST" action="{{ route('products.destroy', $product) }}"
-                                        onsubmit="return confirm('Hapus produk ini?')">
+                                        data-confirm="Hapus produk ini?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Hapus">
@@ -299,7 +299,7 @@
                             @endcanmodule
                             @canmodule('products', 'delete')
                             <form method="POST" action="{{ route('products.destroy', $product) }}"
-                                onsubmit="return confirm('Hapus produk ini?')">
+                                data-confirm="Hapus produk ini?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit"
                                     class="p-2.5 rounded-lg text-red-500 hover:bg-red-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -591,7 +591,7 @@
                 const ids = Array.from(checkboxes).map(cb => cb.value);
 
                 if (ids.length === 0) {
-                    alert('Pilih minimal 1 produk!');
+                    Dialog.warning('Pilih minimal 1 produk!');
                     return;
                 }
 

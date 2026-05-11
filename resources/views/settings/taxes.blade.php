@@ -169,7 +169,7 @@
                                 </form>
 
                                 <form method="POST" action="{{ route('taxes.destroy', $tax) }}"
-                                    onsubmit="return confirm('Hapus tarif pajak {{ $tax->name }}?')">
+                                    data-confirm="Hapus tarif pajak {{ $tax->name }}?" data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                         class="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10">Hapus</button>

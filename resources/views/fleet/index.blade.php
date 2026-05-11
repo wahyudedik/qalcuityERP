@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Fleet Management</x-slot>
 
     {{-- Stats --}}
@@ -30,7 +30,7 @@
     @if (count($alerts) > 0 || $upcomingMaint->isNotEmpty())
         <div
             class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-            <p class="text-sm font-medium text-amber-700 mb-1">⚠️ Perhatian</p>
+            <p class="text-sm font-medium text-amber-700 mb-1">?? Perhatian</p>
             <ul class="text-xs text-amber-600 space-y-0.5">
                 @foreach ($alerts as $a)
                     <li>{{ $a }}</li>
@@ -124,7 +124,7 @@
                                     @endcanmodule
                                     @canmodule('fleet', 'delete')
                                     <form method="POST" action="{{ route('fleet.vehicles.destroy', $v) }}"
-                                        class="inline" onsubmit="return confirm('Hapus kendaraan ini?')">
+                                        class="inline" data-confirm="Hapus kendaraan ini?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
@@ -153,7 +153,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Tambah Kendaraan</h3>
                 <button onclick="document.getElementById('modal-add').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('fleet.vehicles.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -202,7 +202,7 @@
                             <select name="asset_id" class="{{ $cls }}">
                                 <option value="">-- Tanpa Link --</option>
                                 @foreach ($assets as $a)
-                                    <option value="{{ $a->id }}">{{ $a->asset_code }} — {{ $a->name }}
+                                    <option value="{{ $a->id }}">{{ $a->asset_code }} � {{ $a->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -228,7 +228,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Edit Kendaraan</h3>
                 <button onclick="document.getElementById('modal-edit').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')

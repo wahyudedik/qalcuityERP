@@ -63,7 +63,7 @@
                 <p class="text-xs text-gray-500 leading-relaxed">Reset semua cooldown model AI secara manual.</p>
             </div>
             <form method="POST" action="{{ route('super-admin.ai-model.reset') }}"
-                onsubmit="return confirm('Reset semua cooldown model AI? Tindakan ini tidak dapat dibatalkan.')">
+                data-confirm="Reset semua cooldown model AI? Tindakan ini tidak dapat dibatalkan.">
                 @csrf
                 <button type="submit"
                     class="mt-4 w-full px-4 py-2.5 text-sm font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl transition flex items-center justify-center gap-2">

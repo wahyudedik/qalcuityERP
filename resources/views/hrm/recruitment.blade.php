@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Rekrutmen & Onboarding</x-slot>
 
     {{-- Stats --}}
@@ -87,11 +87,11 @@
                     </div>
                     <div class="flex flex-wrap gap-3 text-xs text-gray-500">
                         @if($posting->department)<span>{{ $posting->department }}</span>@endif
-                        @if($posting->location)<span>📍 {{ $posting->location }}</span>@endif
+                        @if($posting->location)<span>?? {{ $posting->location }}</span>@endif
                         @if($posting->deadline)<span>Deadline: {{ $posting->deadline->format('d M Y') }}</span>@endif
                         @if($posting->salary_min || $posting->salary_max)
                         <span>Rp {{ number_format($posting->salary_min,0,',','.') }}
-                            @if($posting->salary_max) – {{ number_format($posting->salary_max,0,',','.') }}@endif
+                            @if($posting->salary_max) � {{ number_format($posting->salary_max,0,',','.') }}@endif
                         </span>
                         @endif
                     </div>
@@ -116,7 +116,7 @@
                             class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </button>
-                        <form method="POST" action="{{ route('hrm.recruitment.posting.destroy', $posting) }}" onsubmit="return confirm('Hapus lowongan ini?')">
+                        <form method="POST" action="{{ route('hrm.recruitment.posting.destroy', $posting) }}" data-confirm="Hapus lowongan ini?" data-confirm-type="danger">
                             @csrf @method('DELETE')
                             <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -141,7 +141,7 @@
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Buat Lowongan</h3>
-                <button onclick="document.getElementById('modal-add-posting').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-posting').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('hrm.recruitment.posting.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -223,7 +223,7 @@
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Edit Lowongan</h3>
-                <button onclick="document.getElementById('modal-edit-posting').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-edit-posting').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-posting" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')

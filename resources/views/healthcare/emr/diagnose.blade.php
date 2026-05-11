@@ -24,10 +24,8 @@
             @csrf
 
             {{-- Diagnosis Entry --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div
-                    class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900">Entry Diagnosa ICD-10</h3>
                     <button type="button" onclick="addDiagnosis()"
                         class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -37,8 +35,7 @@
                 <div class="p-6">
                     <div id="diagnosis-list" class="space-y-6">
                         {{-- Diagnosis Item 1 --}}
-                        <div
-                            class="diagnosis-item p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div class="diagnosis-item p-4 bg-gray-50 rounded-xl border border-gray-200">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-2">
                                     <h4 class="text-sm font-semibold text-gray-900">Diagnosa #1</h4>
@@ -119,8 +116,7 @@
             </div>
 
             {{-- Clinical Notes --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-900">Catatan Klinis</h3>
                 </div>
@@ -392,7 +388,7 @@
                 if (items.length > 1) {
                     button.closest('.diagnosis-item').remove();
                 } else {
-                    alert('Minimal harus ada 1 diagnosa');
+                    Dialog.warning('Minimal harus ada 1 diagnosa');
                 }
             }
         </script>

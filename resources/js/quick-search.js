@@ -32,14 +32,14 @@ export class QuickSearch {
         modal.innerHTML = `
             <!-- Backdrop -->
             <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]" id="quick-search-backdrop"></div>
-            
+
             <!-- Modal -->
             <div class="fixed top-[10vh] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-[9999] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="quick-search-title">
                 <!-- Search Input -->
                 <div class="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
                     <i class="fas fa-search text-gray-400 mr-3 text-lg"></i>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         id="quick-search-input"
                         class="flex-1 bg-transparent border-none outline-none text-lg text-gray-900 dark:text-white placeholder-gray-400"
                         placeholder="Search or jump to..."
@@ -48,12 +48,12 @@ export class QuickSearch {
                     >
                     <kbd class="hidden sm:inline-block px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600">ESC</kbd>
                 </div>
-                
+
                 <!-- Results Container -->
                 <div id="quick-search-results" class="max-h-[60vh] overflow-y-auto">
                     <!-- Results will be injected here -->
                 </div>
-                
+
                 <!-- Footer -->
                 <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                     <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -226,7 +226,7 @@ export class QuickSearch {
                 <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Recent Searches</h3>
             </div>
             ${this.recentSearches.slice(0, 5).map(search => `
-                <button 
+                <button
                     class="w-full flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                     onclick="window.quickSearch.setInput('${search}')"
                 >
@@ -267,8 +267,8 @@ export class QuickSearch {
             }
 
             return `
-                <a 
-                    href="${result.url}" 
+                <a
+                    href="${result.url}"
                     class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 ${bgColor}"
                     data-index="${index}"
                     ${result.action ? `onclick="window.quickSearch.handleAction('${result.action}', ${JSON.stringify(result).replace(/"/g, '&quot;')}); return false;"` : ''}
@@ -393,7 +393,7 @@ export class QuickSearch {
     async saveCurrentSearch() {
         if (this.query.length < 2) return;
 
-        const name = prompt('Nama pencarian yang disimpan:', this.query);
+        const name = await Dialog.prompt('Nama pencarian yang disimpan:', this.query);
         if (!name) return;
 
         try {

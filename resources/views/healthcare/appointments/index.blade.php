@@ -98,8 +98,8 @@
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                                            <svg class="w-4 h-4 text-blue-600" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
                                                 </path>
@@ -154,8 +154,7 @@
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         <a href="{{ route('healthcare.appointments.show', $appointment) }}"
-                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                            title="Detail">
+                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -192,8 +191,8 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                                         </path>
@@ -214,8 +213,8 @@
                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                 <div
                                     class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-blue-600" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                                         </path>
@@ -308,8 +307,8 @@
                     </div>
                 @empty
                     <div class="p-12 text-center">
-                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                             </path>
@@ -334,8 +333,8 @@
     <div id="content-calendar" class="view-content hidden">
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="text-center py-12">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                     </path>
@@ -363,18 +362,18 @@
                 document.getElementById('view-' + viewName).className = 'px-4 py-2 text-sm bg-blue-600 text-white rounded-xl';
             }
 
-            function completeAppointment(id) {
-                if (confirm('Tandai janji temu ini sebagai selesai?')) {
-                    // Add your AJAX call or form submission here
-                    alert('Fitur ini akan menghubungkan ke controller');
-                }
+            async function completeAppointment(id) {
+                const confirmed = await Dialog.confirm('Tandai janji temu ini sebagai selesai?');
+                if (!confirmed) return;
+                // Add your AJAX call or form submission here
+                Dialog.alert('Fitur ini akan menghubungkan ke controller');
             }
 
-            function cancelAppointment(id) {
-                if (confirm('Batalkan janji temu ini?')) {
-                    // Add your AJAX call or form submission here
-                    alert('Fitur ini akan menghubungkan ke controller');
-                }
+            async function cancelAppointment(id) {
+                const confirmed = await Dialog.danger('Batalkan janji temu ini?');
+                if (!confirmed) return;
+                // Add your AJAX call or form submission here
+                Dialog.alert('Fitur ini akan menghubungkan ke controller');
             }
         </script>
     @endpush

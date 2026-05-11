@@ -10,8 +10,8 @@
         {{-- Info Banner --}}
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -111,8 +111,7 @@
                             class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
                         <input type="text" name="nationality"
                             value="{{ old('nationality', $form->nationality ?? 'Indonesian') }}"
                             placeholder="e.g., Indonesian"
@@ -165,8 +164,7 @@
                             class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-2">Relationship</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Relationship</label>
                         <input type="text" name="emergency_contact_relationship"
                             value="{{ old('emergency_contact_relationship', $form->emergency_contact_relationship ?? '') }}"
                             placeholder="e.g., Spouse, Parent"
@@ -288,25 +286,37 @@
             </div>
 
             {{-- Section 6: Terms & Consent --}}
-            <div
-                class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div x-data="{
+                showPolicy: false,
+                policyTitle: '',
+                policyContent: '',
+                openPolicy(title, content) {
+                    this.policyTitle = title;
+                    this.policyContent = content;
+                    this.showPolicy = true;
+                }
+            }" class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h3 class="text-sm font-semibold text-gray-900 mb-4">Terms & Consent</h3>
                 <div class="space-y-3">
                     <label class="flex items-start">
                         <input type="checkbox" name="terms_accepted" required
                             class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1">
                         <span class="ml-2 text-sm text-gray-700">
-                            I agree to the hotel's <a href="#" class="text-blue-600 hover:underline">Terms &
-                                Conditions</a> and <a href="#"
-                                class="text-blue-600 hover:underline">Cancellation Policy</a> *
+                            I agree to the hotel's <a
+                                @click.prevent="openPolicy('Terms & Conditions', 'Dengan melakukan reservasi dan check-in di hotel kami, Anda menyetujui syarat dan ketentuan berikut:\n\n1. Check-in dilakukan mulai pukul 14:00 dan check-out paling lambat pukul 12:00 waktu setempat.\n2. Tamu wajib menunjukkan identitas resmi (KTP/Passport) saat check-in.\n3. Hotel berhak menolak tamu yang melanggar peraturan hotel.\n4. Kerusakan pada fasilitas kamar menjadi tanggung jawab tamu.\n5. Barang berharga harap disimpan di safety deposit box yang tersedia.\n6. Hotel tidak bertanggung jawab atas kehilangan barang pribadi tamu.\n7. Dilarang merokok di area non-smoking. Pelanggaran dikenakan denda.\n8. Tamu tambahan yang tidak terdaftar akan dikenakan biaya tambahan.\n9. Hewan peliharaan tidak diperkenankan kecuali di kamar pet-friendly.\n10. Manajemen berhak mengubah syarat dan ketentuan ini sewaktu-waktu.')"
+                                class="text-blue-600 hover:underline cursor-pointer">Terms &
+                                Conditions</a> and <a
+                                @click.prevent="openPolicy('Cancellation Policy', 'Kebijakan pembatalan reservasi hotel kami adalah sebagai berikut:\n\n1. Pembatalan gratis jika dilakukan minimal 48 jam sebelum tanggal check-in.\n2. Pembatalan dalam 24-48 jam sebelum check-in dikenakan biaya 50% dari tarif malam pertama.\n3. Pembatalan kurang dari 24 jam atau no-show dikenakan biaya penuh malam pertama.\n4. Untuk reservasi non-refundable, tidak ada pengembalian dana untuk pembatalan kapan pun.\n5. Perubahan tanggal dapat dilakukan tanpa biaya tambahan (tergantung ketersediaan) jika diajukan minimal 48 jam sebelumnya.\n6. Pengembalian dana akan diproses dalam 7-14 hari kerja ke metode pembayaran asal.\n7. Untuk reservasi grup (5 kamar atau lebih), kebijakan pembatalan khusus berlaku — silakan hubungi reservasi.\n8. Force majeure (bencana alam, pandemi) akan ditangani secara case-by-case.')"
+                                class="text-blue-600 hover:underline cursor-pointer">Cancellation Policy</a> *
                         </span>
                     </label>
                     <label class="flex items-start">
                         <input type="checkbox" name="data_processing_consent" required
                             class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1">
                         <span class="ml-2 text-sm text-gray-700">
-                            I consent to the processing of my personal data in accordance with the <a href="#"
-                                class="text-blue-600 hover:underline">Privacy Policy</a> *
+                            I consent to the processing of my personal data in accordance with the <a
+                                @click.prevent="openPolicy('Privacy Policy', 'Kebijakan privasi kami menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi Anda:\n\n1. Data yang Dikumpulkan: Nama, email, nomor telepon, identitas (KTP/Passport), informasi pembayaran, dan preferensi menginap.\n2. Tujuan Penggunaan: Memproses reservasi, meningkatkan layanan, komunikasi terkait pemesanan, dan (dengan persetujuan) penawaran promosi.\n3. Penyimpanan Data: Data disimpan dengan enkripsi dan akses terbatas selama diperlukan untuk tujuan bisnis yang sah.\n4. Hak Anda: Anda berhak mengakses, memperbarui, atau meminta penghapusan data pribadi Anda kapan saja.\n5. Berbagi Data: Kami tidak menjual data Anda. Data hanya dibagikan kepada pihak ketiga yang diperlukan untuk layanan (payment gateway, sistem reservasi).\n6. Cookies: Website kami menggunakan cookies untuk meningkatkan pengalaman pengguna.\n7. Keamanan: Kami menerapkan standar keamanan industri untuk melindungi data Anda.\n8. Kontak: Untuk pertanyaan terkait privasi, hubungi privacy@hotel.com.\n\nKebijakan ini sesuai dengan UU Perlindungan Data Pribadi (UU PDP) Republik Indonesia.')"
+                                class="text-blue-600 hover:underline cursor-pointer">Privacy Policy</a> *
                         </span>
                     </label>
                     <label class="flex items-start">
@@ -317,13 +327,50 @@
                         </span>
                     </label>
                 </div>
+
+                {{-- Policy Modal --}}
+                <div x-show="showPolicy" x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    x-cloak>
+                    {{-- Backdrop --}}
+                    <div @click="showPolicy = false" class="absolute inset-0 bg-black/50"></div>
+                    {{-- Modal Content --}}
+                    <div x-show="showPolicy" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        class="relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[80vh] flex flex-col">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900" x-text="policyTitle"></h3>
+                            <button @click="showPolicy = false" type="button"
+                                class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        {{-- Body --}}
+                        <div class="p-5 overflow-y-auto">
+                            <p class="text-sm text-gray-700 whitespace-pre-line" x-text="policyContent"></p>
+                        </div>
+                        {{-- Footer --}}
+                        <div class="p-4 border-t border-gray-200 flex justify-end">
+                            <button @click="showPolicy = false" type="button"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Action Buttons --}}
-            <div
-                class="flex flex-col sm:flex-row gap-3 justify-between items-center pt-6 border-t border-gray-200">
-                <a href="{{ route('hotel.checkin-out.index') }}"
-                    class="text-sm text-gray-600 hover:text-gray-900">
+            <div class="flex flex-col sm:flex-row gap-3 justify-between items-center pt-6 border-t border-gray-200">
+                <a href="{{ route('hotel.checkin-out.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
                     ← Back to Dashboard
                 </a>
                 <button type="submit"

@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.queue-tickets.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>Issue New Ticket
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>Issue New Ticket
+        </a>
     </div>
 
     <div class="py-12">
@@ -113,7 +113,8 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $ticket->patient?->name ?? 'N/A' }}
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ $ticket->patient?->name ?? 'N/A' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -179,10 +180,10 @@
 
     @push('scripts')
         <script>
-            function deleteTicket(id) {
-                if (confirm('Are you sure you want to delete this ticket?')) {
-                    document.getElementById(`delete-ticket-${id}`).submit();
-                }
+            async function deleteTicket(id) {
+                const confirmed = await Dialog.danger('Are you sure you want to delete this ticket?');
+                if (!confirmed) return;
+                document.getElementById(`delete-ticket-${id}`).submit();
             }
         </script>
     @endpush

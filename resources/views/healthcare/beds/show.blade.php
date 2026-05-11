@@ -4,13 +4,13 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.beds.edit', $bed) }}"
-                    class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
-                    <i class="fas fa-edit mr-2"></i>Edit
-                </a>
+            class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
+            <i class="fas fa-edit mr-2"></i>Edit
+        </a>
         <a href="{{ route('healthcare.beds.index') }}"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to List
-                </a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+            <i class="fas fa-arrow-left mr-2"></i>Back to List
+        </a>
     </div>
 
     <div class="py-12">
@@ -79,7 +79,7 @@
                                 <dt class="text-sm font-medium text-gray-500">Status</dt>
                                 <dd class="mt-1">
                                     <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         @if ($bed->is_active) bg-green-100 text-green-800
                                         @else bg-red-100 text-red-800 @endif">
                                         {{ $bed->is_active ? 'Active' : 'Inactive' }}
@@ -121,7 +121,8 @@
                                 @csrf
                                 <button type="submit"
                                     class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                                    onclick="return confirm('Are you sure you want to release this bed?')">
+                                    data-confirm="Are you sure you want to release this bed?"
+                                    data-confirm-type="danger">
                                     <i class="fas fa-sign-out-alt mr-2"></i>Release Bed
                                 </button>
                             </form>

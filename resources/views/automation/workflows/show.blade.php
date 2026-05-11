@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', $workflow->name)
 
@@ -6,9 +6,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-6">
-            <a href="{{ route('automation.workflows.index') }}"
-                class="text-blue-600 hover:text-blue-900 text-sm">
-                ← Kembali ke Workflows
+            <a href="{{ route('automation.workflows.index') }}" class="text-blue-600 hover:text-blue-900 text-sm">
+                ? Kembali ke Workflows
             </a>
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mt-2">
                 <div>
@@ -27,7 +26,7 @@
                         Test Workflow
                     </button>
                     <form action="{{ route('automation.workflows.destroy', $workflow) }}" method="POST"
-                        onsubmit="return confirm('Hapus workflow ini?')">
+                        data-confirm="Hapus workflow ini?" data-confirm-type="danger">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
@@ -72,10 +71,7 @@
                 class="px-4 py-5 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h3 class="text-lg leading-6 font-medium text-gray-900">Aksi ({{ $actions->count() }})
                 </h3>
-                <button onclick="showAddActionModal()"
-                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Tambah Aksi
-                </button>
+                <x-disabled-button label="Tambah Aksi" tooltip="Fitur tambah aksi akan segera tersedia" />
             </div>
             <ul class="divide-y divide-gray-200">
                 @forelse($actions as $action)
@@ -83,8 +79,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span
-                                        class="text-sm font-medium text-gray-900">#{{ $action->order }}</span>
+                                    <span class="text-sm font-medium text-gray-900">#{{ $action->order }}</span>
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                         {{ str_replace('_', ' ', $action->action_type) }}
@@ -154,8 +149,7 @@
                                         {{ ucfirst($log->status) }}
                                     </span>
                                 </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                     {{ $log->duration_ms ? $log->duration_ms . ' ms' : '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $log->started_at?->diffForHumans() ?? '-' }}</td>
@@ -178,8 +172,7 @@
     <div id="testResultModal" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                onclick="closeTestModal()"></div>
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeTestModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
@@ -187,8 +180,7 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Hasil Test
                     </h3>
                     <div class="mt-2">
-                        <pre id="testResultContent"
-                            class="text-sm text-gray-700 bg-gray-50 p-4 rounded overflow-auto max-h-96"></pre>
+                        <pre id="testResultContent" class="text-sm text-gray-700 bg-gray-50 p-4 rounded overflow-auto max-h-96"></pre>
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -221,8 +213,9 @@
             document.getElementById('testResultModal').classList.add('hidden');
         }
 
-        function deleteAction(actionId) {
-            if (!confirm('Hapus aksi ini?')) return;
+        async function deleteAction(actionId) {
+            const confirmed = await Dialog.danger('Hapus aksi ini?');
+            if (!confirmed) return;
 
             fetch(`/automation/workflows/actions/${actionId}`, {
                     method: 'DELETE',
@@ -232,10 +225,6 @@
                     },
                 })
                 .then(() => location.reload());
-        }
-
-        function showAddActionModal() {
-            alert('Modal tambah aksi — akan diimplementasikan dengan form konfigurasi aksi');
         }
     </script>
 @endsection

@@ -95,11 +95,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100" id="queue-table-body">
                     @forelse($queues ?? [] as $queue)
-                        <tr class="hover:bg-gray-50 queue-row"
-                            data-queue-id="{{ $queue->id }}">
+                        <tr class="hover:bg-gray-50 queue-row" data-queue-id="{{ $queue->id }}">
                             <td class="px-4 py-3">
-                                <span
-                                    class="text-xl font-black text-blue-600">{{ $queue->queue_number }}</span>
+                                <span class="text-xl font-black text-blue-600">{{ $queue->queue_number }}</span>
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
@@ -136,8 +134,7 @@
                                 <div class="flex items-center justify-center gap-2">
                                     @if ($queue->status === 'waiting')
                                         <button onclick="callQueue({{ $queue->id }})"
-                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                            title="Panggil">
+                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Panggil">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -146,8 +143,7 @@
                                             </svg>
                                         </button>
                                         <button onclick="skipQueue({{ $queue->id }})"
-                                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"
-                                            title="Lewati">
+                                            class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Lewati">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -156,8 +152,7 @@
                                         </button>
                                     @elseif($queue->status === 'in_progress')
                                         <button onclick="completeQueue({{ $queue->id }})"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
-                                            title="Selesai">
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg" title="Selesai">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -192,8 +187,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg">
             <div class="flex items-center justify-between p-6 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">Tambah Antrian Baru</h3>
-                <button onclick="closeAddQueueModal()"
-                    class="p-2 hover:bg-gray-100 rounded-xl">
+                <button onclick="closeAddQueueModal()" class="p-2 hover:bg-gray-100 rounded-xl">
                     <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12"></path>
@@ -231,14 +225,12 @@
                         </select>
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-2">Dokter/Loket</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dokter/Loket</label>
                         <input type="text" name="counter" placeholder="Contoh: Dr. Ahmad / Loket 1"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-2">Prioritas</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prioritas</label>
                         <select name="priority"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="normal">Normal</option>
@@ -267,61 +259,61 @@
                 document.getElementById('modal-add-queue').classList.add('hidden');
             }
 
-            function callQueue(queueId) {
-                if (confirm('Panggil antrian ini?')) {
-                    fetch(`/healthcare/queue/${queueId}/call`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                }
+            async function callQueue(queueId) {
+                const confirmed = await Dialog.confirm('Panggil antrian ini?');
+                if (!confirmed) return;
+                fetch(`/healthcare/queue/${queueId}/call`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
 
-            function skipQueue(queueId) {
-                if (confirm('Lewati antrian ini?')) {
-                    fetch(`/healthcare/queue/${queueId}/skip`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                }
+            async function skipQueue(queueId) {
+                const confirmed = await Dialog.confirm('Lewati antrian ini?');
+                if (!confirmed) return;
+                fetch(`/healthcare/queue/${queueId}/skip`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
 
-            function completeQueue(queueId) {
-                if (confirm('Tandai antrian ini selesai?')) {
-                    fetch(`/healthcare/queue/${queueId}/complete`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                }
+            async function completeQueue(queueId) {
+                const confirmed = await Dialog.confirm('Tandai antrian ini selesai?');
+                if (!confirmed) return;
+                fetch(`/healthcare/queue/${queueId}/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
             }
 
             // Auto refresh every 30 seconds

@@ -135,40 +135,40 @@
     </div>
 
     <script>
-        function submitReport(id) {
-            if (confirm('Submit this report to Ministry of Health?')) {
-                fetch(`/healthcare/ministry-reports/${id}/submit`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        Toast.success(data.message);
-                        setTimeout(() => location.reload(), 1500);
-                    })
-                    .catch(error => Toast.error('Submit failed'));
-            }
+        async function submitReport(id) {
+            const confirmed = await Dialog.confirm('Submit this report to Ministry of Health?');
+            if (!confirmed) return;
+            fetch(`/healthcare/ministry-reports/${id}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Toast.success(data.message);
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(error => Toast.error('Submit failed'));
         }
 
-        function deleteReport(id) {
-            if (confirm('Are you sure you want to delete this report?')) {
-                fetch(`/healthcare/ministry-reports/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        Toast.success(data.message);
-                        setTimeout(() => location.reload(), 1500);
-                    })
-                    .catch(error => Toast.error('Delete failed'));
-            }
+        async function deleteReport(id) {
+            const confirmed = await Dialog.danger('Are you sure you want to delete this report?');
+            if (!confirmed) return;
+            fetch(`/healthcare/ministry-reports/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Toast.success(data.message);
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(error => Toast.error('Delete failed'));
         }
     </script>
 </x-app-layout>

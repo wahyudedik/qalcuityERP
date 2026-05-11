@@ -1,8 +1,8 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Rule Komisi</x-slot>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
-        <a href="{{ route('commission.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">← Komisi Sales</a>
+        <a href="{{ route('commission.index') }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">? Komisi Sales</a>
         <div class="flex-1"></div>
         @canmodule('commission', 'create')
         <button onclick="document.getElementById('modal-add-rule').classList.remove('hidden')"
@@ -45,7 +45,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @canmodule('commission', 'delete')
-                            <form method="POST" action="{{ route('commission.rules.destroy', $r) }}" class="inline" onsubmit="return confirm('Hapus rule ini?')">
+                            <form method="POST" action="{{ route('commission.rules.destroy', $r) }}" class="inline" data-confirm="Hapus rule ini?" data-confirm-type="danger">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
                             </form>
@@ -66,7 +66,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Buat Rule Komisi</h3>
-                <button onclick="document.getElementById('modal-add-rule').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-rule').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('commission.rules.store') }}" class="p-6 space-y-4">
                 @csrf

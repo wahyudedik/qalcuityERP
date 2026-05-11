@@ -214,40 +214,40 @@
     </div>
 
     <script>
-        function retryMessage(id) {
-            if (confirm('Retry sending this message?')) {
-                fetch(`{{ route('healthcare.hl7.retry', '') }}/${id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Retry failed'));
-            }
+        async function retryMessage(id) {
+            const confirmed = await Dialog.confirm('Retry sending this message?');
+            if (!confirmed) return;
+            fetch(`{{ route('healthcare.hl7.retry', '') }}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Retry failed'));
         }
 
-        function deleteMessage(id) {
-            if (confirm('Are you sure you want to delete this message?')) {
-                fetch(`{{ route('healthcare.hl7.destroy', '') }}/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Delete failed'));
-            }
+        async function deleteMessage(id) {
+            const confirmed = await Dialog.danger('Are you sure you want to delete this message?');
+            if (!confirmed) return;
+            fetch(`{{ route('healthcare.hl7.destroy', '') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Delete failed'));
         }
     </script>
 </x-app-layout>

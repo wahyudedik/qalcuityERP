@@ -139,7 +139,7 @@
                                 <td class="px-4 py-3 text-right">
                                     @if($ot->status === 'pending')
                                     <form method="POST" action="{{ route('self-service.overtime.cancel', $ot) }}"
-                                        onsubmit="return confirm('Batalkan pengajuan lembur ini?')">
+                                        data-confirm="Batalkan pengajuan lembur ini?">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="text-xs text-red-500 hover:text-red-700 transition-colors">
                                             Batalkan

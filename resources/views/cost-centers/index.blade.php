@@ -1,4 +1,4 @@
-ï»¿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 @php $title = 'Cost Center / Divisi'; @endphp
@@ -69,7 +69,7 @@
                             {{ $cc->typeLabel() }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-slate-500">{{ $cc->parent?->name ?? 'â€”' }}</td>
+                    <td class="px-4 py-3 text-slate-500">{{ $cc->parent?->name ?? '—' }}</td>
                     <td class="px-4 py-3">
                         @if($cc->is_active)
                         <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-green-100 text-green-700">Aktif</span>
@@ -83,8 +83,7 @@
                             class="text-xs text-blue-600 hover:underline mr-3">Edit</button>
                         @endcanmodule
                         @canmodule('cost_centers', 'delete')
-                        <form method="POST" action="{{ route('cost-centers.destroy', $cc) }}" class="inline"
-                            onsubmit="return confirm('Hapus cost center {{ $cc->name }}?')">
+                        <form method="POST" action="{{ route('cost-centers.destroy', $cc) }}" class="inline" data-confirm="Hapus cost center {{ $cc->name }}?" data-confirm-type="danger">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-xs text-red-500 hover:underline">Hapus</button>
                         </form>
@@ -134,9 +133,9 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Induk (opsional)</label>
                 <select name="parent_id" class="w-full px-3 py-2 rounded-xl text-sm border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">â€” Tidak ada â€”</option>
+                    <option value="">— Tidak ada —</option>
                     @foreach($parents ?? [] as $p)
-                    <option value="{{ $p->id }}">{{ $p->code }} â€” {{ $p->name }}</option>
+                    <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -185,9 +184,9 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Induk</label>
                 <select id="edit-parent" name="parent_id" class="w-full px-3 py-2 rounded-xl text-sm border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">â€” Tidak ada â€”</option>
+                    <option value="">— Tidak ada —</option>
                     @foreach($parents ?? [] as $p)
-                    <option value="{{ $p->id }}">{{ $p->code }} â€” {{ $p->name }}</option>
+                    <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }}</option>
                     @endforeach
                 </select>
             </div>

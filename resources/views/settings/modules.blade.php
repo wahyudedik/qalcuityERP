@@ -328,7 +328,7 @@
         }
 
         // BUG-SET-002 FIX: Show impact analysis on form submit
-        document.getElementById('module-form').addEventListener('submit', function(e) {
+        document.getElementById('module-form').addEventListener('submit', async function(e) {
             const checkedModules = Array.from(document.querySelectorAll('.module-checkbox:checked'))
                 .map(cb => cb.value);
 
@@ -336,12 +336,14 @@
             const disabledModules = currentModules.filter(m => !checkedModules.includes(m));
 
             if (disabledModules.length > 0) {
+                e.preventDefault();
                 const message = `Anda akan menonaktifkan ${disabledModules.length} modul:\n` +
                     disabledModules.map(m => `• ${m}`).join('\n') +
                     '\n\nData akan ditangani sesuai strategi yang dipilih.';
 
-                if (!confirm(message)) {
-                    e.preventDefault();
+                const confirmed = await Dialog.danger(message);
+                if (confirmed) {
+                    e.target.submit();
                 }
             }
         });

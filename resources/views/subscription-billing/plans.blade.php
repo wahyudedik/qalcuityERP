@@ -31,7 +31,7 @@
             <div class="flex items-center justify-between text-xs text-gray-400">
                 <span>{{ $p->subscriptions_count }} subscriber</span>
                 @canmodule('subscription_billing', 'delete')
-                <form method="POST" action="{{ route('subscription-billing.plans.destroy', $p) }}" onsubmit="return confirm('Hapus plan ini?')">
+                <form method="POST" action="{{ route('subscription-billing.plans.destroy', $p) }}" data-confirm="Hapus plan ini?" data-confirm-type="danger">
                     @csrf @method('DELETE')
                     <button type="submit" class="text-red-500 hover:underline">Hapus</button>
                 </form>

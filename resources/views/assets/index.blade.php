@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Manajemen Aset</x-slot>
 
     {{-- Stats --}}
@@ -149,8 +149,7 @@
                                     </svg>
                                 </a>
                                 @canmodule('assets', 'delete')
-                                <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline"
-                                    onsubmit="return confirm('Hapus aset {{ addslashes($asset->name) }}? Jika ada riwayat depresiasi, aset akan ditandai disposed.')">
+                                <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline" data-confirm="Hapus aset {{ addslashes($asset->name) }}? Jika ada riwayat depresiasi, aset akan ditandai disposed." data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                         class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
@@ -186,7 +185,7 @@
                 class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Daftarkan Aset Baru</h3>
                 <button onclick="document.getElementById('modal-add-asset').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('assets.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -277,7 +276,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Edit Aset</h3>
                 <button onclick="document.getElementById('modal-edit-asset').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-asset" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
@@ -352,7 +351,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Hitung Depresiasi</h3>
                 <button onclick="document.getElementById('modal-depreciate').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('assets.depreciate') }}" class="p-6 space-y-4">
                 @csrf

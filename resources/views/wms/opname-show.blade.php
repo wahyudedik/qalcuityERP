@@ -10,7 +10,7 @@
         @if ($s->status !== 'completed')
             @canmodule('wms', 'edit')
             <form method="POST" action="{{ route('wms.opname.complete', $s) }}"
-                onsubmit="return confirm('Selesaikan opname? Stok bin akan diperbarui.')">
+                data-confirm="Selesaikan opname? Stok bin akan diperbarui.">
                 @csrf @method('PATCH')
                 <button type="submit"
                     class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Selesaikan
@@ -38,8 +38,7 @@
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($s->items as $item)
                         @php $diff = $item->difference ?? 0; @endphp
-                        <tr
-                            class="{{ $diff != 0 ? ($diff > 0 ? 'bg-green-50/50' : 'bg-red-50/50') : '' }}">
+                        <tr class="{{ $diff != 0 ? ($diff > 0 ? 'bg-green-50/50' : 'bg-red-50/50') : '' }}">
                             <td class="px-4 py-3 text-gray-900">{{ $item->product?->name ?? '-' }}</td>
                             <td class="px-4 py-3 font-mono text-xs text-gray-500">
                                 {{ $item->bin?->code ?? '-' }}</td>

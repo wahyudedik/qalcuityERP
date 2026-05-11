@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">SDM & Karyawan</x-slot>
 
     @php $tid = auth()->user()->tenant_id; @endphp
@@ -64,7 +64,7 @@
                     <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                 </div>
                 <p class="font-semibold text-gray-900 text-sm">AI Turnover Risk Score</p>
-                <span class="text-xs text-gray-400">— deteksi dini risiko resign karyawan</span>
+                <span class="text-xs text-gray-400">� deteksi dini risiko resign karyawan</span>
             </div>
             <button onclick="loadTurnoverRisk()" id="turnover-btn"
                 class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-1.5 disabled:opacity-50">
@@ -131,7 +131,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                                 </button>
                                 @canmodule('hrm', 'delete')
-                                <form method="POST" action="{{ route('hrm.destroy', $emp) }}" onsubmit="return confirm('Tandai karyawan ini sebagai resign?')">
+                                <form method="POST" action="{{ route('hrm.destroy', $emp) }}" data-confirm="Tandai karyawan ini sebagai resign?" data-confirm-type="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50" title="Resign">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -157,7 +157,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Tambah Karyawan</h3>
-                <button onclick="document.getElementById('modal-add-emp').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-emp').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('hrm.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -205,7 +205,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Edit Karyawan</h3>
-                <button onclick="document.getElementById('modal-edit-emp').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-edit-emp').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-emp" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
@@ -260,7 +260,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 id="salary-modal-title" class="font-semibold text-gray-900 text-sm">Saran Gaji AI</h3>
-                <button onclick="document.getElementById('modal-salary-suggest').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-salary-suggest').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <div id="salary-modal-content" class="p-6"></div>
         </div>
@@ -281,11 +281,11 @@
         document.getElementById('modal-edit-emp').classList.remove('hidden');
     }
 
-    // ── AI: Salary Suggestion ─────────────────────────────────────
+    // -- AI: Salary Suggestion -------------------------------------
     const salaryBaseUrl = '/hrm/ai/salary-suggest/';
 
     async function openSalarySuggest(empId, empName) {
-        document.getElementById('salary-modal-title').textContent = 'Saran Gaji AI — ' + empName;
+        document.getElementById('salary-modal-title').textContent = 'Saran Gaji AI � ' + empName;
         document.getElementById('salary-modal-content').innerHTML =
             '<div class="animate-pulse text-slate-500 text-sm py-4 text-center">Menganalisis data...</div>';
         document.getElementById('modal-salary-suggest').classList.remove('hidden');
@@ -295,7 +295,7 @@
             const data = await res.json();
             const s    = data.suggestion;
 
-            const fmt = v => v != null ? 'Rp ' + Number(v).toLocaleString('id-ID') : '—';
+            const fmt = v => v != null ? 'Rp ' + Number(v).toLocaleString('id-ID') : '�';
             const confColor = { high: 'text-green-400', medium: 'text-yellow-400', low: 'text-slate-400' };
 
             let html = `
@@ -367,7 +367,7 @@
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ── AI: Turnover Risk Score ───────────────────────────────────
+    // -- AI: Turnover Risk Score -----------------------------------
     async function loadTurnoverRisk() {
         const btn = document.getElementById('turnover-btn');
         btn.disabled = true;
@@ -402,12 +402,12 @@
         };
 
         const signalIcon = {
-            performance:  '📉',
-            attendance:   '🗓️',
-            compensation: '💰',
-            tenure:       '⏱️',
-            burnout:      '🔥',
-            engagement:   '💤',
+            performance:  '??',
+            attendance:   '???',
+            compensation: '??',
+            tenure:       '??',
+            burnout:      '??',
+            engagement:   '??',
         };
 
         const prioColor = {
@@ -429,7 +429,7 @@
 
             const signals = emp.signals.map(s =>
                 `<div class="flex items-start gap-1.5 text-xs text-gray-600">
-                    <span class="shrink-0">${signalIcon[s.type] || '⚠️'}</span>
+                    <span class="shrink-0">${signalIcon[s.type] || '??'}</span>
                     <span>${esc(s.message)}</span>
                 </div>`
             ).join('');
@@ -449,7 +449,7 @@
                             <p class="font-semibold text-gray-900 text-sm">${esc(emp.name)}</p>
                             <span class="text-xs px-2 py-0.5 rounded-full ${cfg.badge} font-semibold">${cfg.label}</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-0.5">${esc(emp.position)} · ${esc(emp.department)} · ${esc(emp.tenure_label)}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${esc(emp.position)} � ${esc(emp.department)} � ${esc(emp.tenure_label)}</p>
                     </div>
                     <div class="flex flex-col items-end shrink-0">
                         <span class="text-2xl font-black text-gray-900">${emp.risk_score}</span>
@@ -462,7 +462,7 @@
                 <details class="group">
                     <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700 select-none flex items-center gap-1">
                         <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        ${emp.signals.length} sinyal risiko · ${emp.recommendations.length} rekomendasi
+                        ${emp.signals.length} sinyal risiko � ${emp.recommendations.length} rekomendasi
                     </summary>
                     <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>

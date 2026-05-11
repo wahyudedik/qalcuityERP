@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">{{ __('Document Management') }}</x-slot>
 
     {{-- Toolbar --}}
@@ -299,7 +299,7 @@
                                             </form>
                                         @endif
                                         <form method="POST" action="{{ route('documents.destroy', $document) }}"
-                                            class="inline" onsubmit="return confirm('Are you sure?')">
+                                            class="inline" data-confirm="Are you sure?">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

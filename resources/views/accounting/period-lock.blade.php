@@ -1,5 +1,5 @@
-﻿@extends('layouts.app')
-@section('title', 'Kunci Periode & Backup — Qalcuity ERP')
+@extends('layouts.app')
+@section('title', 'Kunci Periode & Backup � Qalcuity ERP')
 @section('header', 'Kunci Periode & Backup Data')
 
 @section('content')
@@ -17,8 +17,8 @@
     <div class="text-sm text-blue-300/90">
         <p class="font-semibold text-blue-300 mb-1">Cara kerja Period Lock</p>
         <ul class="space-y-0.5 text-blue-300/80 list-disc list-inside">
-            <li><span class="font-medium">Closed</span> — periode ditutup, tidak bisa posting jurnal baru. Masih bisa dibuka kembali oleh admin.</li>
-            <li><span class="font-medium">Locked</span> — dikunci permanen. Tidak ada yang bisa membuat, mengubah, atau menghapus data transaksi pada periode ini.</li>
+            <li><span class="font-medium">Closed</span> � periode ditutup, tidak bisa posting jurnal baru. Masih bisa dibuka kembali oleh admin.</li>
+            <li><span class="font-medium">Locked</span> � dikunci permanen. Tidak ada yang bisa membuat, mengubah, atau menghapus data transaksi pada periode ini.</li>
             <li>Lock Tahun Fiskal otomatis mengunci semua periode bulanan di dalamnya.</li>
             <li>Backup menghasilkan file JSON yang bisa diunduh kapan saja sebagai arsip.</li>
         </ul>
@@ -27,7 +27,7 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-    {{-- ── Fiscal Years ── --}}
+    {{-- -- Fiscal Years -- --}}
     <div class="space-y-4">
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
@@ -52,39 +52,35 @@
                 <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
                     <div>
                         <p class="text-sm font-semibold text-gray-900">{{ $fy->name }}</p>
-                        <p class="text-xs text-gray-400">{{ $fy->start_date->format('d M Y') }} — {{ $fy->end_date->format('d M Y') }}</p>
+                        <p class="text-xs text-gray-400">{{ $fy->start_date->format('d M Y') }} � {{ $fy->end_date->format('d M Y') }}</p>
                         @if($fy->lockedBy)
-                        <p class="text-xs text-red-400 mt-0.5">Dikunci oleh {{ $fy->lockedBy?->name }} · {{ $fy->locked_at->format('d M Y H:i') }}</p>
+                        <p class="text-xs text-red-400 mt-0.5">Dikunci oleh {{ $fy->lockedBy?->name }} � {{ $fy->locked_at->format('d M Y H:i') }}</p>
                         @elseif($fy->closedBy)
-                        <p class="text-xs text-amber-400 mt-0.5">Ditutup oleh {{ $fy->closedBy?->name }} · {{ $fy->closed_at->format('d M Y H:i') }}</p>
+                        <p class="text-xs text-amber-400 mt-0.5">Ditutup oleh {{ $fy->closedBy?->name }} � {{ $fy->closed_at->format('d M Y H:i') }}</p>
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $statusColor }}">{{ $statusLabel }}</span>
                         @if($fy->isOpen())
-                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.close', $fy) }}" class="inline"
-                              onsubmit="return confirm('Tutup tahun fiskal {{ $fy->name }}? Semua periode di dalamnya akan ikut ditutup.')">
+                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.close', $fy) }}" class="inline" data-confirm="Tutup tahun fiskal {{ $fy->name }}? Semua periode di dalamnya akan ikut ditutup.">
                             @csrf @method('PATCH')
                             <button class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-medium transition">Tutup</button>
                         </form>
-                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.lock', $fy) }}" class="inline"
-                              onsubmit="return confirm('KUNCI PERMANEN tahun fiskal {{ $fy->name }}? Tindakan ini tidak dapat dibatalkan!')">
+                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.lock', $fy) }}" class="inline" data-confirm="KUNCI PERMANEN tahun fiskal {{ $fy->name }}? Tindakan ini tidak dapat dibatalkan!" data-confirm-type="danger">
                             @csrf @method('PATCH')
                             <button class="text-xs px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition">Kunci</button>
                         </form>
                         @elseif($fy->isClosed())
-                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.lock', $fy) }}" class="inline"
-                              onsubmit="return confirm('KUNCI PERMANEN tahun fiskal {{ $fy->name }}? Tindakan ini tidak dapat dibatalkan!')">
+                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.lock', $fy) }}" class="inline" data-confirm="KUNCI PERMANEN tahun fiskal {{ $fy->name }}? Tindakan ini tidak dapat dibatalkan!" data-confirm-type="danger">
                             @csrf @method('PATCH')
                             <button class="text-xs px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition">Kunci</button>
                         </form>
-                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.reopen', $fy) }}" class="inline"
-                              onsubmit="return confirm('Buka kembali tahun fiskal {{ $fy->name }}?')">
+                        <form method="POST" action="{{ route('accounting.period-lock.fiscal-years.reopen', $fy) }}" class="inline" data-confirm="Buka kembali tahun fiskal {{ $fy->name }}?">
                             @csrf @method('PATCH')
                             <button class="text-xs px-2.5 py-1 rounded-lg bg-green-500/20 hover:bg-green-500/30 text-green-400 font-medium transition">Buka</button>
                         </form>
                         @else
-                        <span class="text-xs text-red-400 font-medium">🔒 Permanen</span>
+                        <span class="text-xs text-red-400 font-medium">?? Permanen</span>
                         @endif
                     </div>
                 </div>
@@ -93,7 +89,7 @@
             @endif
         </div>
 
-        {{-- ── Accounting Periods ── --}}
+        {{-- -- Accounting Periods -- --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <p class="text-sm font-semibold text-gray-900 mb-4">Periode Bulanan</p>
             @if($periods->isEmpty())
@@ -120,7 +116,7 @@
                     @endphp
                     <tr>
                         <td class="py-2.5 font-medium text-gray-900">{{ $period->name }}</td>
-                        <td class="py-2.5 text-gray-500 text-xs">{{ $period->start_date->format('d M') }} — {{ $period->end_date->format('d M Y') }}</td>
+                        <td class="py-2.5 text-gray-500 text-xs">{{ $period->start_date->format('d M') }} � {{ $period->end_date->format('d M Y') }}</td>
                         <td class="py-2.5">
                             <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $pColor }}">
                                 {{ match($period->status) { 'open'=>'Terbuka','closed'=>'Ditutup','locked'=>'Dikunci', default=>$period->status } }}
@@ -128,13 +124,12 @@
                         </td>
                         <td class="py-2.5 text-right">
                             @if($period->isOpen())
-                            <form method="POST" action="{{ route('accounting.period-lock.periods.lock', $period) }}" class="inline"
-                                  onsubmit="return confirm('Kunci periode {{ $period->name }}?')">
+                            <form method="POST" action="{{ route('accounting.period-lock.periods.lock', $period) }}" class="inline" data-confirm="Kunci periode {{ $period->name }}?">
                                 @csrf @method('PATCH')
                                 <button class="text-xs px-2 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition">Kunci</button>
                             </form>
                             @elseif($period->isLocked())
-                            <span class="text-xs text-red-400">🔒</span>
+                            <span class="text-xs text-red-400">??</span>
                             @else
                             <span class="text-xs text-amber-400">Ditutup</span>
                             @endif
@@ -148,7 +143,7 @@
         </div>
     </div>
 
-    {{-- ── Backup ── --}}
+    {{-- -- Backup -- --}}
     <div class="space-y-4">
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <p class="text-sm font-semibold text-gray-900 mb-4">Buat Backup Manual</p>
@@ -214,11 +209,11 @@
                             <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $bColor }}">{{ ucfirst($backup->status) }}</span>
                         </div>
                         <p class="text-xs text-gray-400 mt-0.5">
-                            {{ $backup->period_start->format('d M Y') }} — {{ $backup->period_end->format('d M Y') }}
+                            {{ $backup->period_start->format('d M Y') }} � {{ $backup->period_end->format('d M Y') }}
                             @if($backup->isCompleted())
-                            · {{ $backup->fileSizeHuman() }}
+                            � {{ $backup->fileSizeHuman() }}
                             @if($backup->summary)
-                            · {{ collect($backup->summary)->sum() }} records
+                            � {{ collect($backup->summary)->sum() }} records
                             @endif
                             @endif
                         </p>
@@ -233,8 +228,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         </a>
                         @endif
-                        <form method="POST" action="{{ route('accounting.period-lock.backups.destroy', $backup) }}" class="inline"
-                              onsubmit="return confirm('Hapus backup ini?')">
+                        <form method="POST" action="{{ route('accounting.period-lock.backups.destroy', $backup) }}" class="inline" data-confirm="Hapus backup ini?" data-confirm-type="danger">
                             @csrf @method('DELETE')
                             <button class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition" title="Hapus">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>

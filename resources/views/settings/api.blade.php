@@ -81,7 +81,7 @@
                         <button type="submit" class="text-xs text-amber-500 hover:text-amber-600 transition">Cabut</button>
                     </form>
                     @endif
-                    <form method="POST" action="{{ route('api-settings.tokens.destroy', $token) }}" onsubmit="return confirm('Hapus token?')">
+                    <form method="POST" action="{{ route('api-settings.tokens.destroy', $token) }}" data-confirm="Hapus token?" data-confirm-type="danger">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-xs text-red-400 hover:text-red-500 transition">Hapus</button>
                     </form>
@@ -144,7 +144,7 @@
                                 {{ $wh->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                             </button>
                         </form>
-                        <form method="POST" action="{{ route('api-settings.webhooks.destroy', $wh) }}" onsubmit="return confirm('Hapus webhook?')">
+                        <form method="POST" action="{{ route('api-settings.webhooks.destroy', $wh) }}" data-confirm="Hapus webhook?" data-confirm-type="danger">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-xs text-red-400 hover:text-red-500 transition">Hapus</button>
                         </form>

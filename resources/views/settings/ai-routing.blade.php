@@ -253,7 +253,7 @@
                                         <form method="POST"
                                             action="{{ route('settings.ai-routing.destroy', $rule->id) }}"
                                             class="inline"
-                                            onsubmit="return confirm('Hapus override untuk {{ $rule->use_case }}? Akan kembali menggunakan routing rule global.')">
+                                            data-confirm="Hapus override untuk {{ $rule->use_case }}? Akan kembali menggunakan routing rule global." data-confirm-type="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

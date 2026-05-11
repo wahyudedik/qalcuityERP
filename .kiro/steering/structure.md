@@ -1,115 +1,131 @@
 # Project Structure
 
 ## Top-Level Layout
+
 ```
-app/                  # PHP application code
-config/               # Laravel config files
-database/
-  migrations/         # Database migrations
-  seeders/            # Seeders (DatabaseSeeder, SuperAdminSeeder, TenantDemoSeeder)
-  factories/          # Model factories
-resources/
-  views/              # Blade templates
-  js/                 # Frontend JavaScript
-  css/                # Stylesheets (Tailwind)
-  lang/               # Translations (primary: id)
-routes/
-  web.php             # Main web routes
-  api.php             # API routes
-  auth.php            # Auth routes
-  console.php         # Artisan console routes / scheduled commands
-  healthcare.php      # Healthcare module routes
-tests/                # PHPUnit tests
-.kiro/specs/          # Kiro spec files (requirements, design, tasks)
+├── app/                  # Application code (PSR-4: App\)
+├── bootstrap/            # Framework bootstrap
+├── config/               # Configuration files
+├── database/             # Migrations, seeders, factories
+├── docs/                 # Documentation
+├── public/               # Web root (index.php, compiled assets)
+├── resources/            # Frontend source (views, CSS, JS, lang)
+├── routes/               # Route definitions
+├── scripts/              # Utility scripts
+├── storage/              # Logs, cache, compiled views, uploads
+├── tests/                # Test suites
+└── vendor/               # Composer dependencies
 ```
 
-## App Directory
+## Application Layer (`app/`)
+
 ```
 app/
-  Console/Commands/   # Artisan commands
-  DTOs/               # Data Transfer Objects
-  Events/             # Laravel events
-  Exceptions/         # Custom exceptions
-  Exports/            # Maatwebsite Excel export classes
-  Http/
-    Controllers/      # Controllers (see below)
-    Middleware/        # HTTP middleware
-    Requests/         # Form request validation classes
-  Imports/            # Maatwebsite Excel import classes
-  Jobs/               # Queued jobs
-  Listeners/          # Event listeners
-  Models/             # Eloquent models (~544 models)
-  Notifications/      # Laravel notification classes
-  Observers/          # Eloquent observers
-  Policies/           # Authorization policies
-  Providers/          # Service providers
-  Rules/              # Custom validation rules
-  Services/           # Business logic service classes
-  Traits/             # Reusable model traits
-  View/               # View composers / components
+├── Console/Commands/     # Artisan commands
+├── Contracts/            # Interfaces (AiProvider, Widget, etc.)
+├── DTOs/                 # Data Transfer Objects
+├── Enums/                # PHP enums
+├── Events/               # Event classes
+├── Exceptions/           # Custom exception handlers
+├── Exports/              # Excel export classes (Maatwebsite)
+├── Helpers/              # Helper utilities
+├── Http/
+│   ├── Controllers/      # Route controllers (grouped by domain)
+│   ├── Middleware/        # HTTP middleware
+│   └── Requests/         # Form request validation
+├── Imports/              # Excel import classes
+├── Jobs/                 # Queue jobs
+├── Listeners/            # Event listeners
+├── Mail/                 # Mailable classes
+├── Models/               # Eloquent models (~550 models)
+├── Notifications/        # Notification classes
+├── Observers/            # Model observers
+├── Policies/             # Authorization policies
+├── Providers/            # Service providers
+├── Rules/                # Custom validation rules
+├── Services/             # Business logic services
+├── Traits/               # Reusable traits
+├── View/                 # View composers/components
+├── Widgets/              # Dashboard widget classes
+└── helpers.php           # Global helper functions
 ```
 
 ## Controllers Organization
-Controllers are grouped by domain under `app/Http/Controllers/`:
-- Top-level controllers for core modules (e.g. `AccountingController`, `InventoryController`, `HrmController`)
-- Subdirectories for complex domains: `Admin/`, `AI/`, `Analytics/`, `Api/`, `Auth/`, `Healthcare/`, `Telecom/`, `SuperAdmin/`
-- AI-specific controllers follow the pattern `{Module}AiController` (e.g. `AccountingAiController`, `SalesAiController`)
+
+Controllers are grouped by domain in subdirectories:
+
+- `Admin/` — Admin panel controllers
+- `AI/` — AI-related endpoints
+- `Analytics/` — Reporting and analytics
+- `Api/` — API controllers
+- `Auth/` — Authentication
+- `Healthcare/`, `Hotel/`, `Telecom/`, `Construction/`, `Cosmetic/`, `Fisheries/`, `Fnb/`, `Livestock/`, `Manufacturing/`, `TourTravel/`, `Printing/` — Industry modules
+- `Hrm/`, `Inventory/`, `Pos/`, `Marketplace/`, `SuperAdmin/` — Core module controllers
+
+General-purpose controllers sit at the root of `Controllers/`.
 
 ## Services Organization
-`app/Services/` contains business logic:
-- Flat service files for core features (e.g. `GeminiService`, `JournalService`, `PayrollCalculationService`)
-- Subdirectories for complex domains: `AI/`, `Agent/`, `Audit/`, `DemoData/`, `ERP/`, `Fisheries/`, `Healthcare/`, `Integrations/`, `Manufacturing/`, `Marketplace/`, `MultiCompany/`, `Security/`, `Telecom/`
-- AI services follow the pattern `{Module}AiService` (e.g. `AccountingAiService`, `SalesAiService`, `HrmAiService`)
 
-## Views Organization
-`resources/views/` mirrors the module structure — one folder per domain (e.g. `accounting/`, `inventory/`, `hrm/`, `pos/`). Shared elements live in:
-- `layouts/` — base layout templates
-- `components/` — reusable Blade components
-- `partials/` — shared partial views
-- `pdf/` — PDF export templates
+Services contain business logic, separated from controllers:
 
-## Frontend JavaScript
-`resources/js/`:
-- `app.js` — main entry point
-- `modules/` — per-feature JS modules (lazy-loaded)
-- `chunks/` — code-split chunks
-- Feature files: `chat.js`, `offline-manager.js`, `offline-pos.js`, `push-notification.js`, `sw.js` (service worker)
+- `Agent/` — AI agent orchestration
+- `AI/` — AI provider abstraction
+- `Audit/` — Audit trail services
+- `DemoData/` — Sample data generation
+- `ERP/` — Core ERP business logic
+- `Healthcare/`, `Fisheries/`, `Manufacturing/`, `Telecom/` — Industry services
+- `Integrations/` — Third-party integration services
+- `Layout/` — UI layout services
+- `Marketplace/` — E-commerce marketplace sync
+- `MultiCompany/` — Multi-company consolidation
+- `Security/` — Security and access control
+- `Widget/` — Dashboard widget services
 
-## Key Traits (apply to Models)
-- `BelongsToTenant` — adds global scope to auto-filter queries by `tenant_id`; auto-sets `tenant_id` on create. **Use on every tenant-scoped model.**
-- `AuditsChanges` — auto-logs created/updated/deleted events to `ActivityLog`
-- `CacheableModel` — model-level caching helpers (also aliased as `CachableModel`)
-- `DispatchesWebhooks` — fires webhook events on model changes
-- `Filterable` — adds reusable query filter scopes
-- `HasTransactionIsolation` — enforces DB transaction isolation for financial operations
+## Frontend (`resources/`)
 
-## Multi-Tenancy Rules
-- Every tenant-scoped model **must** use the `BelongsToTenant` trait
-- `tenant_id` is the isolation key — never query tenant data without it
-- SuperAdmin users bypass tenant scoping (checked via `$user->isSuperAdmin()`)
-- `EnforceTenantIsolation` middleware validates route model bindings against the authenticated user's `tenant_id`
-- Module access is gated by `CheckModulePlanAccess` middleware using `PlanModuleMap`
-- Use `Model::withoutTenantScope()` or `Model::forTenant($id)` only in admin/superadmin contexts
+```
+resources/
+├── css/app.css           # Main Tailwind stylesheet
+├── js/
+│   ├── app.js            # Main application entry
+│   ├── pos-app.js        # POS module entry
+│   ├── chat.js           # AI chat entry
+│   ├── offline-manager.js
+│   ├── sw.js             # Service worker
+│   └── modules/          # Lazy-loaded JS modules
+├── lang/                 # Localization files
+└── views/                # Blade templates
+    ├── layouts/          # Base layouts
+    ├── components/       # Reusable Blade components
+    ├── partials/         # Shared partials
+    └── [module]/         # Module-specific views
+```
 
-## Naming Conventions
-- Controllers: `PascalCase` + `Controller` suffix
-- Services: `PascalCase` + `Service` suffix
-- Jobs: descriptive verb phrase (e.g. `ProcessChatMessage`, `GenerateAiInsights`)
-- Models: singular `PascalCase`
-- Migrations: Laravel standard snake_case timestamps
-- Blade views: `snake_case.blade.php` inside domain folder
-- Routes: kebab-case slugs
+## Routes
 
-## Configuration Files of Note
-- `config/gemini.php` — Gemini AI settings
-- `config/brand.php` — branding/white-label config
-- `config/security.php` — security settings
-- `config/healthcare.php` — healthcare module config
-- `config/bank_formats.php` — bank statement format definitions
-- `config/dashboard-templates.php` — dashboard widget templates
-- `config/audit.php` — audit trail settings
-- `config/data_retention.php` — data retention policies
-- `config/pos_printer.php` — POS thermal printer config
-- `config/iot_hardware.php` — IoT/hardware integration config
-- `config/database_transactions.php` — DB transaction isolation settings
-- `config/migration.php` — migration performance options
+- `routes/web.php` — Main web routes
+- `routes/api.php` — API routes
+- `routes/auth.php` — Authentication routes (Breeze)
+- `routes/healthcare.php` — Healthcare module routes
+- `routes/console.php` — Console/scheduler routes
+
+## Tests
+
+```
+tests/
+├── Unit/                 # Unit tests
+├── Feature/              # Feature/integration tests
+├── Property/             # Property-based tests (Eris)
+└── TestCase.php          # Base test class
+```
+
+## Key Architectural Patterns
+
+1. **Service Layer** — Business logic in `app/Services/`, controllers are thin
+2. **Multi-Tenant Isolation** — Tenant scoping via middleware and model traits
+3. **Domain Grouping** — Controllers, services, views, routes grouped by business domain
+4. **Blade Components** — Reusable UI in `resources/views/components/`
+5. **Queue Jobs** — Heavy processing dispatched to Redis queues
+6. **Observer Pattern** — Model observers for side effects
+7. **DTOs** — Data transfer objects for complex data passing
+8. **Contracts** — Interfaces for swappable implementations

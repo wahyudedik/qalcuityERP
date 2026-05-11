@@ -204,7 +204,7 @@
                     a.click();
                     window.URL.revokeObjectURL(url);
                 })
-                .catch(error => alert('Export failed'));
+                .catch(error => Dialog.warning('Export failed'));
         }
     </script>
 </x-app-layout>

@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Manajemen Pengeluaran</x-slot>
 
     <div class="space-y-5">
@@ -14,7 +14,7 @@
                 <p class="text-2xl font-bold text-red-400 mt-1">Rp {{ number_format($thisMonth, 0, ',', '.') }}</p>
                 @php $diff = $lastMonth > 0 ? (($thisMonth - $lastMonth) / $lastMonth) * 100 : 0; @endphp
                 <p class="text-xs mt-1 {{ $diff > 0 ? 'text-red-400' : 'text-green-400' }}">
-                    {{ $diff > 0 ? '▲' : '▼' }} {{ abs(round($diff, 1)) }}% vs bulan lalu
+                    {{ $diff > 0 ? '?' : '?' }} {{ abs(round($diff, 1)) }}% vs bulan lalu
                 </p>
             </div>
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
@@ -147,7 +147,7 @@
                                                     <span class="text-xs text-gray-400 ml-1">#{{ $exp->reference }}</span>
                                                 @endif
                                                 @if($exp->attachment)
-                                                    <a href="{{ $exp->attachment }}" target="_blank" class="ml-1 text-blue-400 text-xs">📎</a>
+                                                    <a href="{{ $exp->attachment }}" target="_blank" class="ml-1 text-blue-400 text-xs">??</a>
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3 text-right font-medium text-red-400">
@@ -158,16 +158,15 @@
                                                 @if($exp->journalEntry)
                                                     <span title="Jurnal: {{ $exp->journalEntry?->number }}"
                                                         class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">
-                                                        ✓ GL
+                                                        ? GL
                                                     </span>
                                                 @else
-                                                    <span class="text-xs text-gray-400">—</span>
+                                                    <span class="text-xs text-gray-400">�</span>
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3">
                                                 @canmodule('expenses', 'delete')
-                                                <form method="POST" action="{{ route('expenses.destroy', $exp) }}"
-                                                    onsubmit="return confirm('Hapus pengeluaran ini?')">
+                                                <form method="POST" action="{{ route('expenses.destroy', $exp) }}" data-confirm="Hapus pengeluaran ini?" data-confirm-type="danger">
                                                     @csrf @method('DELETE')
                                                     <button type="submit" class="text-xs text-red-400 hover:text-red-300 transition">Hapus</button>
                                                 </form>

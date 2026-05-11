@@ -78,18 +78,19 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        alert(data.message);
+                        Dialog.alert(data.message);
                         if (data.success) {
                             window.location.reload();
                         }
                     })
                     .catch(err => {
-                        alert('Error: ' + err.message);
+                        Dialog.warning('Error: ' + err.message);
                     });
             }
 
-            function removeFingerprint(employeeId) {
-                if (!confirm('Yakin ingin menghapus registrasi fingerprint karyawan ini?')) return;
+            async function removeFingerprint(employeeId) {
+                const confirmed = await Dialog.danger('Yakin ingin menghapus registrasi fingerprint karyawan ini?');
+                if (!confirmed) return;
 
                 fetch(`/hrm/fingerprint/employees/${employeeId}/remove-registration`, {
                         method: 'DELETE',
@@ -100,13 +101,13 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        alert(data.message);
+                        Dialog.alert(data.message);
                         if (data.success) {
                             window.location.reload();
                         }
                     })
                     .catch(err => {
-                        alert('Error: ' + err.message);
+                        Dialog.warning('Error: ' + err.message);
                     });
             }
         </script>

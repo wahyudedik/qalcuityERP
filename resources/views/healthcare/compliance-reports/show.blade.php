@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Compliance Report Details') }} -
-                {{ $report->report_number }}</x-slot>
+        {{ $report->report_number }}</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.compliance-reports.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
-                    class="fas fa-arrow-left mr-2"></i>Back</a>
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
+                class="fas fa-arrow-left mr-2"></i>Back</a>
     </div>
 
     <div class="py-12">
@@ -168,45 +168,45 @@
     </div>
 
     <script>
-        function submitForReview() {
-            if (confirm('Submit this report for review?')) {
-                fetch('{{ route('healthcare.compliance-reports.submit-for-review', $report) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Submit failed'));
-            }
+        async function submitForReview() {
+            const confirmed = await Dialog.confirm('Submit this report for review?');
+            if (!confirmed) return;
+            fetch('{{ route('healthcare.compliance-reports.submit-for-review', $report) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Submit failed'));
         }
 
-        function approveReport() {
+        async function approveReport() {
             const reviewNotes = document.getElementById('review_notes').value;
 
-            if (confirm('Approve this report?')) {
-                fetch('{{ route('healthcare.compliance-reports.approve', $report) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            review_notes: reviewNotes
-                        })
+            const confirmed = await Dialog.confirm('Approve this report?');
+            if (!confirmed) return;
+            fetch('{{ route('healthcare.compliance-reports.approve', $report) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        review_notes: reviewNotes
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Approval failed'));
-            }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Approval failed'));
         }
     </script>
 </x-app-layout>

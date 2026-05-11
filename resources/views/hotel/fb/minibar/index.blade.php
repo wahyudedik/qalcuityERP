@@ -29,8 +29,7 @@
             @endif
 
             {{-- Recent Transactions --}}
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
                 <div class="p-6 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900">Recent Consumption</h3>
                 </div>
@@ -39,26 +38,19 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Date</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Room</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Guest</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Item</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Qty</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Charge</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
                             </tr>
                         </thead>
@@ -68,8 +60,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->consumption_date->format('d/m/Y H:i') }}
                                     </td>
-                                    <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         Room {{ $transaction->room_number }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -81,13 +72,12 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->quantity_consumed }}
                                     </td>
-                                    <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                         Rp {{ number_format($transaction->total_charge, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         {{ $transaction->billing_status === 'billed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                             {{ ucfirst($transaction->billing_status) }}
                                         </span>
@@ -112,10 +102,8 @@
                     Restock Minibar
                 </button>
 
-                <button onclick="openConsumptionModal()"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
-                    Record Consumption
-                </button>
+                <x-disabled-button label="Record Consumption" tooltip="Fitur akan segera tersedia"
+                    class="inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest" />
             </div>
         </div>
     </div>
@@ -133,14 +121,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Room
                             Number</label>
-                        <input type="number" name="room_number" required
-                            class="w-full rounded-md border-gray-300">
+                        <input type="number" name="room_number" required class="w-full rounded-md border-gray-300">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Item</label>
-                        <select name="menu_item_id" required
-                            class="w-full rounded-md border-gray-300">
+                        <select name="menu_item_id" required class="w-full rounded-md border-gray-300">
                             <option value="">Select Item</option>
                             <!-- Options loaded dynamically -->
                         </select>
@@ -170,11 +156,6 @@
 
         function closeRestockModal() {
             document.getElementById('modal-restock').classList.add('hidden');
-        }
-
-        function openConsumptionModal() {
-            // Similar implementation
-            alert('Record consumption modal - implement similarly');
         }
     </script>
 </x-app-layout>

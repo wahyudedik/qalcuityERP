@@ -31,7 +31,7 @@
                 @if(in_array($letter->status, ['issued','acknowledged']))
                 <form method="POST" action="{{ route('hrm.disciplinary.expire', $letter) }}">
                     @csrf @method('PATCH')
-                    <button type="submit" onclick="return confirm('Tandai SP ini sebagai expired?')"
+                    <button type="submit" data-confirm="Tandai SP ini sebagai expired?"
                         class="w-full py-2 text-sm border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50">
                         Tandai Expired
                     </button>

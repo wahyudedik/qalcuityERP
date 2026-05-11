@@ -172,7 +172,7 @@
                                     @method('DELETE')
                                     <button type="submit"
                                         class="p-1.5 rounded-lg hover:bg-red-100 transition"
-                                        onclick="return confirm('Delete this preference?')">
+                                        data-confirm="Delete this preference?" data-confirm-type="danger">
                                         <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -236,7 +236,7 @@
                                     @method('DELETE')
                                     <button type="submit"
                                         class="p-1.5 rounded-lg hover:bg-red-100 transition"
-                                        onclick="return confirm('Delete this preference?')">
+                                        data-confirm="Delete this preference?" data-confirm-type="danger">
                                         <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -296,7 +296,7 @@
                                     @method('DELETE')
                                     <button type="submit"
                                         class="p-1.5 rounded-lg hover:bg-red-100 transition"
-                                        onclick="return confirm('Delete this preference?')">
+                                        data-confirm="Delete this preference?" data-confirm-type="danger">
                                         <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -356,7 +356,7 @@
                                     @method('DELETE')
                                     <button type="submit"
                                         class="p-1.5 rounded-lg hover:bg-red-100 transition"
-                                        onclick="return confirm('Delete this preference?')">
+                                        data-confirm="Delete this preference?" data-confirm-type="danger">
                                         <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

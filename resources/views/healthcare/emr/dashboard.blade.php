@@ -4,13 +4,13 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.patients.show', $patient) }}"
-                    class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                    Back to Patient
-                </a>
+            class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+            Back to Patient
+        </a>
         <a href="{{ route('healthcare.emr.timeline', $patient) }}"
-                    class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
-                    View Timeline
-                </a>
+            class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
+            View Timeline
+        </a>
     </div>
 
     <div class="max-w-7xl mx-auto">
@@ -18,8 +18,7 @@
         @if ($allergy_alerts->count() > 0)
             <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200">
                 <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -45,8 +44,7 @@
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -61,10 +59,8 @@
 
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                    <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -79,10 +75,8 @@
 
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -99,8 +93,7 @@
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -116,8 +109,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {{-- Vital Signs Chart --}}
-            <div
-                class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
+            <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">Vital Signs Trend</h3>
                     <select id="vitalDays" onchange="loadVitalSignsChart()"
@@ -128,8 +120,7 @@
                     </select>
                 </div>
                 <div id="vitalSignsLoading" class="text-center py-12">
-                    <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" fill="none"
-                        viewBox="0 0 24 24">
+                    <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor"
@@ -200,14 +191,8 @@
             <div class="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <a href="#" onclick="openNewVisitModal()"
-                        class="p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition">
-                        <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        <p class="text-sm font-medium">New Visit</p>
-                    </a>
+                    <x-disabled-button label="New Visit" tooltip="Fitur akan segera tersedia"
+                        class="p-4 rounded-xl text-sm font-medium" />
                     <a href="{{ route('healthcare.patients.show', $patient) }}"
                         class="p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,14 +201,8 @@
                         </svg>
                         <p class="text-sm font-medium">Resep</p>
                     </a>
-                    <a href="#" onclick="openLabOrderModal()"
-                        class="p-4 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition">
-                        <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                        </svg>
-                        <p class="text-sm font-medium">Order Lab</p>
-                    </a>
+                    <x-disabled-button label="Order Lab" tooltip="Fitur akan segera tersedia"
+                        class="p-4 rounded-xl text-sm font-medium" />
                     <a href="{{ route('healthcare.emr.export', $patient) }}"
                         class="p-4 bg-gradient-to-br from-gray-500 to-gray-600 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,14 +320,6 @@
                         }
                     }
                 });
-            }
-
-            function openNewVisitModal() {
-                alert('New Visit modal - to be implemented');
-            }
-
-            function openLabOrderModal() {
-                alert('Lab Order modal - to be implemented');
             }
 
             // Load chart on page load

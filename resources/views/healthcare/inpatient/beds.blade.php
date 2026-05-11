@@ -114,12 +114,12 @@
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="w-10 h-10 rounded-xl 
+                                        class="w-10 h-10 rounded-xl
                                         @if ($bed->status === 'available') bg-green-100
                                         @elseif($bed->status === 'occupied') bg-red-100
                                         @elseif($bed->status === 'maintenance') bg-amber-100
                                         @else bg-gray-100 @endif flex items-center justify-center shrink-0">
-                                        <svg class="w-5 h-5 
+                                        <svg class="w-5 h-5
                                             @if ($bed->status === 'available') text-green-600
                                             @elseif($bed->status === 'occupied') text-red-600
                                             @elseif($bed->status === 'maintenance') text-amber-600
@@ -130,8 +130,7 @@
                                             </path>
                                         </svg>
                                     </div>
-                                    <span
-                                        class="font-semibold text-gray-900">{{ $bed->bed_number }}</span>
+                                    <span class="font-semibold text-gray-900">{{ $bed->bed_number }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
@@ -247,7 +246,7 @@
         <script>
             function updateBedStatus(bedId) {
                 // Implement bed status update modal
-                alert('Update status bed ID: ' + bedId);
+                Dialog.alert('Update status bed ID: ' + bedId);
             }
         </script>
     @endpush

@@ -36,7 +36,7 @@
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-3">
             <form method="POST" action="{{ route('ai-memory.prune') }}"
-                onsubmit="return confirm('Hapus semua memori usang (keyakinan < 30%)?')">
+                data-confirm="Hapus semua memori usang (keyakinan < 30%)?" data-confirm-type="danger">
                 @csrf
                 <button type="submit"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-xl text-sm font-medium hover:bg-amber-200 transition-colors border border-amber-200">
@@ -48,7 +48,7 @@
                 </button>
             </form>
             <form method="POST" action="{{ route('ai-memory.reset') }}"
-                onsubmit="return confirm('Reset semua memori AI? Preferensi yang dipelajari akan dihapus.')">
+                data-confirm="Reset semua memori AI? Preferensi yang dipelajari akan dihapus." data-confirm-type="danger">
                 @csrf
                 <button type="submit"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-xl text-sm font-medium hover:bg-red-200 transition-colors border border-red-200">

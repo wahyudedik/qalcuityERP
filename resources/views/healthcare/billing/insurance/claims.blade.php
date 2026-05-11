@@ -131,8 +131,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.billing.insurance.claims.show', $claim) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                        title="Detail">
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -143,8 +142,7 @@
                                     </a>
                                     @if ($claim->status === 'pending')
                                         <button onclick="submitClaim({{ $claim->id }})"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
-                                            title="Submit">
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg" title="Submit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -175,16 +173,16 @@
 
     @push('scripts')
         <script>
-            function submitClaim(id) {
-                if (confirm('Submit klaim ini ke asuransi?')) {
-                    fetch(`/healthcare/billing/insurance/claims/${id}/submit`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    }).then(() => location.reload());
-                }
+            async function submitClaim(id) {
+                const confirmed = await Dialog.confirm('Submit klaim ini ke asuransi?');
+                if (!confirmed) return;
+                fetch(`/healthcare/billing/insurance/claims/${id}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                }).then(() => location.reload());
             }
         </script>
     @endpush

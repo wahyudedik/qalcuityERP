@@ -270,8 +270,9 @@
 
     @push('scripts')
         <script>
-            function triggerSync(type) {
-                if (!confirm(`Trigger ${type} sync?`)) return;
+            async function triggerSync(type) {
+                const confirmed = await Dialog.confirm(`Trigger ${type} sync?`);
+                if (!confirmed) return;
 
                 fetch(`/integrations/{{ $integration->id }}/sync`, {
                         method: 'POST',
@@ -286,13 +287,13 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert(`${type} sync job queued successfully!`);
+                            Dialog.success(`${type} sync job queued successfully!`);
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            alert('Failed: ' + data.error);
+                            Dialog.warning('Failed: ' + data.error);
                         }
                     })
-                    .catch(error => alert('Error: ' + error.message));
+                    .catch(error => Dialog.warning('Error: ' + error.message));
             }
 
             function testConnection() {
@@ -300,12 +301,12 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Connection successful! (' + data.duration_ms + 'ms)');
+                            Dialog.success('Connection successful! (' + data.duration_ms + 'ms)');
                         } else {
-                            alert('Connection failed: ' + (data.error || 'Unknown error'));
+                            Dialog.warning('Connection failed: ' + (data.error || 'Unknown error'));
                         }
                     })
-                    .catch(error => alert('Error: ' + error.message));
+                    .catch(error => Dialog.warning('Error: ' + error.message));
             }
         </script>
     @endpush

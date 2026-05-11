@@ -195,7 +195,8 @@
                                         </form>
                                         <form method="POST" action="{{ route('tenant.roles.destroy', $role) }}"
                                             class="inline"
-                                            onsubmit="return confirm('Hapus role {{ $role->name }}? Pastikan tidak ada pengguna yang menggunakan role ini.')">
+                                            data-confirm="Hapus role {{ $role->name }}? Pastikan tidak ada pengguna yang menggunakan role ini."
+                                            data-confirm-type="danger">
                                             @csrf @method('DELETE')
                                             <button type="submit" title="Hapus"
                                                 class="p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 transition">

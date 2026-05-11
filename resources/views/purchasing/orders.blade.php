@@ -53,11 +53,17 @@
                                 {{ number_format($po->total, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center">
                                 @php
-                                    $colors = ['draft' => 'gray', 'sent' => 'blue', 'partial' => 'yellow', 'received' => 'green', 'cancelled' => 'red'];
+                                    $colors = [
+                                        'draft' => 'gray',
+                                        'sent' => 'blue',
+                                        'partial' => 'yellow',
+                                        'received' => 'green',
+                                        'cancelled' => 'red',
+                                    ];
                                     $c = $colors[$po->status] ?? 'gray';
                                 @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                     {{ ucfirst($po->status) }}
                                 </span>
                             </td>
@@ -82,7 +88,8 @@
                                 @if (in_array($po->status, ['draft', 'cancelled']))
                                     <form method="POST" action="{{ route('purchasing.orders.destroy', $po) }}"
                                         class="inline ml-1"
-                                        onsubmit="return confirm('Hapus PO {{ $po->number }}? Tindakan ini tidak bisa dibatalkan.')">
+                                        data-confirm="Hapus PO {{ $po->number }}? Tindakan ini tidak bisa dibatalkan."
+                                        data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Hapus PO">

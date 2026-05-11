@@ -171,8 +171,9 @@
 
     @push('scripts')
         <script>
-            function triggerSync(integrationId) {
-                if (!confirm('Trigger sync for this integration?')) return;
+            async function triggerSync(integrationId) {
+                const confirmed = await Dialog.confirm('Trigger sync for this integration?');
+                if (!confirmed) return;
 
                 fetch(`/integrations/${integrationId}/sync`, {
                         method: 'POST',
@@ -187,13 +188,13 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Sync job queued successfully!');
+                            Dialog.success('Sync job queued successfully!');
                         } else {
-                            alert('Failed to trigger sync: ' + data.error);
+                            Dialog.warning('Failed to trigger sync: ' + data.error);
                         }
                     })
                     .catch(error => {
-                        alert('Error: ' + error.message);
+                        Dialog.warning('Error: ' + error.message);
                     });
             }
         </script>

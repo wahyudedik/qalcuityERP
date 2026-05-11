@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.emr.dashboard', $visit->patient_id) }}"
-                class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                Back to Dashboard
-            </a>
+            class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+            Back to Dashboard
+        </a>
     </div>
 
     <div class="max-w-6xl mx-auto">
@@ -282,7 +282,7 @@
             // Voice-to-Text Integration
             function startVoiceInput(targetId) {
                 if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    alert('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
+                    Dialog.warning('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
                     return;
                 }
 
@@ -401,7 +401,7 @@
             // Drug Interaction Checker
             function checkInteractions() {
                 if (medications.length < 2) {
-                    alert('Please add at least 2 medications to check interactions');
+                    Dialog.warning('Please add at least 2 medications to check interactions');
                     return;
                 }
 

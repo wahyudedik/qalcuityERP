@@ -23,7 +23,7 @@
                 </div>
                 @php $sc = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green','cancelled'=>'gray'][$pickingList->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst(str_replace('_', ' ', $pickingList->status)) }}
                 </span>
             </div>
@@ -63,9 +63,7 @@
             @foreach ($pickingList->items as $item)
                 @php
                     $isPicked = in_array($item->status, ['picked', 'short']);
-                    $borderCls = $isPicked
-                        ? 'border-green-300 bg-green-50'
-                        : 'border-gray-200 bg-white';
+                    $borderCls = $isPicked ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white';
                     $ic = ['pending' => 'amber', 'picked' => 'green', 'short' => 'red'][$item->status] ?? 'gray';
                 @endphp
                 <div id="item-row-{{ $item->id }}"
@@ -83,13 +81,12 @@
                                     {{ $item->product?->sku ?? '-' }}
                                 </span>
                                 @if ($item->bin)
-                                    <span
-                                        class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
+                                    <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
                                         Bin: {{ $item->bin?->code }}
                                     </span>
                                 @endif
                                 <span
-                                    class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">
+                                    class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">
                                     {{ ucfirst($item->status) }}
                                 </span>
                             </div>
@@ -279,7 +276,7 @@
 
             function startScanner() {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
+                    Dialog.warning('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
                     return;
                 }
 
@@ -299,20 +296,20 @@
                     });
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
-                    alert('Gagal menginisialisasi scanner: ' + error.message);
+                    Dialog.warning('Gagal menginisialisasi scanner: ' + error.message);
                     stopScanner();
                 }
             }
 
             function handleCameraError(error) {
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                    Dialog.warning('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
                 } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                    alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                    Dialog.warning('Tidak ada kamera yang ditemukan di perangkat Anda.');
                 } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                    alert('Kamera sedang digunakan oleh aplikasi lain.');
+                    Dialog.warning('Kamera sedang digunakan oleh aplikasi lain.');
                 } else {
-                    alert('Gagal mengakses kamera: ' + error.message);
+                    Dialog.warning('Gagal mengakses kamera: ' + error.message);
                 }
             }
 

@@ -79,7 +79,7 @@
             Tambah Use Case Baru
         </button>
         <form method="POST" action="{{ route('super-admin.ai.routing.reset') }}" x-data="{ confirmReset: false }"
-            @submit.prevent="if (confirmReset || confirm('Reset semua routing rules ke konfigurasi default? Perubahan custom akan hilang.')) { $el.submit(); }">
+            @submit.prevent="Dialog.danger('Reset semua routing rules ke konfigurasi default? Perubahan custom akan hilang.').then(ok => { if (ok) $el.submit(); })">
             @csrf
             <button type="submit"
                 class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium transition flex items-center gap-2">

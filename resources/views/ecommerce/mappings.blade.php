@@ -160,8 +160,7 @@
                                     </td>
                                     <td class="px-6 py-3 text-right">
                                         <form method="POST"
-                                            action="{{ route('ecommerce.channels.mappings.destroy', $mapping) }}"
-                                            onsubmit="return confirm('Hapus mapping ini?')">
+                                            action="{{ route('ecommerce.channels.mappings.destroy', $mapping) }}" data-confirm="Hapus mapping ini?" data-confirm-type="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

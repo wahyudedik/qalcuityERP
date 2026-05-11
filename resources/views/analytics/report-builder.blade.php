@@ -304,7 +304,7 @@
                 const checkedMetrics = document.querySelectorAll('input[name="metrics[]"]:checked');
                 if (checkedMetrics.length === 0) {
                     e.preventDefault();
-                    alert('Please select at least one metric');
+                    Dialog.warning('Please select at least one metric');
                 }
             });
 

@@ -18,8 +18,7 @@
             </div>
 
             @if ($errors->any())
-                <div
-                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -232,8 +231,7 @@
                 </div>
 
                 <!-- Info Box -->
-                <div
-                    class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <i class="fas fa-info-circle h-5 w-5 text-blue-400"></i>
@@ -258,8 +256,7 @@
                         class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                         {{ __('Batal') }}
                     </a>
-                    <button type="submit"
-                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         {{ __('Simpan & Test Koneksi') }}
                     </button>
                 </div>
@@ -323,7 +320,7 @@
                 // Get current location button
                 getLocationBtn.addEventListener('click', function() {
                     if (!navigator.geolocation) {
-                        alert('{{ __('Geolocation tidak didukung oleh browser Anda') }}');
+                        Dialog.warning('{{ __('Geolocation tidak didukung oleh browser Anda') }}');
                         return;
                     }
 
@@ -346,7 +343,7 @@
                                 '<i class="fas fa-map-marker-alt"></i> {{ __('Get Current Location') }}';
                         },
                         function(error) {
-                            alert('{{ __('Gagal mendapatkan lokasi: ') }}' + error.message);
+                            Dialog.warning('{{ __('Gagal mendapatkan lokasi: ') }}' + error.message);
                             getLocationBtn.disabled = false;
                             getLocationBtn.innerHTML =
                                 '<i class="fas fa-map-marker-alt"></i> {{ __('Get Current Location') }}';

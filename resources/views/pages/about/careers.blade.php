@@ -16,13 +16,15 @@
                         <div class="p-4 border border-gray-200 rounded-lg">
                             <h3 class="text-xl font-semibold mb-2">🚀 Senior Laravel Developer</h3>
                             <p class="text-gray-600 mb-3">Full-time • Remote OK</p>
-                            <a href="#" class="text-blue-600 hover:text-blue-700">Apply Now →</a>
+                            <x-disabled-link class="text-blue-600" tooltip="Kirim lamaran ke hr@qalcuity.com">Apply Now
+                                →</x-disabled-link>
                         </div>
 
                         <div class="p-4 border border-gray-200 rounded-lg">
                             <h3 class="text-xl font-semibold mb-2">🎨 UI/UX Designer</h3>
                             <p class="text-gray-600 mb-3">Full-time • Jakarta</p>
-                            <a href="#" class="text-blue-600 hover:text-blue-700">Apply Now →</a>
+                            <x-disabled-link class="text-blue-600" tooltip="Kirim lamaran ke hr@qalcuity.com">Apply Now
+                                →</x-disabled-link>
                         </div>
                     </div>
                 </div>

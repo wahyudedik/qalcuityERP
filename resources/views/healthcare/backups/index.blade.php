@@ -4,8 +4,8 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('healthcare.backups.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"><i
-                    class="fas fa-plus mr-2"></i>New Backup</a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"><i
+                class="fas fa-plus mr-2"></i>New Backup</a>
     </div>
 
     <div class="py-12">
@@ -195,22 +195,22 @@
     </div>
 
     <script>
-        function deleteBackup(id) {
-            if (confirm('Are you sure you want to delete this backup?')) {
-                fetch(`{{ route('healthcare.backups.destroy', '') }}/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        location.reload();
-                    })
-                    .catch(error => alert('Delete failed'));
-            }
+        async function deleteBackup(id) {
+            const confirmed = await Dialog.danger('Are you sure you want to delete this backup?');
+            if (!confirmed) return;
+            fetch(`{{ route('healthcare.backups.destroy', '') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Dialog.alert(data.message);
+                    location.reload();
+                })
+                .catch(error => Dialog.warning('Delete failed'));
         }
     </script>
 </x-app-layout>

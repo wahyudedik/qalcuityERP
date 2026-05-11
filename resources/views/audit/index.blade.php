@@ -4,8 +4,7 @@
     <div class="space-y-4">
 
         {{-- Retention & Stats Bar --}}
-        <div
-            class="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-gray-200 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-gray-200 p-4">
             <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <span><strong class="text-gray-900">{{ number_format($totalLogs) }}</strong> total
                     log</span>
@@ -130,8 +129,7 @@
                                 id="row-{{ $log->id }}">
                                 <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
                                     {{ $log->created_at->format('d/m/Y') }}<br>
-                                    <span
-                                        class="text-gray-400">{{ $log->created_at->format('H:i:s') }}</span>
+                                    <span class="text-gray-400">{{ $log->created_at->format('H:i:s') }}</span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-1.5">
@@ -194,11 +192,9 @@
     {{-- ═══════════ Detail + Diff Modal ═══════════ --}}
     <div id="modal-detail"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-3xl shadow-xl max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-3xl shadow-xl max-h-[90vh] flex flex-col">
             {{-- Header --}}
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
                 <div>
                     <h3 class="font-semibold text-gray-900 text-sm" id="detail-title">Detail Audit Log
                     </h3>
@@ -253,16 +249,14 @@
     {{-- ═══════════ Compliance Report Modal ═══════════ --}}
     <div id="modal-compliance"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-xl">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div>
                     <h3 class="font-semibold text-gray-900 text-sm">Compliance Report (SOX)</h3>
                     <p class="text-xs text-gray-400 mt-0.5">Export audit trail untuk keperluan
                         kepatuhan / auditor eksternal</p>
                 </div>
-                <button onclick="closeComplianceModal()"
-                    class="text-gray-400 hover:text-gray-600">
+                <button onclick="closeComplianceModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -287,8 +281,7 @@
                             class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
-                <div
-                    class="bg-indigo-50 rounded-xl p-3 text-xs text-indigo-700 space-y-1">
+                <div class="bg-indigo-50 rounded-xl p-3 text-xs text-indigo-700 space-y-1">
                     <p class="font-semibold">Format laporan mencakup:</p>
                     <ul class="list-disc list-inside space-y-0.5 text-indigo-600">
                         <li>Semua event dengan timestamp ISO 8601</li>
@@ -320,8 +313,7 @@
     {{-- ═══════════ Rollback Conflict Modal ═══════════ --}}
     <div id="modal-conflict"
         class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div
-            class="bg-white rounded-2xl border border-amber-300 w-full max-w-lg shadow-xl">
+        <div class="bg-white rounded-2xl border border-amber-300 w-full max-w-lg shadow-xl">
             <div class="px-6 py-4 border-b border-amber-100 flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -504,7 +496,9 @@
         // ── Rollback action ───────────────────────────────────────────
         async function performRollback() {
             if (!currentLogId) return;
-            if (!confirm('Yakin ingin me-rollback perubahan ini? Data akan dikembalikan ke nilai sebelumnya.')) return;
+            const confirmed = await Dialog.danger(
+                'Yakin ingin me-rollback perubahan ini? Data akan dikembalikan ke nilai sebelumnya.');
+            if (!confirmed) return;
 
             const btn = document.getElementById('btn-rollback');
             btn.disabled = true;
@@ -535,12 +529,12 @@
                     btn.textContent = '↩ Rollback Perubahan Ini';
                     showConflictModal(data.conflicts);
                 } else {
-                    alert(data.message || 'Rollback gagal.');
+                    Dialog.warning(data.message || 'Rollback gagal.');
                     btn.disabled = false;
                     btn.textContent = '↩ Rollback Perubahan Ini';
                 }
             } catch (e) {
-                alert('Rollback gagal. Coba lagi.');
+                Dialog.warning('Rollback gagal. Coba lagi.');
                 btn.disabled = false;
                 btn.textContent = '↩ Rollback Perubahan Ini';
             }
@@ -598,12 +592,12 @@
                     if (row) row.classList.add('opacity-60');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    alert(data.message || 'Rollback gagal.');
+                    Dialog.warning(data.message || 'Rollback gagal.');
                     btn.disabled = false;
                     btn.textContent = '↩ Rollback Perubahan Ini';
                 }
             } catch (e) {
-                alert('Rollback gagal. Coba lagi.');
+                Dialog.warning('Rollback gagal. Coba lagi.');
                 btn.disabled = false;
                 btn.textContent = '↩ Rollback Perubahan Ini';
             }

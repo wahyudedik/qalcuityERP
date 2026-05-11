@@ -314,7 +314,7 @@
                     }
                 } catch (error) {
                     console.error('Payment processing error:', error);
-                    alert('Payment failed: ' + error.message);
+                    Dialog.warning('Payment failed: ' + error.message);
                 } finally {
                     this.processing = false;
                 }

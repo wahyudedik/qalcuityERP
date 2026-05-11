@@ -4,9 +4,9 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <a href="{{ route('cosmetic.bpom.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
-                <i class="fas fa-plus mr-2"></i>New Registration
-            </a>
+            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
+            <i class="fas fa-plus mr-2"></i>New Registration
+        </a>
     </div>
 
     <div class="py-6">
@@ -37,11 +37,9 @@
             @if ($expiringInfo['expiring_count'] > 0 || $expiringInfo['expired_count'] > 0)
                 <div class="space-y-4">
                     @if ($expiringInfo['expiring_count'] > 0)
-                        <div
-                            class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div class="flex items-start">
-                                <i
-                                    class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
                                 <div>
                                     <h3 class="text-sm font-medium text-yellow-800">
                                         {{ $expiringInfo['expiring_count'] }} Registration(s) Expiring Within 90 Days
@@ -55,8 +53,7 @@
                     @endif
 
                     @if ($expiringInfo['expired_count'] > 0)
-                        <div
-                            class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                             <div class="flex items-start">
                                 <i class="fas fa-times-circle text-red-600 mt-1 mr-3"></i>
                                 <div>
@@ -117,26 +114,19 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Reg. Number</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Product</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Category</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Submitted</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Expiry</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Actions</th>
                             </tr>
                         </thead>
@@ -196,9 +186,8 @@
                                             <form method="POST" action="{{ route('cosmetic.bpom.submit', $reg) }}"
                                                 class="inline">
                                                 @csrf
-                                                <button type="submit"
-                                                    class="text-green-600 hover:text-green-900"
-                                                    onclick="return confirm('Submit this registration to BPOM?')">
+                                                <button type="submit" class="text-green-600 hover:text-green-900"
+                                                    data-confirm="Submit this registration to BPOM?">
                                                     <i class="fas fa-paper-plane"></i>
                                                 </button>
                                             </form>

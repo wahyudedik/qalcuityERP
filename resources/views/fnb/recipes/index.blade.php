@@ -11,7 +11,8 @@
                 <a href="{{ route('fnb.recipes.low-margin') }}"
                     class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors min-h-[44px]">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     Resep Margin Rendah
                 </a>
@@ -19,9 +20,10 @@
                     @csrf
                     <button type="submit"
                         class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors min-h-[44px]"
-                        onclick="return confirm('Update semua biaya bahan dari harga inventori terkini?')">
+                        data-confirm="Update semua biaya bahan dari harga inventori terkini?">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                         Update Biaya
                     </button>
@@ -45,7 +47,8 @@
                     </svg>
                     <span class="text-red-700 font-medium">
                         {{ $lowMarginRecipes->count() }} resep memiliki margin keuntungan rendah (&lt;30%).
-                        <a href="{{ route('fnb.recipes.low-margin') }}" class="underline hover:no-underline">Lihat detail →</a>
+                        <a href="{{ route('fnb.recipes.low-margin') }}" class="underline hover:no-underline">Lihat detail
+                            →</a>
                     </span>
                 </div>
             </div>
@@ -68,7 +71,8 @@
                     <div class="space-y-1 text-sm mb-3">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Hasil:</span>
-                            <span class="font-medium text-gray-900">{{ $recipe->yield_quantity }} {{ $recipe->yield_unit }}</span>
+                            <span class="font-medium text-gray-900">{{ $recipe->yield_quantity }}
+                                {{ $recipe->yield_unit }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">Waktu Persiapan:</span>
@@ -89,8 +93,10 @@
                 </div>
             @empty
                 <div class="col-span-full text-center py-12 text-gray-500">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     <p>Belum ada resep. Buat resep pertama Anda untuk mulai menghitung biaya.</p>
                 </div>

@@ -513,20 +513,20 @@
                     document.getElementById('editMixModal').showModal();
                 })
                 .catch(error => {
-                    alert('Error loading mix design data');
+                    Dialog.warning('Error loading mix design data');
                     console.error(error);
                 });
         }
 
-        function deleteMixDesign(id) {
-            if (confirm('Yakin ingin menghapus mix design ini?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/manufacturing/mix-design/${id}`;
-                form.innerHTML = `@csrf @method('DELETE')`;
-                document.body.appendChild(form);
-                form.submit();
-            }
+        async function deleteMixDesign(id) {
+            const confirmed = await Dialog.danger('Yakin ingin menghapus mix design ini?');
+            if (!confirmed) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/manufacturing/mix-design/${id}`;
+            form.innerHTML = `@csrf @method('DELETE')`;
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 

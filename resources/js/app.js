@@ -9,6 +9,7 @@ import helpSystem from './help-system';
 import './chart-theme'; // BUG-1.9 FIX: theme-changed listener for Chart.js instances
 import numberFormat from './utils/number-format'; // TASK 6.9: Indonesian number formatting
 import { registerLayoutStore } from './stores/layout-store'; // TASK 3.3: Layout state management
+import './custom-dialog'; // Custom dialog system (replaces native alert/confirm/prompt)
 
 // Register Alpine plugins
 Alpine.plugin(collapse);

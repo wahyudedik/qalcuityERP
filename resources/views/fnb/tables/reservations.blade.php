@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Reservasi Meja ' . $table->table_number)
 
@@ -8,7 +8,7 @@
         <div class="mb-6">
             <a href="{{ route('fnb.tables.index') }}"
                 class="text-blue-600 hover:text-blue-800 text-sm transition-colors">
-                ← Kembali ke Manajemen Meja
+                ? Kembali ke Manajemen Meja
             </a>
         </div>
 
@@ -81,7 +81,7 @@
                                         </div>
                                         <div class="text-xs text-gray-500">
                                             {{ \Carbon\Carbon::parse($reservation->reservation_time)->format('H:i') }}
-                                            — {{ $reservation->getEndTime() }}
+                                            � {{ $reservation->getEndTime() }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -125,8 +125,7 @@
                                                 </form>
                                             @endif
                                             @if (in_array($reservation->status, ['confirmed', 'seated']))
-                                                <form action="{{ route('fnb.tables.reservations.cancel', $reservation) }}" method="POST" class="inline"
-                                                    onsubmit="return confirm('Batalkan reservasi ini?')">
+                                                <form action="{{ route('fnb.tables.reservations.cancel', $reservation) }}" method="POST" class="inline" data-confirm="Batalkan reservasi ini?" data-confirm-type="danger">
                                                     @csrf
                                                     <button type="submit"
                                                         class="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors min-h-[32px]">

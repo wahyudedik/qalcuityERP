@@ -1,4 +1,4 @@
-ï»¿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">{{ $deferredItem->typeLabel() }}: {{ $deferredItem->number }}</x-slot>
 
     @if(session('success'))
@@ -14,10 +14,10 @@
             <div class="flex items-start justify-between mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">{{ $deferredItem->description }}</h2>
-                    <p class="text-sm text-gray-500 mt-1">{{ $deferredItem->start_date->format('d M Y') }} â€“ {{ $deferredItem->end_date->format('d M Y') }} Â· {{ $deferredItem->total_periods }} bulan</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ $deferredItem->start_date->format('d M Y') }} – {{ $deferredItem->end_date->format('d M Y') }} · {{ $deferredItem->total_periods }} bulan</p>
                 </div>
                 @if($deferredItem->isActive())
-                <form method="POST" action="{{ route('deferred.cancel', $deferredItem) }}" onsubmit="return confirm('Batalkan item ini?')">
+                <form method="POST" action="{{ route('deferred.cancel', $deferredItem) }}" data-confirm="Batalkan item ini?" data-confirm-type="danger">
                     @csrf @method('PATCH')
                     <button type="submit" class="px-3 py-1.5 text-xs border border-red-200 text-red-600 rounded-lg hover:bg-red-50">Batalkan</button>
                 </form>

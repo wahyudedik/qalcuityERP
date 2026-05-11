@@ -190,7 +190,7 @@
                     Batal
                 </a>
                 <button type="submit"
-                    onclick="return confirm('Yakin ingin menutup sesi kasir ini? Tindakan ini tidak dapat dibatalkan.')"
+                    data-confirm="Yakin ingin menutup sesi kasir ini? Tindakan ini tidak dapat dibatalkan."
                     class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition">
                     Tutup Sesi Kasir
                 </button>

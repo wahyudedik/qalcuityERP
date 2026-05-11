@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">{{ __('Document Templates') }}</x-slot>
 
     {{-- Toolbar --}}
@@ -81,7 +81,7 @@
                                         </form>
                                         <form method="POST"
                                             action="{{ route('documents.templates.destroy', $template) }}"
-                                            class="inline" onsubmit="return confirm('Delete this template?')">
+                                            class="inline" data-confirm="Delete this template?" data-confirm-type="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

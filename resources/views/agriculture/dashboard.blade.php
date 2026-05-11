@@ -151,7 +151,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                                 @if ($crop->growth_stage === 'ready_to_harvest') bg-green-100 text-green-800
                                 @elseif($crop->growth_stage === 'flowering') bg-yellow-100 text-yellow-800
                                 @else bg-blue-100 text-blue-800 @endif">
@@ -177,7 +177,7 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <x-disabled-link class="bg-white shadow rounded-lg p-6" tooltip="Fitur akan segera tersedia">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">📸</span>
                     <div>
@@ -185,9 +185,9 @@
                         <p class="text-sm text-gray-600">Upload plant photo for AI analysis</p>
                     </div>
                 </div>
-            </a>
+            </x-disabled-link>
 
-            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <x-disabled-link class="bg-white shadow rounded-lg p-6" tooltip="Fitur akan segera tersedia">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">💧</span>
                     <div>
@@ -195,9 +195,9 @@
                         <p class="text-sm text-gray-600">View and adjust schedules</p>
                     </div>
                 </div>
-            </a>
+            </x-disabled-link>
 
-            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <x-disabled-link class="bg-white shadow rounded-lg p-6" tooltip="Fitur akan segera tersedia">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">💰</span>
                     <div>
@@ -205,7 +205,7 @@
                         <p class="text-sm text-gray-600">Check commodity prices & trends</p>
                     </div>
                 </div>
-            </a>
+            </x-disabled-link>
         </div>
     </div>
 @endsection

@@ -103,8 +103,7 @@
                     </div>
 
                     <div class="md:col-span-4 flex gap-2">
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
                             <i class="fas fa-filter mr-1"></i> {{ __('Filter') }}
                         </button>
                         <a href="{{ route('telecom.packages.index') }}"
@@ -117,15 +116,13 @@
 
             <!-- Success/Error Messages -->
             @if (session('success'))
-                <div
-                    class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div
-                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -137,11 +134,9 @@
             <!-- Packages Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($packages as $package)
-                    <div
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition-shadow">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition-shadow">
                         <!-- Package Header -->
-                        <div
-                            class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="text-xl font-bold">{{ $package->name }}</h3>
@@ -164,8 +159,7 @@
                             <div class="mb-4">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-gray-600 text-sm">{{ __('Download') }}</span>
-                                    <span
-                                        class="font-bold text-gray-900">{{ $package->download_speed_mbps }}
+                                    <span class="font-bold text-gray-900">{{ $package->download_speed_mbps }}
                                         Mbps</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
@@ -178,8 +172,7 @@
                             <div class="mb-4">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-gray-600 text-sm">{{ __('Upload') }}</span>
-                                    <span
-                                        class="font-bold text-gray-900">{{ $package->upload_speed_mbps }}
+                                    <span class="font-bold text-gray-900">{{ $package->upload_speed_mbps }}
                                         Mbps</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
@@ -220,8 +213,7 @@
 
                             <!-- Subscriptions Count -->
                             <div class="mb-4 text-sm text-gray-600">
-                                <span
-                                    class="font-semibold text-gray-900">{{ $package->subscriptions_count }}</span>
+                                <span class="font-semibold text-gray-900">{{ $package->subscriptions_count }}</span>
                                 {{ __('active subscriptions') }}
                             </div>
 
@@ -246,7 +238,8 @@
                                     </button>
                                 </form>
                                 <form action="{{ route('telecom.packages.destroy', $package) }}" method="POST"
-                                    onsubmit="return confirm('{{ __('Yakin ingin menghapus package ini?') }}')">
+                                    data-confirm="{{ __('Yakin ingin menghapus package ini?') }}"
+                                    data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"

@@ -100,7 +100,7 @@
                                     <button @click="editing = !editing"
                                             class="text-xs text-blue-500 hover:text-blue-700">Edit</button>
                                     <form method="POST" action="{{ route('custom-fields.destroy', $field) }}"
-                                          onsubmit="return confirm('Hapus field ini? Semua nilai yang tersimpan akan ikut terhapus.')">
+                                          data-confirm="Hapus field ini? Semua nilai yang tersimpan akan ikut terhapus." data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                                     </form>

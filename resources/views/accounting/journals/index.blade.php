@@ -78,8 +78,7 @@
                                     <a href="{{ route('journals.show', $j) }}"
                                         class="text-indigo-600 hover:text-indigo-800 text-xs">Detail</a>
                                     @if ($j->status === 'draft')
-                                        <form method="POST" action="{{ route('journals.post', $j) }}"
-                                            onsubmit="return confirm('Post jurnal ini?')">
+                                        <form method="POST" action="{{ route('journals.post', $j) }}" data-confirm="Post jurnal ini?">
                                             @csrf @method('PATCH')
                                             <button class="text-green-600 hover:text-green-800 text-xs">Post</button>
                                         </form>

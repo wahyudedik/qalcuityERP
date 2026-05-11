@@ -1,6 +1,6 @@
 /**
  * HelpSystem - Contextual Help System for ERP
- * 
+ *
  * TASK-015: Implements comprehensive contextual help with:
  * - Help modal with rich content
  * - Tooltips on hover
@@ -8,7 +8,7 @@
  * - Step-by-step guides
  * - Search functionality
  * - Multi-language support (Indonesian)
- * 
+ *
  * @version 1.0.0
  */
 
@@ -217,7 +217,7 @@ class HelpSystem {
 
     /**
      * Register a help topic
-     * 
+     *
      * @param {string} key - Unique topic key
      * @param {Object} topic - Topic data
      */
@@ -249,7 +249,7 @@ class HelpSystem {
 
     /**
      * Show help for a specific topic
-     * 
+     *
      * @param {string} topicKey - Topic key to show
      */
     showHelp(topicKey) {
@@ -268,7 +268,7 @@ class HelpSystem {
 
     /**
      * Show help modal
-     * 
+     *
      * @param {Object} topic - Topic to display
      */
     renderModal(topic) {
@@ -285,13 +285,13 @@ class HelpSystem {
 
         modal.innerHTML = `
             <!-- Backdrop -->
-            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
                  id="help-backdrop"></div>
 
             <!-- Modal -->
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                    
+
                     <!-- Header -->
                     <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
                         <div class="flex items-center justify-between">
@@ -310,7 +310,7 @@ class HelpSystem {
                                     </p>
                                 </div>
                             </div>
-                            <button type="button" 
+                            <button type="button"
                                     id="help-close"
                                     class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +322,7 @@ class HelpSystem {
 
                     <!-- Content -->
                     <div class="px-6 py-4 space-y-6">
-                        
+
                         <!-- Main Content -->
                         <div>
                             <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -378,7 +378,7 @@ class HelpSystem {
                         <!-- Image Guide -->
                         ${topic.image ? `
                             <div>
-                                <img src="${topic.image}" 
+                                <img src="${topic.image}"
                                      alt="${this.escapeHtml(topic.title)}"
                                      class="w-full rounded-lg border border-gray-200 dark:border-gray-700">
                             </div>
@@ -393,7 +393,7 @@ class HelpSystem {
                                     </svg>
                                     <span class="text-sm text-gray-700 dark:text-gray-300">Dokumentasi Lengkap</span>
                                 </div>
-                                <a href="${topic.documentation}" 
+                                <a href="${topic.documentation}"
                                    target="_blank"
                                    class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
                                     Buka Dokumentasi →
@@ -405,12 +405,12 @@ class HelpSystem {
                     <!-- Footer -->
                     <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
                         <div class="flex items-center justify-between">
-                            <button type="button" 
+                            <button type="button"
                                     id="help-search"
                                     class="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
                                 🔍 Cari Bantuan Lain
                             </button>
-                            <button type="button" 
+                            <button type="button"
                                     id="help-close-btn"
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                 Mengerti
@@ -524,7 +524,7 @@ class HelpSystem {
 
     /**
      * Search help topics
-     * 
+     *
      * @param {string} query - Search query
      * @returns {Array} Matching topics
      */
@@ -539,7 +539,7 @@ class HelpSystem {
 
     /**
      * Get all topics for a module
-     * 
+     *
      * @param {string} module - Module name
      * @returns {Array} Topics for module
      */
@@ -551,7 +551,7 @@ class HelpSystem {
 
     /**
      * Get all topics for a page
-     * 
+     *
      * @param {string} page - Page identifier
      * @returns {Array} Topics for page
      */
@@ -563,7 +563,7 @@ class HelpSystem {
 
     /**
      * Register topic from DOM element
-     * 
+     *
      * Usage: <div data-help-topic="customer-selection">
      */
     registerFromDOM() {
@@ -587,7 +587,7 @@ class HelpSystem {
 
     /**
      * Load topic into modal (called from Alpine.js)
-     * 
+     *
      * @param {string} topicKey - Topic identifier
      */
     loadTopic(topicKey) {
@@ -660,12 +660,12 @@ class HelpSystem {
      */
     openSearch() {
         // TODO: Implement search modal
-        alert('Fitur pencarian bantuan akan segera tersedia!');
+        Dialog.alert('Fitur pencarian bantuan akan segera tersedia!');
     }
 
     /**
      * Track help topic usage
-     * 
+     *
      * @param {string} topicKey - Topic identifier
      */
     trackUsage(topicKey) {

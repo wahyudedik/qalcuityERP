@@ -131,11 +131,9 @@
                             </th>
                             <th class="text-left py-3 px-2 text-xs font-medium text-gray-500">Room
                                 Type</th>
-                            <th
-                                class="text-left py-3 px-2 text-xs font-medium text-gray-500 hidden sm:table-cell">
+                            <th class="text-left py-3 px-2 text-xs font-medium text-gray-500 hidden sm:table-cell">
                                 Check-in</th>
-                            <th
-                                class="text-left py-3 px-2 text-xs font-medium text-gray-500 hidden sm:table-cell">
+                            <th class="text-left py-3 px-2 text-xs font-medium text-gray-500 hidden sm:table-cell">
                                 Check-out</th>
                             <th class="text-left py-3 px-2 text-xs font-medium text-gray-500">Status
                             </th>
@@ -187,7 +185,7 @@
                                             @method('DELETE')
                                             <button type="submit"
                                                 class="text-red-600 hover:text-red-700 text-xs font-medium"
-                                                onclick="return confirm('Remove from group?')">
+                                                data-confirm="Remove from group?" data-confirm-type="danger">
                                                 Remove
                                             </button>
                                         </form>

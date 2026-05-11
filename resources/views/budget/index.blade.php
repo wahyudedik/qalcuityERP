@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Anggaran vs Realisasi</x-slot>
 
     {{-- Period selector + Stats --}}
@@ -19,7 +19,7 @@
             </div>
             @if($overCount > 0)
             <div class="bg-red-50 rounded-xl px-4 py-2 border border-red-200 text-sm text-red-600 font-medium">
-                ⚠️ {{ $overCount }} over budget
+                ?? {{ $overCount }} over budget
             </div>
             @endif
         </div>
@@ -40,7 +40,7 @@
     <div id="ai-overrun-banner" class="hidden mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-sm">
         <div class="flex items-center gap-2 text-amber-300 font-medium mb-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Prediksi AI — Risiko Overrun Bulan Ini
+            Prediksi AI � Risiko Overrun Bulan Ini
         </div>
         <div id="ai-overrun-list" class="space-y-1 text-xs text-amber-200/80"></div>
     </div>
@@ -52,7 +52,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                 Saran Alokasi AI untuk Periode <span id="suggest-period-label" class="ml-1 font-bold"></span>
             </div>
-            <button onclick="document.getElementById('ai-suggest-panel').classList.add('hidden')" class="text-slate-400 hover:text-white text-lg leading-none">✕</button>
+            <button onclick="document.getElementById('ai-suggest-panel').classList.add('hidden')" class="text-slate-400 hover:text-white text-lg leading-none">?</button>
         </div>
         <div id="ai-suggest-content" class="p-4 text-sm text-slate-300">
             <div class="animate-pulse text-slate-500">Memuat saran AI...</div>
@@ -110,7 +110,7 @@
                         </td>
                         {{-- AI Prediction Cell --}}
                         <td class="px-4 py-3 text-center hidden lg:table-cell">
-                            <div id="ai-pred-{{ $budget->id }}" class="text-xs text-slate-500 italic animate-pulse">—</div>
+                            <div id="ai-pred-{{ $budget->id }}" class="text-xs text-slate-500 italic animate-pulse">�</div>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
@@ -121,7 +121,7 @@
                                 </button>
                                 @endcanmodule
                                 @canmodule('budget', 'delete')
-                                <form method="POST" action="{{ route('budget.destroy', $budget) }}" onsubmit="return confirm('Nonaktifkan anggaran ini?')">
+                                <form method="POST" action="{{ route('budget.destroy', $budget) }}" data-confirm="Nonaktifkan anggaran ini?">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -157,7 +157,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Anggaran Baru</h3>
-                <button onclick="document.getElementById('modal-add-budget').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-add-budget').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('budget.store') }}" class="p-6 space-y-4">
                 @csrf
@@ -206,7 +206,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Edit Anggaran</h3>
-                <button onclick="document.getElementById('modal-edit-budget').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
+                <button onclick="document.getElementById('modal-edit-budget').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit-budget" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
@@ -254,7 +254,7 @@
         document.getElementById('modal-edit-budget').classList.remove('hidden');
     }
 
-    // ── AI: Overrun Prediction ────────────────────────────────────
+    // -- AI: Overrun Prediction ------------------------------------
     const currentPeriod = '{{ $period }}';
     const overrunUrl    = '{{ route("budget.ai.overrun") }}';
     const suggestUrl    = '{{ route("budget.ai.suggest") }}';
@@ -265,7 +265,7 @@
         low:    'px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300',
         safe:   'px-2 py-0.5 rounded-full bg-green-500/20 text-green-400',
     };
-    const riskLabel = { high: '🔴 Tinggi', medium: '🟡 Sedang', low: '🟢 Rendah', safe: '✓ Aman' };
+    const riskLabel = { high: '?? Tinggi', medium: '?? Sedang', low: '?? Rendah', safe: '? Aman' };
 
     async function loadOverrunPredictions() {
         try {
@@ -279,11 +279,11 @@
                 const el = document.getElementById(`ai-pred-${id}`);
                 if (el) {
                     el.className = `text-xs ${riskBadge[pred.risk] ?? riskBadge.safe}`;
-                    el.textContent = riskLabel[pred.risk] ?? '—';
+                    el.textContent = riskLabel[pred.risk] ?? '�';
                     el.title = pred.message;
                 }
                 if (pred.risk === 'high' || pred.risk === 'medium') {
-                    bannerItems.push(`<div>• ${pred.message}</div>`);
+                    bannerItems.push(`<div>� ${pred.message}</div>`);
                 }
             }
 
@@ -294,7 +294,7 @@
         } catch (e) { /* silent */ }
     }
 
-    // ── AI: Suggest Allocation ────────────────────────────────────
+    // -- AI: Suggest Allocation ------------------------------------
     async function openSuggestPanel() {
         const panel = document.getElementById('ai-suggest-panel');
         const content = document.getElementById('ai-suggest-content');
@@ -325,7 +325,7 @@
             </tr></thead><tbody class="divide-y divide-white/5">`;
 
             for (const s of sugs) {
-                const fmt = v => v != null ? 'Rp ' + Number(v).toLocaleString('id-ID') : '—';
+                const fmt = v => v != null ? 'Rp ' + Number(v).toLocaleString('id-ID') : '�';
                 const existsBadge = s.already_exists
                     ? `<span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">Ada (${fmt(s.existing_amount)})</span>`
                     : `<button onclick="prefillBudget('${escHtml(s.name)}','${escHtml(s.department??'')}','${escHtml(s.category??'')}',${s.suggested_amount})"
@@ -333,7 +333,7 @@
 
                 html += `<tr class="hover:bg-white/5">
                     <td class="py-2 pr-4 text-white font-medium">${escHtml(s.name)}</td>
-                    <td class="py-2 pr-4 text-slate-400 hidden sm:table-cell">${escHtml(s.department ?? '—')}</td>
+                    <td class="py-2 pr-4 text-slate-400 hidden sm:table-cell">${escHtml(s.department ?? '�')}</td>
                     <td class="py-2 pr-4 text-right text-slate-300">${fmt(s.last_year_realized ?? s.basis_amount)}</td>
                     <td class="py-2 pr-4 text-right font-semibold text-white">${fmt(s.suggested_amount)}</td>
                     <td class="py-2 pr-4 ${confColor[s.confidence] ?? 'text-slate-400'}">${escHtml(s.basis)}</td>

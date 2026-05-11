@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Rate Management</x-slot>
 
     @php
@@ -41,16 +41,13 @@
 
         {{-- Rates by Room Type --}}
         @foreach ($roomTypes as $roomType)
-            <div
-                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 {{-- Room Type Header --}}
                 <button @click="toggleRoomType('{{ $roomType->id }}')"
                     class="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center gap-4">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
@@ -72,8 +69,7 @@
                 <div x-show="expandedRoomTypes['{{ $roomType->id }}']">
                     <div class="overflow-x-auto border-t border-gray-100">
                         <table class="w-full text-sm">
-                            <thead
-                                class="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Name</th>
                                     <th class="px-4 py-3 text-left">Type</th>
@@ -127,17 +123,16 @@
                                         </td>
                                         <td class="px-4 py-3 text-center">
                                             <div class="flex items-center justify-center gap-1">
-                                                <button @click="openEditModal({{ $rate->id }})"
-                                                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100">
+                                                <x-disabled-button type="button" tooltip="Fitur akan segera tersedia"
+                                                    class="p-1.5 rounded-lg text-sm">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
-                                                </button>
-                                                <form method="POST" action="{{ route('hotel.rates.destroy', $rate) }}"
-                                                    onsubmit="return confirm('Delete this rate?')">
+                                                </x-disabled-button>
+                                                <form method="POST" action="{{ route('hotel.rates.destroy', $rate) }}" data-confirm="Delete this rate?" data-confirm-type="danger">
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
                                                         class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
@@ -154,8 +149,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8"
-                                            class="px-4 py-8 text-center text-gray-400">
+                                        <td colspan="8" class="px-4 py-8 text-center text-gray-400">
                                             No rates configured for this room type.
                                         </td>
                                     </tr>
@@ -168,29 +162,26 @@
         @endforeach
 
         @if ($roomTypes->isEmpty())
-            <div
-                class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-                <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
                 <p class="text-gray-500 mb-4">No room types found.</p>
-                <a href="{{ route('hotel.room-types.index') }}"
-                    class="text-blue-600 hover:underline">Create room types first</a>
+                <a href="{{ route('hotel.room-types.index') }}" class="text-blue-600 hover:underline">Create room
+                    types first</a>
             </div>
         @endif
 
         {{-- Add Rate Modal --}}
         <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
             @click.self="showAddModal = false">
-            <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto"
-                @click.stop>
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto" @click.stop>
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                     <h3 class="font-semibold text-gray-900">Add Rate</h3>
-                    <button @click="showAddModal = false"
-                        class="text-gray-400 hover:text-gray-600">✕</button>
+                    <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-600">?</button>
                 </div>
                 <form method="POST" action="{{ route('hotel.rates.store') }}" class="p-6 space-y-4">
                     @csrf
@@ -251,8 +242,7 @@
                                     class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
                                     <input type="checkbox" name="day_of_week[]" value="{{ $day }}"
                                         class="rounded text-blue-600">
-                                    <span
-                                        class="text-xs text-gray-600">{{ $dayNames[$day] }}</span>
+                                    <span class="text-xs text-gray-600">{{ $dayNames[$day] }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -299,11 +289,6 @@
 
                 toggleRoomType(id) {
                     this.expandedRoomTypes[id] = !this.expandedRoomTypes[id];
-                },
-
-                openEditModal(rateId) {
-                    // For now, redirect to edit (or implement inline editing modal)
-                    alert('Edit rate ID: ' + rateId + ' (Implement modal or inline edit)');
                 },
             }
         };

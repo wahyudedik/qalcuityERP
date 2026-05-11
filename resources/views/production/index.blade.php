@@ -22,8 +22,7 @@
         <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor WO / produk..."
                 class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select name="status"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
+            <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
                 <option value="pending" @selected(request('status') === 'pending')>Pending</option>
                 <option value="in_progress" @selected(request('status') === 'in_progress')>Sedang Dikerjakan</option>
@@ -75,8 +74,7 @@
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $wo->product?->name ?? '-' }}
                                 @if ($wo->recipe)
-                                    <span
-                                        class="text-xs text-gray-400">({{ $wo->recipe?->name }})</span>
+                                    <span class="text-xs text-gray-400">({{ $wo->recipe?->name }})</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right hidden sm:table-cell text-gray-900">
@@ -109,7 +107,7 @@
                                     $c = $colors[$wo->status] ?? 'gray';
                                 @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                     {{ $labels[$wo->status] ?? $wo->status }}
                                 </span>
                             </td>
@@ -143,8 +141,7 @@
                                             </a>
                                             <form method="POST"
                                                 action="{{ url('manufacturing') }}/{{ $wo->id }}/consume"
-                                                class="inline"
-                                                onsubmit="return confirm('Konsumsi material dari stok?')">
+                                                class="inline" data-confirm="Konsumsi material dari stok?">
                                                 @csrf
                                                 <button type="submit"
                                                     class="text-xs px-2 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Konsumsi</button>
@@ -191,8 +188,7 @@
                         </select>
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Resep/BOM</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Resep/BOM</label>
                         <select name="recipe_id"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Tanpa Resep --</option>

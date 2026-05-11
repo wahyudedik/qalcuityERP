@@ -24,8 +24,7 @@
         </div>
 
         {{-- Asset Details Card (hidden until scanned) --}}
-        <div id="asset-details-card"
-            class="hidden bg-white rounded-2xl border border-gray-200 p-5">
+        <div id="asset-details-card" class="hidden bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-start justify-between mb-4">
                 <div>
                     <h2 id="asset-name" class="text-lg font-bold text-gray-900">-</h2>
@@ -57,8 +56,7 @@
             </div>
 
             {{-- Quick Maintenance Form --}}
-            <form method="POST" action="{{ route('assets.maintenance.store') }}"
-                class="border-t border-gray-100 pt-4">
+            <form method="POST" action="{{ route('assets.maintenance.store') }}" class="border-t border-gray-100 pt-4">
                 @csrf
                 <input type="hidden" name="asset_id" id="form-asset-id">
 
@@ -118,8 +116,7 @@
         </div>
 
         {{-- Maintenance History Preview --}}
-        <div id="maintenance-history"
-            class="hidden bg-white rounded-2xl border border-gray-200 p-5">
+        <div id="maintenance-history" class="hidden bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-900 mb-3">Riwayat Maintenance Terakhir</h3>
             <div id="history-list" class="space-y-2">
                 {{-- Populated via JS --}}
@@ -269,7 +266,7 @@
             function startScanner() {
                 // Check if browser supports getUserMedia
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
+                    Dialog.warning('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
                     return;
                 }
 
@@ -289,20 +286,20 @@
                     });
                 } catch (error) {
                     console.error('Scanner initialization error:', error);
-                    alert('Gagal menginisialisasi scanner: ' + error.message);
+                    Dialog.warning('Gagal menginisialisasi scanner: ' + error.message);
                     stopScanner();
                 }
             }
 
             function handleCameraError(error) {
                 if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                    Dialog.warning('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
                 } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                    alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                    Dialog.warning('Tidak ada kamera yang ditemukan di perangkat Anda.');
                 } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                    alert('Kamera sedang digunakan oleh aplikasi lain.');
+                    Dialog.warning('Kamera sedang digunakan oleh aplikasi lain.');
                 } else {
-                    alert('Gagal mengakses kamera: ' + error.message);
+                    Dialog.warning('Gagal mengakses kamera: ' + error.message);
                 }
             }
 

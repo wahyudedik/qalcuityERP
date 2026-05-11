@@ -155,10 +155,10 @@
 
     @push('scripts')
         <script>
-            function deleteOrder(id) {
-                if (confirm('Are you sure you want to delete this radiology order?')) {
-                    document.getElementById(`delete-order-${id}`).submit();
-                }
+            async function deleteOrder(id) {
+                const confirmed = await Dialog.danger('Are you sure you want to delete this radiology order?');
+                if (!confirmed) return;
+                document.getElementById(`delete-order-${id}`).submit();
             }
         </script>
     @endpush

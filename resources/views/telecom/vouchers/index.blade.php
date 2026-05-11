@@ -248,7 +248,8 @@
                                                 method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit" class="text-red-600 hover:text-red-900"
-                                                    onclick="return confirm('{{ __('Revoke this voucher?') }}')">{{ __('Revoke') }}</button>
+                                                    data-confirm="{{ __('Revoke this voucher?') }}"
+                                                    data-confirm-type="danger">{{ __('Revoke') }}</button>
                                             </form>
 
                                             <form action="{{ route('telecom.vouchers.extend', $voucher) }}"

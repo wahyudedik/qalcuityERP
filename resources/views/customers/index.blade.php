@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">Data Customer</x-slot>
 
     {{-- Stats --}}
@@ -115,8 +115,7 @@
                                     </form>
                                     @endcanmodule
                                     @canmodule('customers', 'delete')
-                                    <form method="POST" action="{{ route('customers.destroy', $c) }}"
-                                        onsubmit="return confirm('Hapus customer {{ addslashes($c->name) }}?')">
+                                    <form method="POST" action="{{ route('customers.destroy', $c) }}" data-confirm="Hapus customer {{ addslashes($c->name) }}?" data-confirm-type="danger">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="p-1.5 rounded-lg text-red-400 hover:bg-red-50"
@@ -223,8 +222,7 @@
                         </form>
                         @endcanmodule
                         @canmodule('customers', 'delete')
-                        <form method="POST" action="{{ route('customers.destroy', $c) }}" class="inline"
-                            onsubmit="return confirm('Hapus customer {{ addslashes($c->name) }}?')">
+                        <form method="POST" action="{{ route('customers.destroy', $c) }}" class="inline" data-confirm="Hapus customer {{ addslashes($c->name) }}?" data-confirm-type="danger">
                             @csrf @method('DELETE')
                             <button type="submit" class="min-h-[44px] px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
                                 Hapus
@@ -254,7 +252,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Tambah Customer</h3>
                 <button onclick="document.getElementById('modal-add').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('customers.store') }}" class="p-6 space-y-3">
                 @csrf
@@ -317,7 +315,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-900">Edit Customer</h3>
                 <button onclick="document.getElementById('modal-edit').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form id="form-edit" method="POST" class="p-6 space-y-3">
                 @csrf @method('PUT')

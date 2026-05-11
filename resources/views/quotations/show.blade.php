@@ -51,7 +51,7 @@
                     <form method="POST" action="{{ route('quotations.convert', $quotation) }}">
                         @csrf
                         <button type="submit" class="text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
-                            onclick="return confirm('Konversi penawaran ini ke Sales Order?')">
+                            data-confirm="Konversi penawaran ini ke Sales Order?">
                             Konversi ke Sales Order
                         </button>
                     </form>

@@ -4,21 +4,20 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <button onclick="openMaintenanceModal()"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Report Maintenance
-                </button>
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Report Maintenance
+        </button>
         <a href="{{ route('hotel.housekeeping.tasks.index') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    View Tasks
-                </a>
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            View Tasks
+        </a>
     </div>
 
     <div class="space-y-6">
@@ -36,18 +35,15 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Clean</span>
-                        <span
-                            class="text-sm font-semibold text-green-600">{{ $stats['rooms']['clean'] ?? 0 }}</span>
+                        <span class="text-sm font-semibold text-green-600">{{ $stats['rooms']['clean'] ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Dirty</span>
-                        <span
-                            class="text-sm font-semibold text-orange-600">{{ $stats['rooms']['dirty'] ?? 0 }}</span>
+                        <span class="text-sm font-semibold text-orange-600">{{ $stats['rooms']['dirty'] ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Inspected</span>
-                        <span
-                            class="text-sm font-semibold text-blue-600">{{ $stats['rooms']['inspected'] ?? 0 }}</span>
+                        <span class="text-sm font-semibold text-blue-600">{{ $stats['rooms']['inspected'] ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Out of Order</span>
@@ -69,8 +65,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Pending</span>
-                        <span
-                            class="text-sm font-semibold text-orange-600">{{ $stats['tasks']['pending'] ?? 0 }}</span>
+                        <span class="text-sm font-semibold text-orange-600">{{ $stats['tasks']['pending'] ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">In Progress</span>
@@ -84,8 +79,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Overdue</span>
-                        <span
-                            class="text-sm font-semibold text-red-600">{{ $stats['tasks']['overdue'] ?? 0 }}</span>
+                        <span class="text-sm font-semibold text-red-600">{{ $stats['tasks']['overdue'] ?? 0 }}</span>
                     </div>
                 </div>
             </div>
@@ -170,8 +164,7 @@
                         </div>
                         <div class="space-y-2">
                             @forelse($rooms[$status] ?? [] as $room)
-                                <div
-                                    class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                                <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                                     <div>
                                         <p class="text-sm font-medium text-gray-900">Room
                                             {{ $room->number }}</p>
@@ -203,20 +196,15 @@
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Room</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Type</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Priority</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Assigned To</th>
-                            <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Actions</th>
                         </tr>
                     </thead>
@@ -242,8 +230,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5"
-                                    class="px-4 py-8 text-center text-sm text-gray-500">No pending
+                                <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">No pending
                                     tasks</td>
                             </tr>
                         @endforelse
@@ -335,25 +322,25 @@
                 document.getElementById('modal-maintenance').classList.add('hidden');
             }
 
-            function updateRoomStatus(roomId, status) {
-                if (confirm('Mark this room as ' + status + '?')) {
-                    fetch(`/hotel/housekeeping/rooms/${roomId}/status`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            status
-                        })
-                    }).then(response => {
-                        if (response.ok) location.reload();
-                    });
-                }
+            async function updateRoomStatus(roomId, status) {
+                const confirmed = await Dialog.confirm('Mark this room as ' + status + '?');
+                if (!confirmed) return;
+                fetch(`/hotel/housekeeping/rooms/${roomId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        status
+                    })
+                }).then(response => {
+                    if (response.ok) location.reload();
+                });
             }
 
-            function assignTask(taskId) {
-                const staffId = prompt('Enter staff user ID to assign:');
+            async function assignTask(taskId) {
+                const staffId = await Dialog.prompt('Enter staff user ID to assign:');
                 if (staffId) {
                     fetch(`/hotel/housekeeping/tasks/${taskId}/assign`, {
                         method: 'POST',

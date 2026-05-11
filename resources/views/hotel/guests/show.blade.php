@@ -1,4 +1,4 @@
-ï»¿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
             {{ $guest->name }}
@@ -68,21 +68,21 @@
                     <div>
                         <p class="text-xs text-gray-500 mb-1">ID Type</p>
                         <p class="font-medium text-gray-900">
-                            {{ $guest->id_type ? strtoupper($guest->id_type) : 'â€”' }}</p>
+                            {{ $guest->id_type ? strtoupper($guest->id_type) : '—' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 mb-1">ID Number</p>
-                        <p class="font-medium text-gray-900">{{ $guest->id_number ?? 'â€”' }}</p>
+                        <p class="font-medium text-gray-900">{{ $guest->id_number ?? '—' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 mb-1">Date of Birth</p>
                         <p class="font-medium text-gray-900">
-                            {{ $guest->date_of_birth ? \Carbon\Carbon::parse($guest->date_of_birth)->format('d M Y') : 'â€”' }}
+                            {{ $guest->date_of_birth ? \Carbon\Carbon::parse($guest->date_of_birth)->format('d M Y') : '—' }}
                         </p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 mb-1">Nationality</p>
-                        <p class="font-medium text-gray-900">{{ $guest->nationality ?? 'â€”' }}</p>
+                        <p class="font-medium text-gray-900">{{ $guest->nationality ?? '—' }}</p>
                     </div>
                 </div>
 
@@ -149,9 +149,9 @@
                                         </a>
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell text-gray-700">
-                                        {{ $rsv->roomType?->name ?? 'â€”' }}</td>
+                                        {{ $rsv->roomType?->name ?? '—' }}</td>
                                     <td class="px-4 py-3 hidden lg:table-cell text-gray-600">
-                                        {{ $rsv->room?->number ?? 'â€”' }}</td>
+                                        {{ $rsv->room?->number ?? '—' }}</td>
                                     <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($rsv->check_in_date)->format('d M Y') }}</td>
                                     <td
@@ -198,7 +198,7 @@
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500 text-sm">Last Stay</span>
                         <span class="font-medium text-gray-700">
-                            {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : 'â€”' }}
+                            {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : '—' }}
                         </span>
                     </div>
                     <div class="flex items-center justify-between">
@@ -231,8 +231,7 @@
                         </svg>
                         Edit Profile
                     </button>
-                    <form method="POST" action="{{ route('hotel.guests.destroy', $guest) }}"
-                        onsubmit="return confirm('Delete this guest? This action cannot be undone.')">
+                    <form method="POST" action="{{ route('hotel.guests.destroy', $guest) }}" data-confirm="Delete this guest? This action cannot be undone." data-confirm-type="danger">
                         @csrf @method('DELETE')
                         <button type="submit"
                             class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition">
@@ -274,7 +273,7 @@
                 class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
                 <h3 class="font-semibold text-gray-900">Edit Guest</h3>
                 <button onclick="document.getElementById('modal-edit-guest').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600">âœ•</button>
+                    class="text-gray-400 hover:text-gray-600">?</button>
             </div>
             <form method="POST" action="{{ route('hotel.guests.update', $guest) }}" class="p-6 space-y-4">
                 @csrf @method('PUT')
@@ -393,10 +392,10 @@
                     info: 'bg-blue-600'
                 };
                 const icons = {
-                    success: 'âœ“',
-                    error: 'âœ•',
-                    warning: 'âš ',
-                    info: 'â„¹'
+                    success: '?',
+                    error: '?',
+                    warning: '?',
+                    info: '?'
                 };
                 const toast = document.createElement('div');
                 toast.className =

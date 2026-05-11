@@ -1,6 +1,6 @@
 /**
  * ConflictResolutionUI
- * 
+ *
  * TASK 1.2 & 1.3: UI Component untuk menampilkan dan resolve conflicts
  * - Menampilkan daftar conflicts
  * - Field-level comparison (diff viewer)
@@ -42,7 +42,7 @@ class ConflictResolutionUI {
         this.modal.innerHTML = `
             <!-- Backdrop -->
             <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="window.conflictResolutionUI.hide()"></div>
-            
+
             <!-- Modal Container -->
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
@@ -78,7 +78,7 @@ class ConflictResolutionUI {
                             </div>
                             <div class="flex items-center space-x-2">
                                 <label class="text-gray-600 dark:text-gray-300 text-xs">Auto-resolve:</label>
-                                <select id="auto-resolve-strategy" onchange="window.conflictResolutionUI.updateAutoStrategy(this.value)" 
+                                <select id="auto-resolve-strategy" onchange="window.conflictResolutionUI.updateAutoStrategy(this.value)"
                                         class="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                     <option value="merge">Smart Merge</option>
                                     <option value="local_wins">Local Wins</option>
@@ -86,7 +86,7 @@ class ConflictResolutionUI {
                                     <option value="role_priority">Role Priority</option>
                                     <option value="last_write">Last Write Wins</option>
                                 </select>
-                                <button onclick="window.conflictResolutionUI.autoResolveAll()" 
+                                <button onclick="window.conflictResolutionUI.autoResolveAll()"
                                         class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded transition-colors">
                                     Auto-Resolve All
                                 </button>
@@ -110,14 +110,14 @@ class ConflictResolutionUI {
                     <!-- Footer -->
                     <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-t border-gray-200 dark:border-gray-600">
                         <div class="flex items-center justify-between">
-                            <button onclick="window.conflictResolutionUI.loadConflicts()" 
+                            <button onclick="window.conflictResolutionUI.loadConflicts()"
                                     class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
                                 <span>Refresh</span>
                             </button>
-                            <button onclick="window.conflictResolutionUI.hide()" 
+                            <button onclick="window.conflictResolutionUI.hide()"
                                     class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                                 Close
                             </button>
@@ -208,7 +208,7 @@ class ConflictResolutionUI {
         }
 
         listEl.innerHTML = this.conflicts.map(conflict => `
-            <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer" 
+            <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                  onclick="window.conflictResolutionUI.showConflictDetail(${conflict.id})">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
@@ -333,27 +333,27 @@ class ConflictResolutionUI {
                 <!-- Resolution Actions -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 space-y-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Resolve Conflict</h3>
-                    
+
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'local_wins')" 
+                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'local_wins')"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                             <div class="font-semibold">Use Local Value</div>
                             <div class="text-xs text-blue-100 mt-1">Keep offline changes</div>
                         </button>
-                        
-                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'server_wins')" 
+
+                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'server_wins')"
                                 class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                             <div class="font-semibold">Use Server Value</div>
                             <div class="text-xs text-red-100 mt-1">Discard offline changes</div>
                         </button>
-                        
-                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'merge')" 
+
+                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'merge')"
                                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                             <div class="font-semibold">Smart Merge</div>
                             <div class="text-xs text-green-100 mt-1">Combine both changes</div>
                         </button>
-                        
-                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'skip')" 
+
+                        <button onclick="window.conflictResolutionUI.resolveConflict(${conflict.id}, 'skip')"
                                 class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                             <div class="font-semibold">Skip</div>
                             <div class="text-xs text-gray-100 mt-1">Ignore this conflict</div>
@@ -362,7 +362,7 @@ class ConflictResolutionUI {
 
                     <!-- Auto-resolve with role priority -->
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-600">
-                        <button onclick="window.conflictResolutionUI.resolveWithRolePriority(${conflict.id})" 
+                        <button onclick="window.conflictResolutionUI.resolveWithRolePriority(${conflict.id})"
                                 class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                             <div class="font-semibold">🎯 Auto-Resolve by Role Priority</div>
                             <div class="text-xs text-purple-100 mt-1">Manager > Supervisor > Staff (auto-detect)</div>
@@ -435,7 +435,8 @@ class ConflictResolutionUI {
      * Auto-resolve all pending conflicts
      */
     async autoResolveAll() {
-        if (!confirm('Auto-resolve all pending conflicts with current strategy?')) {
+        const confirmed = await Dialog.confirm('Auto-resolve all pending conflicts with current strategy?');
+        if (!confirmed) {
             return;
         }
 
@@ -493,8 +494,8 @@ class ConflictResolutionUI {
         // Use existing notification system or create simple toast
         if (window.showToast) {
             window.showToast(message, type);
-        } else {
-            alert(message);
+        } else if (window.Dialog) {
+            Dialog.alert(message);
         }
     }
 }

@@ -206,12 +206,12 @@
                         if (result.success) {
                             window.location.href = result.next_step;
                         } else {
-                            alert('Failed to save industry selection');
+                            Dialog.warning('Failed to save industry selection');
                             this.loading = false;
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
+                        Dialog.warning('An error occurred. Please try again.');
                         this.loading = false;
                     }
                 }
